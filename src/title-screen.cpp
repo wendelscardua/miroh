@@ -50,6 +50,8 @@ void TitleScreen::loop() {
     ppu_wait_nmi();
     pad_poll(0);
 
+    rand16();
+
     u8 pressed = get_pad_new(0);
     if (pressed & (PAD_START | PAD_A)) {
       current_mode = GameMode::Gameplay;
