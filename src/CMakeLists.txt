@@ -58,6 +58,7 @@ add_library(SourceObj
   gameplay.cpp
 
   attributes.cpp
+  board.cpp
   donut.cpp
   donut.s
   ggsound.cpp

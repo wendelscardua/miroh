@@ -12,7 +12,7 @@
 #include "palettes.hpp"
 #include "gameplay.hpp"
 
-Gameplay::Gameplay() {
+Gameplay::Gameplay() : board() {
     set_chr_bank(0);
 
     set_prg_bank(GET_BANK(bg_chr));
@@ -27,6 +27,8 @@ Gameplay::Gameplay() {
 
     vram_adr(NAMETABLE_A);
     vram_write(gameplay_nam, 1024);
+
+    board.render(4, 4);
 
     set_prg_bank(GET_BANK(bg_palette));
     pal_bg(bg_palette);
