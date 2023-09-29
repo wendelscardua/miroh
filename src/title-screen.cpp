@@ -1,30 +1,27 @@
-#include "title-screen.hpp"
 
 #include <bank.h>
 #include <nesdoug.h>
 #include <neslib.h>
 
 #include "bank-helper.hpp"
-#include "common.hpp"
-#include "donut.hpp"
 
 #include "chr-data.hpp"
+#include "common.hpp"
+#include "donut.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
+#include "title-screen.hpp"
 
-namespace TitleScreen {
-  using Donut::decompress_to_ppu;
-
-  void init() {
+TitleScreen::TitleScreen() {
     set_chr_bank(0);
 
     set_prg_bank(GET_BANK(bg_chr));
     vram_adr(PPU_PATTERN_TABLE_0);
-    decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
+    Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
 
     set_prg_bank(GET_BANK(sprites_chr));
     vram_adr(PPU_PATTERN_TABLE_1);
-    decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
+    Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
 
     set_prg_bank(GET_BANK(title_nam));
 
@@ -41,12 +38,18 @@ namespace TitleScreen {
     ppu_on_all();
 
     pal_fade_to(0, 4);
-  }
+}
 
-  void deinit() {
+TitleScreen::~TitleScreen() {
     pal_fade_to(4, 0);
     ppu_off();
-  }
+}
 
-  void update() { u8 pressed = get_pad_new(0); }
-} // namespace TitleScreen
+void TitleScreen::loop() {
+  while(current_mode == GameMode::TitleScreen) {
+    ppu_wait_nmi();
+    pad_poll(0);
+
+    u8 pressed = get_pad_new(0);
+  }
+}

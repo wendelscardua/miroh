@@ -1,7 +1,8 @@
 #pragma once
 
-namespace TitleScreen {
-  void init();
-  void deinit();
-  void update();
-}
+class TitleScreen {
+public:
+  TitleScreen();
+  ~TitleScreen();
+  void loop();
+};

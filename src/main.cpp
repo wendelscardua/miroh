@@ -39,39 +39,15 @@ int main() {
   main_init();
 
   while (true) {
-    ppu_wait_nmi();
-
-    if (current_mode != previous_mode) {
-      switch (previous_mode) {
-      case GameMode::TitleScreen:
-        TitleScreen::deinit();
-        break;
-      default:
-        break;
-      }
-      ppu_wait_nmi();
-      switch (current_mode) {
-      case GameMode::TitleScreen:
-        TitleScreen::init();
-        break;
-      default:
-        break;
-      }
-      previous_mode = current_mode;
-    }
-
-    pad_poll(0);
-
     switch (current_mode) {
     case GameMode::TitleScreen:
-      TitleScreen::update();
+      {
+        TitleScreen titleScreen;
+        titleScreen.loop();
+      }
       break;
     default:
       break;
     }
-
-    #ifndef NDEBUG
-    gray_line();
-    #endif
   }
 }
