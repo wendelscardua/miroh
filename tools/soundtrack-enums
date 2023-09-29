@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+
+  gem 'famitracker_parser', github: 'wendelscardua/famitracker_parser'
+  gem 'thor'
+end
+
+require 'thor'
+require_relative './nexxt'
+
+# Tool for converting a famitracker text into a .hpp header with enums
+class SoundtrackEnums < Thor
+  def self.exit_on_failure?
+    true
+  end
+
+  desc 'generate HPP_FILE FAMITRACKER_TXT_FILE', 'Generates hpp file based on Famitracker text export'
+  def generate(hpp_file, txt_file)
+    ft = FamitrackerParser::Parser.parse_file! txt_file
+
+    track_names = ft.tracks.map(&:name)
+
+    songs = track_names.reject { |name| name.start_with?('sfx') }.map { |name| as_label(name) }
+    effects = track_names.select { |name| name.start_with?('sfx') }.map { |name| as_label(name.sub(/\Asfx[\W_]*/, '')) }
+
+    File.open(hpp_file, 'w') do |f|
+      f.puts '#pragma once'
+      f.puts '#include "common.hpp"'
+      f.puts 'enum class Song : u8 {'
+      songs.each { |song| f.puts "  #{song}," }
+      f.puts '};'
+      f.puts 'enum class SFX : u8 {'
+      effects.each { |effect| f.puts "  #{effect}," }
+      f.puts '};'
+    end
+  end
+
+  private
+
+  def as_label(name)
+    name.gsub(/[^\p{Alnum}]+/, '_')
+        .sub(/\A_+/, '')
+        .sub(/_+\z/, '')
+        .capitalize
+  end
+end
+
+SoundtrackEnums.start

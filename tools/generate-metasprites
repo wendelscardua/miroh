@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+
+  gem 'thor'
+end
+
+require 'thor'
+require_relative './nexxt'
+
+# Tool for converting a NEXXT session into metasprite data
+class GenerateMetasprites < Thor
+  def self.exit_on_failure?
+    true
+  end
+
+  desc 'generate ASM_FILE HEADER SESSION_FILE', 'Generates asm file and header based on NEXXT session'
+  method_option :bank, type: :string, required: false
+  method_option :label_prefix, type: :string, required: false
+  def generate(s_file, h_file, session_file)
+    label_prefix = options[:label_prefix] || 'metasprite'
+
+    bank = options[:bank] || '.prg_rom_last'
+
+    session = NEXXT::Session.read(session_file)
+
+    File.open(s_file, 'w') do |f|
+      f.puts <<~PREAMBLE
+        .section #{bank}
+        .global #{label_prefix}_list
+        #{label_prefix}_list:
+      PREAMBLE
+      session.metasprites.each do |metasprite|
+        f.puts ".word #{label_prefix}_#{metasprite.name}"
+      end
+      # rubocop:disable Style/CombinableLoops
+      session.metasprites.each do |metasprite|
+        f.puts ".global #{label_prefix}_#{metasprite.name}"
+        f.puts "#{label_prefix}_#{metasprite.name}:"
+        metasprite.sprites.each do |sprite|
+          f.puts ".byte #{sprite.x}, #{sprite.y}, #{format('$%02x', sprite.tile)}, #{sprite.attribute}"
+        end
+        f.puts '.byte $80'
+      end
+      # rubocop:enable Style/CombinableLoops
+    end
+
+    File.open(h_file, 'w') do |f|
+      f.puts '#pragma once'
+      f.puts '#include "common.hpp"'
+      f.puts "extern \"C\" const u8* const #{label_prefix}_list[];"
+      session.metasprites.each do |metasprite|
+        f.puts "extern \"C\" const u8 #{label_prefix}_#{metasprite.name}[];"
+      end
+      f.puts "enum class #{label_prefix}_id : u8 {"
+      session.metasprites.each do |metasprite|
+        f.puts "  #{metasprite.name},"
+      end
+      f.puts '};'
+    end
+  end
+end
+
+GenerateMetasprites.start

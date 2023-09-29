@@ -1,0 +1,215 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+
+  gem 'thor'
+end
+
+require 'thor'
+
+# Tool for reading the .map file
+class MapParser < Thor
+  def self.exit_on_failure?
+    true
+  end
+
+  desc 'usage MAP_FILE', 'Display memory usage per section'
+  method_option :mapper,
+                type: :string,
+                enum: %w[action53],
+                default: 'action53',
+                required: false
+  method_option :mapper_options,
+                type: :hash,
+                default: {},
+                required: false
+  method_option :top,
+                type: :numeric,
+                default: 0,
+                required: false,
+                desc: 'Show also top N largest uses of memory per area'
+  def usage(map_file)
+    layout = case options[:mapper]
+             when 'action53'
+               banks = options[:mapper_options].fetch('banks', '1').to_i
+               Layout.build_action53(banks:)
+             else
+               raise NotImplementedError
+             end
+    map = Map.read(file: map_file, layout:)
+
+    printf "%<name>12s %<used>8s %<total>8s %<free>8s\n",
+           name: 'Area', used: 'Used', total: 'Total', free: 'Free'
+
+    map.areas.each do |area|
+      used = area.out_sections
+                 .map { |out| out.usage }
+                 .sum
+      total = area.range.end - area.range.begin
+      printf "%<name>12s %<used>8x %<total>8x %<free>8x\n",
+             name: area.name,
+             used:,
+             total:,
+             free: total - used
+
+      top = options[:top]
+      next if top.zero?
+
+      usage_table = area.out_sections
+                        .flat_map do |out_section|
+        out_section.in_sections.map { |in_section| [in_section, in_section.usage, out_section] }
+      end
+      usage_table.sort_by { |_, usage, _| usage }
+                 .reverse
+                 .take(top)
+                 .each do |in_section, usage, out_section|
+        printf "             %<usage>8x: %<in_section>s in %<out_section>s\n",
+               in_section: in_section.name,
+               usage:,
+               out_section: out_section.name
+      end
+    end
+  end
+
+  # layout of ram and rom areas
+  class Layout
+    attr_reader :areas
+
+    def initialize(areas)
+      @areas = areas
+    end
+
+    def self.build_action53(banks:)
+      areas = [
+        Area.new('Zero Page', 0x00...0x100),
+        Area.new('RAM', 0x100...0x1000)
+      ]
+
+      (0..banks - 2).each do |bank|
+        areas << Area.new("PRG ROM #{bank}",
+                          (0x8000 + 0x10000 * bank)...
+                          (0xc000 + 0x10000 * bank))
+      end
+
+      areas << Area.new('PRG ROM Last', 0xc000...0x10000)
+
+      new(areas)
+    end
+
+    class Area
+      attr_reader :range, :name
+
+      def initialize(name, range)
+        @name = name
+        @range = range
+      end
+    end
+  end
+
+  # .map contents in an structured format
+  class Map
+    attr_reader :areas
+
+    def initialize(areas)
+      @areas = areas
+    end
+
+    def self.read(file:, layout:)
+      areas = layout.areas.map { |area| Area.new(area) }
+      current_area = nil
+      current_out_section = nil
+      current_in_section = nil
+      File.read(file).lines(chomp: true).drop(1).each do |line|
+        match = line.match(/\A(?<vma>.{8})\s
+                              (?<lma>.{8})\s
+                              (?<size>.{8})\s(?<align>.{5})\s
+                              (?:
+                              (?<out>\S.*)|
+                              \s{8}(?<in>\S.*)|
+                              \s{16}(?<sym>\S.*)
+                              )/x)
+        next unless match
+
+        # vma = match['vma'].to_i(16)
+        lma = match['lma'].to_i(16)
+        size = match['size'].to_i(16)
+
+        if (out_name = match['out'])
+          break if out_name == '.debug_line'
+
+          current_area = areas.find { |area| area.range.include? lma }
+          next unless current_area
+
+          current_out_section = OutSection.new(name: out_name,
+                                               used_range: lma...lma + size)
+          current_area.out_sections << current_out_section
+        elsif (in_name = match['in'])
+          current_in_section = InSection.new(name: in_name,
+                                             used_range: lma...lma + size)
+          current_out_section.in_sections << current_in_section
+        elsif (sym_name = match['sym'])
+          current_in_section.symbols << Symbol.new(name: sym_name, used_range: lma...lma + size)
+        end
+      end
+
+      Map.new(areas)
+    end
+
+    class Area
+      attr_reader :name, :range, :out_sections
+
+      def initialize(layout_area)
+        @name = layout_area.name
+        @range = layout_area.range
+        @out_sections = []
+      end
+    end
+
+    class OutSection
+      attr_reader :name, :used_range, :in_sections
+
+      def initialize(name:, used_range:)
+        @name = name
+        @used_range = used_range
+        @in_sections = []
+      end
+
+      def usage
+        used_range.end - used_range.begin
+      end
+    end
+
+    class InSection
+      attr_reader :name, :used_range, :symbols
+
+      def initialize(name:, used_range:)
+        @name = name
+        @used_range = used_range
+        @symbols = []
+      end
+
+      def usage
+        used_range.end - used_range.begin
+      end
+    end
+
+    class Symbol
+      attr_reader :name, :used_range
+
+      def initialize(name:, used_range:)
+        @name = name
+        @used_range = used_range
+      end
+
+      def usage
+        used_range.end - used_range.begin
+      end
+    end
+  end
+end
+
+MapParser.start

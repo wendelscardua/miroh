@@ -1,0 +1,63 @@
+module NEXXT
+  class Session
+    attr_reader text: String
+    attr_reader flat_table: Hash[String,untyped]
+    attr_reader table: Hash[String,untyped]
+    attr_reader chr_main: Array[Integer]?
+    attr_reader chr_copy: Array[Integer]?
+
+    def initialize: (String text) -> void
+    def self.read: (String file) -> Session
+    def self.parse_table: (Hash[String,untyped]) -> Hash[String,untyped]
+    def self.decompose_key: (String) -> Array[String]
+    def self.decode_hex: (String) -> Array[Integer]?
+    def self.metasprite_names: (Hash[String,untyped]) -> Hash[String,Integer]
+    def self.make_metasprites: (names: Hash[String,Integer], bytes: Array[Integer], offset: { x: Integer, y: Integer }) -> Array[Metasprite]
+  end
+
+  class Sprite
+    attr_reader x: Integer
+    attr_reader y: Integer
+    attr_reader tile: Integer
+    attr_reader attribute: Integer
+
+    def initialize: (x: Integer, y: Integer, tile: Integer, attribute: Integer) -> void
+  end
+
+  class Metasprite
+    attr_reader name: String
+    attr_reader sprites: Array[Sprite]
+
+    def initialize: (name: String, sprites: Array[Sprite]) -> void
+  end
+
+  class MapFile
+    attr_reader raw_bytes: Array[Integer]
+    attr_reader width: Integer
+    attr_reader height: Integer
+    attr_reader tiles: Array[Array[Integer]]
+    attr_reader attributes: Array[Integer]
+    attr_reader metatiles: Array[Metatile]
+
+    def initialize: (Array[Integer] raw_bytes) -> void
+
+    def self.read: (String file) -> MapFile
+    def self.extract_dimensions: (Array[Integer] bytes) -> [Integer, Integer]
+    def self.organize_in_tiles: (Array[Integer] bytes, Integer width, Integer height) -> Array[Array[Integer]]
+    def self.extract_attribute: (Array[Integer] attributes, Integer width, Integer meta_row, Integer meta_column) -> Integer
+    def self.extract_metatile_tiles: (Array[Array[Integer]] tiles, Integer meta_row, Integer meta_column) -> Array[Integer]
+    def self.organize_in_metatiles: (Array[Array[Integer]] tiles, Array[Integer] attributes, Integer width, Integer height) -> Array[Array[Metatile]]
+
+    class Metatile
+      attr_reader upper_left: Integer
+      attr_reader upper_right: Integer
+      attr_reader lower_left: Integer
+      attr_reader lower_right: Integer
+      attr_reader attribute: Integer
+
+      def initialize: (Integer upper_left, Integer upper_right, Integer lower_left, Integer lower_right, Integer attribute) -> void
+
+      def to_a: -> [Integer, Integer, Integer, Integer, Integer]
+    end
+  end
+end
