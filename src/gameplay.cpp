@@ -10,9 +10,9 @@
 #include "donut.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
-#include "title-screen.hpp"
+#include "gameplay.hpp"
 
-TitleScreen::TitleScreen() {
+Gameplay::Gameplay() {
     set_chr_bank(0);
 
     set_prg_bank(GET_BANK(bg_chr));
@@ -26,7 +26,7 @@ TitleScreen::TitleScreen() {
     set_prg_bank(GET_BANK(title_nam));
 
     vram_adr(NAMETABLE_A);
-    vram_write(title_nam, 1024);
+    vram_write(gameplay_nam, 1024);
 
     set_prg_bank(GET_BANK(bg_palette));
     pal_bg(bg_palette);
@@ -40,19 +40,16 @@ TitleScreen::TitleScreen() {
     pal_fade_to(0, 4);
 }
 
-TitleScreen::~TitleScreen() {
+Gameplay::~Gameplay() {
     pal_fade_to(4, 0);
     ppu_off();
 }
 
-void TitleScreen::loop() {
-  while(current_mode == GameMode::TitleScreen) {
+void Gameplay::loop() {
+  while(current_mode == GameMode::Gameplay) {
     ppu_wait_nmi();
     pad_poll(0);
 
     u8 pressed = get_pad_new(0);
-    if (pressed & (PAD_START | PAD_A)) {
-      current_mode = GameMode::Gameplay;
-    }
   }
 }

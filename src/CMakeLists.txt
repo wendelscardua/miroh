@@ -55,6 +55,7 @@ add_library(SourceObj
 
   main.cpp
   title-screen.cpp
+  gameplay.cpp
 
   attributes.cpp
   donut.cpp
@@ -98,6 +99,7 @@ set_property(
 )
 
 add_raw_asset(SOURCE "title.nam")
+add_raw_asset(SOURCE "gameplay.nam")
 
 set_property(
   SOURCE
@@ -105,6 +107,7 @@ set_property(
   PROPERTY
   OBJECT_DEPENDS
   title.nam
+  gameplay.nam
 )
 
 set_property(

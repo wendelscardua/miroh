@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "ggsound.hpp"
 #include "title-screen.hpp"
+#include "gameplay.hpp"
 
 #include "soundtrack-ptr.hpp"
 
@@ -46,6 +47,11 @@ int main() {
         titleScreen.loop();
       }
       break;
+    case GameMode::Gameplay:
+      {
+        Gameplay gameplay;
+        gameplay.loop();
+      }
     default:
       break;
     }

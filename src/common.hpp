@@ -12,8 +12,7 @@ typedef int32_t s32;
 enum class GameMode : u8
   {
    TitleScreen,
-   WorldMap,
-   Platformer,
+   Gameplay,
    None = 0xff
   };
 
