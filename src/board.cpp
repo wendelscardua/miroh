@@ -180,12 +180,12 @@ void Board::render() {
 }
 
 bool Board::occupied(s8 row, s8 column) {
-  if (row < 0) return false;
-
   if (column < 0 ||
       column > SIZE - 1 ||
       row > SIZE - 1)
     return true;
+
+  if (row < 0) return false;
 
   return cell[row][column].occupied;
 }

@@ -8,8 +8,8 @@
 - [x] polyomino movement and rotation
 - [x] polyomino-level collision
 - [x] freeze polyomino to background
-- [ ] polyomino-player collision
-- [ ] switch controls between player and polyomino
+- [o] polyomino-player collision
+- [x] switch controls between player and polyomino
 - [ ] remove lines (can we restore walls? should we?)
 - [ ] mino's hunger + food
 - [ ] scoring

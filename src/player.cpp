@@ -20,11 +20,15 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
 restate:
   switch (state) {
   case State::Idle: {
-    auto current_cell = board.cell[y.whole >> 4][x.whole >> 4];
+    auto current_row = y.whole >> 4;
+    auto current_column = x.whole >> 4;
+    auto current_cell = board.cell[current_row][current_column];
     if (input_mode != InputMode::Player) break;
     if (pressed & PAD_UP) {
       facing = Direction::Up;
-      if (!current_cell.up_wall && y.whole > 0) {
+      if (!current_cell.up_wall &&
+          current_row > 0 &&
+          !board.occupied((s8)(current_row - 1), (s8)current_column)) {
         target_x = x;
         target_y = y - GRID_SIZE;
         state = State::Moving;
@@ -33,7 +37,8 @@ restate:
     }
     if (pressed & PAD_DOWN) {
       facing = Direction::Down;
-      if (!current_cell.down_wall && y.whole < 0x10 * (SIZE - 1)) {
+      if (!current_cell.down_wall &&
+          !board.occupied((s8)(current_row + 1), (s8)current_column)) {
         target_x = x;
         target_y = y + GRID_SIZE;
         state = State::Moving;
@@ -42,7 +47,8 @@ restate:
     }
     if (pressed & PAD_LEFT) {
       facing = Direction::Left;
-      if (!current_cell.left_wall && x.whole > 0) {
+      if (!current_cell.left_wall &&
+          !board.occupied((s8)current_row, (s8)(current_column - 1))) {
         target_x = x - GRID_SIZE;
         target_y = y;
         state = State::Moving;
@@ -51,7 +57,8 @@ restate:
     }
     if (pressed & PAD_RIGHT) {
       facing = Direction::Right;
-      if (!current_cell.right_wall && x.whole < 0x10 * (SIZE - 1)) {
+      if (!current_cell.right_wall &&
+          !board.occupied((s8)current_row, (s8)(current_column + 1))) {
         target_x = x + GRID_SIZE;
         target_y = y;
         state = State::Moving;
