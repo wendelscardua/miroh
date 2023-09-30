@@ -20,6 +20,11 @@ void Polyomino::spawn() {
     random_index = rand8() & 0x7f;
   } while (random_index >= NUM_POLYOMINOS);
   definition = polyominos[random_index];
+  s8 max_delta = 0;
+  for(auto delta : definition->deltas) {
+    if (delta.delta_row > max_delta) max_delta = delta.delta_row;
+  }
+  y -= fixed_point(0x10 * max_delta + 0x10, 0);
 }
 
 void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
