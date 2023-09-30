@@ -6,6 +6,7 @@
 #include <neslib.h>
 
 #define DROP_SPEED fixed_point(0, 0x2000)
+#define HORIZONTAL_SPEED fixed_point(4, 0)
 #define GRID_SIZE fixed_point(0x10, 0)
 
 class Polyomino {

@@ -31,8 +31,20 @@ void Polyomino::spawn() {
 }
 
 void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
-  if (!active)
+  if (!active) {
+    if (input_mode == InputMode::Polyomino) {
+      input_mode = InputMode::Player;
+    }
     return;
+  }
+
+  fixed_point drop_speed;
+
+  if ((input_mode == InputMode::Polyomino) && (held & PAD_DOWN)) {
+    drop_speed = DROP_SPEED * 4;
+  } else {
+    drop_speed = DROP_SPEED;
+  }
 
   if (target_y == y) {
     target_y = y + GRID_SIZE;
@@ -51,8 +63,42 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
   }
 
   if (target_y > y) {
-    y += DROP_SPEED;
+    y += drop_speed;
     if (y > target_y) y = target_y;
+  }
+
+  if (target_x == x) {
+    if (input_mode == InputMode::Polyomino) {
+      if (pressed & PAD_LEFT) {
+        target_x = x - GRID_SIZE;
+      }
+      if (pressed & PAD_RIGHT) {
+        target_x = x + GRID_SIZE;
+      }
+      if (target_x != x) {
+        bool bumped = false;
+        for(auto delta : definition->deltas) {
+          if (board.occupied(target_x.whole + delta.delta_x(),
+                             y.whole + delta.delta_y())) {
+            bumped = true;
+            break;
+          }
+        }
+        if (bumped) {
+          target_x = x;
+        }
+      }
+    }
+  }
+
+  if (target_x < x) {
+    x -= HORIZONTAL_SPEED;
+    if (x < target_x) x = target_x;
+  }
+
+  if (target_x > x) {
+    x += HORIZONTAL_SPEED;
+    if (x > target_x) x = target_x;
   }
 }
 

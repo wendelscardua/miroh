@@ -80,6 +80,17 @@ void Gameplay::loop() {
     }
     #endif
 
+    if (pressed & PAD_SELECT) {
+      switch(input_mode) {
+      case InputMode::Player:
+        input_mode = InputMode::Polyomino;
+        break;
+      case InputMode::Polyomino:
+        input_mode = InputMode::Player;
+        break;
+      }
+    }
+
     player.update(input_mode, pressed, held);
     polyomino.update(input_mode, pressed, held);
 
