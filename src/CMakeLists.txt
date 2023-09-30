@@ -30,6 +30,16 @@ if (NOT SOUNDTRACK_ENUMS)
   message(FATAL_ERROR "The soundtrack-enums tool is required!")
 endif()
 
+find_program(
+  POLYOMINO
+  polyomino
+  PATHS "${CMAKE_SOURCE_DIR}/tools"
+)
+
+if (NOT POLYOMINO)
+  message(FATAL_ERROR "The polyomino tool is required!")
+endif()
+
 add_custom_command(
   OUTPUT metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp
   COMMAND ${GENERATE_METASPRITES} generate ${CMAKE_CURRENT_BINARY_DIR}/metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp ${CMAKE_SOURCE_DIR}/assets/metasprites.nss --bank .prg_rom_last --label-prefix metasprite
@@ -46,6 +56,12 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.hpp
   COMMAND ${SOUNDTRACK_ENUMS} generate ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.hpp ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
   DEPENDS ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
+)
+
+add_custom_command(
+  OUTPUT polyominos.s
+  COMMAND ${POLYOMINO} generate ${CMAKE_CURRENT_BINARY_DIR}/polyominos.s ${CMAKE_SOURCE_DIR}/assets/polyominos.json
+  DEPENDS ${POLYOMINO} ${CMAKE_SOURCE_DIR}/assets/polyominos.json
 )
 
 add_library(SourceObj
@@ -70,6 +86,7 @@ add_library(SourceObj
   nametables.s
   palettes.s
   soundtrack.s
+  polyominos.s
 
   soundtrack.hpp
 

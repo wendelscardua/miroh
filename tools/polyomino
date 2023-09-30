@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+
+  gem 'thor'
+end
+
+require 'json'
+require 'thor'
+
+# Tool for generating polyomino data
+class Polyomino < Thor
+  def self.exit_on_failure?
+    true
+  end
+
+  desc 'generate ASM_FILE JSON_FILE', 'Generates asm file based on json'
+  method_option :bank, type: :string, required: false
+  def generate(s_file, pieces_json)
+    bank = options[:bank] || '.prg_rom_last'
+
+    data = JSON.parse(File.read(pieces_json), symbolize_names: true)
+    data => { pieces:, kicks: }
+
+    File.open(s_file, 'w') do |f|
+      f.puts <<~ASM
+        .section #{bank}
+        .global pieces_list
+        pieces_list:
+      ASM
+      pieces.each do |key, values|
+        values => { rotateTo: rotate_to }
+        pieces[rotate_to.to_sym][:leftRotateTo] = key
+      end
+      pieces.each_key do |key|
+        f.puts ".word piece_#{key}"
+      end
+      pieces.each do |key, values|
+        values => { blocks:, rotateTo: rotate_to, leftRotateTo: left_rotate_to, kicks: piece_kicks }
+        f.puts "piece_#{key}:"
+
+        f.puts ".word piece_#{left_rotate_to}, piece_#{rotate_to}"
+        right_kick = case piece_kicks
+                     when 'o'
+                       'kick_type_o'
+                     when 'i'
+                       case key[-1]
+                       when 'R' then 'kick_type_i0R'
+                       when '2' then 'kick_type_iR2'
+                       when 'L' then 'kick_type_i2L'
+                       else 'kick_type_iL0'
+                       end
+                     when 'j'
+                       case key[-1]
+                       when 'R' then 'kick_type_j0R'
+                       when '2' then 'kick_type_jR2'
+                       when 'L' then 'kick_type_j2L'
+                       else 'kick_type_jL0'
+                       end
+                     end
+        left_kick = case piece_kicks
+                    when 'o'
+                      'kick_type_o'
+                    when 'i'
+                      case key[-1]
+                      when 'R' then 'kick_type_i2R'
+                      when '2' then 'kick_type_iL2'
+                      when 'L' then 'kick_type_i0L'
+                      else 'kick_type_iR0'
+                      end
+                    when 'j'
+                      case key[-1]
+                      when 'R' then 'kick_type_j2R'
+                      when '2' then 'kick_type_jL2'
+                      when 'L' then 'kick_type_j0L'
+                      else 'kick_type_jR0'
+                      end
+                    end
+
+        f.puts ".word #{left_kick}, #{right_kick}"
+        f.puts ".byte #{blocks.size}"
+        blocks.each do |delta_row, delta_column|
+          f.puts "  .byte #{delta_row}, #{delta_column}"
+        end
+        (5 - blocks.size).times do
+          f.puts '  .byte 0, 0'
+        end
+      end
+
+      kicks.each do |key, values|
+        f.puts "kick_type_#{key}:"
+        values.each do |delta_row, delta_column|
+          f.puts ".byte #{delta_row}, #{delta_column}"
+        end
+      end
+    end
+  end
+end
+
+Polyomino.start
