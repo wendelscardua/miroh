@@ -169,7 +169,7 @@ void Polyomino::freeze_blocks() {
     s8 block_row = row + delta.delta_row;
     s8 block_column = column + delta.delta_column;
     if (!board.occupied(block_row, block_column)) {
-      if (block_row >= 0) board.cell[block_row][block_column].occupied = true;
+      if (block_row >= 0) board.occupy(block_row, block_column);
       int position = NTADR_A((board.origin_x >> 3) + (block_column << 1), (board.origin_y >> 3) + (block_row << 1));
       multi_vram_buffer_horz((const u8[2]){0x04, 0x05}, 2, position);
       multi_vram_buffer_horz((const u8[2]){0x14, 0x15}, 2, position+0x20);

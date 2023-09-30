@@ -32,6 +32,12 @@ public:
   Board(u8 origin_x, u8 origin_y);
   ~Board();
 
+  // draws board tiles (with rendering disabled)
   void render();
+
+  // tells if a cell is occupied by a solid block
   bool occupied(s8 row, s8 column);
+
+  // marks a position as occupied by a solid block
+  void occupy(s8 row, s8 column);
 };

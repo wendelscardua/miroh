@@ -189,3 +189,7 @@ bool Board::occupied(s8 row, s8 column) {
 
   return cell[row][column].occupied;
 }
+
+void Board::occupy(s8 row, s8 column) {
+  cell[row][column].occupied = true;
+}

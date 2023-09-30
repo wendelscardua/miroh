@@ -8,9 +8,9 @@
 - [x] polyomino movement and rotation
 - [x] polyomino-level collision
 - [x] freeze polyomino to background
-- [o] polyomino-player collision
+- [x] polyomino-player collision
 - [x] switch controls between player and polyomino
-- [ ] remove lines (can we restore walls? should we?)
+- [o] remove lines (can we restore walls? should we?)
 - [ ] mino's hunger + food
 - [ ] scoring
 - [ ] high scores
