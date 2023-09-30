@@ -6,6 +6,7 @@
 
 #define DROP_FRAMES 60
 #define MAX_GROUNDED_TIMER 2
+#define FROZEN_BLOCK_ATTRIBUTE 2
 
 class Polyomino {
   Board& board;

@@ -1,4 +1,5 @@
 #include "polyomino.hpp"
+#include "attributes.hpp"
 #include "bank-helper.hpp"
 #include "input-mode.hpp"
 #include "metasprites.hpp"
@@ -162,7 +163,7 @@ void Polyomino::render() {
 
 void Polyomino::freeze_blocks() {
   active = false;
-
+  Attributes::enable_vram_buffer();
   for (u8 i = 0; i < definition->size; i++) {
     auto& delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
@@ -172,7 +173,8 @@ void Polyomino::freeze_blocks() {
       int position = NTADR_A((board.origin_x >> 3) + (block_column << 1), (board.origin_y >> 3) + (block_row << 1));
       multi_vram_buffer_horz((const u8[2]){0x04, 0x05}, 2, position);
       multi_vram_buffer_horz((const u8[2]){0x14, 0x15}, 2, position+0x20);
-      // TODO set attribute
+      Attributes::set((board.origin_x >> 4) +(u8)block_column, (board.origin_y >> 4) +(u8)block_row, FROZEN_BLOCK_ATTRIBUTE);
     }
   }
+  Attributes::flush_vram_update();
 }

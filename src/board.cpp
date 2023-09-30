@@ -1,4 +1,5 @@
 #include "board.hpp"
+#include "attributes.hpp"
 #include "common.hpp"
 #include <neslib.h>
 
@@ -170,6 +171,12 @@ void Board::render() {
       }
     }
   }
+  for(u8 meta_x = origin_x >> 4; meta_x < ((origin_x >> 4) + SIZE); meta_x++) {
+    for(u8 meta_y = origin_y >> 4; meta_y < ((origin_y >> 4) + SIZE); meta_y++) {
+      Attributes::set(meta_x, meta_y, 0);
+    }
+  }
+  Attributes::update_vram();
 }
 
 bool Board::occupied(s8 row, s8 column) {
