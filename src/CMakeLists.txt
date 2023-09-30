@@ -60,7 +60,7 @@ add_custom_command(
 
 add_custom_command(
   OUTPUT polyominos.s
-  COMMAND ${POLYOMINO} generate ${CMAKE_CURRENT_BINARY_DIR}/polyominos.s ${CMAKE_SOURCE_DIR}/assets/polyominos.json --max-size 3
+  COMMAND ${POLYOMINO} generate ${CMAKE_CURRENT_BINARY_DIR}/polyominos.s ${CMAKE_SOURCE_DIR}/assets/polyominos.json --max-size 3 --bank .prg_rom_1
   DEPENDS ${POLYOMINO} ${CMAKE_SOURCE_DIR}/assets/polyominos.json
 )
 

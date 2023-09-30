@@ -1,7 +1,9 @@
 #include "polyomino.hpp"
+#include "bank-helper.hpp"
 #include "input-mode.hpp"
 #include "metasprites.hpp"
 #include "polyominos.hpp"
+#include <bank.h>
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
@@ -18,6 +20,7 @@ void Polyomino::spawn() {
   do {
     random_index = rand8() & 0x7f;
   } while (random_index >= NUM_POLYOMINOS);
+  set_prg_bank(GET_BANK(polyominos));
   definition = polyominos[random_index];
   s8 max_delta = 0;
   for(auto delta : definition->deltas) {
@@ -33,6 +36,8 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
     }
     return;
   }
+
+  set_prg_bank(GET_BANK(polyominos));
 
   if ((input_mode == InputMode::Polyomino) && (held & PAD_DOWN)) {
     drop_timer = DROP_FRAMES;
