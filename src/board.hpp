@@ -26,8 +26,12 @@ class Cell {
 class Board {
   Cell cell[SIZE][SIZE];
 public:
-  Board();
+  u8 origin_x;
+  u8 origin_y;
+
+  Board(u8 origin_x, u8 origin_y);
   ~Board();
 
-  void render(u8 x, u8 y);
+  void render();
+  Cell& get_cell(u8 x, u8 y);
 };

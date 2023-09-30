@@ -17,7 +17,7 @@ void Cell::join(Cell *other) {
   if (x != y) y->parent = x;
 }
 
-Board::Board() {
+Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) {
   // some sparse random walls
   for(u8 i = 0; i < SIZE - 1; i++) {
     for(u8 j = 0; j < SIZE - 1; j++) {
@@ -84,7 +84,9 @@ Board::Board() {
   }
 }
 
-void Board::render(u8 x, u8 y) {
+void Board::render() {
+  u8 x = origin_x >> 3;
+  u8 y = origin_y >> 3;
   for(u8 i = 0; i < SIZE; i++) {
     for(u8 j = 0; j < SIZE; j++) {
       auto current_cell = &cell[i][j];
@@ -165,4 +167,9 @@ void Board::render(u8 x, u8 y) {
       }
     }
   }
+}
+
+
+Cell& Board::get_cell(u8 x, u8 y) {
+  return cell[y >> 4][x >> 4];
 }

@@ -1,7 +1,7 @@
 # Things to do
 
 - [x] move player around maze
-- [ ] player collide with walls
+- [x] player collide with walls
 - [ ] buffered input (if player press up while moving right, it takes effect after the movement finishes
 - [ ] define some polyominos
 - [ ] spawn random polyomino

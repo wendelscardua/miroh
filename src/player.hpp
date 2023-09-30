@@ -1,5 +1,6 @@
 #pragma once
 
+#include "board.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
 
@@ -14,11 +15,12 @@ class Player {
 private:
   Direction facing;
   State state;
-  u8 target_x, target_y;
+  fixed_point target_x, target_y;
 public:
+  Board& board;
   fixed_point x;
   fixed_point y;
-  Player(fixed_point starting_x, fixed_point starting_y);
+  Player(Board& board, fixed_point starting_x, fixed_point starting_y);
 
   void update(u8 pressed, u8 held);
   void render();

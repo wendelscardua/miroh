@@ -13,7 +13,9 @@
 #include "palettes.hpp"
 #include "gameplay.hpp"
 
-Gameplay::Gameplay() : board(), player(fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)) {
+Gameplay::Gameplay() :
+  board(0x20, 0x20),
+  player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)) {
     set_chr_bank(0);
 
     set_prg_bank(GET_BANK(bg_chr));
@@ -29,7 +31,7 @@ Gameplay::Gameplay() : board(), player(fixed_point(0x50, 0x00), fixed_point(0x50
     vram_adr(NAMETABLE_A);
     vram_write(gameplay_nam, 1024);
 
-    board.render(4, 4);
+    board.render();
 
     set_prg_bank(GET_BANK(bg_palette));
     pal_bg(bg_palette);
