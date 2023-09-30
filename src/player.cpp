@@ -20,7 +20,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
 restate:
   switch (state) {
   case State::Idle: {
-    auto current_cell = board.get_cell((u8)x.whole, (u8)y.whole);
+    auto current_cell = board.cell[y.whole >> 4][x.whole >> 4];
     if (input_mode != InputMode::Player) break;
     if (pressed & PAD_UP) {
       facing = Direction::Up;

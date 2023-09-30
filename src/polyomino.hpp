@@ -1,23 +1,19 @@
 #include "board.hpp"
-#include "fixed-point.hpp"
 #include "input-mode.hpp"
 #include "polyominos.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define DROP_SPEED fixed_point(0, 0x2000)
-#define HORIZONTAL_SPEED fixed_point(4, 0)
-#define GRID_SIZE fixed_point(0x10, 0)
-#define MAX_GROUNDED_TIMER 30
+#define DROP_FRAMES 60
+#define MAX_GROUNDED_TIMER 2
 
 class Polyomino {
   Board& board;
   PolyominoDef *definition;
-  fixed_point x;
-  fixed_point y;
-  fixed_point target_x;
-  fixed_point target_y;
+  s8 row;
+  s8 column;
   u8 grounded_timer;
+  u8 drop_timer;
 public:
   bool active;
   Polyomino(Board& board, bool active);

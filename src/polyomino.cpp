@@ -1,7 +1,5 @@
 #include "polyomino.hpp"
-#include "fixed-point.hpp"
 #include "input-mode.hpp"
-#include "log.hpp"
 #include "metasprites.hpp"
 #include "polyominos.hpp"
 #include <cstdio>
@@ -14,8 +12,8 @@ Polyomino::Polyomino(Board &board, bool active)
 void Polyomino::spawn() {
   active = true;
   grounded_timer = 0;
-  x = fixed_point(0x50, 0);
-  y = fixed_point(0x00, 0);
+  column = 5;
+  row = 0;
   u8 random_index;
   do {
     random_index = rand8() & 0x7f;
@@ -25,9 +23,7 @@ void Polyomino::spawn() {
   for(auto delta : definition->deltas) {
     if (delta.delta_row > max_delta) max_delta = delta.delta_row;
   }
-  y -= GRID_SIZE * (u8)(max_delta + 1);
-  target_x = x;
-  target_y = y;
+  row -= (max_delta + 1);
 }
 
 void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
@@ -38,80 +34,65 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
     return;
   }
 
-  fixed_point drop_speed;
-
   if ((input_mode == InputMode::Polyomino) && (held & PAD_DOWN)) {
-    drop_speed = DROP_SPEED * 4;
+    drop_timer = DROP_FRAMES;
   } else {
-    drop_speed = DROP_SPEED;
+    drop_timer++;
   }
 
-  if (target_y > y) {
-    grounded_timer = 0;
-    y += drop_speed;
-    if (y > target_y) y = target_y;
-  }
-
-  if (target_y == y) {
-    target_y = y + GRID_SIZE;
+  if (drop_timer >= DROP_FRAMES) {
+    drop_timer = 0;
     bool bumped = false;
     for(u8 i = 0; i < definition->size; i++) {
       auto& delta = definition->deltas[i];
-      if (board.occupied(x.whole + delta.delta_x(),
-                         target_y.whole + delta.delta_y()) ||
-          board.occupied(x.whole + delta.delta_x() + 0x0f,
-                         target_y.whole + delta.delta_y())) {
+      if (board.occupied(row + delta.delta_row + 1,
+                         column + delta.delta_column)) {
         bumped = true;
         break;
       }
     }
     if (bumped) {
-      target_y = y;
       grounded_timer++;
+      if (grounded_timer >= MAX_GROUNDED_TIMER) {
+        freeze_blocks();
+        input_mode = InputMode::Player;
+        return;
+      }
+    } else {
+      row++;
+      grounded_timer = 0;
     }
   }
 
-  if (target_x == x) {
-    if (grounded_timer >= MAX_GROUNDED_TIMER) {
-      freeze_blocks();
-      input_mode = InputMode::Player;
-      return;
-    }
-
-    if (input_mode == InputMode::Polyomino) {
-      if (pressed & PAD_LEFT) {
-        target_x = x - GRID_SIZE;
-      }
-      if (pressed & PAD_RIGHT) {
-        target_x = x + GRID_SIZE;
-      }
-      if (target_x != x) {
-        bool bumped = false;
-        for(u8 i = 0; i < definition->size; i++) {
-          auto& delta = definition->deltas[i];
-          if (board.occupied(target_x.whole + delta.delta_x(),
-                             y.whole + delta.delta_y()) ||
-              board.occupied(target_x.whole + delta.delta_x(),
-                             y.whole + delta.delta_y() + 0x0f) ) {
-            bumped = true;
-            break;
-          }
-        }
-        if (bumped) {
-          target_x = x;
+  if (input_mode == InputMode::Polyomino) {
+    if (pressed & PAD_LEFT) {
+      bool bumped = false;
+      for(u8 i = 0; i < definition->size; i++) {
+        auto& delta = definition->deltas[i];
+        if (board.occupied(row + delta.delta_row,
+                           column - 1 + delta.delta_column)) {
+          bumped = true;
+          break;
         }
       }
+      if (!bumped) {
+        column--;
+      }
     }
-  }
-
-  if (target_x < x) {
-    x -= HORIZONTAL_SPEED;
-    if (x < target_x) x = target_x;
-  }
-
-  if (target_x > x) {
-    x += HORIZONTAL_SPEED;
-    if (x > target_x) x = target_x;
+    if (pressed & PAD_RIGHT) {
+      bool bumped = false;
+      for(u8 i = 0; i < definition->size; i++) {
+        auto& delta = definition->deltas[i];
+        if (board.occupied(row + delta.delta_row,
+                           column + 1 + delta.delta_column)) {
+          bumped = true;
+          break;
+        }
+      }
+      if (!bumped) {
+        column++;
+      }
+    }
   }
 }
 
@@ -122,9 +103,9 @@ void Polyomino::render() {
   for (u8 i = 0; i < definition->size; i++) {
     auto& delta = definition->deltas[i];
     oam_meta_spr(board.origin_x +
-                 (u8)(x.whole + delta.delta_x()),
+                 (u8)((column + delta.delta_column) << 4),
                  board.origin_y +
-                 (u8)(y.whole + delta.delta_y()),
+                 (u8)((row + delta.delta_row) << 4),
                  metasprite_block);
   }
 }
@@ -134,11 +115,11 @@ void Polyomino::freeze_blocks() {
 
   for (u8 i = 0; i < definition->size; i++) {
     auto& delta = definition->deltas[i];
-    s16 block_x = x.whole + delta.delta_x();
-    s16 block_y = y.whole + delta.delta_y();
-    if (!board.occupied(block_x, block_y)) {
-      board.get_cell((u8)block_x, (u8)block_y).occupied = true;
-      int position = NTADR_A((board.origin_x + block_x) >> 3, (board.origin_y + block_y) >> 3);
+    s8 block_row = row + delta.delta_row;
+    s8 block_column = column + delta.delta_column;
+    if (!board.occupied(block_row, block_column)) {
+      if (block_row >= 0) board.cell[block_row][block_column].occupied = true;
+      int position = NTADR_A((board.origin_x >> 3) + (block_column << 1), (board.origin_y >> 3) + (block_row << 1));
       multi_vram_buffer_horz((const u8[2]){0x04, 0x05}, 2, position);
       multi_vram_buffer_horz((const u8[2]){0x14, 0x15}, 2, position+0x20);
       // TODO set attribute
