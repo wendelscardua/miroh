@@ -7,6 +7,7 @@
 - [x] spawn random polyomino
 - [o] polyomino movement and rotation
 - [x] polyomino-level collision
+- [o] freeze polyomino to background
 - [ ] polyomino-player collision
 - [ ] switch controls between player and polyomino
 - [ ] remove lines (can we restore walls? should we?)

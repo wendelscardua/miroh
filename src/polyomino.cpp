@@ -49,7 +49,8 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
   if (target_y == y) {
     target_y = y + GRID_SIZE;
     bool bumped = false;
-    for(auto delta : definition->deltas) {
+    for(u8 i = 0; i < definition->size; i++) {
+      auto& delta = definition->deltas[i];
       if (board.occupied(x.whole + delta.delta_x(),
                          target_y.whole + delta.delta_y())) {
         bumped = true;
@@ -63,11 +64,18 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
   }
 
   if (target_y > y) {
+    grounded_timer = 0;
     y += drop_speed;
     if (y > target_y) y = target_y;
   }
 
   if (target_x == x) {
+    if (grounded_timer >= MAX_GROUNDED_TIMER) {
+      freeze_blocks();
+      input_mode = InputMode::Player;
+      return;
+    }
+
     if (input_mode == InputMode::Polyomino) {
       if (pressed & PAD_LEFT) {
         target_x = x - GRID_SIZE;
@@ -77,7 +85,8 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
       }
       if (target_x != x) {
         bool bumped = false;
-        for(auto delta : definition->deltas) {
+        for(u8 i = 0; i < definition->size; i++) {
+          auto& delta = definition->deltas[i];
           if (board.occupied(target_x.whole + delta.delta_x(),
                              y.whole + delta.delta_y())) {
             bumped = true;
@@ -107,10 +116,28 @@ void Polyomino::render() {
     return;
 
   for (u8 i = 0; i < definition->size; i++) {
+    auto& delta = definition->deltas[i];
     oam_meta_spr(board.origin_x +
-                 (u8)(x.whole + definition->deltas[i].delta_x()),
+                 (u8)(x.whole + delta.delta_x()),
                  board.origin_y +
-                 (u8)(y.whole + definition->deltas[i].delta_y()),
+                 (u8)(y.whole + delta.delta_y()),
                  metasprite_block);
+  }
+}
+
+void Polyomino::freeze_blocks() {
+  active = false;
+
+  for (u8 i = 0; i < definition->size; i++) {
+    auto& delta = definition->deltas[i];
+    s16 block_x = x.whole + delta.delta_x();
+    s16 block_y = y.whole + delta.delta_y();
+    if (!board.occupied(block_x, block_y)) {
+      board.get_cell((u8)block_x, (u8)block_y).occupied = true;
+      int position = NTADR_A((board.origin_x + block_x) >> 3, (board.origin_y + block_y) >> 3);
+      multi_vram_buffer_horz((const u8[2]){0x04, 0x05}, 2, position);
+      multi_vram_buffer_horz((const u8[2]){0x14, 0x15}, 2, position+0x20);
+      // TODO set attribute
+    }
   }
 }

@@ -24,8 +24,8 @@ class Cell {
 };
 
 class Board {
-  Cell cell[SIZE][SIZE];
 public:
+  Cell cell[SIZE][SIZE];
   u8 origin_x;
   u8 origin_y;
 
