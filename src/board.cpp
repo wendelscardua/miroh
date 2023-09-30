@@ -2,7 +2,10 @@
 #include "common.hpp"
 #include <neslib.h>
 
-Cell::Cell() : parent(this) {}
+Cell::Cell() :
+  walls(0),
+  occupied(false),
+  parent(this) {}
 Cell *Cell::representative() {
   Cell *temp = this;
   while(temp != temp->parent)
@@ -172,4 +175,17 @@ void Board::render() {
 
 Cell& Board::get_cell(u8 x, u8 y) {
   return cell[y >> 4][x >> 4];
+}
+
+bool Board::occupied(s16 x, s16 y) {
+  if (y < 0) return false;
+  if (x < 0) return true;
+
+  u8 cell_x = (u8)x >> 4;
+  u8 cell_y = (u8)y >> 4;
+
+  if (cell_x > SIZE - 1) return true;
+  if (cell_y > SIZE - 1) return true;
+
+  return cell[cell_y][cell_x].occupied;
 }

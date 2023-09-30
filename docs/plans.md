@@ -4,9 +4,9 @@
 - [x] player collide with walls
 - [ ] buffered input (if player press up while moving right, it takes effect after the movement finishes
 - [x] define some polyominos
-- [o] spawn random polyomino
+- [x] spawn random polyomino
 - [o] polyomino movement and rotation
-- [o] polyomino-level collision
+- [x] polyomino-level collision
 - [ ] polyomino-player collision
 - [ ] switch controls between player and polyomino
 - [ ] remove lines (can we restore walls? should we?)
@@ -17,4 +17,5 @@
 - [ ] instructions (both for NES and itch.io)
 - [ ] sound
 - [ ] music
+- [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
 - [ ] polish

@@ -34,4 +34,5 @@ public:
 
   void render();
   Cell& get_cell(u8 x, u8 y);
+  bool occupied(s16 x, s16 y);
 };
