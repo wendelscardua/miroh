@@ -78,8 +78,7 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
       if (!bumped) {
         column--;
       }
-    }
-    if (pressed & PAD_RIGHT) {
+    } else if (pressed & PAD_RIGHT) {
       bool bumped = false;
       for(u8 i = 0; i < definition->size; i++) {
         auto& delta = definition->deltas[i];
@@ -92,6 +91,52 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
       if (!bumped) {
         column++;
       }
+    } else if (pressed & PAD_A) {
+      definition = definition->right_rotation;
+      for(auto kick : definition->right_kick->deltas) {
+        s8 new_row = row + kick.delta_row;
+        s8 new_column = column + kick.delta_column;
+
+        bool bumped = false;
+        for(u8 i = 0; i < definition->size; i++) {
+          auto& delta = definition->deltas[i];
+          if (board.occupied(new_row + delta.delta_row,
+                             new_column + delta.delta_column)) {
+            bumped = true;
+            break;
+          }
+        }
+
+        if (!bumped) {
+          row = new_row;
+          column = new_column;
+          break;
+        }
+      }
+    } else if (pressed & PAD_B) {
+      definition = definition->left_rotation;
+      for(auto kick : definition->left_kick->deltas) {
+        s8 new_row = row + kick.delta_row;
+        s8 new_column = column + kick.delta_column;
+
+        bool bumped = false;
+        for(u8 i = 0; i < definition->size; i++) {
+          auto& delta = definition->deltas[i];
+          if (board.occupied(new_row + delta.delta_row,
+                             new_column + delta.delta_column)) {
+            bumped = true;
+            break;
+          }
+        }
+
+        if (!bumped) {
+          row = new_row;
+          column = new_column;
+          break;
+        }
+      }
+    } else if (pressed & PAD_UP) {
+
     }
   }
 }

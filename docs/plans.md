@@ -5,7 +5,7 @@
 - [ ] buffered input (if player press up while moving right, it takes effect after the movement finishes
 - [x] define some polyominos
 - [x] spawn random polyomino
-- [o] polyomino movement and rotation
+- [x] polyomino movement and rotation
 - [x] polyomino-level collision
 - [o] freeze polyomino to background
 - [ ] polyomino-player collision
