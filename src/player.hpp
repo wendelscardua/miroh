@@ -5,7 +5,7 @@
 #include "fixed-point.hpp"
 #include "input-mode.hpp"
 
-#define move_speed fixed_point(1, 0x40)
+#define move_speed fixed_point(1, 0x2000)
 
 class Player {
   enum class State {
