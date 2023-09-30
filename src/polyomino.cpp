@@ -46,12 +46,20 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
     drop_speed = DROP_SPEED;
   }
 
+  if (target_y > y) {
+    grounded_timer = 0;
+    y += drop_speed;
+    if (y > target_y) y = target_y;
+  }
+
   if (target_y == y) {
     target_y = y + GRID_SIZE;
     bool bumped = false;
     for(u8 i = 0; i < definition->size; i++) {
       auto& delta = definition->deltas[i];
       if (board.occupied(x.whole + delta.delta_x(),
+                         target_y.whole + delta.delta_y()) ||
+          board.occupied(x.whole + delta.delta_x() + 0x0f,
                          target_y.whole + delta.delta_y())) {
         bumped = true;
         break;
@@ -61,12 +69,6 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
       target_y = y;
       grounded_timer++;
     }
-  }
-
-  if (target_y > y) {
-    grounded_timer = 0;
-    y += drop_speed;
-    if (y > target_y) y = target_y;
   }
 
   if (target_x == x) {
@@ -88,7 +90,9 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
         for(u8 i = 0; i < definition->size; i++) {
           auto& delta = definition->deltas[i];
           if (board.occupied(target_x.whole + delta.delta_x(),
-                             y.whole + delta.delta_y())) {
+                             y.whole + delta.delta_y()) ||
+              board.occupied(target_x.whole + delta.delta_x(),
+                             y.whole + delta.delta_y() + 0x0f) ) {
             bumped = true;
             break;
           }
