@@ -21,11 +21,13 @@ static void main_init() {
 
   set_mirroring(MIRROR_VERTICAL);
 
-  // set 8x16 sprite mode
-  oam_size(1);
+  // set 8x8 sprite mode
+  oam_size(0);
 
   // Use lower half of PPU memory for background tiles
   bank_bg(0);
+  // ... and upper half for sprites
+  bank_spr(1);
 
   set_vram_buffer();
 
