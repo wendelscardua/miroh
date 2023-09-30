@@ -66,5 +66,9 @@ void Gameplay::loop() {
     player.update(pressed, held);
 
     render();
+
+    #ifndef NDEBUG
+    gray_line();
+    #endif
   }
 }
