@@ -3,6 +3,7 @@
 #include "board.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
+#include "input-mode.hpp"
 
 #define move_speed fixed_point(1, 0x40)
 
@@ -22,6 +23,6 @@ public:
   fixed_point y;
   Player(Board& board, fixed_point starting_x, fixed_point starting_y);
 
-  void update(u8 pressed, u8 held);
+  void update(InputMode input_mode, u8 pressed, u8 held);
   void render();
 };

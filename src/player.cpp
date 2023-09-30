@@ -1,6 +1,7 @@
 #include "player.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
+#include "gameplay.hpp"
 #include "metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -15,11 +16,12 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
   this->state = State::Idle;
 }
 
-void Player::update(u8 pressed, u8 held) {
+void Player::update(InputMode input_mode, u8 pressed, u8 held) {
 restate:
   switch (state) {
   case State::Idle: {
     auto current_cell = board.get_cell((u8)x.whole, (u8)y.whole);
+    if (input_mode != InputMode::Player) break;
     if (pressed & PAD_UP) {
       facing = Direction::Up;
       if (!current_cell.up_wall && y.whole > 0) {

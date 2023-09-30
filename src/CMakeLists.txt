@@ -81,6 +81,7 @@ add_library(SourceObj
   ggsound.s
   log.cpp
   player.cpp
+  polyomino.cpp
 
   chr-data.s
   nametables.s

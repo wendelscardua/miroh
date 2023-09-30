@@ -29,8 +29,8 @@ class Polyomino < Thor
     File.open(s_file, 'w') do |f|
       f.puts <<~ASM
         .section #{bank}
-        .global pieces_list
-        pieces_list:
+        .global polyominos
+        polyominos:
       ASM
       pieces.each do |key, values|
         values => { rotateTo: rotate_to }

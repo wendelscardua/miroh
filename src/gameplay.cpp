@@ -9,13 +9,16 @@
 #include "common.hpp"
 #include "donut.hpp"
 #include "fixed-point.hpp"
+#include "input-mode.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
 #include "gameplay.hpp"
 
 Gameplay::Gameplay() :
   board(0x20, 0x20),
-  player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)) {
+  player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
+  polyomino(board, false),
+  input_mode(InputMode::Player) {
     set_chr_bank(0);
 
     set_prg_bank(GET_BANK(bg_chr));
@@ -53,6 +56,7 @@ Gameplay::~Gameplay() {
 void Gameplay::render() {
   oam_clear();
   player.render();
+  polyomino.render();
 }
 
 void Gameplay::loop() {
@@ -63,7 +67,14 @@ void Gameplay::loop() {
     u8 pressed = get_pad_new(0);
     u8 held = pad_state(0);
 
-    player.update(pressed, held);
+    #ifndef NDEBUG
+    if (!polyomino.active && (pressed & PAD_SELECT)) {
+      polyomino.spawn();
+    }
+    #endif
+
+    player.update(input_mode, pressed, held);
+    polyomino.update(input_mode, pressed, held);
 
     render();
 
