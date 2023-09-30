@@ -5,7 +5,10 @@
 #include "polyomino.hpp"
 #include "player.hpp"
 
+#define INITIAL_SPAWN_DELAY 150
+
 class Gameplay {
+  u16 spawn_timer;
 public:
   Board board;
   Player player;

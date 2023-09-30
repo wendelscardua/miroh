@@ -15,6 +15,7 @@
 #include "gameplay.hpp"
 
 Gameplay::Gameplay() :
+  spawn_timer(INITIAL_SPAWN_DELAY),
   board(0x20, 0x20),
   player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
   polyomino(board, false),
@@ -62,6 +63,12 @@ void Gameplay::render() {
 void Gameplay::loop() {
   while(current_mode == GameMode::Gameplay) {
     ppu_wait_nmi();
+
+    if (!polyomino.active && --spawn_timer == 0) {
+      polyomino.spawn();
+      spawn_timer = INITIAL_SPAWN_DELAY; // TODO make this go faster
+    }
+
     pad_poll(0);
 
     u8 pressed = get_pad_new(0);
