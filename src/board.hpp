@@ -24,10 +24,11 @@ class Cell {
 };
 
 class Board {
+  u8 tally[SIZE]; // counts how many occupied cells are in each row
 public:
-  Cell cell[SIZE][SIZE];
-  u8 origin_x;
-  u8 origin_y;
+  Cell cell[SIZE][SIZE]; // each of the board's cells
+  u8 origin_x; // where to start rendering the board and its contents (x)
+  u8 origin_y; // where to start rendering the board and its contents (y)
 
   Board(u8 origin_x, u8 origin_y);
   ~Board();

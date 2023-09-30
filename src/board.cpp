@@ -22,6 +22,9 @@ void Cell::join(Cell *other) {
 }
 
 Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) {
+  // reset tally
+  for(u8 i = 0; i < SIZE; i++) tally[i] = 0;
+
   // some sparse random walls
   for(u8 i = 0; i < SIZE - 1; i++) {
     for(u8 j = 0; j < SIZE - 1; j++) {
@@ -191,5 +194,8 @@ bool Board::occupied(s8 row, s8 column) {
 }
 
 void Board::occupy(s8 row, s8 column) {
-  cell[row][column].occupied = true;
+  if (!cell[row][column].occupied) { // just to be safe
+    cell[row][column].occupied = true;
+    tally[row]++;
+  }
 }
