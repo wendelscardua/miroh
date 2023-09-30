@@ -64,6 +64,7 @@ add_library(SourceObj
   ggsound.cpp
   ggsound.s
   log.cpp
+  player.cpp
 
   chr-data.s
   nametables.s

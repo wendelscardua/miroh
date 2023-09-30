@@ -8,11 +8,12 @@
 #include "chr-data.hpp"
 #include "common.hpp"
 #include "donut.hpp"
+#include "fixed-point.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
 #include "gameplay.hpp"
 
-Gameplay::Gameplay() : board() {
+Gameplay::Gameplay() : board(), player(fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)) {
     set_chr_bank(0);
 
     set_prg_bank(GET_BANK(bg_chr));
@@ -47,11 +48,21 @@ Gameplay::~Gameplay() {
     ppu_off();
 }
 
+void Gameplay::render() {
+  oam_clear();
+  player.render();
+}
+
 void Gameplay::loop() {
   while(current_mode == GameMode::Gameplay) {
     ppu_wait_nmi();
     pad_poll(0);
 
     u8 pressed = get_pad_new(0);
+    u8 held = pad_state(0);
+
+    player.update(pressed, held);
+
+    render();
   }
 }
