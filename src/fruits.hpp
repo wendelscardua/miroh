@@ -2,10 +2,13 @@
 
 #include "board.hpp"
 #include "common.hpp"
+#include "player.hpp"
 #include <array>
 
 #define NUM_FRUITS 8
 #define SPAWN_DELAY 480
+
+#define FRUIT_NUTRITION 4
 
 struct Fruit {
   s8 row;
@@ -26,7 +29,7 @@ class Fruits {
 public:
   Fruits(Board& board);
 
-  void update();
+  void update(Player& player);
 
   void render();
 };

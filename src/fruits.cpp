@@ -1,5 +1,6 @@
 #include "fruits.hpp"
 #include "metasprites.hpp"
+#include "player.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -86,11 +87,19 @@ Fruits::Fruits(Board& board) : board(board) {
   active_fruits = 0;
 }
 
-void Fruits::update() {
+void Fruits::update(Player& player) {
   for(auto& fruit : fruits) {
-    if (fruit.active && board.occupied(fruit.row, fruit.column)) {
-      fruit.active = false;
-      active_fruits--;
+    if (fruit.active) {
+      if (board.occupied(fruit.row, fruit.column)) {
+        fruit.active = false;
+        active_fruits--;
+      } else if (player.state == Player::State::Idle &&
+                 player.x.whole >> 4 == fruit.column &&
+                 player.y.whole >> 4 == fruit.row) {
+        fruit.active = false;
+        active_fruits--;
+        player.feed(FRUIT_NUTRITION);
+      }
     }
   }
 

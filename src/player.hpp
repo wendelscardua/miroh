@@ -11,18 +11,18 @@
 #define HUNGER_BAR_BASE_TILE 0x92
 
 class Player {
+private:
+  Direction facing;
+  fixed_point target_x, target_y;
+  u8 hunger;
+  s16 hunger_timer;
+public:
   enum class State {
     Idle,
     Moving,
   };
 
-private:
-  Direction facing;
   State state;
-  fixed_point target_x, target_y;
-  u8 hunger;
-  s16 hunger_timer;
-public:
   Board& board;
   fixed_point x;
   fixed_point y;
@@ -30,4 +30,6 @@ public:
 
   void update(InputMode input_mode, u8 pressed, u8 held);
   void render();
+  void feed(u8 nutrition);
+  void refresh_hunger_hud();
 };

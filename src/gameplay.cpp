@@ -97,7 +97,7 @@ void Gameplay::loop() {
 
     player.update(input_mode, pressed, held);
     polyomino.update(input_mode, pressed, held);
-    fruits.update();
+    fruits.update(player);
 
     render();
 
