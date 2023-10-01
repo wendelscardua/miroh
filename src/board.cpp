@@ -54,12 +54,12 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
     }
   }
 
-  // no border walls (implicit walls)
+  // border walls
   for(u8 i = 0; i < SIZE; i++) {
-    cell[0][i].up_wall = false;
-    cell[SIZE - 1][i].down_wall = false;
-    cell[i][0].left_wall = false;
-    cell[i][SIZE - 1].right_wall = false;
+    cell[0][i].up_wall = true;
+    cell[SIZE - 1][i].down_wall = true;
+    cell[i][0].left_wall = true;
+    cell[i][SIZE - 1].right_wall = true;
   }
 
   // union-find-ish-ly ensure all cells are reachable
