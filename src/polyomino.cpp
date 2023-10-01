@@ -99,6 +99,7 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
       }
     } else if (pressed & PAD_A) {
       definition = definition->right_rotation;
+      bool kicked = false;
       for(auto kick : definition->right_kick->deltas) {
         s8 new_row = row + kick.delta_row;
         s8 new_column = column + kick.delta_column;
@@ -116,11 +117,14 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
         if (!bumped) {
           row = new_row;
           column = new_column;
+          kicked = true;
           break;
         }
       }
+      if (!kicked) definition = definition->left_rotation; // undo rotation
     } else if (pressed & PAD_B) {
       definition = definition->left_rotation;
+      bool kicked = false;
       for(auto kick : definition->left_kick->deltas) {
         s8 new_row = row + kick.delta_row;
         s8 new_column = column + kick.delta_column;
@@ -138,9 +142,11 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
         if (!bumped) {
           row = new_row;
           column = new_column;
+          kicked = true;
           break;
         }
       }
+      if (!kicked) definition = definition->right_rotation; // undo rotation
     } else if (pressed & PAD_UP) {
 
     }
