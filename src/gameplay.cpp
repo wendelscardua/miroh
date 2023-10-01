@@ -19,6 +19,7 @@ Gameplay::Gameplay() :
   board(0x20, 0x10),
   player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
   polyomino(board, false),
+  fruits(board),
   input_mode(InputMode::Player) {
     set_chr_bank(0);
 
@@ -58,6 +59,7 @@ void Gameplay::render() {
   oam_clear();
   player.render();
   polyomino.render();
+  fruits.render();
 }
 
 void Gameplay::loop() {
@@ -90,6 +92,7 @@ void Gameplay::loop() {
 
     player.update(input_mode, pressed, held);
     polyomino.update(input_mode, pressed, held);
+    fruits.update();
 
     render();
 

@@ -2,7 +2,6 @@
 
 - [x] move player around maze
 - [x] player collide with walls
-- [ ] buffered input (if player press up while moving right, it takes effect after the movement finishes
 - [x] define some polyominos
 - [x] spawn random polyomino
 - [x] polyomino movement and rotation
@@ -12,6 +11,7 @@
 - [x] switch controls between player and polyomino
 - [x] remove lines (can we restore walls? should we?)
 - [o] mino's hunger + food
+- [ ] buffered input (if player press up while moving right, it takes effect after the movement finishes
 - [ ] scoring
 - [ ] high scores
 - [ ] title screen
@@ -19,5 +19,8 @@
 - [ ] sound
 - [ ] music
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
+- [ ] spawn polyomino on a viable column
+- [ ] what happens when polyomino won't fit?
+- [ ] what happens when it overlaps the player? lock player for a bit? kill them?
 - [ ] polish
 - [ ] power ups?

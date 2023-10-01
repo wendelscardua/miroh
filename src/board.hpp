@@ -30,9 +30,9 @@ class Board {
   s8 cracking_column;
   s8 erasing_row;
   s8 erasing_column;
-  u8 tally[SIZE]; // counts how many occupied cells are in each row
 public:
   Cell cell[SIZE][SIZE]; // each of the board's cells
+  u8 tally[SIZE]; // counts how many occupied cells are in each row
   u8 origin_x; // where to start rendering the board and its contents (x)
   u8 origin_y; // where to start rendering the board and its contents (y)
 

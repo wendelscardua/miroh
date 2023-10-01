@@ -77,6 +77,7 @@ add_library(SourceObj
   board.cpp
   donut.cpp
   donut.s
+  fruits.cpp
   ggsound.cpp
   ggsound.s
   log.cpp
