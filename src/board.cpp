@@ -99,6 +99,8 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
   }
 }
 
+Board::~Board() {}
+
 void Board::render() {
   u8 x = origin_x >> 3;
   u8 y = origin_y >> 3;
