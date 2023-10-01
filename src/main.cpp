@@ -41,6 +41,8 @@ static void main_init() {
 int main() {
   main_init();
 
+  GGSound::play_song(Song::Miroh);
+
   while (true) {
     switch (current_mode) {
     case GameMode::TitleScreen:

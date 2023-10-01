@@ -40,7 +40,7 @@ namespace GGSound {
 
   // Note table borrowed from periods.s provided by FamiTracker's NSF driver.
   // and then from ggsound.s
-  const u8 ntsc_note_table_lo[] = {
+  __attribute__((section(".prg_rom_2.ggsound-rodata"))) const u8 ntsc_note_table_lo[] = {
       (u8)0x0D5B, (u8)0x0C9C, (u8)0x0BE6, (u8)0x0B3B, (u8)0x0A9A, (u8)0x0A01,
       (u8)0x0972, (u8)0x08EA, (u8)0x086A, (u8)0x07F1, (u8)0x077F, (u8)0x0713,
       (u8)0x06AD, (u8)0x064D, (u8)0x05F3, (u8)0x059D, (u8)0x054C, (u8)0x0500,
@@ -57,7 +57,7 @@ namespace GGSound {
       (u8)0x0025, (u8)0x0023, (u8)0x0021, (u8)0x001F, (u8)0x001D, (u8)0x001B,
       (u8)0x001A, (u8)0x0018, (u8)0x0017, (u8)0x0015, (u8)0x0014, (u8)0x0013,
       (u8)0x0012, (u8)0x0011, (u8)0x0010, (u8)0x000F, (u8)0x000E, (u8)0x000D};
-  const u8 ntsc_note_table_hi[] = {
+  __attribute__((section(".prg_rom_2.ggsound-rodata"))) const u8 ntsc_note_table_hi[] = {
       (u8)(0x0D5B >> 8), (u8)(0x0C9C >> 8), (u8)(0x0BE6 >> 8),
       (u8)(0x0B3B >> 8), (u8)(0x0A9A >> 8), (u8)(0x0A01 >> 8),
       (u8)(0x0972 >> 8), (u8)(0x08EA >> 8), (u8)(0x086A >> 8),
@@ -91,7 +91,7 @@ namespace GGSound {
       (u8)(0x0012 >> 8), (u8)(0x0011 >> 8), (u8)(0x0010 >> 8),
       (u8)(0x000F >> 8), (u8)(0x000E >> 8), (u8)0x000D};
 
-  const u8 pal_note_table_lo[] = {
+  __attribute__((section(".prg_rom_2.ggsound-rodata"))) const u8 pal_note_table_lo[] = {
       (u8)0x0C68, (u8)0x0BB6, (u8)0x0B0E, (u8)0x0A6F, (u8)0x09D9, (u8)0x094B,
       (u8)0x08C6, (u8)0x0848, (u8)0x07D1, (u8)0x0760, (u8)0x06F6, (u8)0x0692,
       (u8)0x0634, (u8)0x05DB, (u8)0x0586, (u8)0x0537, (u8)0x04EC, (u8)0x04A5,
@@ -109,7 +109,7 @@ namespace GGSound {
       (u8)0x0018, (u8)0x0016, (u8)0x0015, (u8)0x0014, (u8)0x0013, (u8)0x0012,
       (u8)0x0011, (u8)0x0010, (u8)0x000F, (u8)0x000E, (u8)0x000D, (u8)0x000C};
 
-  const u8 pal_note_table_hi[] = {
+  __attribute__((section(".prg_rom_2.ggsound-rodata"))) const u8 pal_note_table_hi[] = {
       (u8)(0x0C68 >> 8), (u8)(0x0BB6 >> 8), (u8)(0x0B0E >> 8),
       (u8)(0x0A6F >> 8), (u8)(0x09D9 >> 8), (u8)(0x094B >> 8),
       (u8)(0x08C6 >> 8), (u8)(0x0848 >> 8), (u8)(0x07D1 >> 8),
@@ -143,7 +143,7 @@ namespace GGSound {
       (u8)(0x0011 >> 8), (u8)(0x0010 >> 8), (u8)(0x000F >> 8),
       (u8)(0x000E >> 8), (u8)(0x000D >> 8), (u8)0x000C};
 
-  void initialize_apu_buffer() {
+__attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void initialize_apu_buffer() {
     //****************************************************************
     // Initialize Square 1
     //****************************************************************
@@ -301,18 +301,14 @@ namespace GGSound {
       _ggsound_stream_flags[i] = 0;
     }
 
-    initialize_apu_buffer();
+    banked_call(_ggsound_sound_bank, initialize_apu_buffer);
 
     _ggsound_sound_disable_update = false;
   }
 
-  void play_song(Song song) {
-    _ggsound_sound_disable_update = true;
-    u8 old_bank = get_prg_bank();
-    set_prg_bank(_ggsound_sound_bank);
-
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void _banked_play_song(Song song) {
     // Get song address from song list.
-    Track &track = *song_list[(u8)song];
+    Track& track = *song_list[(u8)song];
 
     u16 track_tempo =
         region == Region::NTSC ? track.ntsc_tempo : track.pal_tempo;
@@ -369,6 +365,15 @@ namespace GGSound {
           _ggsound_stream_tempo_counter_hi[(u8)Stream::Noise] =
               (u8)(track_tempo >> 8);
     }
+  }
+
+  void play_song(Song song) {
+    _ggsound_sound_disable_update = true;
+    u8 old_bank = get_prg_bank();
+    set_prg_bank(_ggsound_sound_bank);
+
+    _banked_play_song(song);
+
     set_prg_bank(old_bank);
     _ggsound_sound_disable_update = false;
   }

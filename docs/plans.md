@@ -18,12 +18,13 @@
       - if it won't fit it will just stay over there
       - player is motivated to find a place for it because it earns food
 - [x] experiment smaller height so polyomino is visible when spawning
-- [o] scoring
+- [x] scoring
+- [ ] music
+   - [ ] try putting most of ggsound on its own bank?
 - [ ] high scores
 - [ ] title screen
 - [ ] instructions (both for NES and itch.io)
 - [ ] sound
-- [ ] music
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
 - [ ] balance hunger/nutrition
 - [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
@@ -36,3 +37,4 @@
         fruits renderer takes 4k cycles, but 8x16 fruits still take 2.8k
 - [ ] random polish
 - [ ] power ups?
+- [ ] automino mode?
