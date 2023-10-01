@@ -31,6 +31,7 @@ static void main_init() {
 
   set_vram_buffer();
 
+  set_prg_bank(GET_BANK(song_list));
   GGSound::init(GGSound::Region::NTSC,
                 song_list,
                 sfx_list,
@@ -41,6 +42,7 @@ static void main_init() {
 int main() {
   main_init();
 
+  set_prg_bank(GET_BANK(song_list));
   GGSound::play_song(Song::Miroh);
 
   while (true) {

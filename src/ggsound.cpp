@@ -199,13 +199,13 @@ __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void initialize_ap
     _ggsound_apu_register_sets[15] = 0b00000000;
   }
 
-  void stream_stop(Stream stream_slot) {
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void stream_stop(Stream stream_slot) {
     _ggsound_sound_disable_update = true;
     _ggsound_stream_flags[(u8)stream_slot] = 0;
     _ggsound_sound_disable_update = false;
   }
 
-  void stream_initialize(Stream stream_slot, Channel channel,
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void stream_initialize(Stream stream_slot, Channel channel,
                          void *stream_ptr) {
     if (stream_ptr == 0)
       return;
@@ -252,12 +252,10 @@ __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void initialize_ap
     _ggsound_sound_disable_update = false;
   }
 
-  void init(Region region, Track* song_list[], Track* sfx_list[],
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void init(Region region, Track* song_list[], Track* sfx_list[],
             void *instruments[], u8 bank) {
     _ggsound_sound_disable_update = true;
     _ggsound_sound_bank = bank;
-    u8 old_bank = get_prg_bank();
-    set_prg_bank(_ggsound_sound_bank);
     GGSound::region = region;
     GGSound::song_list = song_list;
     GGSound::sfx_list = sfx_list;
@@ -287,11 +285,10 @@ __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void initialize_ap
     // Make sure all streams are killed.
     stop();
 
-    set_prg_bank(old_bank);
     _ggsound_sound_disable_update = false;
   }
 
-  void stop() {
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void stop() {
     // Kill all active streams and halt sound.
 
     _ggsound_sound_disable_update = true;
@@ -301,12 +298,13 @@ __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void initialize_ap
       _ggsound_stream_flags[i] = 0;
     }
 
-    banked_call(_ggsound_sound_bank, initialize_apu_buffer);
+    initialize_apu_buffer();
 
     _ggsound_sound_disable_update = false;
   }
 
-  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void _banked_play_song(Song song) {
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void play_song(Song song) {
+    _ggsound_sound_disable_update = true;
     // Get song address from song list.
     Track& track = *song_list[(u8)song];
 
@@ -365,23 +363,12 @@ __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void initialize_ap
           _ggsound_stream_tempo_counter_hi[(u8)Stream::Noise] =
               (u8)(track_tempo >> 8);
     }
-  }
-
-  void play_song(Song song) {
-    _ggsound_sound_disable_update = true;
-    u8 old_bank = get_prg_bank();
-    set_prg_bank(_ggsound_sound_bank);
-
-    _banked_play_song(song);
-
-    set_prg_bank(old_bank);
     _ggsound_sound_disable_update = false;
   }
 
-  void play_sfx(SFX sfx, SFXPriority priority) {
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void play_sfx(SFX sfx, SFXPriority priority) {
     _ggsound_sound_disable_update = true;
-    u8 old_bank = get_prg_bank();
-    set_prg_bank(_ggsound_sound_bank);
+
     // Get song address from song list.
     Track &track = *sfx_list[(u8)sfx];
 
@@ -441,21 +428,19 @@ __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void initialize_ap
               (u8)(track_tempo >> 8);
     }
   exit:
-    set_prg_bank(old_bank);
     _ggsound_sound_disable_update = false;
   }
 
-  void pause() {
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void pause() {
     // Pauses all music streams by clearing volume bits from all channel
     // registers and setting the pause flag so these streams are not updated.
-
     for (u8 i = 0; i < MAX_MUSIC_STREAMS; i++) {
       _ggsound_stream_flags[i] |= STREAM_PAUSE_SET;
       _ggsound_stream_channel_register_1[i] &= 0b11110000;
     }
   }
 
-  void resume() {
+  __attribute__((noinline, section(".prg_rom_2.ggsound-text"))) void resume() {
     // Resumes all music streams.
 
     for (u8 i = 0; i < MAX_MUSIC_STREAMS; i++) {
