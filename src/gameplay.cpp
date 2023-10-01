@@ -13,6 +13,7 @@
 #include "input-mode.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
+#include "player.hpp"
 #include "gameplay.hpp"
 
 Gameplay::Gameplay() :
@@ -105,6 +106,11 @@ void Gameplay::loop() {
     u8 lines_filled = 0;
     polyomino.update(input_mode, pressed, held, blocks_placed, lines_filled);
     fruits.update(player, blocks_placed);
+
+    if (player.state == Player::State::Dead) {
+      // TODO nice things here
+      current_mode = GameMode::TitleScreen;
+    }
 
     if (no_lag_frame) {
       render();

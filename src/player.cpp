@@ -23,7 +23,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   if (hunger_timer >= HUNGER_TICKS) {
     hunger_timer = 0;
     if (hunger == MAX_HUNGER) {
-      // TODO: player dies
+      state = State::Dead;
     } else {
       hunger++;
       refresh_hunger_hud();
@@ -109,6 +109,8 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       break;
     }
     break;
+  case State::Dead:
+    break;
   }
 }
 
@@ -129,26 +131,31 @@ void Player::render() {
     }
     break;
   case State::Moving:
-    bool toggle = ((x.whole ^ y.whole) & 0b1000) != 0;
-    switch (facing) {
-    case Direction::Up:
-    case Direction::Right:
-    case Direction::Down:
-    case Direction::None:
-      if (toggle) {
-        metasprite = metasprite_MinoRight1;
-      } else {
-        metasprite = metasprite_MinoRight2;
+    {
+      bool toggle = ((x.whole ^ y.whole) & 0b1000) != 0;
+      switch (facing) {
+      case Direction::Up:
+      case Direction::Right:
+      case Direction::Down:
+      case Direction::None:
+        if (toggle) {
+          metasprite = metasprite_MinoRight1;
+        } else {
+          metasprite = metasprite_MinoRight2;
+        }
+        break;
+      case Direction::Left:
+        if (toggle) {
+          metasprite = metasprite_MinoLeft1;
+        } else {
+          metasprite = metasprite_MinoLeft2;
+        }
+        break;
       }
-      break;
-    case Direction::Left:
-      if (toggle) {
-        metasprite = metasprite_MinoLeft1;
-      } else {
-        metasprite = metasprite_MinoLeft2;
-      }
-      break;
     }
+    break;
+  case State::Dead:
+    metasprite = metasprite_block; // TODO: draw dead mino
     break;
   }
   oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round(),

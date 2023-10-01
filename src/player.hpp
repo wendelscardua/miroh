@@ -22,6 +22,7 @@ public:
   enum class State {
     Idle,
     Moving,
+    Dead,
   };
 
   State state;
