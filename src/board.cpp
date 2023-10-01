@@ -230,8 +230,8 @@ bool Board::ongoing_line_clearing() {
     Attributes::set((u8) ((origin_x >> 4) + cracking_column), (u8) ((origin_y >> 4) + cracking_row), FLASH_ATTRIBUTE);
     Attributes::flush_vram_update();
     int position = NTADR_A((origin_x >> 3) + (cracking_column << 1), (origin_y >> 3) + (cracking_row << 1));
-    multi_vram_buffer_horz((const u8[2]){0x06, 0x07}, 2, position);
-    multi_vram_buffer_horz((const u8[2]){0x16, 0x17}, 2, position+0x20);
+    multi_vram_buffer_horz((const u8[2]){0x76, 0x77}, 2, position);
+    multi_vram_buffer_horz((const u8[2]){0x86, 0x87}, 2, position+0x20);
 
     cracking_column++;
     if (cracking_column == SIZE) {

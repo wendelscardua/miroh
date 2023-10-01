@@ -178,8 +178,8 @@ void Polyomino::freeze_blocks() {
     if (!board.occupied(block_row, block_column)) {
       if (block_row >= 0) board.occupy(block_row, block_column);
       int position = NTADR_A((board.origin_x >> 3) + (block_column << 1), (board.origin_y >> 3) + (block_row << 1));
-      multi_vram_buffer_horz((const u8[2]){0x04, 0x05}, 2, position);
-      multi_vram_buffer_horz((const u8[2]){0x14, 0x15}, 2, position+0x20);
+      multi_vram_buffer_horz((const u8[2]){0x74, 0x75}, 2, position);
+      multi_vram_buffer_horz((const u8[2]){0x84, 0x85}, 2, position+0x20);
       Attributes::set((board.origin_x >> 4) +(u8)block_column, (board.origin_y >> 4) +(u8)block_row, FROZEN_BLOCK_ATTRIBUTE);
     }
   }

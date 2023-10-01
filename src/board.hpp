@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 #define SIZE 12
-#define TILE_BASE 0x70
+#define TILE_BASE 0x60
 #define WALL_ATTRIBUTE 1
 #define FLASH_ATTRIBUTE 3
 
