@@ -1,5 +1,7 @@
 #pragma once
 
+#include <soa.h>
+
 #include "board.hpp"
 #include "common.hpp"
 #include "player.hpp"
@@ -16,15 +18,20 @@ struct Fruit {
   u8 x;
   u8 y;
   bool active;
-
-  void render();
-
-  // tries to place fruit on an unoccupied place on board (assuming there is one)
-  void spawn_on_board(Board& board);
 };
 
+#define SOA_STRUCT Fruit
+#define SOA_MEMBERS                                                            \
+  MEMBER(row)                                                                  \
+  MEMBER(column)                                                               \
+  MEMBER(x)                                                                    \
+  MEMBER(y)                                                                    \
+  MEMBER(active)
+
+#include <soa-struct.inc>
+
 class Fruits {
-  std::array<Fruit, NUM_FRUITS> fruits;
+  soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
   Board& board;
   u16 spawn_timer;
@@ -32,6 +39,8 @@ public:
   Fruits(Board& board);
 
   void update(Player& player);
+
+  void spawn_on_board(soa::Ptr<Fruit> fruit);
 
   void render();
 };
