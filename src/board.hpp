@@ -3,6 +3,7 @@
 #include "common.hpp"
 #define SIZE 12
 #define TILE_BASE 0x70
+#define WALL_ATTRIBUTE 0
 
 class Cell {
  public:

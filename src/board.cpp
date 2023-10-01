@@ -1,6 +1,7 @@
 #include "board.hpp"
 #include "attributes.hpp"
 #include "common.hpp"
+#include <nesdoug.h>
 #include <neslib.h>
 
 Cell::Cell() :
@@ -226,22 +227,109 @@ bool Board::ongoing_line_clearing() {
   } else {
     ongoing = true;
     Attributes::enable_vram_buffer();
-    Attributes::set((u8) ((origin_x >> 4) + cracking_column), (u8) ((origin_y >> 4) + cracking_row), 3);
+    Attributes::set((u8) ((origin_x >> 4) + cracking_column), (u8) ((origin_y >> 4) + cracking_row), 2);
     Attributes::flush_vram_update();
+    int position = NTADR_A((origin_x >> 3) + (cracking_column << 1), (origin_y >> 3) + (cracking_row << 1));
+    multi_vram_buffer_horz((const u8[2]){0x06, 0x07}, 2, position);
+    multi_vram_buffer_horz((const u8[2]){0x16, 0x17}, 2, position+0x20);
+
     cracking_column++;
     if (cracking_column == SIZE) {
-      if (erasing_row < 0) erasing_row = cracking_row;
+      if (erasing_row < 0) {
+        erasing_row = cracking_row;
+        erasing_column = 0;
+      }
       cracking_row = -1;
     }
   }
 
   if (erasing_row >= 0) {
     ongoing = true;
-    // TODO: replace with maze
     Attributes::enable_vram_buffer();
-    Attributes::set((u8) ((origin_x >> 4) + erasing_column), (u8) ((origin_y >> 4) + erasing_row), 0);
+    Attributes::set((u8) ((origin_x >> 4) + erasing_column), (u8) ((origin_y >> 4) + erasing_row), WALL_ATTRIBUTE);
     Attributes::flush_vram_update();
+
+    // redrawing a maze cell
+
+    auto current_cell = &cell[erasing_row][erasing_column];
+    int position = NTADR_A((origin_x >> 3) + (erasing_column << 1), (origin_y >> 3) + (erasing_row << 1));
+
+    if (current_cell->up_wall) {
+      if (current_cell->left_wall) { // up left
+        one_vram_buffer(TILE_BASE + 7, position);
+      } else { // up !left
+        one_vram_buffer(TILE_BASE + 1, position);
+      }
+    } else {
+      if (current_cell->left_wall) { // !up left
+        one_vram_buffer(TILE_BASE + 6, position);
+      } else { // !up !left
+        if (erasing_row == 0 || erasing_column == 0)
+          one_vram_buffer(TILE_BASE + 0, position);
+        else
+          one_vram_buffer(TILE_BASE + 9, position);
+      }
+    }
+
+    // top right tile
+    if (current_cell->up_wall) {
+      if (current_cell->right_wall) { // up right
+        one_vram_buffer(TILE_BASE + 3, position + 1);
+      } else { // up !right
+        one_vram_buffer(TILE_BASE + 1, position + 1);
+      }
+    } else {
+      if (current_cell->right_wall) { // !up right
+        one_vram_buffer(TILE_BASE + 2, position + 1);
+      } else { // !up !right
+        if (erasing_row == 0 || erasing_column == SIZE - 1)
+          one_vram_buffer(TILE_BASE + 0, position + 1);
+        else
+          one_vram_buffer(TILE_BASE + 10, position + 1);
+      }
+    }
+
+    // bottom left tile
+    if (current_cell->down_wall) {
+      if (current_cell->left_wall) { // down left
+        one_vram_buffer(TILE_BASE + 8, position + 0x20);
+      } else { // down !left
+        one_vram_buffer(TILE_BASE + 4, position + 0x20);
+      }
+    } else {
+      if (current_cell->left_wall) { // !down left
+        one_vram_buffer(TILE_BASE + 6, position + 0x20);
+      } else { // !down !left
+        if (erasing_row == SIZE - 1 || erasing_column == 0)
+          one_vram_buffer(TILE_BASE + 0, position + 0x20);
+        else
+          one_vram_buffer(TILE_BASE + 12, position + 0x20);
+      }
+    }
+
+    // bottom right tile (vram_adr auto advanced)
+    if (current_cell->down_wall) {
+      if (current_cell->right_wall) { // down right
+        one_vram_buffer(TILE_BASE + 5, position + 0x21);
+      } else { // down !right
+        one_vram_buffer(TILE_BASE + 4, position + 0x21);
+      }
+    } else {
+      if (current_cell->right_wall) { // !down right
+        one_vram_buffer(TILE_BASE + 2, position + 0x21);
+      } else { // !down !right
+        if (erasing_row == SIZE - 1 || erasing_column == SIZE - 1)
+          one_vram_buffer(TILE_BASE + 0, position + 0x21);
+        else
+          one_vram_buffer(TILE_BASE + 11, position + 0x21);
+      }
+    }
+
+    // end of "redrawing a maze cell"
+
     free(erasing_row, erasing_column);
+
+
     erasing_column++;
     if (erasing_column == SIZE) {
       erasing_column = 0;

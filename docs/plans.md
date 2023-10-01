@@ -10,7 +10,7 @@
 - [x] freeze polyomino to background
 - [x] polyomino-player collision
 - [x] switch controls between player and polyomino
-- [o] remove lines (can we restore walls? should we?)
+- [x] remove lines (can we restore walls? should we?)
 - [ ] mino's hunger + food
 - [ ] scoring
 - [ ] high scores
@@ -20,3 +20,4 @@
 - [ ] music
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
 - [ ] polish
+- [ ] power ups?
