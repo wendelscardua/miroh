@@ -19,8 +19,11 @@
 - [ ] sound
 - [ ] music
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
+- [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
 - [ ] spawn polyomino on a viable column
 - [ ] what happens when polyomino won't fit?
 - [ ] what happens when it overlaps the player? lock player for a bit? kill them?
-- [ ] polish
+- [ ] sprite shuffling, at least for fruits
+- [ ] 8x16 mode?
+- [ ] random polish
 - [ ] power ups?
