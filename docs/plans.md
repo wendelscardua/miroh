@@ -22,7 +22,7 @@
 - [x] music
    - [x] try putting most of ggsound on its own bank?
 - [ ] high scores
-- [o] title screen
+- [x] title screen
 - [ ] instructions (both for NES and itch.io)
 - [ ] sound
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)

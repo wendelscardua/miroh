@@ -155,7 +155,7 @@ void Player::render() {
     }
     break;
   case State::Dead:
-    metasprite = metasprite_block; // TODO: draw dead mino
+    metasprite = metasprite_RIP; // TODO: draw dead mino
     break;
   }
   oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round(),
