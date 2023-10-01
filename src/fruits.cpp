@@ -7,9 +7,9 @@
 void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.row = -1;
   fruit.column = -1;
-  for(u8 tries = 0; tries < SIZE / 2; tries++) {
+  for(u8 tries = 0; tries < HEIGHT / 2; tries++) {
     s8 i = rand8() & 0x0f;
-    if (i < SIZE && board.tally[i] < SIZE) {
+    if (i < HEIGHT && board.tally[i] < WIDTH) {
       fruit.row = i;
       break;
     }
@@ -18,15 +18,15 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
     // random row failed, look each row
     // arbitrarily look from up to bottom or from bottom to up
     if (get_frame_count() & 0b1) {
-      for(s8 i = 0; i < SIZE; i++) {
-        if (board.tally[i] < SIZE) {
+      for(s8 i = 0; i < HEIGHT; i++) {
+        if (board.tally[i] < WIDTH) {
           fruit.row = i;
           break;
         }
       }
     } else {
-      for(s8 i = SIZE - 1; i >= 0; i--) {
-        if (board.tally[i] < SIZE) {
+      for(s8 i = HEIGHT - 1; i >= 0; i--) {
+        if (board.tally[i] < WIDTH) {
           fruit.row = i;
           break;
         }
@@ -39,9 +39,9 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   }
 
   // now we do the same for column
-  for(u8 tries = 0; tries < SIZE / 2; tries++) {
+  for(u8 tries = 0; tries < WIDTH / 2; tries++) {
     s8 j = rand8() & 0x0f;
-    if (j < SIZE && !board.cell[fruit.row][j].occupied) {
+    if (j < WIDTH && !board.cell[fruit.row][j].occupied) {
       fruit.column = j;
       break;
     }
@@ -50,14 +50,14 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
     // random column failed, look each column
     // arbitrarily look from left to right or from right to left
     if ((get_frame_count()^fruit.row) & 0b1) {
-      for(s8 j = 0; j < SIZE; j++) {
+      for(s8 j = 0; j < WIDTH; j++) {
         if (!board.cell[fruit.row][j].occupied) {
           fruit.column = j;
           break;
         }
       }
     } else {
-      for(s8 j = SIZE - 1; j >= 0; j--) {
+      for(s8 j = WIDTH - 1; j >= 0; j--) {
         if (!board.cell[fruit.row][j].occupied) {
           fruit.column = j;
           break;

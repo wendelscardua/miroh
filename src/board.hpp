@@ -1,7 +1,8 @@
 #pragma once
 
 #include "common.hpp"
-#define SIZE 12
+#define HEIGHT 12
+#define WIDTH 12
 #define TILE_BASE 0x60
 #define WALL_ATTRIBUTE 1
 #define FLASH_ATTRIBUTE 3
@@ -31,8 +32,8 @@ class Board {
   s8 erasing_row;
   s8 erasing_column;
 public:
-  Cell cell[SIZE][SIZE]; // each of the board's cells
-  u8 tally[SIZE]; // counts how many occupied cells are in each row
+  Cell cell[HEIGHT][WIDTH]; // each of the board's cells
+  u8 tally[HEIGHT]; // counts how many occupied cells are in each row
   u8 origin_x; // where to start rendering the board and its contents (x)
   u8 origin_y; // where to start rendering the board and its contents (y)
 

@@ -24,15 +24,15 @@ void Cell::join(Cell *other) {
 
 Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) {
   // reset tally
-  for(u8 i = 0; i < SIZE; i++) tally[i] = 0;
+  for(u8 i = 0; i < HEIGHT; i++) tally[i] = 0;
   cracking_row = -1;
   cracking_column = -1;
   erasing_row = -1;
   erasing_column = -1;
 
   // some sparse random walls
-  for(u8 i = 0; i < SIZE - 1; i++) {
-    for(u8 j = 0; j < SIZE - 1; j++) {
+  for(u8 i = 0; i < HEIGHT - 1; i++) {
+    for(u8 j = 0; j < WIDTH - 1; j++) {
       switch(rand8() & 0b11) {
       case 0:
         cell[i][j].right_wall = true;
@@ -55,31 +55,34 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
   }
 
   // border walls
-  for(u8 i = 0; i < SIZE; i++) {
-    cell[0][i].up_wall = true;
-    cell[SIZE - 1][i].down_wall = true;
+  for(u8 i = 0; i < HEIGHT; i++) {
     cell[i][0].left_wall = true;
-    cell[i][SIZE - 1].right_wall = true;
+    cell[i][WIDTH - 1].right_wall = true;
+  }
+
+  for(u8 j = 0; j < WIDTH; j++) {
+    cell[0][j].up_wall = true;
+    cell[HEIGHT - 1][j].down_wall = true;
   }
 
   // union-find-ish-ly ensure all cells are reachable
-  for(u8 i = 0; i < SIZE; i++) {
-    for(u8 j = 0; j < SIZE; j++) {
+  for(u8 i = 0; i < HEIGHT; i++) {
+    for(u8 j = 0; j < WIDTH; j++) {
       auto current_cell = &cell[i][j];
-      if (j < SIZE - 1 && !current_cell->right_wall) {
+      if (j < WIDTH - 1 && !current_cell->right_wall) {
         current_cell->join(&cell[i][j+1]);
       }
-      if (i < SIZE - 1 && !current_cell->down_wall) {
+      if (i < HEIGHT - 1 && !current_cell->down_wall) {
         current_cell->join(&cell[i+1][j]);
       }
     }
   }
 
-  for(u8 i = 0; i < SIZE; i++) {
-    for(u8 j = 0; j < SIZE; j++) {
+  for(u8 i = 0; i < HEIGHT; i++) {
+    for(u8 j = 0; j < WIDTH; j++) {
       auto current_cell = &cell[i][j];
-      auto right_cell = j < SIZE - 1 ? &cell[i][j + 1] : NULL;
-      auto down_cell = i < SIZE -1 ? &cell[i + 1][j] : NULL;
+      auto right_cell = j < WIDTH - 1 ? &cell[i][j + 1] : NULL;
+      auto down_cell = i < HEIGHT -1 ? &cell[i + 1][j] : NULL;
 
       if (right_cell && current_cell->representative() != right_cell->representative()) {
         current_cell->right_wall = false;
@@ -99,8 +102,8 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
 void Board::render() {
   u8 x = origin_x >> 3;
   u8 y = origin_y >> 3;
-  for(u8 i = 0; i < SIZE; i++) {
-    for(u8 j = 0; j < SIZE; j++) {
+  for(u8 i = 0; i < HEIGHT; i++) {
+    for(u8 j = 0; j < WIDTH; j++) {
       auto current_cell = &cell[i][j];
 
       vram_adr(NTADR_A(x + 2 * j, y + 2 * i));
@@ -133,7 +136,7 @@ void Board::render() {
         if (current_cell->right_wall) { // !up right
           vram_put(TILE_BASE + 2);
         } else { // !up !right
-          if (i == 0 || j == SIZE - 1)
+          if (i == 0 || j == WIDTH - 1)
             vram_put(TILE_BASE + 0);
           else
             vram_put(TILE_BASE + 10);
@@ -153,7 +156,7 @@ void Board::render() {
         if (current_cell->left_wall) { // !down left
           vram_put(TILE_BASE + 6);
         } else { // !down !left
-          if (i == SIZE - 1 || j == 0)
+          if (i == HEIGHT - 1 || j == 0)
             vram_put(TILE_BASE + 0);
           else
             vram_put(TILE_BASE + 12);
@@ -171,7 +174,7 @@ void Board::render() {
         if (current_cell->right_wall) { // !down right
           vram_put(TILE_BASE + 2);
         } else { // !down !right
-          if (i == SIZE - 1 || j == SIZE - 1)
+          if (i == HEIGHT - 1 || j == WIDTH - 1)
             vram_put(TILE_BASE + 0);
           else
             vram_put(TILE_BASE + 11);
@@ -179,8 +182,8 @@ void Board::render() {
       }
     }
   }
-  for(u8 meta_x = origin_x >> 4; meta_x < ((origin_x >> 4) + SIZE); meta_x++) {
-    for(u8 meta_y = origin_y >> 4; meta_y < ((origin_y >> 4) + SIZE); meta_y++) {
+  for(u8 meta_x = origin_x >> 4; meta_x < ((origin_x >> 4) + WIDTH); meta_x++) {
+    for(u8 meta_y = origin_y >> 4; meta_y < ((origin_y >> 4) + HEIGHT); meta_y++) {
       Attributes::set(meta_x, meta_y, WALL_ATTRIBUTE);
     }
   }
@@ -189,8 +192,8 @@ void Board::render() {
 
 bool Board::occupied(s8 row, s8 column) {
   if (column < 0 ||
-      column > SIZE - 1 ||
-      row > SIZE - 1)
+      column > WIDTH - 1 ||
+      row > HEIGHT - 1)
     return true;
 
   if (row < 0) return false;
@@ -216,8 +219,8 @@ bool Board::ongoing_line_clearing() {
   bool ongoing = false;
 
   if (cracking_row < 0) {
-    for(s8 i = erasing_row + 1; i < SIZE; i++) {
-      if (tally[i] == SIZE) {
+    for(s8 i = erasing_row + 1; i < HEIGHT; i++) {
+      if (tally[i] == WIDTH) {
         cracking_row = i;
         cracking_column = 0;
         ongoing = true;
@@ -234,7 +237,7 @@ bool Board::ongoing_line_clearing() {
     multi_vram_buffer_horz((const u8[2]){0x86, 0x87}, 2, position+0x20);
 
     cracking_column++;
-    if (cracking_column == SIZE) {
+    if (cracking_column == WIDTH) {
       if (erasing_row < 0) {
         erasing_row = cracking_row;
         erasing_column = 0;
@@ -282,7 +285,7 @@ bool Board::ongoing_line_clearing() {
       if (current_cell->right_wall) { // !up right
         one_vram_buffer(TILE_BASE + 2, position + 1);
       } else { // !up !right
-        if (erasing_row == 0 || erasing_column == SIZE - 1)
+        if (erasing_row == 0 || erasing_column == WIDTH - 1)
           one_vram_buffer(TILE_BASE + 0, position + 1);
         else
           one_vram_buffer(TILE_BASE + 10, position + 1);
@@ -300,7 +303,7 @@ bool Board::ongoing_line_clearing() {
       if (current_cell->left_wall) { // !down left
         one_vram_buffer(TILE_BASE + 6, position + 0x20);
       } else { // !down !left
-        if (erasing_row == SIZE - 1 || erasing_column == 0)
+        if (erasing_row == HEIGHT - 1 || erasing_column == 0)
           one_vram_buffer(TILE_BASE + 0, position + 0x20);
         else
           one_vram_buffer(TILE_BASE + 12, position + 0x20);
@@ -318,7 +321,7 @@ bool Board::ongoing_line_clearing() {
       if (current_cell->right_wall) { // !down right
         one_vram_buffer(TILE_BASE + 2, position + 0x21);
       } else { // !down !right
-        if (erasing_row == SIZE - 1 || erasing_column == SIZE - 1)
+        if (erasing_row == HEIGHT - 1 || erasing_column == WIDTH - 1)
           one_vram_buffer(TILE_BASE + 0, position + 0x21);
         else
           one_vram_buffer(TILE_BASE + 11, position + 0x21);
@@ -331,14 +334,14 @@ bool Board::ongoing_line_clearing() {
 
 
     erasing_column++;
-    if (erasing_column == SIZE) {
+    if (erasing_column == WIDTH) {
       erasing_column = 0;
 
-      for(erasing_row++; erasing_row < SIZE; erasing_row++) {
-        if (tally[erasing_row] == SIZE) break;
+      for(erasing_row++; erasing_row < HEIGHT; erasing_row++) {
+        if (tally[erasing_row] == WIDTH) break;
       }
 
-      if (erasing_row == SIZE) {
+      if (erasing_row == HEIGHT) {
         erasing_row = -1;
       }
     }

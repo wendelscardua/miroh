@@ -17,7 +17,7 @@
 - [x] what happens when polyomino won't fit?
       - if it won't fit it will just stay over there
       - player is motivated to find a place for it because it earns food
-- [ ] experiment smaller height so polyomino is visible when spawning
+- [o] experiment smaller height so polyomino is visible when spawning
 - [ ] scoring
 - [ ] high scores
 - [ ] title screen

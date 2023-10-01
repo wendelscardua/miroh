@@ -192,7 +192,7 @@ u8 Polyomino::freeze_blocks() {
     if (!board.occupied(block_row, block_column)) {
       if (block_row >= 0) {
         board.occupy(block_row, block_column);
-        if (board.tally[block_row] == SIZE) {
+        if (board.tally[block_row] == WIDTH) {
           filled_lines++;
         }
       }
