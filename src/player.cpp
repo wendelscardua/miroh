@@ -27,7 +27,6 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       refresh_hunger_hud();
     }
   }
-restate:
   switch (state) {
   case State::Idle: {
     auto current_row = y.whole >> 4;
@@ -42,7 +41,6 @@ restate:
         target_x = x;
         target_y = y - GRID_SIZE;
         state = State::Moving;
-        goto restate;
       }
     }
     if (held & PAD_DOWN) {
@@ -52,7 +50,6 @@ restate:
         target_x = x;
         target_y = y + GRID_SIZE;
         state = State::Moving;
-        goto restate;
       }
     }
     if (held & PAD_LEFT) {
@@ -62,7 +59,6 @@ restate:
         target_x = x - GRID_SIZE;
         target_y = y;
         state = State::Moving;
-        goto restate;
       }
     }
     if (held & PAD_RIGHT) {
@@ -72,7 +68,6 @@ restate:
         target_x = x + GRID_SIZE;
         target_y = y;
         state = State::Moving;
-        goto restate;
       }
     }
   } break;
@@ -83,7 +78,6 @@ restate:
       if (y < target_y) {
         y = target_y;
         state = State::Idle;
-        goto restate;
       }
       break;
     case Direction::Right:
@@ -91,7 +85,6 @@ restate:
       if (x > target_x) {
         x = target_x;
         state = State::Idle;
-        goto restate;
       }
       break;
     case Direction::Down:
@@ -99,7 +92,6 @@ restate:
       if (y > target_y) {
         y = target_y;
         state = State::Idle;
-        goto restate;
       }
       break;
     case Direction::Left:
@@ -107,7 +99,6 @@ restate:
       if (x < target_x) {
         x = target_x;
         state = State::Idle;
-        goto restate;
       }
       break;
     case Direction::None:
