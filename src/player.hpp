@@ -13,6 +13,7 @@
 class Player {
 private:
   Direction facing;
+  Direction moving;
   fixed_point target_x, target_y;
   u8 hunger;
   s16 hunger_timer;

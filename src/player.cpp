@@ -9,6 +9,7 @@
 
 Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
   : facing(Direction::Right),
+    moving(Direction::Right),
     hunger(0),
     hunger_timer(0),
     state(State::Idle),
@@ -34,7 +35,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     auto current_cell = board.cell[current_row][current_column];
     if (input_mode != InputMode::Player) break;
     if (held & PAD_UP) {
-      facing = Direction::Up;
+      moving = Direction::Up;
       if (!current_cell.up_wall &&
           current_row > 0 &&
           !board.occupied((s8)(current_row - 1), (s8)current_column)) {
@@ -44,7 +45,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       }
     }
     if (held & PAD_DOWN) {
-      facing = Direction::Down;
+      moving = Direction::Down;
       if (!current_cell.down_wall &&
           !board.occupied((s8)(current_row + 1), (s8)current_column)) {
         target_x = x;
@@ -54,6 +55,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
     if (held & PAD_LEFT) {
       facing = Direction::Left;
+      moving = Direction::Left;
       if (!current_cell.left_wall &&
           !board.occupied((s8)current_row, (s8)(current_column - 1))) {
         target_x = x - GRID_SIZE;
@@ -63,6 +65,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
     if (held & PAD_RIGHT) {
       facing = Direction::Right;
+      moving = Direction::Right;
       if (!current_cell.right_wall &&
           !board.occupied((s8)current_row, (s8)(current_column + 1))) {
         target_x = x + GRID_SIZE;
@@ -72,7 +75,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
   } break;
   case State::Moving:
-    switch (facing) {
+    switch (moving) {
     case Direction::Up:
       y -= move_speed;
       if (y < target_y) {
@@ -125,7 +128,7 @@ void Player::render() {
     }
     break;
   case State::Moving:
-    bool toggle = (get_frame_count() & 0b1000) == 0;
+    bool toggle = ((x.whole ^ y.whole) & 0b1000) != 0;
     switch (facing) {
     case Direction::Up:
     case Direction::Right:
