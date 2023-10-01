@@ -19,10 +19,10 @@
       - player is motivated to find a place for it because it earns food
 - [x] experiment smaller height so polyomino is visible when spawning
 - [x] scoring
-- [ ] music
-   - [ ] try putting most of ggsound on its own bank?
+- [x] music
+   - [x] try putting most of ggsound on its own bank?
 - [ ] high scores
-- [ ] title screen
+- [o] title screen
 - [ ] instructions (both for NES and itch.io)
 - [ ] sound
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)

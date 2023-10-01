@@ -35,6 +35,8 @@ TitleScreen::TitleScreen() {
 
     pal_bright(0);
 
+    oam_clear();
+
     ppu_on_all();
 
     pal_fade_to(0, 4);
