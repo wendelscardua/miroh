@@ -27,6 +27,8 @@
 - [ ] what happens when it overlaps the player? lock player for a bit? kill them?
 - [ ] sprite shuffling, at least for fruits
 - [ ] expire old fruits
-- [ ] 8x16 mode?
+- [?] 8x16 mode?
+      - premature optimization?
+        fruits renderer takes 4k cycles, but 8x16 fruits still take 2.8k
 - [ ] random polish
 - [ ] power ups?

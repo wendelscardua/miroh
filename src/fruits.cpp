@@ -4,10 +4,8 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-void Fruit::render(u8 origin_x, u8 origin_y) {
-  oam_meta_spr(origin_x + (u8)(column << 4),
-               origin_y + (u8)(row << 4),
-               metasprite_fruit);
+void Fruit::render() {
+  oam_meta_spr(x, y, metasprite_fruit);
 }
 
 void Fruit::spawn_on_board(Board& board) {
@@ -77,6 +75,8 @@ void Fruit::spawn_on_board(Board& board) {
     }
   }
   active = true;
+  x = (u8)((column << 4) + board.origin_x);
+  y = (u8)((row << 4) + board.origin_y);
 }
 
 Fruits::Fruits(Board& board) : board(board) {
@@ -118,7 +118,7 @@ void Fruits::update(Player& player) {
 void Fruits::render() {
   for(auto& fruit : fruits) {
     if (fruit.active) {
-      fruit.render(board.origin_x, board.origin_y);
+      fruit.render();
     };
   }
 }

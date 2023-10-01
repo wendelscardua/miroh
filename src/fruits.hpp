@@ -13,9 +13,11 @@
 struct Fruit {
   s8 row;
   s8 column;
+  u8 x;
+  u8 y;
   bool active;
 
-  void render(u8 origin_x, u8 origin_y);
+  void render();
 
   // tries to place fruit on an unoccupied place on board (assuming there is one)
   void spawn_on_board(Board& board);
