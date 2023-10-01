@@ -25,6 +25,9 @@ public:
 
   void render();
 
+  // checks if polyomino is already inside the board
+  bool can_be_frozen();
+
   // returns number of filled lines aftter blocks were frozen
   u8 freeze_blocks();
 };

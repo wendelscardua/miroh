@@ -13,7 +13,11 @@
 - [x] mino's hunger + food
 - [x] buffered input (if player press up while moving right, it takes effect after the movement finishes
       - held button works just fine, it seems :)
-- [o] place blocks to earn food
+- [x] place blocks to earn food
+- [x] what happens when polyomino won't fit?
+      - if it won't fit it will just stay over there
+      - player is motivated to find a place for it because it earns food
+- [ ] experiment smaller height so polyomino is visible when spawning
 - [ ] scoring
 - [ ] high scores
 - [ ] title screen
@@ -24,7 +28,6 @@
 - [ ] balance hunger/nutrition
 - [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
 - [ ] spawn polyomino on a viable column
-- [ ] what happens when polyomino won't fit?
 - [ ] what happens when it overlaps the player? lock player for a bit? kill them?
 - [ ] sprite shuffling, at least for fruits
 - [ ] expire old fruits

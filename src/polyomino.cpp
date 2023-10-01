@@ -58,12 +58,15 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
       }
     }
     if (bumped) {
-      grounded_timer++;
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
-        lines_filled = freeze_blocks();
-        blocks_placed = true;
-        input_mode = InputMode::Player;
-        return;
+        if (can_be_frozen()) {
+          lines_filled = freeze_blocks();
+          blocks_placed = true;
+          input_mode = InputMode::Player;
+          return;
+        }
+      } else {
+        grounded_timer++;
       }
     } else {
       row++;
@@ -167,6 +170,15 @@ void Polyomino::render() {
       oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
     }
   }
+}
+
+bool Polyomino::can_be_frozen() {
+  s8 min_y_delta = 2;
+  for (u8 i = 0; i < definition->size; i++) {
+    auto delta = definition->deltas[i];
+    if (delta.delta_row < min_y_delta) min_y_delta = delta.delta_row;
+  }
+  return row + min_y_delta >= 0;
 }
 
 u8 Polyomino::freeze_blocks() {
