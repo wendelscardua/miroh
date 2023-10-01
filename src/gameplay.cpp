@@ -64,7 +64,10 @@ void Gameplay::loop() {
   while(current_mode == GameMode::Gameplay) {
     ppu_wait_nmi();
 
-    if (!polyomino.active && --spawn_timer == 0) {
+    // we only spawn when there's no line clearing going on
+    if (!board.ongoing_line_clearing()
+        && !polyomino.active
+        && --spawn_timer == 0) {
       polyomino.spawn();
       spawn_timer = INITIAL_SPAWN_DELAY; // TODO make this go faster
     }
@@ -73,12 +76,6 @@ void Gameplay::loop() {
 
     u8 pressed = get_pad_new(0);
     u8 held = pad_state(0);
-
-    #ifndef NDEBUG
-    if (!polyomino.active && (pressed & PAD_SELECT)) {
-      polyomino.spawn();
-    }
-    #endif
 
     if (pressed & PAD_SELECT) {
       switch(input_mode) {

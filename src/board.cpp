@@ -24,6 +24,10 @@ void Cell::join(Cell *other) {
 Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) {
   // reset tally
   for(u8 i = 0; i < SIZE; i++) tally[i] = 0;
+  cracking_row = -1;
+  cracking_column = -1;
+  erasing_row = -1;
+  erasing_column = -1;
 
   // some sparse random walls
   for(u8 i = 0; i < SIZE - 1; i++) {
@@ -198,4 +202,59 @@ void Board::occupy(s8 row, s8 column) {
     cell[row][column].occupied = true;
     tally[row]++;
   }
+}
+
+void Board::free(s8 row, s8 column) {
+  if (cell[row][column].occupied) { // just to be safe
+    cell[row][column].occupied = false;
+    tally[row]--;
+  }
+}
+
+bool Board::ongoing_line_clearing() {
+  bool ongoing = false;
+
+  if (cracking_row < 0) {
+    for(s8 i = erasing_row + 1; i < SIZE; i++) {
+      if (tally[i] == SIZE) {
+        cracking_row = i;
+        cracking_column = 0;
+        ongoing = true;
+        break;
+      }
+    }
+  } else {
+    ongoing = true;
+    Attributes::enable_vram_buffer();
+    Attributes::set((u8) ((origin_x >> 4) + cracking_column), (u8) ((origin_y >> 4) + cracking_row), 3);
+    Attributes::flush_vram_update();
+    cracking_column++;
+    if (cracking_column == SIZE) {
+      if (erasing_row < 0) erasing_row = cracking_row;
+      cracking_row = -1;
+    }
+  }
+
+  if (erasing_row >= 0) {
+    ongoing = true;
+    // TODO: replace with maze
+    Attributes::enable_vram_buffer();
+    Attributes::set((u8) ((origin_x >> 4) + erasing_column), (u8) ((origin_y >> 4) + erasing_row), 0);
+    Attributes::flush_vram_update();
+    free(erasing_row, erasing_column);
+    erasing_column++;
+    if (erasing_column == SIZE) {
+      erasing_column = 0;
+
+      for(erasing_row++; erasing_row < SIZE; erasing_row++) {
+        if (tally[erasing_row] == SIZE) break;
+      }
+
+      if (erasing_row == SIZE) {
+        erasing_row = -1;
+      }
+    }
+  }
+
+  return ongoing;
 }

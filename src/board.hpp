@@ -24,6 +24,10 @@ class Cell {
 };
 
 class Board {
+  s8 cracking_row;
+  s8 cracking_column;
+  s8 erasing_row;
+  s8 erasing_column;
   u8 tally[SIZE]; // counts how many occupied cells are in each row
 public:
   Cell cell[SIZE][SIZE]; // each of the board's cells
@@ -41,4 +45,11 @@ public:
 
   // marks a position as occupied by a solid block
   void occupy(s8 row, s8 column);
+
+  // marks a position as not occupied by a solid block
+  void free(s8 row, s8 column);
+
+  // advances the process of clearing a filled line
+  // returns true if such process is still ongoing
+  bool ongoing_line_clearing();
 };
