@@ -161,6 +161,9 @@ void Polyomino::render() {
   if (!active)
     return;
 
+  u8 old_bank = get_prg_bank();
+  set_prg_bank(GET_BANK(polyominos));
+
   for (u8 i = 0; i < definition->size; i++) {
     auto& delta = definition->deltas[i];
     auto block_x =
@@ -173,18 +176,26 @@ void Polyomino::render() {
       oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
     }
   }
+  set_prg_bank(old_bank);
 }
 
 bool Polyomino::can_be_frozen() {
   s8 min_y_delta = 2;
+
+  u8 old_bank = get_prg_bank();
+  set_prg_bank(GET_BANK(polyominos));
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     if (delta.delta_row < min_y_delta) min_y_delta = delta.delta_row;
   }
+  set_prg_bank(old_bank);
   return row + min_y_delta >= 0;
 }
 
 u8 Polyomino::freeze_blocks() {
+  u8 old_bank = get_prg_bank();
+  set_prg_bank(GET_BANK(polyominos));
+
   active = false;
   u8 filled_lines = 0;
   Attributes::enable_vram_buffer();
@@ -206,5 +217,8 @@ u8 Polyomino::freeze_blocks() {
     }
   }
   Attributes::flush_vram_update();
+
+  set_prg_bank(old_bank);
+
   return filled_lines;
 }
