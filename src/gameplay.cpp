@@ -17,7 +17,7 @@
 
 Gameplay::Gameplay() :
   spawn_timer(INITIAL_SPAWN_DELAY),
-  board(0x20, 0x10),
+  board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
   player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
   polyomino(board, false),
   fruits(board),

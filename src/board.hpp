@@ -1,11 +1,14 @@
 #pragma once
 
 #include "common.hpp"
-#define HEIGHT 12
+#define HEIGHT 10
 #define WIDTH 12
 #define TILE_BASE 0x60
 #define WALL_ATTRIBUTE 1
 #define FLASH_ATTRIBUTE 3
+
+#define BOARD_X_ORIGIN 0x20
+#define BOARD_Y_ORIGIN 0x30
 
 class Cell {
  public:
