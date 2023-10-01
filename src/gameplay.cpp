@@ -1,5 +1,6 @@
 
 #include <bank.h>
+#include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -67,9 +68,13 @@ void Gameplay::render() {
   }
 }
 
+extern volatile char FRAME_CNT1;
+static bool no_lag_frame;
+
 void Gameplay::loop() {
   while(current_mode == GameMode::Gameplay) {
     ppu_wait_nmi();
+    u8 frame = FRAME_CNT1;
 
     // we only spawn when there's no line clearing going on
     if (!board.ongoing_line_clearing()
@@ -99,7 +104,15 @@ void Gameplay::loop() {
     polyomino.update(input_mode, pressed, held);
     fruits.update(player);
 
-    render();
+    if (no_lag_frame) {
+      render();
+    } else {
+#ifndef NDEBUG
+      putchar('X');
+#endif
+    }
+
+    no_lag_frame = frame == FRAME_CNT1;
 
     #ifndef NDEBUG
     gray_line();
