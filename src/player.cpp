@@ -1,7 +1,6 @@
 #include "player.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
-#include "gameplay.hpp"
 #include "metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -9,14 +8,38 @@
 #define GRID_SIZE fixed_point(0x10, 0)
 
 Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
-    : board(board) {
-  this->x = starting_x;
-  this->y = starting_y;
-  this->facing = Direction::Right;
-  this->state = State::Idle;
-}
+  : facing(Direction::Right),
+    state(State::Idle),
+    hunger(0),
+    hunger_timer(0),
+    board(board),
+    x(starting_x),
+    y(starting_y) {}
 
 void Player::update(InputMode input_mode, u8 pressed, u8 held) {
+  hunger_timer++;
+  if (hunger_timer >= HUNGER_TICKS) {
+    hunger_timer = 0;
+    hunger++;
+    if (hunger > MAX_HUNGER) {
+      // TODO: player dies
+    } else {
+      // refresh hunger hud
+      u8 hunger_bar[4];
+      u8 temp = hunger;
+      for(auto &hunger_cell : hunger_bar) {
+        if (temp >= 4) {
+          hunger_cell = HUNGER_BAR_BASE_TILE + 4;
+          temp -= 4;
+        } else {
+          hunger_cell = HUNGER_BAR_BASE_TILE + temp;
+          temp = 0;
+        }
+      }
+
+      multi_vram_buffer_horz(hunger_bar, 4, NTADR_A(12, 27));
+    }
+  }
 restate:
   switch (state) {
   case State::Idle: {
