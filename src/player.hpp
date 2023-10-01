@@ -7,7 +7,7 @@
 
 #define move_speed fixed_point(1, 0x2000)
 #define HUNGER_TICKS 90
-#define MAX_HUNGER 16
+#define MAX_HUNGER 32
 #define HUNGER_BAR_BASE_TILE 0x92
 
 class Player {

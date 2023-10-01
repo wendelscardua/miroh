@@ -20,10 +20,10 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   hunger_timer++;
   if (hunger_timer >= HUNGER_TICKS) {
     hunger_timer = 0;
-    hunger++;
-    if (hunger > MAX_HUNGER) {
+    if (hunger == MAX_HUNGER) {
       // TODO: player dies
     } else {
+      hunger++;
       refresh_hunger_hud();
     }
   }
@@ -175,9 +175,9 @@ void Player::refresh_hunger_hud() {
   u8 hunger_bar[4];
   u8 temp = hunger;
   for(auto &hunger_cell : hunger_bar) {
-    if (temp >= 4) {
-      hunger_cell = HUNGER_BAR_BASE_TILE + 4;
-      temp -= 4;
+    if (temp >= 8) {
+      hunger_cell = HUNGER_BAR_BASE_TILE + 8;
+      temp -= 8;
     } else {
       hunger_cell = HUNGER_BAR_BASE_TILE + temp;
       temp = 0;

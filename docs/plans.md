@@ -10,7 +10,7 @@
 - [x] polyomino-player collision
 - [x] switch controls between player and polyomino
 - [x] remove lines (can we restore walls? should we?)
-- [o] mino's hunger + food
+- [x] mino's hunger + food
 - [ ] buffered input (if player press up while moving right, it takes effect after the movement finishes
 - [ ] scoring
 - [ ] high scores
@@ -19,11 +19,13 @@
 - [ ] sound
 - [ ] music
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
+- [ ] balance hunger/nutrition
 - [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
 - [ ] spawn polyomino on a viable column
 - [ ] what happens when polyomino won't fit?
 - [ ] what happens when it overlaps the player? lock player for a bit? kill them?
 - [ ] sprite shuffling, at least for fruits
+- [ ] expire old fruits
 - [ ] 8x16 mode?
 - [ ] random polish
 - [ ] power ups?
