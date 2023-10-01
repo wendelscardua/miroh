@@ -16,7 +16,7 @@
 
 Gameplay::Gameplay() :
   spawn_timer(INITIAL_SPAWN_DELAY),
-  board(0x20, 0x20),
+  board(0x20, 0x10),
   player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
   polyomino(board, false),
   input_mode(InputMode::Player) {
