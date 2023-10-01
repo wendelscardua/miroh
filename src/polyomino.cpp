@@ -167,6 +167,9 @@ void Polyomino::render() {
         board.origin_x + ((column + delta.delta_column) << 4);
     auto block_y = board.origin_y + ((row + delta.delta_row) << 4);
     if (block_y >= 0) {
+      if (row < 0) {
+        block_y++;
+      }
       oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
     }
   }
