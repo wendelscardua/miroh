@@ -30,8 +30,8 @@ MenuSaveIncAttr=1
 MenuSaveRLE=0
 VarTileViewTagBuf=0
 VarBgPalCur=0
-VarPalActive=1
-VarTileActive=21
+VarPalActive=0
+VarTileActive=17
 VarBankActive=4096
 VarPPUMask=0
 VarPPUMaskSet0=0
@@ -39,7 +39,7 @@ VarPPUMaskSet1=0
 VarPPUMaskSet2=0
 VarPPUMaskSet3=0
 VarPalBank=0
-VarMetaSpriteActive=4
+VarMetaSpriteActive=3
 VarSpriteActive=3
 VarSpriteGridX=64
 VarSpriteGridY=64
@@ -53,8 +53,8 @@ VarNameSelectionT=-1
 VarNameSelectionB=30
 VarNameCopyW=-1
 VarNameCopyH=-1
-VarCHRSelectionL=5
-VarCHRSelectionR=6
+VarCHRSelectionL=1
+VarCHRSelectionR=2
 VarCHRSelectionT=1
 VarCHRSelectionB=2
 VarCHRCopyW=2
@@ -67,7 +67,7 @@ VarCheckpoint_CHRBanks=4
 VarCheckpoint_CHRBanksUndo=4
 
 
-VarCHRSelected=00[15]0100[ea]
+VarCHRSelected=00[11]0100[ee]
 
 
 Palette=0f0717270f0121310f0616260f0919290f1121310f1222320f1323330f1424340f1525350f1626360f1727370f1828380f1929390f1a2a3a0f1b2b3b0f1c2c3c
@@ -103,7 +103,7 @@ AttrCopy=00[40]
 AttrUndo=00[40]
 
 
-MetaSprites=3d00[2]403d0100484510004045110048ff[f0]3d0200403d0300484512004045130048ff[f0]3d0040483d0140[2]45104048451140[2]ff[f0]3d0240483d0340[2]45124048451340[2]ff[f0]3f0401403f0501484714014047150148ff[fbf0]
+MetaSprites=3f00[2]403f0100484710204047112048ff[f0]3f0200403f0300484712204047132048ff[f0]3f0040483f0140[2]4710604847116040ff[f0]3f0240483f0340[2]4712604847136040ff[f0]3f0401403f0501484714014047150148ff[fbf0]
 
 
 32_TileCollisionProperties=00000000[200]

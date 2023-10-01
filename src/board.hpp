@@ -3,7 +3,8 @@
 #include "common.hpp"
 #define SIZE 12
 #define TILE_BASE 0x70
-#define WALL_ATTRIBUTE 0
+#define WALL_ATTRIBUTE 1
+#define FLASH_ATTRIBUTE 3
 
 class Cell {
  public:

@@ -181,7 +181,7 @@ void Board::render() {
   }
   for(u8 meta_x = origin_x >> 4; meta_x < ((origin_x >> 4) + SIZE); meta_x++) {
     for(u8 meta_y = origin_y >> 4; meta_y < ((origin_y >> 4) + SIZE); meta_y++) {
-      Attributes::set(meta_x, meta_y, 0);
+      Attributes::set(meta_x, meta_y, WALL_ATTRIBUTE);
     }
   }
   Attributes::update_vram();
@@ -227,7 +227,7 @@ bool Board::ongoing_line_clearing() {
   } else {
     ongoing = true;
     Attributes::enable_vram_buffer();
-    Attributes::set((u8) ((origin_x >> 4) + cracking_column), (u8) ((origin_y >> 4) + cracking_row), 2);
+    Attributes::set((u8) ((origin_x >> 4) + cracking_column), (u8) ((origin_y >> 4) + cracking_row), FLASH_ATTRIBUTE);
     Attributes::flush_vram_update();
     int position = NTADR_A((origin_x >> 3) + (cracking_column << 1), (origin_y >> 3) + (cracking_row << 1));
     multi_vram_buffer_horz((const u8[2]){0x06, 0x07}, 2, position);
