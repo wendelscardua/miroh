@@ -58,8 +58,13 @@ Gameplay::~Gameplay() {
 void Gameplay::render() {
   oam_clear();
   player.render();
-  polyomino.render();
-  fruits.render();
+  if (get_frame_count() & 0b1) {
+    fruits.render();
+    polyomino.render();
+  } else {
+    polyomino.render();
+    fruits.render();
+  }
 }
 
 void Gameplay::loop() {
