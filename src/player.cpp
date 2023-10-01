@@ -34,7 +34,7 @@ restate:
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell[current_row][current_column];
     if (input_mode != InputMode::Player) break;
-    if (pressed & PAD_UP) {
+    if (held & PAD_UP) {
       facing = Direction::Up;
       if (!current_cell.up_wall &&
           current_row > 0 &&
@@ -45,7 +45,7 @@ restate:
         goto restate;
       }
     }
-    if (pressed & PAD_DOWN) {
+    if (held & PAD_DOWN) {
       facing = Direction::Down;
       if (!current_cell.down_wall &&
           !board.occupied((s8)(current_row + 1), (s8)current_column)) {
@@ -55,7 +55,7 @@ restate:
         goto restate;
       }
     }
-    if (pressed & PAD_LEFT) {
+    if (held & PAD_LEFT) {
       facing = Direction::Left;
       if (!current_cell.left_wall &&
           !board.occupied((s8)current_row, (s8)(current_column - 1))) {
@@ -65,7 +65,7 @@ restate:
         goto restate;
       }
     }
-    if (pressed & PAD_RIGHT) {
+    if (held & PAD_RIGHT) {
       facing = Direction::Right;
       if (!current_cell.right_wall &&
           !board.occupied((s8)current_row, (s8)(current_column + 1))) {

@@ -11,7 +11,8 @@
 - [x] switch controls between player and polyomino
 - [x] remove lines (can we restore walls? should we?)
 - [x] mino's hunger + food
-- [ ] buffered input (if player press up while moving right, it takes effect after the movement finishes
+- [x] buffered input (if player press up while moving right, it takes effect after the movement finishes
+      - held button works just fine, it seems :)
 - [ ] scoring
 - [ ] high scores
 - [ ] title screen
