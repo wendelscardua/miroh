@@ -87,11 +87,19 @@ Fruits::Fruits(Board& board) : board(board) {
 }
 
 void Fruits::update() {
+  for(auto& fruit : fruits) {
+    if (fruit.active && board.occupied(fruit.row, fruit.column)) {
+      fruit.active = false;
+      active_fruits--;
+    }
+  }
+
   if (active_fruits < NUM_FRUITS && ++spawn_timer > SPAWN_DELAY) {
     spawn_timer = 0;
     for (auto &fruit : fruits) {
       if (!fruit.active) {
         fruit.spawn_on_board(board);
+        if (fruit.active) active_fruits++;
         break;
       }
     }
