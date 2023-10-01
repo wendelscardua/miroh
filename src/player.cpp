@@ -12,6 +12,7 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
     moving(Direction::Right),
     hunger(0),
     hunger_timer(0),
+    score(0),
     state(State::Idle),
     board(board),
     x(starting_x),
@@ -161,7 +162,11 @@ void Player::feed(u8 nutrition) {
   } else {
     hunger = 0;
   }
+
+  score += 1;
+
   refresh_hunger_hud();
+  refresh_score_hud();
 }
 
 void Player::refresh_hunger_hud() {
@@ -179,4 +184,69 @@ void Player::refresh_hunger_hud() {
   }
 
   multi_vram_buffer_horz(hunger_bar, 4, NTADR_A(12, 27));
+}
+
+
+void Player::refresh_score_hud() {
+  // refresh hunger hud
+  u8 score_text[4];
+  u16 temp = score;
+
+  score_text[0] = 0x10;
+  if (temp >= 8000) {
+    score_text[0] += 8;
+    temp -= 8000;
+  }
+  if (temp >= 4000) {
+    score_text[0] += 4;
+    temp -= 4000;
+  }
+  if (temp >= 2000) {
+    score_text[0] += 2;
+    temp -= 2000;
+  }
+  if (temp >= 1000) {
+    score_text[0] += 1;
+    temp -= 1000;
+  }
+
+  score_text[1] = 0x10;
+  if (temp >= 800) {
+    score_text[1] += 8;
+    temp -= 800;
+  }
+  if (temp >= 400) {
+    score_text[1] += 4;
+    temp -= 400;
+  }
+  if (temp >= 200) {
+    score_text[1] += 2;
+    temp -= 200;
+  }
+  if (temp >= 100) {
+    score_text[1] += 1;
+    temp -= 100;
+  }
+
+  score_text[2] = 0x10;
+  if (temp >= 80) {
+    score_text[2] += 8;
+    temp -= 80;
+  }
+  if (temp >= 40) {
+    score_text[2] += 4;
+    temp -= 40;
+  }
+  if (temp >= 20) {
+    score_text[2] += 2;
+    temp -= 20;
+  }
+  if (temp >= 10) {
+    score_text[2] += 1;
+    temp -= 10;
+  }
+
+  score_text[3] =  0x10 + (u8)temp;
+
+  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 27));
 }
