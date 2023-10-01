@@ -21,9 +21,10 @@ public:
 
   void spawn();
 
-  void update(InputMode input_mode, u8 pressed, u8 held);
+  void update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, u8 &lines_filled);
 
   void render();
 
-  void freeze_blocks();
+  // returns number of filled lines aftter blocks were frozen
+  u8 freeze_blocks();
 };

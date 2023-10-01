@@ -30,7 +30,7 @@ void Polyomino::spawn() {
   row -= (max_delta + 1);
 }
 
-void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
+void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, u8 &lines_filled) {
   if (!active) {
     if (input_mode == InputMode::Polyomino) {
       input_mode = InputMode::Player;
@@ -60,7 +60,8 @@ void Polyomino::update(InputMode input_mode, u8 pressed, u8 held) {
     if (bumped) {
       grounded_timer++;
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
-        freeze_blocks();
+        lines_filled = freeze_blocks();
+        blocks_placed = true;
         input_mode = InputMode::Player;
         return;
       }
@@ -168,15 +169,21 @@ void Polyomino::render() {
   }
 }
 
-void Polyomino::freeze_blocks() {
+u8 Polyomino::freeze_blocks() {
   active = false;
+  u8 filled_lines = 0;
   Attributes::enable_vram_buffer();
   for (u8 i = 0; i < definition->size; i++) {
     auto& delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
     s8 block_column = column + delta.delta_column;
     if (!board.occupied(block_row, block_column)) {
-      if (block_row >= 0) board.occupy(block_row, block_column);
+      if (block_row >= 0) {
+        board.occupy(block_row, block_column);
+        if (board.tally[block_row] == SIZE) {
+          filled_lines++;
+        }
+      }
       int position = NTADR_A((board.origin_x >> 3) + (block_column << 1), (board.origin_y >> 3) + (block_row << 1));
       multi_vram_buffer_horz((const u8[2]){0x74, 0x75}, 2, position);
       multi_vram_buffer_horz((const u8[2]){0x84, 0x85}, 2, position+0x20);
@@ -184,4 +191,5 @@ void Polyomino::freeze_blocks() {
     }
   }
   Attributes::flush_vram_update();
+  return filled_lines;
 }

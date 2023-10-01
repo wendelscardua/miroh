@@ -76,6 +76,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
 }
 
 Fruits::Fruits(Board& board) : board(board) {
+  fruit_credits = 0;
   spawn_timer = SPAWN_DELAY / 2; // just so player don't wat too much to see the first fruit
   for (auto fruit : fruits) {
     fruit.active = false;
@@ -83,7 +84,9 @@ Fruits::Fruits(Board& board) : board(board) {
   active_fruits = 0;
 }
 
-void Fruits::update(Player& player) {
+void Fruits::update(Player& player, bool blocks_placed) {
+  if (blocks_placed) fruit_credits++;
+
   for(auto fruit : fruits) {
     if (fruit.active) {
       if (board.occupied(fruit.row, fruit.column)) {
@@ -99,12 +102,15 @@ void Fruits::update(Player& player) {
     }
   }
 
-  if (active_fruits < NUM_FRUITS && ++spawn_timer > SPAWN_DELAY) {
+  if (fruit_credits > 0 && active_fruits < NUM_FRUITS && ++spawn_timer > SPAWN_DELAY) {
     spawn_timer = 0;
     for (auto fruit : fruits) {
       if (!fruit.active) {
         spawn_on_board(fruit);
-        if (fruit.active) active_fruits++;
+        if (fruit.active) {
+          active_fruits++;
+          fruit_credits--;
+        }
         break;
       }
     }

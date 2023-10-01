@@ -101,8 +101,10 @@ void Gameplay::loop() {
     }
 
     player.update(input_mode, pressed, held);
-    polyomino.update(input_mode, pressed, held);
-    fruits.update(player);
+    bool blocks_placed = false;
+    u8 lines_filled = 0;
+    polyomino.update(input_mode, pressed, held, blocks_placed, lines_filled);
+    fruits.update(player, blocks_placed);
 
     if (no_lag_frame) {
       render();

@@ -13,6 +13,7 @@
 - [x] mino's hunger + food
 - [x] buffered input (if player press up while moving right, it takes effect after the movement finishes
       - held button works just fine, it seems :)
+- [o] place blocks to earn food
 - [ ] scoring
 - [ ] high scores
 - [ ] title screen

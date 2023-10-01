@@ -33,12 +33,13 @@ struct Fruit {
 class Fruits {
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
+  u8 fruit_credits;
   Board& board;
   u16 spawn_timer;
 public:
   Fruits(Board& board);
 
-  void update(Player& player);
+  void update(Player& player, bool blocks_placed);
 
   void spawn_on_board(soa::Ptr<Fruit> fruit);
 
