@@ -11,7 +11,7 @@
 - [x] polyomino-player collision
 - [x] switch controls between player and polyomino
 - [x] remove lines (can we restore walls? should we?)
-- [ ] mino's hunger + food
+- [o] mino's hunger + food
 - [ ] scoring
 - [ ] high scores
 - [ ] title screen

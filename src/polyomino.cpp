@@ -159,11 +159,12 @@ void Polyomino::render() {
 
   for (u8 i = 0; i < definition->size; i++) {
     auto& delta = definition->deltas[i];
-    oam_meta_spr(board.origin_x +
-                 (u8)((column + delta.delta_column) << 4),
-                 board.origin_y +
-                 (u8)((row + delta.delta_row) << 4),
-                 metasprite_block);
+    auto block_x =
+        board.origin_x + ((column + delta.delta_column) << 4);
+    auto block_y = board.origin_y + ((row + delta.delta_row) << 4);
+    if (block_y >= 0) {
+      oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
+    }
   }
 }
 
