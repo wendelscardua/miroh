@@ -103,8 +103,11 @@ class Polyomino < Thor
 
       kicks.each do |key, values|
         f.puts "kick_type_#{key}:"
-        values.each do |delta_x, delta_y|
-          f.puts ".byte #{-delta_y}, #{delta_x}"
+        values.each do |_delta_x, delta_y|
+          f.puts ".byte #{-delta_y}"
+        end
+        values.each do |delta_x, _delta_y|
+          f.puts ".byte #{delta_x}"
         end
       end
     end

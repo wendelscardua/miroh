@@ -5,7 +5,6 @@
 #include "board.hpp"
 #include "common.hpp"
 #include "player.hpp"
-#include <array>
 
 #define NUM_FRUITS 8
 #define SPAWN_DELAY 480
@@ -34,12 +33,13 @@ class Fruits {
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
   u8 fruit_credits;
-  Board& board;
+  Board &board;
   u16 spawn_timer;
-public:
-  Fruits(Board& board);
 
-  void update(Player& player, bool blocks_placed);
+public:
+  Fruits(Board &board);
+
+  void update(Player &player, bool blocks_placed);
 
   void spawn_on_board(soa::Ptr<Fruit> fruit);
 

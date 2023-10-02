@@ -1,5 +1,7 @@
 #pragma once
 
+#include <soa.h>
+
 #include <array>
 
 #include "common.hpp"
@@ -14,8 +16,15 @@ struct Coordinates {
   constexpr s8 delta_y() { return delta_row * 0x10; }
 };
 
+#define SOA_STRUCT Coordinates
+#define SOA_MEMBERS                                                            \
+  MEMBER(delta_row)                                                            \
+  MEMBER(delta_column)
+
+#include <soa-struct.inc>
+
 struct Kick {
-  std::array<Coordinates, 5> deltas;
+  soa::Array<Coordinates, 5> deltas;
 };
 
 struct PolyominoDef {
