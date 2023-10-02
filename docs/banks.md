@@ -8,6 +8,8 @@
 
 - title screen handler
 
+- gameplay handler
+
 # prg rom 1
 
 - assets rodata

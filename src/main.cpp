@@ -53,10 +53,10 @@ int main() {
       });
       break;
     case GameMode::Gameplay:
-      {
+      banked_lambda(0, [](){
         Gameplay gameplay;
         gameplay.loop();
-      }
+      });
     default:
       break;
     }
