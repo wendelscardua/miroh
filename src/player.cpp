@@ -47,7 +47,8 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell[current_row][current_column];
     if (input_mode != InputMode::Player) break;
-    if (held & PAD_UP) {
+#define PRESS_HELD(button) ((pressed & (button)) || (moving != Direction::None && (held & (button))))
+    if (PRESS_HELD(PAD_UP)) {
       moving = Direction::Up;
       if (!current_cell.up_wall &&
           current_row > 0 &&
@@ -56,7 +57,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
         target_y = y - GRID_SIZE;
         state = State::Moving;
       }
-    } else if (held & PAD_DOWN) {
+    } else if (PRESS_HELD(PAD_DOWN)) {
       moving = Direction::Down;
       if (!current_cell.down_wall &&
           !board.occupied((s8)(current_row + 1), (s8)current_column)) {
@@ -64,7 +65,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
         target_y = y + GRID_SIZE;
         state = State::Moving;
       }
-    } else if (held & PAD_LEFT) {
+    } else if (PRESS_HELD(PAD_LEFT)) {
       facing = Direction::Left;
       moving = Direction::Left;
       if (!current_cell.left_wall &&
@@ -73,7 +74,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
         target_y = y;
         state = State::Moving;
       }
-    } else if (held & PAD_RIGHT) {
+    } else if (PRESS_HELD(PAD_RIGHT)) {
       facing = Direction::Right;
       moving = Direction::Right;
       if (!current_cell.right_wall &&
@@ -94,6 +95,9 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       if (y < target_y) {
         y = target_y;
         state = State::Idle;
+        if (!(held & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT))) {
+          moving = Direction::None;
+        }
       }
       break;
     case Direction::Right:
@@ -101,6 +105,9 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       if (x > target_x) {
         x = target_x;
         state = State::Idle;
+        if (!(held & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT))) {
+          moving = Direction::None;
+        }
       }
       break;
     case Direction::Down:
@@ -108,6 +115,9 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       if (y > target_y) {
         y = target_y;
         state = State::Idle;
+        if (!(held & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT))) {
+          moving = Direction::None;
+        }
       }
       break;
     case Direction::Left:
@@ -115,6 +125,9 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       if (x < target_x) {
         x = target_x;
         state = State::Idle;
+        if (!(held & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT))) {
+          moving = Direction::None;
+        }
       }
       break;
     case Direction::None:
