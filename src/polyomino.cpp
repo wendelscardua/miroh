@@ -52,6 +52,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
   }
 
   if (drop_timer >= DROP_FRAMES) {
+    drop_timer = 0;
     bool bumped = false;
     for(u8 i = 0; i < definition->size; i++) {
       auto delta = definition->deltas[i];
@@ -63,6 +64,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
     }
     if (bumped) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
+        grounded_timer = 0;
         if (can_be_frozen()) {
           lines_filled = freeze_blocks();
           blocks_placed = true;
@@ -78,7 +80,6 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
     } else {
       row++;
       grounded_timer = 0;
-      drop_timer = 0;
     }
   }
 
@@ -179,13 +180,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
   }
 }
 
-void Polyomino::render() {
-  if (!active)
-    return;
-
-  u8 old_bank = get_prg_bank();
-  set_prg_bank(GET_BANK(polyominos));
-
+__attribute__((noinline, section(".prg_rom_1.text"))) void Polyomino::banked_render() {
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     auto block_x =
@@ -198,6 +193,17 @@ void Polyomino::render() {
       oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
     }
   }
+}
+
+void Polyomino::render() {
+  if (!active)
+    return;
+
+  u8 old_bank = get_prg_bank();
+  set_prg_bank(GET_BANK(polyominos));
+
+  banked_render();
+
   set_prg_bank(old_bank);
 }
 

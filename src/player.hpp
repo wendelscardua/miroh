@@ -38,7 +38,7 @@ public:
   void update(InputMode input_mode, u8 pressed, u8 held);
   void render();
   void feed(u8 nutrition);
-  void hunger_upkeep();
+  void hunger_upkeep(s16 delta);
   void refresh_hunger_hud();
   void refresh_score_hud();
 };

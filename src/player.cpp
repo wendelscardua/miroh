@@ -21,10 +21,10 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
     y(starting_y),
     score(0) {}
 
-void Player::hunger_upkeep() {
-  hunger_timer++;
-  if (hunger_timer >= HUNGER_TICKS) {
-    hunger_timer = 0;
+void Player::hunger_upkeep(s16 delta) {
+  hunger_timer += delta;
+  while (hunger_timer >= HUNGER_TICKS) {
+    hunger_timer -= HUNGER_TICKS;
     if (hunger == MAX_HUNGER) {
       u8 old_bank = get_prg_bank();
       set_prg_bank(GET_BANK(song_list));
@@ -32,17 +32,18 @@ void Player::hunger_upkeep() {
       set_prg_bank(old_bank);
       state = State::Dying;
       ghost_height = 0;
+      break;
     } else {
       hunger++;
-      refresh_hunger_hud();
     }
   }
+  refresh_hunger_hud();
 }
 
 void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   switch (state) {
   case State::Idle: {
-    hunger_upkeep();
+    hunger_upkeep(1);
     auto current_row = y.whole >> 4;
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell[current_row][current_column];
@@ -88,7 +89,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
   } break;
   case State::Moving:
-    hunger_upkeep();
+    hunger_upkeep(1);
     switch (moving) {
     case Direction::Up:
       y -= move_speed;

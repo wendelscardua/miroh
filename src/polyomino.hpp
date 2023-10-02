@@ -23,6 +23,8 @@ public:
 
   void update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled);
 
+  void banked_render();
+
   void render();
 
   // checks if polyomino is already inside the board

@@ -135,11 +135,7 @@ void Gameplay::loop() {
       }
 
       if (failed_to_place) {
-        // effectively makes hunger faster
-        for(u8 i = 0; i < 4; i++) {
-          player.hunger_upkeep();
-          if (player.state == Player::State::Dying) break;
-        }
+        player.hunger_upkeep(3 * HUNGER_TICKS);
       }
 
       switch(input_mode) {

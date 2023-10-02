@@ -37,6 +37,7 @@
 - [x] high scores
 - [x] score for blocks and lines
 - [x] fix help text (more options available to switch)
+- [x] piece gets stuck at the top (why!?)
 - [ ] web build (ninjapad)
 - [ ] alt mode (drop blocks)
 - [o] credits (mention zx origin page)
