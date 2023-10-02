@@ -100,23 +100,27 @@ void Gameplay::loop() {
     u8 pressed = get_pad_new(0);
     u8 held = pad_state(0);
 
-    if (pressed & PAD_SELECT) {
-      switch(input_mode) {
-      case InputMode::Player:
-        input_mode = InputMode::Polyomino;
-        break;
-      case InputMode::Polyomino:
-        input_mode = InputMode::Player;
-        break;
-      }
-    }
-
     player.update(input_mode, pressed, held);
     if (player.state != Player::State::Dying && player.state != Player::State::Dead) {
       bool blocks_placed = false;
       u8 lines_filled = 0;
       polyomino.update(input_mode, pressed, held, blocks_placed, lines_filled);
       fruits.update(player, blocks_placed);
+
+      switch(input_mode) {
+      case InputMode::Player:
+        if (pressed & (PAD_SELECT|PAD_A|PAD_B|PAD_START)) {
+          input_mode = InputMode::Polyomino;
+          pressed &= ~(PAD_SELECT|PAD_A|PAD_B|PAD_START);
+        }
+        break;
+      case InputMode::Polyomino:
+        if (pressed & (PAD_SELECT|PAD_START)) {
+          input_mode = InputMode::Player;
+          pressed &= ~(PAD_SELECT|PAD_START);
+        }
+        break;
+      }
     } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
       current_mode = GameMode::TitleScreen;
     }
