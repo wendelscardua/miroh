@@ -135,10 +135,11 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
         }
       }
       if (kicked) {
-        u8 old_bank = get_prg_bank();
-        set_prg_bank(GET_BANK(sfx_list));
-        GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-        set_prg_bank(old_bank);
+        banked_lambda(GET_BANK(sfx_list),
+                      []() {
+                        GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+
+                      });
       } else {
         definition = definition->left_rotation; // undo rotation
       }
@@ -167,10 +168,10 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
         }
       }
       if (kicked) {
-        u8 old_bank = get_prg_bank();
-        set_prg_bank(GET_BANK(sfx_list));
-        GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
-        set_prg_bank(old_bank);
+        banked_lambda(GET_BANK(sfx_list),
+                      []() {
+                        GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+                      });
       } else {
         definition = definition->right_rotation; // undo rotation
       }
@@ -199,12 +200,7 @@ void Polyomino::render() {
   if (!active)
     return;
 
-  u8 old_bank = get_prg_bank();
-  set_prg_bank(GET_BANK(polyominos));
-
-  banked_render();
-
-  set_prg_bank(old_bank);
+  banked_lambda(GET_BANK(polyominos), [this]() {banked_render();});
 }
 
 bool Polyomino::can_be_frozen() {
