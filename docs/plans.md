@@ -39,7 +39,7 @@
 - [x] fix help text (more options available to switch)
 - [x] piece gets stuck at the top (why!?)
 - [ ] web build (ninjapad)
-- [ ] alt mode (drop blocks)
+- [o] alt mode (drop blocks)
 - [x] credits (mention zx origin page)
 - [ ] spawn polyomino on a viable column
 - [ ] random polish

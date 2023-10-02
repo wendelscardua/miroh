@@ -13,11 +13,16 @@
 GameMode current_mode;
 GameMode previous_mode;
 u16 high_score;
+bool line_gravity_enabled;
+Maze maze;
 
 static void main_init() {
   previous_mode = GameMode::None;
   current_mode = GameMode::TitleScreen;
   high_score = 0;
+
+  line_gravity_enabled = true;
+  maze = Maze::Normal;
 
   ppu_off();
 

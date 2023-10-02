@@ -25,6 +25,19 @@ const unsigned char menu_text[24 * 3] = {
     0x00, 0x00, 0x33, 0x54, 0x41, 0x52, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x2f, 0x50, 0x54, 0x49, 0x4f, 0x4e, 0x53, 0x00, 0x00, 0x00, 0x00 };
 
+const unsigned char settings_text[24 * 3] = {
+    0x00, 0x00, 0x00, 0x2c, 0x49, 0x4e, 0x45, 0x00, 0x47, 0x52, 0x41, 0x56,
+    0x49, 0x54, 0x59, 0x1a, 0x1c, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x2d, 0x41, 0x5a, 0x45, 0x1a, 0x00, 0x1c, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x32, 0x45, 0x54, 0x55, 0x52, 0x4e, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+const u8 maze_names[][10] = {
+  {0x2e,0x4f,0x52,0x4d,0x41,0x4c,0x00,0x00,0x00,0x00},
+  {0x22,0x49,0x47,0x00,0x32,0x4f,0x4f,0x4d,0x53,0x00},
+};
+
 const TitleScreen::MenuOption left_of[] = {
   TitleScreen::MenuOption::Controls,// Controls
   TitleScreen::MenuOption::Controls,// Credits
@@ -79,6 +92,24 @@ const u8 option_mino_frame_mod[] = {
   0x10, // Credits
   0x08, // Start
   0x20, // Settings
+};
+
+const u8 setting_mino_y[] = {
+    0x70, // Line gravity
+    0x78, // Maze
+    0x80, // Return
+};
+
+const TitleScreen::SettingsOption setting_above[] = {
+  TitleScreen::SettingsOption::Return,
+  TitleScreen::SettingsOption::LineGravity,
+  TitleScreen::SettingsOption::Maze,
+};
+
+const TitleScreen::SettingsOption setting_below[] = {
+  TitleScreen::SettingsOption::Maze,
+  TitleScreen::SettingsOption::Return,
+  TitleScreen::SettingsOption::LineGravity,
 };
 
 __attribute__((noinline)) TitleScreen::TitleScreen() :
@@ -183,6 +214,11 @@ __attribute__((noinline)) void TitleScreen::loop() {
           current_mode = GameMode::Gameplay;
           break;
         case MenuOption::Settings:
+          state = State::Settings;
+          current_setting = SettingsOption::LineGravity;
+          multi_vram_buffer_horz(settings_text, 24, NTADR_A(4, 15));
+          multi_vram_buffer_horz(settings_text+24, 24, NTADR_A(4, 16));
+          multi_vram_buffer_horz(settings_text+48, 24, NTADR_A(4, 17));
           break;
         }
         break;
@@ -267,6 +303,69 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
         ppu_on_all();
         pal_fade_to(0, 4);
+      }
+      break;
+    case State::Settings:
+      if (pressed & PAD_UP) {
+        current_setting = setting_above[(u8)current_setting];
+      } else if (pressed & (PAD_DOWN|PAD_SELECT)) {
+        current_setting = setting_below[(u8)current_setting];
+      } else if (pressed & PAD_LEFT) {
+        switch(current_setting) {
+        case SettingsOption::LineGravity:
+          line_gravity_enabled = !line_gravity_enabled;
+          break;
+        case SettingsOption::Maze:
+          if ((u8)maze > 0) {
+            maze = (Maze)(((u8) maze) - 1);
+          }
+          break;
+        case SettingsOption::Return:
+          break;
+        }
+      } else if (pressed & PAD_RIGHT) {
+        switch(current_setting) {
+        case SettingsOption::LineGravity:
+          line_gravity_enabled = !line_gravity_enabled;
+          break;
+        case SettingsOption::Maze:
+          if ((u8)maze < ((u8) Maze::None) - 1) {
+            maze = (Maze)(((u8) maze) + 1);
+          }
+          break;
+        case SettingsOption::Return:
+          break;
+        }
+      } else if (pressed & (PAD_A | PAD_START)) {
+        switch(current_setting) {
+        case SettingsOption::LineGravity:
+          line_gravity_enabled = !line_gravity_enabled;
+          break;
+        case SettingsOption::Maze:
+          if ((u8)maze < ((u8) Maze::None) - 1) {
+            maze = (Maze)(((u8) maze) + 1);
+          }
+          break;
+        case SettingsOption::Return:
+          state = State::Options;
+          multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
+          multi_vram_buffer_horz(menu_text+24, 24, NTADR_A(4, 16));
+          multi_vram_buffer_horz(menu_text+48, 24, NTADR_A(4, 17));
+          break;
+        }
+      } else {
+        if (line_gravity_enabled) {
+          multi_vram_buffer_horz((const u8[]){0x2f, 0x4e, 0x00}, 3, NTADR_A(21, 15));
+        } else {
+          multi_vram_buffer_horz((const u8[]){0x2f, 0x46, 0x46}, 3, NTADR_A(21, 15));
+        }
+        multi_vram_buffer_horz(maze_names[(u8)maze], 10, NTADR_A(14, 16));
+
+        if (get_frame_count() & 0b1000) {
+          oam_meta_spr(0x24, setting_mino_y[(u8) current_setting], metasprite_Menutaur1);
+        } else {
+          oam_meta_spr(0x24, setting_mino_y[(u8) current_setting], metasprite_Menutaur2);
+        }
       }
       break;
     }
