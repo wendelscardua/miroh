@@ -121,6 +121,7 @@ set_property(
 
 add_raw_asset(SOURCE "title.nam")
 add_raw_asset(SOURCE "gameplay.nam")
+add_raw_asset(SOURCE "game-over.nam")
 
 set_property(
   SOURCE
@@ -129,6 +130,7 @@ set_property(
   OBJECT_DEPENDS
   title.nam
   gameplay.nam
+  game-over.nam
 )
 
 set_property(

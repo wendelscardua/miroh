@@ -127,11 +127,18 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
         ghost_height++;
       }
       if (ghost_height > 0x40) {
+        ghost_height = 0;
         state = State::Dead;
       }
     }
     break;
   case State::Dead:
+    {
+      if (ghost_height < 0x30 && (get_frame_count() & 0b100)) {
+        ghost_height++;
+        set_scroll_y(ghost_height);
+      }
+    }
     break;
   }
 }
@@ -177,8 +184,8 @@ void Player::render() {
     }
     break;
   case State::Dying:
-    if (ghost_height > 4) {
-      oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round() - ghost_height,
+    if (ghost_height > 4 && board.origin_y + (u8)y.whole > ghost_height) {
+      oam_meta_spr(board.origin_x + (u8)x.whole, board.origin_y + (u8)y.whole - ghost_height,
                    metasprite_Ghost);
     }
     // break; <--- skipped on purpose

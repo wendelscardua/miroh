@@ -35,6 +35,9 @@ Gameplay::Gameplay() :
 
     set_prg_bank(GET_BANK(title_nam));
 
+    vram_adr(NAMETABLE_D);
+    vram_write(game_over_nam, 1024);
+
     vram_adr(NAMETABLE_A);
     vram_write(gameplay_nam, 1024);
 
@@ -48,6 +51,8 @@ Gameplay::Gameplay() :
     pal_bright(0);
 
     oam_clear();
+
+    scroll(0, 0);
 
     ppu_on_all();
 

@@ -19,7 +19,7 @@ static void main_init() {
 
   ppu_off();
 
-  set_mirroring(MIRROR_VERTICAL);
+  set_mirroring(MIRROR_HORIZONTAL);
 
   // set 8x8 sprite mode
   oam_size(0);
@@ -41,9 +41,6 @@ static void main_init() {
 
 int main() {
   main_init();
-
-  set_prg_bank(GET_BANK(song_list));
-  GGSound::play_song(Song::Miroh);
 
   while (true) {
     switch (current_mode) {

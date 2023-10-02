@@ -8,8 +8,10 @@
 #include "chr-data.hpp"
 #include "common.hpp"
 #include "donut.hpp"
+#include "ggsound.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
+#include "soundtrack.hpp"
 #include "title-screen.hpp"
 
 TitleScreen::TitleScreen() {
@@ -37,7 +39,13 @@ TitleScreen::TitleScreen() {
 
     oam_clear();
 
+    scroll(0, 0);
+
     ppu_on_all();
+
+    set_prg_bank(GET_BANK(song_list));
+    GGSound::play_song(Song::Miroh);
+
 
     pal_fade_to(0, 4);
 }

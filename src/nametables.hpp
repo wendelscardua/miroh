@@ -2,3 +2,4 @@
 
 extern const char title_nam[];
 extern const char gameplay_nam[];
+extern const char game_over_nam[];
