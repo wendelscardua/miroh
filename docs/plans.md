@@ -36,10 +36,10 @@
 - [x] sprite shuffling, at least for fruits <-- important now bc of 4-width pieces
 - [x] high scores
 - [x] score for blocks and lines
-- [ ] fix help text (more options available to switch)
+- [x] fix help text (more options available to switch)
 - [ ] web build (ninjapad)
 - [ ] alt mode (drop blocks)
-- [ ] credits (mention zx origin page)
+- [o] credits (mention zx origin page)
 - [ ] spawn polyomino on a viable column
 - [ ] random polish
 - [ ] expire old fruits
