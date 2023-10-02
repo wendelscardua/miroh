@@ -52,6 +52,11 @@ class Polyomino < Thor
       weights.each_key do |key|
         f.puts ".byte piece_#{key}@mos16hi"
       end
+      f.puts '.global polyomino_weights'
+      f.puts 'polyomino_weights:'
+      weights.each_value do |value|
+        f.puts ".byte #{value}"
+      end
       pieces.each do |key, values|
         values => { blocks:, rotateTo: rotate_to, leftRotateTo: left_rotate_to, kicks: piece_kicks }
         f.puts "piece_#{key}:"

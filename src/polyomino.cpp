@@ -18,11 +18,15 @@ void Polyomino::spawn() {
   grounded_timer = 0;
   column = 5;
   row = 0;
-  u8 random_index;
-  do {
-    random_index = rand8() & 0x1f;
-  } while (random_index >= NUM_POLYOMINOS);
   set_prg_bank(GET_BANK(polyominos));
+
+  u8 random_weight = rand8();
+  u8 random_index = 0;
+  while(random_weight >= polyomino_weights[random_index]) {
+    random_weight -= polyomino_weights[random_index];
+    random_index++;
+  }
+
   definition = polyominos[random_index];
   s8 max_delta = 0;
   for(auto delta : definition->deltas) {

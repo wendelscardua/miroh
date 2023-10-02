@@ -30,7 +30,7 @@
 - [ ] high scores
 - [ ] instructions (both for NES and itch.io)
 - [x] sound
-- [o] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
+- [x] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
 - [ ] balance hunger/nutrition
 - [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
 - [ ] spawn polyomino on a viable column

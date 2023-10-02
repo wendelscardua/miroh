@@ -1,6 +1,7 @@
 #pragma once
 
 #include <soa.h>
+#include <array>
 
 #include "common.hpp"
 
@@ -34,4 +35,5 @@ struct PolyominoDef {
   const soa::Array<const Coordinates, 5> deltas;
 };
 
-extern "C" const soa::Array<PolyominoDef*, NUM_POLYOMINOS> polyominos;
+extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;
+extern "C" const std::array<u8, NUM_POLYOMINOS> polyomino_weights;
