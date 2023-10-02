@@ -33,7 +33,7 @@ struct PolyominoDef {
   Kick* left_kick;
   Kick* right_kick;
   u8 size;
-  std::array<Coordinates, 5> deltas;
+  soa::Array<Coordinates, 5> deltas;
 };
 
 extern "C" const std::array<PolyominoDef*, NUM_POLYOMINOS> polyominos;

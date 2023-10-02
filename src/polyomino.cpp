@@ -52,7 +52,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
     drop_timer = 0;
     bool bumped = false;
     for(u8 i = 0; i < definition->size; i++) {
-      auto& delta = definition->deltas[i];
+      auto delta = definition->deltas[i];
       if (board.occupied(row + delta.delta_row + 1,
                          column + delta.delta_column)) {
         bumped = true;
@@ -80,7 +80,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
     if (pressed & PAD_LEFT) {
       bool bumped = false;
       for(u8 i = 0; i < definition->size; i++) {
-        auto& delta = definition->deltas[i];
+        auto delta = definition->deltas[i];
         if (board.occupied(row + delta.delta_row,
                            column - 1 + delta.delta_column)) {
           bumped = true;
@@ -93,7 +93,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
     } else if (pressed & PAD_RIGHT) {
       bool bumped = false;
       for(u8 i = 0; i < definition->size; i++) {
-        auto& delta = definition->deltas[i];
+        auto delta = definition->deltas[i];
         if (board.occupied(row + delta.delta_row,
                            column + 1 + delta.delta_column)) {
           bumped = true;
@@ -112,7 +112,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
 
         bool bumped = false;
         for(u8 i = 0; i < definition->size; i++) {
-          auto& delta = definition->deltas[i];
+          auto delta = definition->deltas[i];
           if (board.occupied(new_row + delta.delta_row,
                              new_column + delta.delta_column)) {
             bumped = true;
@@ -144,7 +144,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
 
         bool bumped = false;
         for(u8 i = 0; i < definition->size; i++) {
-          auto& delta = definition->deltas[i];
+          auto delta = definition->deltas[i];
           if (board.occupied(new_row + delta.delta_row,
                              new_column + delta.delta_column)) {
             bumped = true;
@@ -181,7 +181,7 @@ void Polyomino::render() {
   set_prg_bank(GET_BANK(polyominos));
 
   for (u8 i = 0; i < definition->size; i++) {
-    auto& delta = definition->deltas[i];
+    auto delta = definition->deltas[i];
     auto block_x =
         board.origin_x + ((column + delta.delta_column) << 4);
     auto block_y = board.origin_y + ((row + delta.delta_row) << 4);
@@ -220,7 +220,7 @@ u8 Polyomino::freeze_blocks() {
   u8 filled_lines = 0;
   Attributes::enable_vram_buffer();
   for (u8 i = 0; i < definition->size; i++) {
-    auto& delta = definition->deltas[i];
+    auto delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
     s8 block_column = column + delta.delta_column;
     if (!board.occupied(block_row, block_column)) {

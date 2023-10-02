@@ -93,11 +93,17 @@ class Polyomino < Thor
 
         f.puts ".word #{left_kick}, #{right_kick}"
         f.puts ".byte #{blocks.size}"
-        blocks.each do |delta_row, delta_column|
-          f.puts "  .byte #{delta_row}, #{delta_column}"
+        blocks.each do |delta_row, _delta_column|
+          f.puts "  .byte #{delta_row}"
         end
         (5 - blocks.size).times do
-          f.puts '  .byte 0, 0'
+          f.puts '  .byte 0'
+        end
+        blocks.each do |_delta_row, delta_column|
+          f.puts "  .byte #{delta_column}"
+        end
+        (5 - blocks.size).times do
+          f.puts '  .byte 0'
         end
       end
 
