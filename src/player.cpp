@@ -200,6 +200,11 @@ void Player::render() {
 }
 
 void Player::feed(u8 nutrition) {
+  u8 old_bank = get_prg_bank();
+  set_prg_bank(GET_BANK(sfx_list));
+  GGSound::play_sfx(SFX::Nom, GGSound::SFXPriority::One);
+  set_prg_bank(old_bank);
+
   hunger_timer = 0;
   if (hunger > nutrition) {
     hunger -= nutrition;

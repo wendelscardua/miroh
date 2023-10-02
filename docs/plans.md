@@ -21,20 +21,29 @@
 - [x] scoring
 - [x] music
    - [x] try putting most of ggsound on its own bank?
-- [ ] high scores
 - [x] title screen
+
+- [o] better controls
+      - i'm thinking any {A,B,Sel,Start} goes from player to polyomino
+      - then {Sel,Start} goes from polyomino to player
+      - also, held only keeps moving, doesn't start movement - so placing polyomino doesn't move player
+- [ ] high scores
 - [ ] instructions (both for NES and itch.io)
-- [ ] sound
+- [o] sound
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
 - [ ] balance hunger/nutrition
 - [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
 - [ ] spawn polyomino on a viable column
-- [ ] what happens when it overlaps the player? lock player for a bit? kill them?
 - [ ] sprite shuffling, at least for fruits
 - [ ] expire old fruits
-- [?] 8x16 mode?
-      - premature optimization?
-        fruits renderer takes 4k cycles, but 8x16 fruits still take 2.8k
 - [ ] random polish
 - [ ] power ups?
 - [ ] automino mode?
+- [ ] remeber to set prio flag on RIP metasprite
+     - and to remove any from Ghost
+- [?] 8x16 mode?
+      - premature optimization?
+        fruits renderer takes 4k cycles, but 8x16 fruits still take 2.8k
+      - also it looks nices with the priority flag on the bottom half of the player
+- [?] what happens when it overlaps the player? lock player for a bit? kill them?
+      - i think it's fine as it is; player has already too much on their plate
