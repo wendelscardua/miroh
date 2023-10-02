@@ -176,7 +176,10 @@ void Gameplay::loop() {
       }
     }
 
-    player.refresh_score_hud();
+    extern u8 VRAM_INDEX;
+    if (VRAM_INDEX + 16 < 64) {
+      player.refresh_score_hud();
+    }
 
     if (no_lag_frame) {
       render();

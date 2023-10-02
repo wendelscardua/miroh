@@ -318,8 +318,8 @@ void Player::refresh_score_hud() {
 
   if (score > high_score) {
     high_score = score;
-    int_to_text(score_text, high_score);
-    multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 28));
   }
+  int_to_text(score_text, high_score);
+  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 28));
   set_prg_bank(old_bank);
 }
