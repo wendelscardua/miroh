@@ -7,3 +7,5 @@ gameplay_nam: .incbin "gameplay.nam"
 game_over_nam: .incbin "game-over.nam"
         .global how_to_nam
 how_to_nam: .incbin "how-to.nam"
+        .global credits_nam
+credits_nam: .incbin "credits.nam"

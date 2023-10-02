@@ -7,6 +7,7 @@ public:
     PressStart,
     Options,
     HowToPlay,
+    Credits,
   };
 
   State state;

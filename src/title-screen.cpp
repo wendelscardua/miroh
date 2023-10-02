@@ -73,6 +73,9 @@ __attribute__((noinline)) TitleScreen::~TitleScreen() {
 __attribute__((noinline)) void TitleScreen::loop() {
   while(current_mode == GameMode::TitleScreen) {
     ppu_wait_nmi();
+
+    oam_clear();
+
     pad_poll(0);
 
     rand16();
@@ -81,7 +84,6 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
     switch(state) {
     case State::PressStart:
-      oam_clear();
       if (pressed & (PAD_START | PAD_A)) {
         multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
         multi_vram_buffer_horz(menu_text+24, 24, NTADR_A(4, 16));
@@ -99,35 +101,71 @@ __attribute__((noinline)) void TitleScreen::loop() {
         if (current_option == 0) {
           state = State::HowToPlay;
           scroll(0, 240);
-        } else {
+        } else if (current_option == 1) {
           state = State::PressStart;
           current_mode = GameMode::Gameplay;
+        } else {
+          state = State::Credits;
+          pal_fade_to(4, 0);
+          ppu_off();
+
+          banked_lambda(GET_BANK(credits_nam), [] () {
+            vram_adr(NAMETABLE_D);
+            vram_write(credits_nam, 1024);
+          });
+
+          scroll(0, 240);
+
+          ppu_on_all();
+          pal_fade_to(0, 4);
         }
-      } else if (pressed & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT|PAD_SELECT|PAD_B)) {
-        current_option = 1 - current_option;
+        break;
+      } else if (pressed & (PAD_UP|PAD_LEFT)) {
+        current_option = current_option == 0 ? 2 : current_option - 1;
+      } else if (pressed & (PAD_DOWN|PAD_RIGHT|PAD_SELECT|PAD_B)) {
+        current_option = current_option == 2 ? 0 : current_option + 1;
       }
-      oam_clear();
+
       if (current_option == 0) {
         if (get_frame_count() & 0b10000) {
           oam_meta_spr(0x30, 0x70, metasprite_Menutaur1);
         } else {
           oam_meta_spr(0x30, 0x70, metasprite_Menutaur2);
         }
+      } else if (current_option == 1) {
+        if (get_frame_count() & 0b1000) {
+          oam_meta_spr(0x48, 0x78, metasprite_Menutaur1);
+        } else {
+          oam_meta_spr(0x48, 0x78, metasprite_Menutaur2);
+        }
       } else {
         if (get_frame_count() & 0b1000) {
-          oam_meta_spr(0x48, 0x80, metasprite_Menutaur1);
+          oam_meta_spr(0x60, 0x80, metasprite_Menutaur1);
         } else {
-          oam_meta_spr(0x48, 0x80, metasprite_Menutaur2);
+          oam_meta_spr(0x60, 0x80, metasprite_Menutaur2);
         }
       }
       break;
     case State::HowToPlay:
-      oam_clear();
       if (pressed & (PAD_START | PAD_A)) {
-        if (current_option == 0) {
-          scroll(0, 0);
-          state = State::Options;
-        }
+        scroll(0, 0);
+        state = State::Options;
+      }
+      break;
+    case State::Credits:
+      if (pressed & (PAD_START | PAD_A)) {
+        state = State::Options;
+        pal_fade_to(4, 0);
+        ppu_off();
+
+        banked_lambda(GET_BANK(credits_nam), [] () {
+          vram_adr(NAMETABLE_D);
+          vram_write(how_to_nam, 1024);
+        });
+        scroll(0, 0);
+
+        ppu_on_all();
+        pal_fade_to(0, 4);
       }
       break;
     }
