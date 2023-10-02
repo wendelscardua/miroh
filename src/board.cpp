@@ -4,8 +4,6 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define DESTRUCTION_GRAVITY true
-
 Cell::Cell() :
   walls(0),
   occupied(false),
@@ -367,7 +365,7 @@ bool Board::ongoing_line_clearing() {
   }
 
   if (dropping_column < 0) {
-    if (!ongoing && erasing_row < 0 && cracking_row < 0 && DESTRUCTION_GRAVITY) {
+    if (!ongoing && erasing_row < 0 && cracking_row < 0 && line_gravity_enabled) {
       // dropping column will only start doing stuff if it ever becomes zero
       for(auto deleted_row : deleted) {
         if (deleted_row) {
