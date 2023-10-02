@@ -2,13 +2,14 @@
 
 - int to text on player.cpp
 
-# prg rom 1
-
-- assets rodata
-
 - polyomino rodata
 
 - some polyomino code
+
+
+# prg rom 1
+
+- assets rodata
 
 # prg rom 2
 

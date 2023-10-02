@@ -10,6 +10,8 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
+#define POLYOMINOS_TEXT ".prg_rom_0.text"
+
 Polyomino::Polyomino(Board &board, bool active)
     : board(board), definition(NULL), active(active) {}
 
@@ -35,7 +37,7 @@ void Polyomino::spawn() {
   row -= (max_delta + 1);
 }
 
-__attribute__((noinline, section(".prg_rom_1.text"))) void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled) {
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled) {
   if (!active) {
     if (input_mode == InputMode::Polyomino) {
       input_mode = InputMode::Player;
@@ -179,7 +181,7 @@ __attribute__((noinline, section(".prg_rom_1.text"))) void Polyomino::update(Inp
   }
 }
 
-__attribute__((noinline, section(".prg_rom_1.text"))) void Polyomino::banked_render() {
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::banked_render() {
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     auto block_x =
