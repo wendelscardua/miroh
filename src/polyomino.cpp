@@ -1,6 +1,7 @@
 #include "polyomino.hpp"
 #include "attributes.hpp"
 #include "bank-helper.hpp"
+#include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "metasprites.hpp"
 #include "polyominos.hpp"
@@ -194,6 +195,10 @@ bool Polyomino::can_be_frozen() {
 
 u8 Polyomino::freeze_blocks() {
   u8 old_bank = get_prg_bank();
+
+  set_prg_bank(GET_BANK(sfx_list));
+  GGSound::play_sfx(SFX::Click, GGSound::SFXPriority::Two);
+
   set_prg_bank(GET_BANK(polyominos));
 
   active = false;
