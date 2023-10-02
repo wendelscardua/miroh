@@ -125,7 +125,9 @@ void Gameplay::loop() {
       bool blocks_placed = false;
       bool failed_to_place = false;
       u8 lines_filled = 0;
-      polyomino.update(input_mode, pressed, held, blocks_placed, failed_to_place, lines_filled);
+      banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed, &failed_to_place, &lines_filled]() {
+        polyomino.update(input_mode, pressed, held, blocks_placed, failed_to_place, lines_filled);
+      });
       fruits.update(player, blocks_placed);
 
       if (lines_filled) {
