@@ -1,4 +1,3 @@
-
 #include <bank.h>
 #include <cstdio>
 #include <nesdoug.h>
@@ -67,16 +66,34 @@ Gameplay::~Gameplay() {
 
 void Gameplay::render() {
   oam_clear();
-  player.render();
   if (player.state == Player::State::Dying ||
-      player.state == Player::State::Dead) return;
+      player.state == Player::State::Dead)
+    {
+      player.render();
+      return;
+    }
 
-  if (get_frame_count() & 0b1) {
+  switch(get_frame_count() & 0b11) {
+  case 0:
+    player.render();
     fruits.render();
     polyomino.render();
-  } else {
+    break;
+  case 1:
+    polyomino.render();
+    player.render();
+    fruits.render();
+    break;
+  case 2:
+    player.render();
     polyomino.render();
     fruits.render();
+    break;
+  default:
+    polyomino.render();
+    fruits.render();
+    player.render();
+    break;
   }
 }
 

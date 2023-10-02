@@ -33,7 +33,7 @@
 - [x] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
 - [x] balance hunger/nutrition
 - [x] instructions (both for NES and itch.io)
-- [ ] sprite shuffling, at least for fruits <-- important now bc of 4-width pieces
+- [x] sprite shuffling, at least for fruits <-- important now bc of 4-width pieces
 - [ ] high scores
 - [ ] spawn polyomino on a viable column
 - [ ] random polish
