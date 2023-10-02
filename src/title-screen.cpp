@@ -17,13 +17,73 @@
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
-const unsigned char menu_text[24*3]={
-	0x00,0x00,0x00,0x00,0x32,0x45,0x41,0x44,0x00,0x49,0x4e,0x53,0x54,0x52,0x55,0x43,0x54,0x49,0x4f,0x4e,0x53,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x33,0x54,0x41,0x52,0x54,0x00,0x47,0x41,0x4d,0x45,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+const unsigned char menu_text[24 * 3] = {
+    0x00, 0x00, 0x23, 0x4f, 0x4e, 0x54, 0x52, 0x4f, 0x4c, 0x53, 0x00, 0x00,
+    0x00, 0x23, 0x52, 0x45, 0x44, 0x49, 0x54, 0x53, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x33, 0x54, 0x41, 0x52, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x2f, 0x50, 0x54, 0x49, 0x4f, 0x4e, 0x53, 0x00, 0x00, 0x00, 0x00 };
+
+const TitleScreen::MenuOption left_of[] = {
+  TitleScreen::MenuOption::Controls,// Controls
+  TitleScreen::MenuOption::Controls,// Credits
+  TitleScreen::MenuOption::Start,   // Start
+  TitleScreen::MenuOption::Start,   // Settings
 };
 
-__attribute__((noinline)) TitleScreen::TitleScreen() : state(State::PressStart) {
+const TitleScreen::MenuOption right_of[] = {
+  TitleScreen::MenuOption::Credits,// Controls
+  TitleScreen::MenuOption::Credits,// Credits
+  TitleScreen::MenuOption::Settings,   // Start
+  TitleScreen::MenuOption::Settings,   // Settings
+};
+
+const TitleScreen::MenuOption above_of[] = {
+    TitleScreen::MenuOption::Controls, // Controls
+    TitleScreen::MenuOption::Credits,  // Credits
+    TitleScreen::MenuOption::Controls, // Start
+    TitleScreen::MenuOption::Credits,  // Settings
+};
+
+const TitleScreen::MenuOption below_of[] = {
+  TitleScreen::MenuOption::Start,// Controls
+  TitleScreen::MenuOption::Settings,// Credits
+  TitleScreen::MenuOption::Start,   // Start
+  TitleScreen::MenuOption::Settings,   // Settings
+};
+
+const TitleScreen::MenuOption next[] = {
+    TitleScreen::MenuOption::Start,    // Controls
+    TitleScreen::MenuOption::Settings,  // Credits
+    TitleScreen::MenuOption::Credits, // Start
+    TitleScreen::MenuOption::Controls, // Settings
+};
+
+const u8 option_mino_x[] = {
+  0x20, // Controls
+  0x78, // Credits
+  0x20, // Start
+  0x78, // Settings
+};
+
+const u8 option_mino_y[] = {
+  0x70, // Controls
+  0x70, // Credits
+  0x80, // Start
+  0x80, // Settings
+};
+
+const u8 option_mino_frame_mod[] = {
+  0x10, // Controls
+  0x10, // Credits
+  0x08, // Start
+  0x20, // Settings
+};
+
+__attribute__((noinline)) TitleScreen::TitleScreen() :
+  state(State::PressStart),
+  current_option(MenuOption::Controls) {
     set_chr_bank(0);
 
     banked_lambda(GET_BANK(bg_chr), [] () {
@@ -93,18 +153,17 @@ __attribute__((noinline)) void TitleScreen::loop() {
           GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
         });
         state = State::Options;
-        current_option = 0;
+        current_option = MenuOption::Controls;
       }
       break;
     case State::Options:
       if (pressed & (PAD_START | PAD_A)) {
-        if (current_option == 0) {
+        switch(current_option) {
+        case MenuOption::Controls:
           state = State::HowToPlay;
           scroll(0, 240);
-        } else if (current_option == 1) {
-          state = State::PressStart;
-          current_mode = GameMode::Gameplay;
-        } else {
+          break;
+        case MenuOption::Credits:
           state = State::Credits;
           pal_fade_to(4, 0);
           ppu_off();
@@ -118,32 +177,31 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
           ppu_on_all();
           pal_fade_to(0, 4);
+          break;
+        case MenuOption::Start:
+          state = State::PressStart;
+          current_mode = GameMode::Gameplay;
+          break;
+        case MenuOption::Settings:
+          break;
         }
         break;
-      } else if (pressed & (PAD_UP|PAD_LEFT)) {
-        current_option = current_option == 0 ? 2 : current_option - 1;
-      } else if (pressed & (PAD_DOWN|PAD_RIGHT|PAD_SELECT|PAD_B)) {
-        current_option = current_option == 2 ? 0 : current_option + 1;
+      } else if (pressed & PAD_UP) {
+        current_option = above_of[(u8) current_option];
+      } else if (pressed & PAD_DOWN) {
+        current_option = below_of[(u8) current_option];
+      } else if (pressed & PAD_LEFT) {
+        current_option = left_of[(u8) current_option];
+      } else if (pressed & PAD_RIGHT) {
+        current_option = right_of[(u8) current_option];
+      } else if (pressed & (PAD_SELECT|PAD_B)) {
+        current_option = next[(u8)current_option];
       }
 
-      if (current_option == 0) {
-        if (get_frame_count() & 0b10000) {
-          oam_meta_spr(0x30, 0x70, metasprite_Menutaur1);
-        } else {
-          oam_meta_spr(0x30, 0x70, metasprite_Menutaur2);
-        }
-      } else if (current_option == 1) {
-        if (get_frame_count() & 0b1000) {
-          oam_meta_spr(0x48, 0x78, metasprite_Menutaur1);
-        } else {
-          oam_meta_spr(0x48, 0x78, metasprite_Menutaur2);
-        }
+      if (get_frame_count() & option_mino_frame_mod[(u8) current_option]) {
+        oam_meta_spr(option_mino_x[(u8) current_option], option_mino_y[(u8) current_option], metasprite_Menutaur1);
       } else {
-        if (get_frame_count() & 0b1000) {
-          oam_meta_spr(0x60, 0x80, metasprite_Menutaur1);
-        } else {
-          oam_meta_spr(0x60, 0x80, metasprite_Menutaur2);
-        }
+        oam_meta_spr(option_mino_x[(u8) current_option], option_mino_y[(u8) current_option], metasprite_Menutaur2);
       }
       break;
     case State::HowToPlay:
