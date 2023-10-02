@@ -4,7 +4,6 @@
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "metasprites.hpp"
-#include "palettes.hpp"
 #include "polyominos.hpp"
 #include <bank.h>
 #include <cstdio>
@@ -21,7 +20,7 @@ void Polyomino::spawn() {
   row = 0;
   u8 random_index;
   do {
-    random_index = rand8() & 0x7f;
+    random_index = rand8() & 0x1f;
   } while (random_index >= NUM_POLYOMINOS);
   set_prg_bank(GET_BANK(polyominos));
   definition = polyominos[random_index];

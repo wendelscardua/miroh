@@ -47,10 +47,10 @@ class Polyomino < Thor
         pieces[rotate_to.to_sym][:leftRotateTo] = key
       end
       pieces.each_key do |key|
-        f.puts ".byte piece_#{key}@mos16lo"
+        f.puts ".byte piece_#{key}@mos16lo" if key.size == 2
       end
       pieces.each_key do |key|
-        f.puts ".byte piece_#{key}@mos16hi"
+        f.puts ".byte piece_#{key}@mos16hi" if key.size == 2
       end
       pieces.each do |key, values|
         values => { blocks:, rotateTo: rotate_to, leftRotateTo: left_rotate_to, kicks: piece_kicks }
