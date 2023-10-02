@@ -1,6 +1,7 @@
 #pragma once
 
-#define GET_BANK(symbol) [] (){ \
+#include <bank.h>
+#define GET_BANK(symbol) [] (){    \
         register u8 bank asm("a"); \
         asm ( \
             "ld%0 #mos24bank(" # symbol ")\n"  \
@@ -10,3 +11,11 @@
             ); \
         return bank; \
     }()
+
+template<typename Func>
+void banked_lambda(char bank_id, Func lambda) {
+  char old_bank = get_prg_bank();
+  set_prg_bank(bank_id);
+  lambda();
+  set_prg_bank(old_bank);
+}
