@@ -207,7 +207,50 @@ __attribute__((noinline)) void TitleScreen::loop() {
     case State::HowToPlay:
       if (pressed & (PAD_START | PAD_A)) {
         scroll(0, 0);
+        banked_lambda(GET_BANK(bg_palette), [] () {
+          set_prg_bank(GET_BANK(sprites_player_palette));
+          pal_spr(sprites_player_palette);
+        });
         state = State::Options;
+        break;
+      }
+      if (get_frame_count() & 0b1000) {
+        oam_meta_spr(0x40, 0x60, metasprite_MinoRight1);
+      } else {
+        oam_meta_spr(0x40, 0x60, metasprite_MinoRight2);
+      }
+
+      {
+        u8 frame = get_frame_count();
+
+        switch(frame & 0b1100000) {
+        case 0b0000000:
+          oam_meta_spr(0x38, 0xa0, metasprite_Menumino0);
+          oam_meta_spr(0xa8, 0xa0, metasprite_Menumino0);
+          break;
+        case 0b0100000:
+          oam_meta_spr(0x38, 0xa0, metasprite_MenuminoL);
+          oam_meta_spr(0xa8, 0xa0, metasprite_MenuminoR);
+          break;
+        case 0b1000000:
+          oam_meta_spr(0x38, 0xa0, metasprite_Menumino2);
+          oam_meta_spr(0xa8, 0xa0, metasprite_Menumino2);
+          break;
+        default:
+          oam_meta_spr(0x38, 0xa0, metasprite_MenuminoR);
+          oam_meta_spr(0xa8, 0xa0, metasprite_MenuminoL);
+          break;
+        }
+
+        banked_lambda(GET_BANK(bg_palette), [frame] () {
+          if(frame & 0b10000000) {
+            set_prg_bank(GET_BANK(sprites_polyomino_palette));
+            pal_spr(sprites_polyomino_palette);
+          } else {
+            set_prg_bank(GET_BANK(sprites_player_palette));
+            pal_spr(sprites_player_palette);
+          }
+        });
       }
       break;
     case State::Credits:
