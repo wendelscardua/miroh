@@ -188,10 +188,12 @@ void Player::render() {
       oam_meta_spr(board.origin_x + (u8)x.whole, board.origin_y + (u8)y.whole - ghost_height,
                    metasprite_Ghost);
     }
-    // break; <--- skipped on purpose
-  case State::Dead:
     metasprite = metasprite_RIP;
     break;
+  case State::Dead:
+    oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round() - ghost_height,
+                 metasprite_RIP);
+    return;
   }
   oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round(),
                metasprite);

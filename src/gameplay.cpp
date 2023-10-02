@@ -67,6 +67,9 @@ Gameplay::~Gameplay() {
 void Gameplay::render() {
   oam_clear();
   player.render();
+  if (player.state == Player::State::Dying ||
+      player.state == Player::State::Dead) return;
+
   if (get_frame_count() & 0b1) {
     fruits.render();
     polyomino.render();
