@@ -10,6 +10,8 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
+#define POLYOMINOS_TEXT ".prg_rom_0.text"
+
 Polyomino::Polyomino(Board &board, bool active)
     : board(board), definition(NULL), active(active) {}
 
@@ -35,15 +37,13 @@ void Polyomino::spawn() {
   row -= (max_delta + 1);
 }
 
-void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled) {
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled) {
   if (!active) {
     if (input_mode == InputMode::Polyomino) {
       input_mode = InputMode::Player;
     }
     return;
   }
-
-  set_prg_bank(GET_BANK(polyominos));
 
   if ((input_mode == InputMode::Polyomino) && (held & PAD_DOWN)) {
     drop_timer = DROP_FRAMES;
@@ -135,10 +135,11 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
         }
       }
       if (kicked) {
-        u8 old_bank = get_prg_bank();
-        set_prg_bank(GET_BANK(sfx_list));
-        GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-        set_prg_bank(old_bank);
+        banked_lambda(GET_BANK(sfx_list),
+                      []() {
+                        GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+
+                      });
       } else {
         definition = definition->left_rotation; // undo rotation
       }
@@ -167,10 +168,10 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
         }
       }
       if (kicked) {
-        u8 old_bank = get_prg_bank();
-        set_prg_bank(GET_BANK(sfx_list));
-        GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
-        set_prg_bank(old_bank);
+        banked_lambda(GET_BANK(sfx_list),
+                      []() {
+                        GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+                      });
       } else {
         definition = definition->right_rotation; // undo rotation
       }
@@ -180,7 +181,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
   }
 }
 
-__attribute__((noinline, section(".prg_rom_1.text"))) void Polyomino::banked_render() {
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::banked_render() {
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     auto block_x =
@@ -199,34 +200,23 @@ void Polyomino::render() {
   if (!active)
     return;
 
-  u8 old_bank = get_prg_bank();
-  set_prg_bank(GET_BANK(polyominos));
-
-  banked_render();
-
-  set_prg_bank(old_bank);
+  banked_lambda(GET_BANK(polyominos), [this]() {banked_render();});
 }
 
 bool Polyomino::can_be_frozen() {
   s8 min_y_delta = 2;
 
-  u8 old_bank = get_prg_bank();
-  set_prg_bank(GET_BANK(polyominos));
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     if (delta.delta_row < min_y_delta) min_y_delta = delta.delta_row;
   }
-  set_prg_bank(old_bank);
   return row + min_y_delta >= 0;
 }
 
 u8 Polyomino::freeze_blocks() {
-  u8 old_bank = get_prg_bank();
-
-  set_prg_bank(GET_BANK(sfx_list));
-  GGSound::play_sfx(SFX::Click, GGSound::SFXPriority::Two);
-
-  set_prg_bank(GET_BANK(polyominos));
+  banked_lambda(GET_BANK(sfx_list), []() {
+    GGSound::play_sfx(SFX::Click, GGSound::SFXPriority::Two);
+  });
 
   active = false;
   u8 filled_lines = 0;
@@ -249,8 +239,6 @@ u8 Polyomino::freeze_blocks() {
     }
   }
   Attributes::flush_vram_update();
-
-  set_prg_bank(old_bank);
 
   return filled_lines;
 }

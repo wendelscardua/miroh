@@ -1,4 +1,3 @@
-
 #include <bank.h>
 #include <nesdoug.h>
 #include <neslib.h>
@@ -15,35 +14,41 @@
 #include "soundtrack.hpp"
 #include "title-screen.hpp"
 
-__attribute__((section(".prg_rom_1.rodata"))) const unsigned char menu_text[24*3]={
+#pragma clang section text = ".prg_rom_0.text"
+#pragma clang section rodata = ".prg_rom_0.rodata"
+
+const unsigned char menu_text[24*3]={
 	0x00,0x00,0x00,0x00,0x32,0x45,0x41,0x44,0x00,0x49,0x4e,0x53,0x54,0x52,0x55,0x43,0x54,0x49,0x4f,0x4e,0x53,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x33,0x54,0x41,0x52,0x54,0x00,0x47,0x41,0x4d,0x45,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-TitleScreen::TitleScreen() : state(State::PressStart) {
+__attribute__((noinline)) TitleScreen::TitleScreen() : state(State::PressStart) {
     set_chr_bank(0);
 
-    set_prg_bank(GET_BANK(bg_chr));
-    vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
+    banked_lambda(GET_BANK(bg_chr), [] () {
+      // assume all chr are on same bank
+      vram_adr(PPU_PATTERN_TABLE_0);
+      Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
 
-    set_prg_bank(GET_BANK(sprites_chr));
-    vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
+      vram_adr(PPU_PATTERN_TABLE_1);
+      Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
+    });
 
-    set_prg_bank(GET_BANK(title_nam));
+    banked_lambda(GET_BANK(title_nam), [] () {
+      // idem nametables
+      vram_adr(NAMETABLE_D);
+      vram_write(how_to_nam, 1024);
 
-    vram_adr(NAMETABLE_D);
-    vram_write(how_to_nam, 1024);
+      vram_adr(NAMETABLE_A);
+      vram_write(title_nam, 1024);
+    });
 
-    vram_adr(NAMETABLE_A);
-    vram_write(title_nam, 1024);
-
-    set_prg_bank(GET_BANK(bg_palette));
-    pal_bg(bg_palette);
-    set_prg_bank(GET_BANK(sprites_player_palette));
-    pal_spr(sprites_player_palette);
+    banked_lambda(GET_BANK(bg_palette), [] () {
+      // idem palettes
+      pal_bg(bg_palette);
+      pal_spr(sprites_player_palette);
+    });
 
     pal_bright(0);
 
@@ -53,19 +58,19 @@ TitleScreen::TitleScreen() : state(State::PressStart) {
 
     ppu_on_all();
 
-    set_prg_bank(GET_BANK(song_list));
-    GGSound::play_song(Song::Miroh);
-
+    banked_lambda(GET_BANK(song_list), [] () {
+      GGSound::play_song(Song::Miroh);
+    });
 
     pal_fade_to(0, 4);
 }
 
-TitleScreen::~TitleScreen() {
+__attribute__((noinline)) TitleScreen::~TitleScreen() {
     pal_fade_to(4, 0);
     ppu_off();
 }
 
-void TitleScreen::loop() {
+__attribute__((noinline)) void TitleScreen::loop() {
   while(current_mode == GameMode::TitleScreen) {
     ppu_wait_nmi();
     pad_poll(0);
@@ -78,12 +83,13 @@ void TitleScreen::loop() {
     case State::PressStart:
       oam_clear();
       if (pressed & (PAD_START | PAD_A)) {
-        set_prg_bank(1);
         multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
         multi_vram_buffer_horz(menu_text+24, 24, NTADR_A(4, 16));
         multi_vram_buffer_horz(menu_text+48, 24, NTADR_A(4, 17));
-        set_prg_bank(GET_BANK(sfx_list));
-        GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+        });
         state = State::Options;
         current_option = 0;
       }

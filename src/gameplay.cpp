@@ -16,7 +16,10 @@
 #include "player.hpp"
 #include "gameplay.hpp"
 
-Gameplay::Gameplay() :
+#pragma clang section text = ".prg_rom_0.text"
+#pragma clang section rodata = ".prg_rom_0.rodata"
+
+__attribute__((noinline)) Gameplay::Gameplay() :
   spawn_timer(INITIAL_SPAWN_DELAY),
   board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
   player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
@@ -25,28 +28,31 @@ Gameplay::Gameplay() :
   input_mode(InputMode::Player) {
     set_chr_bank(0);
 
-    set_prg_bank(GET_BANK(bg_chr));
-    vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
+    banked_lambda(GET_BANK(bg_chr), [] () {
+      // assume all chr are on same bank
+      vram_adr(PPU_PATTERN_TABLE_0);
+      Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
 
-    set_prg_bank(GET_BANK(sprites_chr));
-    vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
+      vram_adr(PPU_PATTERN_TABLE_1);
+      Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
+    });
 
-    set_prg_bank(GET_BANK(title_nam));
+    banked_lambda(GET_BANK(title_nam), [] () {
+      // idem nametables
+      vram_adr(NAMETABLE_D);
+      vram_write(game_over_nam, 1024);
 
-    vram_adr(NAMETABLE_D);
-    vram_write(game_over_nam, 1024);
-
-    vram_adr(NAMETABLE_A);
-    vram_write(gameplay_nam, 1024);
+      vram_adr(NAMETABLE_A);
+      vram_write(gameplay_nam, 1024);
+    });
 
     board.render();
 
-    set_prg_bank(GET_BANK(bg_palette));
-    pal_bg(bg_palette);
-    set_prg_bank(GET_BANK(sprites_player_palette));
-    pal_spr(sprites_player_palette);
+    banked_lambda(GET_BANK(bg_palette), [] () {
+      // idem palettes
+      pal_bg(bg_palette);
+      pal_spr(sprites_player_palette);
+    });
 
     pal_bright(0);
 
@@ -59,7 +65,7 @@ Gameplay::Gameplay() :
     pal_fade_to(0, 4);
 }
 
-Gameplay::~Gameplay() {
+__attribute__((noinline)) Gameplay::~Gameplay() {
     pal_fade_to(4, 0);
     ppu_off();
 }
@@ -125,7 +131,9 @@ void Gameplay::loop() {
       bool blocks_placed = false;
       bool failed_to_place = false;
       u8 lines_filled = 0;
-      polyomino.update(input_mode, pressed, held, blocks_placed, failed_to_place, lines_filled);
+      banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed, &failed_to_place, &lines_filled]() {
+        polyomino.update(input_mode, pressed, held, blocks_placed, failed_to_place, lines_filled);
+      });
       fruits.update(player, blocks_placed);
 
       if (lines_filled) {
@@ -157,19 +165,22 @@ void Gameplay::loop() {
     }
 
     if (input_mode != old_mode) {
-      set_prg_bank(GET_BANK(sfx_list));
-      GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-      switch(input_mode) {
-      case InputMode::Polyomino:
-        set_prg_bank(GET_BANK(sprites_polyomino_palette));
-        pal_spr(sprites_polyomino_palette);
+      banked_lambda(GET_BANK(sfx_list), [] () {
+        GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+      });
+      banked_lambda(GET_BANK(bg_palette), [this] () {
+        switch(input_mode) {
+        case InputMode::Polyomino:
+          set_prg_bank(GET_BANK(sprites_polyomino_palette));
+          pal_spr(sprites_polyomino_palette);
 
-        break;
-      case InputMode::Player:
-        set_prg_bank(GET_BANK(sprites_player_palette));
-        pal_spr(sprites_player_palette);
-        break;
-      }
+          break;
+        case InputMode::Player:
+          set_prg_bank(GET_BANK(sprites_player_palette));
+          pal_spr(sprites_player_palette);
+          break;
+        }
+      });
     }
 
     extern u8 VRAM_INDEX;
