@@ -45,8 +45,8 @@ Gameplay::Gameplay() :
 
     set_prg_bank(GET_BANK(bg_palette));
     pal_bg(bg_palette);
-    set_prg_bank(GET_BANK(sprites_palette));
-    pal_spr(sprites_palette);
+    set_prg_bank(GET_BANK(sprites_player_palette));
+    pal_spr(sprites_player_palette);
 
     pal_bright(0);
 
@@ -112,12 +112,16 @@ void Gameplay::loop() {
         if (pressed & (PAD_SELECT|PAD_A|PAD_B|PAD_START)) {
           input_mode = InputMode::Polyomino;
           pressed &= ~(PAD_SELECT|PAD_A|PAD_B|PAD_START);
+          set_prg_bank(GET_BANK(sprites_polyomino_palette));
+          pal_spr(sprites_polyomino_palette);
         }
         break;
       case InputMode::Polyomino:
         if (pressed & (PAD_SELECT|PAD_START)) {
           input_mode = InputMode::Player;
           pressed &= ~(PAD_SELECT|PAD_START);
+          set_prg_bank(GET_BANK(sprites_player_palette));
+          pal_spr(sprites_player_palette);
         }
         break;
       }

@@ -4,6 +4,7 @@
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "metasprites.hpp"
+#include "palettes.hpp"
 #include "polyominos.hpp"
 #include <bank.h>
 #include <cstdio>
@@ -35,6 +36,8 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
   if (!active) {
     if (input_mode == InputMode::Polyomino) {
       input_mode = InputMode::Player;
+      set_prg_bank(GET_BANK(sprites_player_palette));
+      pal_spr(sprites_player_palette);
     }
     return;
   }
@@ -64,6 +67,8 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
           lines_filled = freeze_blocks();
           blocks_placed = true;
           input_mode = InputMode::Player;
+          set_prg_bank(GET_BANK(sprites_player_palette));
+          pal_spr(sprites_player_palette);
           return;
         }
       } else {

@@ -32,8 +32,8 @@ TitleScreen::TitleScreen() {
 
     set_prg_bank(GET_BANK(bg_palette));
     pal_bg(bg_palette);
-    set_prg_bank(GET_BANK(sprites_palette));
-    pal_spr(sprites_palette);
+    set_prg_bank(GET_BANK(sprites_player_palette));
+    pal_spr(sprites_player_palette);
 
     pal_bright(0);
 

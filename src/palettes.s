@@ -4,6 +4,10 @@
 bg_palette:
         .incbin "bg.pal"
 
-        .global sprites_palette
-sprites_palette:
-        .incbin "sprites.pal"
+        .global sprites_player_palette
+sprites_player_palette:
+        .incbin "sprites-player.pal"
+
+        .global sprites_polyomino_palette
+sprites_polyomino_palette:
+        .incbin "sprites-polyomino.pal"

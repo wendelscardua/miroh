@@ -108,7 +108,8 @@ set_property(
 )
 
 add_raw_asset(SOURCE "bg.pal")
-add_raw_asset(SOURCE "sprites.pal")
+add_raw_asset(SOURCE "sprites-player.pal")
+add_raw_asset(SOURCE "sprites-polyomino.pal")
 
 set_property(
   SOURCE
@@ -116,7 +117,8 @@ set_property(
   PROPERTY
   OBJECT_DEPENDS
   bg.pal
-  sprites.pal
+  sprites-player.pal
+  sprites-polyomino.pal
 )
 
 add_raw_asset(SOURCE "title.nam")

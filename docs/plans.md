@@ -23,7 +23,7 @@
    - [x] try putting most of ggsound on its own bank?
 - [x] title screen
 
-- [o] better controls
+- [x] better controls
       - i'm thinking any {A,B,Sel,Start} goes from player to polyomino
       - then {Sel,Start} goes from polyomino to player
       - also, held only keeps moving, doesn't start movement - so placing polyomino doesn't move player
