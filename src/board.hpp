@@ -5,6 +5,7 @@
 #define WIDTH 12
 #define TILE_BASE 0x60
 #define WALL_ATTRIBUTE 1
+#define BLOCK_ATTRIBUTE 2
 #define FLASH_ATTRIBUTE 3
 
 #define BOARD_X_ORIGIN 0x20
@@ -34,9 +35,11 @@ class Board {
   s8 cracking_column;
   s8 erasing_row;
   s8 erasing_column;
+  s8 dropping_column;
 public:
   Cell cell[HEIGHT][WIDTH]; // each of the board's cells
   u8 tally[HEIGHT]; // counts how many occupied cells are in each row
+  bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
   u8 origin_x; // where to start rendering the board and its contents (x)
   u8 origin_y; // where to start rendering the board and its contents (y)
 
@@ -54,6 +57,12 @@ public:
 
   // marks a position as not occupied by a solid block
   void free(s8 row, s8 column);
+
+  // draw a block and occupy these coordinates
+  void block_maze_cell(s8 row, s8 column);
+
+  // restore a maze andfree these coordinates
+  void restore_maze_cell(s8 row, s8 column);
 
   // advances the process of clearing a filled line
   // returns true if such process is still ongoing
