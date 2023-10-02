@@ -1,7 +1,10 @@
 #include "player.hpp"
+#include "bank-helper.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
+#include "ggsound.hpp"
 #include "metasprites.hpp"
+#include <bank.h>
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -18,19 +21,28 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
     x(starting_x),
     y(starting_y) {}
 
-void Player::update(InputMode input_mode, u8 pressed, u8 held) {
+void Player::hunger_upkeep() {
   hunger_timer++;
   if (hunger_timer >= HUNGER_TICKS) {
     hunger_timer = 0;
     if (hunger == MAX_HUNGER) {
-      state = State::Dead;
+      u8 old_bank = get_prg_bank();
+      set_prg_bank(GET_BANK(song_list));
+      GGSound::play_song(Song::Rip_in_peace);
+      set_prg_bank(old_bank);
+      state = State::Dying;
+      ghost_height = 0;
     } else {
       hunger++;
       refresh_hunger_hud();
     }
   }
+}
+
+void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   switch (state) {
   case State::Idle: {
+    hunger_upkeep();
     auto current_row = y.whole >> 4;
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell[current_row][current_column];
@@ -44,8 +56,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
         target_y = y - GRID_SIZE;
         state = State::Moving;
       }
-    }
-    if (held & PAD_DOWN) {
+    } else if (held & PAD_DOWN) {
       moving = Direction::Down;
       if (!current_cell.down_wall &&
           !board.occupied((s8)(current_row + 1), (s8)current_column)) {
@@ -53,8 +64,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
         target_y = y + GRID_SIZE;
         state = State::Moving;
       }
-    }
-    if (held & PAD_LEFT) {
+    } else if (held & PAD_LEFT) {
       facing = Direction::Left;
       moving = Direction::Left;
       if (!current_cell.left_wall &&
@@ -63,8 +73,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
         target_y = y;
         state = State::Moving;
       }
-    }
-    if (held & PAD_RIGHT) {
+    } else if (held & PAD_RIGHT) {
       facing = Direction::Right;
       moving = Direction::Right;
       if (!current_cell.right_wall &&
@@ -73,9 +82,12 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
         target_y = y;
         state = State::Moving;
       }
+    } else {
+      moving = Direction::None;
     }
   } break;
   case State::Moving:
+    hunger_upkeep();
     switch (moving) {
     case Direction::Up:
       y -= move_speed;
@@ -107,6 +119,16 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       break;
     case Direction::None:
       break;
+    }
+    break;
+  case State::Dying:
+    {
+      if (get_frame_count() & 0b100) {
+        ghost_height++;
+      }
+      if (ghost_height > 0x40) {
+        state = State::Dead;
+      }
     }
     break;
   case State::Dead:
@@ -154,8 +176,14 @@ void Player::render() {
       }
     }
     break;
+  case State::Dying:
+    if (ghost_height > 4) {
+      oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round() - ghost_height,
+                   metasprite_Ghost);
+    }
+    // break; <--- skipped on purpose
   case State::Dead:
-    metasprite = metasprite_RIP; // TODO: draw dead mino
+    metasprite = metasprite_RIP;
     break;
   }
   oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round(),

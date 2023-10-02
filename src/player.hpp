@@ -15,13 +15,17 @@ private:
   Direction facing;
   Direction moving;
   fixed_point target_x, target_y;
-  u8 hunger;
+  union {
+    u8 hunger;
+    u8 ghost_height;
+  };
   s16 hunger_timer;
   u16 score;
 public:
   enum class State {
     Idle,
     Moving,
+    Dying,
     Dead,
   };
 
@@ -34,6 +38,7 @@ public:
   void update(InputMode input_mode, u8 pressed, u8 held);
   void render();
   void feed(u8 nutrition);
+  void hunger_upkeep();
   void refresh_hunger_hud();
   void refresh_score_hud();
 };

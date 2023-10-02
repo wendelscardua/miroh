@@ -109,8 +109,7 @@ void Gameplay::loop() {
     polyomino.update(input_mode, pressed, held, blocks_placed, lines_filled);
     fruits.update(player, blocks_placed);
 
-    if (player.state == Player::State::Dead) {
-      // TODO nice things here
+    if (player.state == Player::State::Dead && (pressed & PAD_START)) {
       current_mode = GameMode::TitleScreen;
     }
 
