@@ -39,7 +39,7 @@
 - [ ] random polish
 - [ ] power ups?
 - [ ] automino mode?
-- [ ] remeber to set prio flag on RIP metasprite
+- [x] remeber to set prio flag on RIP metasprite
      - and to remove any from Ghost
 - [?] 8x16 mode?
       - premature optimization?
