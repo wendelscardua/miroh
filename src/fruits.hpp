@@ -9,7 +9,7 @@
 #define NUM_FRUITS 8
 #define SPAWN_DELAY 480
 
-#define FRUIT_NUTRITION 8
+#define FRUIT_NUTRITION 5
 
 struct Fruit {
   s8 row;
