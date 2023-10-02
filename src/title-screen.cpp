@@ -191,10 +191,16 @@ __attribute__((noinline)) void TitleScreen::loop() {
       if (pressed & (PAD_START | PAD_A)) {
         switch(current_option) {
         case MenuOption::Controls:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          });
           state = State::HowToPlay;
           scroll(0, 240);
           break;
         case MenuOption::Credits:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          });
           state = State::Credits;
           pal_fade_to(4, 0);
           ppu_off();
@@ -210,10 +216,16 @@ __attribute__((noinline)) void TitleScreen::loop() {
           pal_fade_to(0, 4);
           break;
         case MenuOption::Start:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          });
           state = State::PressStart;
           current_mode = GameMode::Gameplay;
           break;
         case MenuOption::Settings:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          });
           state = State::Settings;
           current_setting = SettingsOption::LineGravity;
           multi_vram_buffer_horz(settings_text, 24, NTADR_A(4, 15));
@@ -223,14 +235,29 @@ __attribute__((noinline)) void TitleScreen::loop() {
         }
         break;
       } else if (pressed & PAD_UP) {
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+        });
         current_option = above_of[(u8) current_option];
       } else if (pressed & PAD_DOWN) {
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        });
         current_option = below_of[(u8) current_option];
       } else if (pressed & PAD_LEFT) {
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+        });
         current_option = left_of[(u8) current_option];
       } else if (pressed & PAD_RIGHT) {
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        });
         current_option = right_of[(u8) current_option];
       } else if (pressed & (PAD_SELECT|PAD_B)) {
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        });
         current_option = next[(u8)current_option];
       }
 
@@ -242,6 +269,9 @@ __attribute__((noinline)) void TitleScreen::loop() {
       break;
     case State::HowToPlay:
       if (pressed & (PAD_START | PAD_A)) {
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+        });
         scroll(0, 0);
         banked_lambda(GET_BANK(bg_palette), [] () {
           set_prg_bank(GET_BANK(sprites_player_palette));
@@ -291,6 +321,9 @@ __attribute__((noinline)) void TitleScreen::loop() {
       break;
     case State::Credits:
       if (pressed & (PAD_START | PAD_A)) {
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+        });
         state = State::Options;
         pal_fade_to(4, 0);
         ppu_off();
@@ -309,13 +342,22 @@ __attribute__((noinline)) void TitleScreen::loop() {
       if (pressed & PAD_UP) {
         current_setting = setting_above[(u8)current_setting];
       } else if (pressed & (PAD_DOWN|PAD_SELECT)) {
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          });
         current_setting = setting_below[(u8)current_setting];
       } else if (pressed & PAD_LEFT) {
         switch(current_setting) {
         case SettingsOption::LineGravity:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+          });
           line_gravity_enabled = !line_gravity_enabled;
           break;
         case SettingsOption::Maze:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+          });
           if ((u8)maze > 0) {
             maze = (Maze)(((u8) maze) - 1);
           }
@@ -326,9 +368,15 @@ __attribute__((noinline)) void TitleScreen::loop() {
       } else if (pressed & PAD_RIGHT) {
         switch(current_setting) {
         case SettingsOption::LineGravity:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          });
           line_gravity_enabled = !line_gravity_enabled;
           break;
         case SettingsOption::Maze:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          });
           if ((u8)maze < ((u8) Maze::None) - 1) {
             maze = (Maze)(((u8) maze) + 1);
           }
@@ -339,14 +387,23 @@ __attribute__((noinline)) void TitleScreen::loop() {
       } else if (pressed & (PAD_A | PAD_START)) {
         switch(current_setting) {
         case SettingsOption::LineGravity:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          });
           line_gravity_enabled = !line_gravity_enabled;
           break;
         case SettingsOption::Maze:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          });
           if ((u8)maze < ((u8) Maze::None) - 1) {
             maze = (Maze)(((u8) maze) + 1);
           }
           break;
         case SettingsOption::Return:
+          banked_lambda(GET_BANK(sfx_list), []() {
+            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          });
           state = State::Options;
           multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
           multi_vram_buffer_horz(menu_text+24, 24, NTADR_A(4, 16));
