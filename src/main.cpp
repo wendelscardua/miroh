@@ -47,10 +47,10 @@ int main() {
   while (true) {
     switch (current_mode) {
     case GameMode::TitleScreen:
-      {
+      banked_lambda(0, [](){
         TitleScreen titleScreen;
         titleScreen.loop();
-      }
+      });
       break;
     case GameMode::Gameplay:
       {

@@ -6,6 +6,7 @@
 
 - some polyomino code
 
+- title screen handler
 
 # prg rom 1
 
