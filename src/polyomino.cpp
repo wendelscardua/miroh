@@ -35,7 +35,7 @@ void Polyomino::spawn() {
   row -= (max_delta + 1);
 }
 
-void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, u8 &lines_filled) {
+void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled) {
   if (!active) {
     if (input_mode == InputMode::Polyomino) {
       input_mode = InputMode::Player;
@@ -52,7 +52,6 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
   }
 
   if (drop_timer >= DROP_FRAMES) {
-    drop_timer = 0;
     bool bumped = false;
     for(u8 i = 0; i < definition->size; i++) {
       auto delta = definition->deltas[i];
@@ -69,6 +68,9 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
           blocks_placed = true;
           input_mode = InputMode::Player;
           return;
+        } else {
+          failed_to_place = true;
+          return;
         }
       } else {
         grounded_timer++;
@@ -76,6 +78,7 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
     } else {
       row++;
       grounded_timer = 0;
+      drop_timer = 0;
     }
   }
 

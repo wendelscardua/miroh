@@ -13,15 +13,15 @@ class Polyomino {
   const PolyominoDef *definition;
   s8 row;
   s8 column;
-  u8 grounded_timer;
   u8 drop_timer;
 public:
+  u8 grounded_timer;
   bool active;
   Polyomino(Board& board, bool active);
 
   void spawn();
 
-  void update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, u8 &lines_filled);
+  void update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled);
 
   void render();
 

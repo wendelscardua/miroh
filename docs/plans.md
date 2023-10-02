@@ -27,11 +27,13 @@
       - i'm thinking any {A,B,Sel,Start} goes from player to polyomino
       - then {Sel,Start} goes from polyomino to player
       - also, held only keeps moving, doesn't start movement - so placing polyomino doesn't move player
-- [ ] high scores
-- [ ] instructions (both for NES and itch.io)
+- [x] remeber to set prio flag on RIP metasprite
+     - and to remove any from Ghost
 - [x] sound
 - [x] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
-- [ ] balance hunger/nutrition
+- [o] balance hunger/nutrition
+- [ ] high scores
+- [ ] instructions (both for NES and itch.io)
 - [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
 - [ ] spawn polyomino on a viable column
 - [ ] sprite shuffling, at least for fruits
@@ -39,8 +41,6 @@
 - [ ] random polish
 - [ ] power ups?
 - [ ] automino mode?
-- [x] remeber to set prio flag on RIP metasprite
-     - and to remove any from Ghost
 - [?] 8x16 mode?
       - premature optimization?
         fruits renderer takes 4k cycles, but 8x16 fruits still take 2.8k
