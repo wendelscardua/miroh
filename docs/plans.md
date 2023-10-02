@@ -31,16 +31,16 @@
      - and to remove any from Ghost
 - [x] sound
 - [x] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
-- [o] balance hunger/nutrition
+- [x] balance hunger/nutrition
 - [ ] high scores
-- [ ] instructions (both for NES and itch.io)
-- [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
+- [x] instructions (both for NES and itch.io)
 - [ ] spawn polyomino on a viable column
 - [ ] sprite shuffling, at least for fruits
 - [ ] expire old fruits
 - [ ] random polish
-- [ ] power ups?
 - [ ] automino mode?
+- [ ] power ups?
+- [?] irregular polyominos? (e.g. 3 blocks in a diagonal)
 - [?] 8x16 mode?
       - premature optimization?
         fruits renderer takes 4k cycles, but 8x16 fruits still take 2.8k

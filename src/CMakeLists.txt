@@ -124,6 +124,7 @@ set_property(
 add_raw_asset(SOURCE "title.nam")
 add_raw_asset(SOURCE "gameplay.nam")
 add_raw_asset(SOURCE "game-over.nam")
+add_raw_asset(SOURCE "how-to.nam")
 
 set_property(
   SOURCE
@@ -133,6 +134,7 @@ set_property(
   title.nam
   gameplay.nam
   game-over.nam
+  how-to.nam
 )
 
 set_property(
