@@ -20,7 +20,6 @@ private:
     u8 ghost_height;
   };
   s16 hunger_timer;
-  u16 score;
 public:
   enum class State {
     Idle,
@@ -33,6 +32,7 @@ public:
   Board& board;
   fixed_point x;
   fixed_point y;
+  u16 score;
   Player(Board& board, fixed_point starting_x, fixed_point starting_y);
 
   void update(InputMode input_mode, u8 pressed, u8 held);

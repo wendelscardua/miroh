@@ -128,6 +128,12 @@ void Gameplay::loop() {
       polyomino.update(input_mode, pressed, held, blocks_placed, failed_to_place, lines_filled);
       fruits.update(player, blocks_placed);
 
+      if (lines_filled) {
+        player.score += 10 * (2 * lines_filled - 1);
+      } else if (blocks_placed) {
+        player.score += 1;
+      }
+
       if (failed_to_place) {
         // effectively makes hunger faster
         for(u8 i = 0; i < 4; i++) {
@@ -169,6 +175,8 @@ void Gameplay::loop() {
         break;
       }
     }
+
+    player.refresh_score_hud();
 
     if (no_lag_frame) {
       render();

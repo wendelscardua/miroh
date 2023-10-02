@@ -34,7 +34,8 @@
 - [x] balance hunger/nutrition
 - [x] instructions (both for NES and itch.io)
 - [x] sprite shuffling, at least for fruits <-- important now bc of 4-width pieces
-- [ ] high scores
+- [x] high scores
+- [o] score for blocks and lines
 - [ ] spawn polyomino on a viable column
 - [ ] random polish
 - [ ] expire old fruits

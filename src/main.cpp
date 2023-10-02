@@ -12,10 +12,12 @@
 
 GameMode current_mode;
 GameMode previous_mode;
+u16 high_score;
 
 static void main_init() {
   previous_mode = GameMode::None;
   current_mode = GameMode::TitleScreen;
+  high_score = 0;
 
   ppu_off();
 
