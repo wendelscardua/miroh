@@ -10,6 +10,7 @@
 #include "common.hpp"
 #include "donut.hpp"
 #include "fixed-point.hpp"
+#include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
@@ -87,6 +88,8 @@ void Gameplay::loop() {
     ppu_wait_nmi();
     u8 frame = FRAME_CNT1;
 
+    InputMode old_mode = input_mode;
+
     // we only spawn when there's no line clearing going on
     if (!board.ongoing_line_clearing()
         && !polyomino.active
@@ -112,21 +115,33 @@ void Gameplay::loop() {
         if (pressed & (PAD_SELECT|PAD_A|PAD_B|PAD_START)) {
           input_mode = InputMode::Polyomino;
           pressed &= ~(PAD_SELECT|PAD_A|PAD_B|PAD_START);
-          set_prg_bank(GET_BANK(sprites_polyomino_palette));
-          pal_spr(sprites_polyomino_palette);
         }
         break;
       case InputMode::Polyomino:
         if (pressed & (PAD_SELECT|PAD_START)) {
           input_mode = InputMode::Player;
           pressed &= ~(PAD_SELECT|PAD_START);
-          set_prg_bank(GET_BANK(sprites_player_palette));
-          pal_spr(sprites_player_palette);
         }
         break;
       }
     } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
       current_mode = GameMode::TitleScreen;
+    }
+
+    if (input_mode != old_mode) {
+      set_prg_bank(GET_BANK(sfx_list));
+      GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+      switch(input_mode) {
+      case InputMode::Polyomino:
+        set_prg_bank(GET_BANK(sprites_polyomino_palette));
+        pal_spr(sprites_polyomino_palette);
+
+        break;
+      case InputMode::Player:
+        set_prg_bank(GET_BANK(sprites_player_palette));
+        pal_spr(sprites_player_palette);
+        break;
+      }
     }
 
     if (no_lag_frame) {

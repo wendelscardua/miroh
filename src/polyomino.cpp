@@ -36,8 +36,6 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
   if (!active) {
     if (input_mode == InputMode::Polyomino) {
       input_mode = InputMode::Player;
-      set_prg_bank(GET_BANK(sprites_player_palette));
-      pal_spr(sprites_player_palette);
     }
     return;
   }
@@ -67,8 +65,6 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
           lines_filled = freeze_blocks();
           blocks_placed = true;
           input_mode = InputMode::Player;
-          set_prg_bank(GET_BANK(sprites_player_palette));
-          pal_spr(sprites_player_palette);
           return;
         }
       } else {
@@ -131,7 +127,14 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
           break;
         }
       }
-      if (!kicked) definition = definition->left_rotation; // undo rotation
+      if (kicked) {
+        u8 old_bank = get_prg_bank();
+        set_prg_bank(GET_BANK(sfx_list));
+        GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        set_prg_bank(old_bank);
+      } else {
+        definition = definition->left_rotation; // undo rotation
+      }
     } else if (pressed & PAD_B) {
       definition = definition->left_rotation;
       bool kicked = false;
@@ -156,7 +159,14 @@ void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_
           break;
         }
       }
-      if (!kicked) definition = definition->right_rotation; // undo rotation
+      if (kicked) {
+        u8 old_bank = get_prg_bank();
+        set_prg_bank(GET_BANK(sfx_list));
+        GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+        set_prg_bank(old_bank);
+      } else {
+        definition = definition->right_rotation; // undo rotation
+      }
     } else if (pressed & PAD_UP) {
 
     }

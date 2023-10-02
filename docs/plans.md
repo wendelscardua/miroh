@@ -29,7 +29,7 @@
       - also, held only keeps moving, doesn't start movement - so placing polyomino doesn't move player
 - [ ] high scores
 - [ ] instructions (both for NES and itch.io)
-- [o] sound
+- [x] sound
 - [ ] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
 - [ ] balance hunger/nutrition
 - [ ] irregular polyominos? (e.g. 3 blocks in a diagonal)
