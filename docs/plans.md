@@ -32,12 +32,13 @@
 - [x] sound
 - [x] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
 - [x] balance hunger/nutrition
-- [ ] high scores
 - [x] instructions (both for NES and itch.io)
+- [ ] sprite shuffling, at least for fruits <-- important now bc of 4-width pieces
+- [ ] high scores
 - [ ] spawn polyomino on a viable column
-- [ ] sprite shuffling, at least for fruits
-- [ ] expire old fruits
 - [ ] random polish
+- [ ] expire old fruits
+- [ ] predefined mazes? only if we have time
 - [ ] automino mode?
 - [ ] power ups?
 - [?] irregular polyominos? (e.g. 3 blocks in a diagonal)
