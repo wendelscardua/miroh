@@ -2,11 +2,9 @@
 
 #include <soa.h>
 
-#include <array>
-
 #include "common.hpp"
 
-#define NUM_POLYOMINOS 66
+#define NUM_POLYOMINOS 65
 
 struct Coordinates {
   s8 delta_row;
@@ -36,4 +34,4 @@ struct PolyominoDef {
   soa::Array<Coordinates, 5> deltas;
 };
 
-extern "C" const std::array<PolyominoDef*, NUM_POLYOMINOS> polyominos;
+extern "C" const soa::Array<PolyominoDef*, NUM_POLYOMINOS> polyominos;

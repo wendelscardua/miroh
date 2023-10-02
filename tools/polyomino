@@ -40,14 +40,17 @@ class Polyomino < Thor
         columns = blocks.map { |_, column| column }
         rows = blocks.map { |row, _| row }
         columns.max - columns.min + 1 > max_size ||
-          rows.max - rows.min + 1> max_size
+          rows.max - rows.min + 1 > max_size
       end
       pieces.each do |key, values|
         values => { rotateTo: rotate_to }
         pieces[rotate_to.to_sym][:leftRotateTo] = key
       end
       pieces.each_key do |key|
-        f.puts ".word piece_#{key}"
+        f.puts ".byte piece_#{key}@mos16lo"
+      end
+      pieces.each_key do |key|
+        f.puts ".byte piece_#{key}@mos16hi"
       end
       pieces.each do |key, values|
         values => { blocks:, rotateTo: rotate_to, leftRotateTo: left_rotate_to, kicks: piece_kicks }
