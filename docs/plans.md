@@ -35,7 +35,11 @@
 - [x] instructions (both for NES and itch.io)
 - [x] sprite shuffling, at least for fruits <-- important now bc of 4-width pieces
 - [x] high scores
-- [o] score for blocks and lines
+- [x] score for blocks and lines
+- [ ] fix help text (more options available to switch)
+- [ ] web build (ninjapad)
+- [ ] alt mode (drop blocks)
+- [ ] credits (mention zx origin page)
 - [ ] spawn polyomino on a viable column
 - [ ] random polish
 - [ ] expire old fruits
