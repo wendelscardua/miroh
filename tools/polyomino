@@ -27,7 +27,7 @@ class Polyomino < Thor
     max_size = options[:max_size] || 256
 
     data = JSON.parse(File.read(pieces_json), symbolize_names: true)
-    data => { pieces:, kicks: }
+    data => { pieces:, kicks:, weights: }
 
     File.open(s_file, 'w') do |f|
       f.puts <<~ASM
@@ -46,11 +46,11 @@ class Polyomino < Thor
         values => { rotateTo: rotate_to }
         pieces[rotate_to.to_sym][:leftRotateTo] = key
       end
-      pieces.each_key do |key|
-        f.puts ".byte piece_#{key}@mos16lo" if key.size == 2
+      weights.each_key do |key|
+        f.puts ".byte piece_#{key}@mos16lo"
       end
-      pieces.each_key do |key|
-        f.puts ".byte piece_#{key}@mos16hi" if key.size == 2
+      weights.each_key do |key|
+        f.puts ".byte piece_#{key}@mos16hi"
       end
       pieces.each do |key, values|
         values => { blocks:, rotateTo: rotate_to, leftRotateTo: left_rotate_to, kicks: piece_kicks }
