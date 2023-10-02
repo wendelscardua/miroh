@@ -112,12 +112,12 @@ void Gameplay::loop() {
     }
 
     player.update(input_mode, pressed, held);
-    bool blocks_placed = false;
-    u8 lines_filled = 0;
-    polyomino.update(input_mode, pressed, held, blocks_placed, lines_filled);
-    fruits.update(player, blocks_placed);
-
-    if (player.state == Player::State::Dead && (pressed & PAD_START)) {
+    if (player.state != Player::State::Dying && player.state != Player::State::Dead) {
+      bool blocks_placed = false;
+      u8 lines_filled = 0;
+      polyomino.update(input_mode, pressed, held, blocks_placed, lines_filled);
+      fruits.update(player, blocks_placed);
+    } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
       current_mode = GameMode::TitleScreen;
     }
 
