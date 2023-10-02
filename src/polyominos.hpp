@@ -22,16 +22,16 @@ struct Coordinates {
 #include <soa-struct.inc>
 
 struct Kick {
-  soa::Array<Coordinates, 5> deltas;
+  soa::Array<const Coordinates, 5> deltas;
 };
 
 struct PolyominoDef {
-  PolyominoDef* left_rotation;
-  PolyominoDef* right_rotation;
-  Kick* left_kick;
-  Kick* right_kick;
-  u8 size;
-  soa::Array<Coordinates, 5> deltas;
+  const PolyominoDef* const left_rotation;
+  const PolyominoDef* const right_rotation;
+  const Kick* const left_kick;
+  const Kick* const right_kick;
+  const u8 size;
+  const soa::Array<const Coordinates, 5> deltas;
 };
 
 extern "C" const soa::Array<PolyominoDef*, NUM_POLYOMINOS> polyominos;

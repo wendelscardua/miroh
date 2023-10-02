@@ -10,7 +10,7 @@
 
 class Polyomino {
   Board& board;
-  PolyominoDef *definition;
+  const PolyominoDef *definition;
   s8 row;
   s8 column;
   u8 grounded_timer;
