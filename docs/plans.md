@@ -1,56 +1,13 @@
-# Things to do
-
-- [x] move player around maze
-- [x] player collide with walls
-- [x] define some polyominos
-- [x] spawn random polyomino
-- [x] polyomino movement and rotation
-- [x] polyomino-level collision
-- [x] freeze polyomino to background
-- [x] polyomino-player collision
-- [x] switch controls between player and polyomino
-- [x] remove lines (can we restore walls? should we?)
-- [x] mino's hunger + food
-- [x] buffered input (if player press up while moving right, it takes effect after the movement finishes
-      - held button works just fine, it seems :)
-- [x] place blocks to earn food
-- [x] what happens when polyomino won't fit?
-      - if it won't fit it will just stay over there
-      - player is motivated to find a place for it because it earns food
-- [x] experiment smaller height so polyomino is visible when spawning
-- [x] scoring
-- [x] music
-   - [x] try putting most of ggsound on its own bank?
-- [x] title screen
-
-- [x] better controls
-      - i'm thinking any {A,B,Sel,Start} goes from player to polyomino
-      - then {Sel,Start} goes from polyomino to player
-      - also, held only keeps moving, doesn't start movement - so placing polyomino doesn't move player
-- [x] remeber to set prio flag on RIP metasprite
-     - and to remove any from Ghost
-- [x] sound
-- [x] balance polyomino probabilities (otherwise the more symmetrical, the less likely to show up)
-- [x] balance hunger/nutrition
-- [x] instructions (both for NES and itch.io)
-- [x] sprite shuffling, at least for fruits <-- important now bc of 4-width pieces
-- [x] high scores
-- [x] score for blocks and lines
-- [x] fix help text (more options available to switch)
-- [x] piece gets stuck at the top (why!?)
-- [ ] web build (ninjapad)
-- [o] alt mode (drop blocks)
-- [x] credits (mention zx origin page)
+# Things to do - postjam
+- [ ] BUG: player can ressurect (!?)
+- [ ] more food when completing lines
+- [ ] avoid spawning on player and on food
 - [ ] spawn polyomino on a viable column
+- [ ] next pieces
+- [ ] bag of pieces
 - [ ] random polish
 - [ ] expire old fruits
-- [ ] predefined mazes? only if we have time
-- [ ] automino mode?
+- [ ] predefined mazes?
+- [ ] automino mode? (minotaur moving by themselves)
 - [ ] power ups?
 - [?] irregular polyominos? (e.g. 3 blocks in a diagonal)
-- [?] 8x16 mode?
-      - premature optimization?
-        fruits renderer takes 4k cycles, but 8x16 fruits still take 2.8k
-      - also it looks nices with the priority flag on the bottom half of the player
-- [?] what happens when it overlaps the player? lock player for a bit? kill them?
-      - i think it's fine as it is; player has already too much on their plate
