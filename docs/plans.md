@@ -1,5 +1,4 @@
 # Things to do - postjam
-- [ ] BUG: player can ressurect (!?)
 - [ ] more food when completing lines
 - [ ] avoid spawning on player and on food
 - [ ] spawn polyomino on a viable column

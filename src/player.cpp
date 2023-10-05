@@ -41,9 +41,11 @@ void Player::hunger_upkeep(s16 delta) {
 }
 
 void Player::update(InputMode input_mode, u8 pressed, u8 held) {
+  if (state != State::Dying && state != State::Dead) {
+    hunger_upkeep(1);
+  }
   switch (state) {
   case State::Idle: {
-    hunger_upkeep(1);
     auto current_row = y.whole >> 4;
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell[current_row][current_column];
@@ -89,7 +91,6 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
   } break;
   case State::Moving:
-    hunger_upkeep(1);
     switch (moving) {
     case Direction::Up:
       y -= move_speed;
