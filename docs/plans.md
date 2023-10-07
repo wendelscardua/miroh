@@ -1,15 +1,4 @@
-# Things to do - postjam
-- [o] better polyomino controls
-      - up for hard drop
-      - down for soft drop
-      - hold left/right repeat movement
-- [ ] better instructions? (remove multiple buttons for minotaur side)
-- [ ] spawn polyomino on a viable column
-- [ ] next pieces
-- [ ] bag of pieces
-- [ ] random polish
+# Random postjam ideas (not yet *tasks*)
 - [ ] expire old fruits
-- [ ] predefined mazes?
 - [ ] automino mode? (minotaur moving by themselves)
 - [ ] power ups?
-- [?] irregular polyominos? (e.g. 3 blocks in a diagonal)
