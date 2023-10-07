@@ -70,6 +70,16 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
       return;
     }
   }
+
+  // avoid placing on other fruits
+  for(auto other : fruits) {
+    if (!other.active) continue;
+
+    if (other.row == fruit.row && other.column == fruit.column) {
+      return;
+    }
+  }
+
   fruit.active = true;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
@@ -86,7 +96,7 @@ Fruits::Fruits(Board& board) : board(board) {
 
 void Fruits::update(Player& player, bool blocks_placed, u8 lines_filled) {
   if (lines_filled) {
-    spawn_timer += SPAWN_DELAY * lines_filled;
+    spawn_timer += SPAWN_DELAY / 2 * lines_filled;
     fruit_credits += lines_filled;
   } else if (blocks_placed) {
     fruit_credits++;
