@@ -45,7 +45,8 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::update(Input
     return;
   }
 
-  if ((input_mode == InputMode::Polyomino) && (held & PAD_DOWN)) {
+  if ((input_mode == InputMode::Polyomino) &&
+      ((held & PAD_UP) || (pressed & PAD_DOWN)) ) {
     drop_timer = DROP_FRAMES;
   } else {
     drop_timer++;
