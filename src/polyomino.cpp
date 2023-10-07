@@ -1,6 +1,7 @@
 #include "polyomino.hpp"
 #include "attributes.hpp"
 #include "bank-helper.hpp"
+#include "direction.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "metasprites.hpp"
@@ -18,6 +19,8 @@ Polyomino::Polyomino(Board &board, bool active)
 void Polyomino::spawn() {
   active = true;
   grounded_timer = 0;
+  move_timer = 0;
+  sideways_direction = Direction::None;
   column = 5;
   row = 0;
   set_prg_bank(GET_BANK(polyominos));
@@ -68,14 +71,24 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
   }
 
   if (pressed & PAD_LEFT) {
-    if (!definition->collide(board, row, column - 1)) {
-      column--;
+    move_timer = SIDEWAYS_INITIAL_DELAY;
+    sideways_direction = Direction::Left;
+  } else if (held & PAD_LEFT) {
+    if (--move_timer <= 0) {
+      move_timer = SIDEWAYS_DELAY;
+      sideways_direction = Direction::Left;
     }
   } else if (pressed & PAD_RIGHT) {
-    if (!definition->collide(board, row, column + 1)) {
-      column++;
+    move_timer = SIDEWAYS_INITIAL_DELAY;
+    sideways_direction = Direction::Right;
+  } else if (held & PAD_RIGHT) {
+    if (--move_timer <= 0) {
+      move_timer = SIDEWAYS_DELAY;
+      sideways_direction = Direction::Right;
     }
-  } else if (pressed & PAD_A) {
+  }
+
+  if (pressed & PAD_A) {
     definition = definition->right_rotation;
 
     if (able_to_kick(definition->right_kick->deltas)) {
@@ -95,14 +108,14 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
     } else {
       definition = definition->right_rotation; // undo rotation
     }
-  } else if (pressed & PAD_UP) {
   }
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::update(bool &blocks_placed, bool &failed_to_place,
                   u8 &lines_filled) {
-  if (!active) return;
+  if (!active)
+    return;
   if (drop_timer++ >= DROP_FRAMES) {
     drop_timer = 0;
     if (definition->collide(board, row + 1, column)) {
@@ -123,6 +136,23 @@ Polyomino::update(bool &blocks_placed, bool &failed_to_place,
       row++;
       grounded_timer = 0;
     }
+  }
+
+  switch (sideways_direction) {
+  case Direction::Left:
+    if (!definition->collide(board, row, column - 1)) {
+      column--;
+    }
+    sideways_direction = Direction::None;
+    break;
+  case Direction::Right:
+    if (!definition->collide(board, row, column + 1)) {
+      column++;
+    }
+    sideways_direction = Direction::None;
+    break;
+  default:
+    break;
   }
 }
 
