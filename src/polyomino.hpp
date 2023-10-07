@@ -14,6 +14,8 @@ class Polyomino {
   s8 row;
   s8 column;
   u8 drop_timer;
+
+  bool able_to_kick(auto kick_deltas);
 public:
   u8 grounded_timer;
   bool active;

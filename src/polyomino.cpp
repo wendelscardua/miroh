@@ -37,6 +37,30 @@ void Polyomino::spawn() {
   row -= (max_delta + 1);
 }
 
+bool Polyomino::able_to_kick(auto kick_deltas) {
+  for(auto kick : kick_deltas) {
+    s8 new_row = row + kick.delta_row;
+    s8 new_column = column + kick.delta_column;
+
+    bool bumped = false;
+    for(u8 i = 0; i < definition->size; i++) {
+      auto delta = definition->deltas[i];
+      if (board.occupied(new_row + delta.delta_row,
+                         new_column + delta.delta_column)) {
+        bumped = true;
+        break;
+      }
+    }
+
+    if (!bumped) {
+      row = new_row;
+      column = new_column;
+      return true;
+    }
+  }
+  return false;
+}
+
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled) {
   if (!active) {
     if (input_mode == InputMode::Polyomino) {
@@ -113,29 +137,8 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::update(Input
       }
     } else if (pressed & PAD_A) {
       definition = definition->right_rotation;
-      bool kicked = false;
-      for(auto kick : definition->right_kick->deltas) {
-        s8 new_row = row + kick.delta_row;
-        s8 new_column = column + kick.delta_column;
 
-        bool bumped = false;
-        for(u8 i = 0; i < definition->size; i++) {
-          auto delta = definition->deltas[i];
-          if (board.occupied(new_row + delta.delta_row,
-                             new_column + delta.delta_column)) {
-            bumped = true;
-            break;
-          }
-        }
-
-        if (!bumped) {
-          row = new_row;
-          column = new_column;
-          kicked = true;
-          break;
-        }
-      }
-      if (kicked) {
+      if (able_to_kick(definition->right_kick->deltas)) {
         banked_lambda(GET_BANK(sfx_list),
                       []() {
                         GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
@@ -146,34 +149,15 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::update(Input
       }
     } else if (pressed & PAD_B) {
       definition = definition->left_rotation;
-      bool kicked = false;
-      for(auto kick : definition->left_kick->deltas) {
-        s8 new_row = row + kick.delta_row;
-        s8 new_column = column + kick.delta_column;
 
-        bool bumped = false;
-        for(u8 i = 0; i < definition->size; i++) {
-          auto delta = definition->deltas[i];
-          if (board.occupied(new_row + delta.delta_row,
-                             new_column + delta.delta_column)) {
-            bumped = true;
-            break;
-          }
-        }
-
-        if (!bumped) {
-          row = new_row;
-          column = new_column;
-          kicked = true;
-          break;
-        }
-      }
-      if (kicked) {
+      if (able_to_kick(definition->left_kick->deltas)) {
         banked_lambda(GET_BANK(sfx_list),
                       []() {
                         GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+
                       });
-      } else {
+      }
+      else {
         definition = definition->right_rotation; // undo rotation
       }
     } else if (pressed & PAD_UP) {
