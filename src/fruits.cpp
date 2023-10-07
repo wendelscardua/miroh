@@ -76,8 +76,8 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
 }
 
 Fruits::Fruits(Board& board) : board(board) {
-  fruit_credits = 0;
-  spawn_timer = SPAWN_DELAY / 2; // just so player don't wat too much to see the first fruit
+  fruit_credits = INITIAL_CREDITS;
+  spawn_timer = SPAWN_DELAY / 2; // just so player don't wait too much to see the first fruit
   for (auto fruit : fruits) {
     fruit.active = false;
   }

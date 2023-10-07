@@ -1,5 +1,5 @@
 # Things to do - postjam
-- [ ] more food when completing lines
+- [o] more food when completing lines
 - [ ] avoid spawning on player and on food
 - [ ] spawn polyomino on a viable column
 - [ ] next pieces

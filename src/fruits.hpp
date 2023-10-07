@@ -7,6 +7,7 @@
 #include "player.hpp"
 
 #define NUM_FRUITS 8
+#define INITIAL_CREDITS 3
 #define SPAWN_DELAY 480
 
 #define FRUIT_NUTRITION 5
