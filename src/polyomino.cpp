@@ -4,7 +4,7 @@
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "metasprites.hpp"
-#include "polyominos.hpp"
+#include "polyomino-defs.hpp"
 #include <bank.h>
 #include <cstdio>
 #include <nesdoug.h>
@@ -43,17 +43,7 @@ bool Polyomino::able_to_kick(auto kick_deltas) {
     s8 new_row = row + kick.delta_row;
     s8 new_column = column + kick.delta_column;
 
-    bool bumped = false;
-    for (u8 i = 0; i < definition->size; i++) {
-      auto delta = definition->deltas[i];
-      if (board.occupied(new_row + delta.delta_row,
-                         new_column + delta.delta_column)) {
-        bumped = true;
-        break;
-      }
-    }
-
-    if (!bumped) {
+    if (!definition->collide(board, new_row, new_column)) {
       row = new_row;
       column = new_column;
       return true;
@@ -78,29 +68,11 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
   }
 
   if (pressed & PAD_LEFT) {
-    bool bumped = false;
-    for (u8 i = 0; i < definition->size; i++) {
-      auto delta = definition->deltas[i];
-      if (board.occupied(row + delta.delta_row,
-                         column - 1 + delta.delta_column)) {
-        bumped = true;
-        break;
-      }
-    }
-    if (!bumped) {
+    if (!definition->collide(board, row, column - 1)) {
       column--;
     }
   } else if (pressed & PAD_RIGHT) {
-    bool bumped = false;
-    for (u8 i = 0; i < definition->size; i++) {
-      auto delta = definition->deltas[i];
-      if (board.occupied(row + delta.delta_row,
-                         column + 1 + delta.delta_column)) {
-        bumped = true;
-        break;
-      }
-    }
-    if (!bumped) {
+    if (!definition->collide(board, row, column + 1)) {
       column++;
     }
   } else if (pressed & PAD_A) {
@@ -130,18 +102,10 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::update(bool &blocks_placed, bool &failed_to_place,
                   u8 &lines_filled) {
+  if (!active) return;
   if (drop_timer++ >= DROP_FRAMES) {
     drop_timer = 0;
-    bool bumped = false;
-    for (u8 i = 0; i < definition->size; i++) {
-      auto delta = definition->deltas[i];
-      if (board.occupied(row + delta.delta_row + 1,
-                         column + delta.delta_column)) {
-        bumped = true;
-        break;
-      }
-    }
-    if (bumped) {
+    if (definition->collide(board, row + 1, column)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
         if (can_be_frozen()) {

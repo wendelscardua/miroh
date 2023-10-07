@@ -83,6 +83,7 @@ add_library(SourceObj
   log.cpp
   player.cpp
   polyomino.cpp
+  polyomino-defs.cpp
 
   chr-data.s
   nametables.s

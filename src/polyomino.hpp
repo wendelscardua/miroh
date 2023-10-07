@@ -1,6 +1,6 @@
 #include "board.hpp"
 #include "input-mode.hpp"
-#include "polyominos.hpp"
+#include "polyomino-defs.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
