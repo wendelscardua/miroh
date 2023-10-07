@@ -9,6 +9,7 @@
 #include "common.hpp"
 #include "donut.hpp"
 #include "fixed-point.hpp"
+#include "fruits.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "nametables.hpp"
@@ -134,7 +135,7 @@ void Gameplay::loop() {
       banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed, &failed_to_place, &lines_filled]() {
         polyomino.update(input_mode, pressed, held, blocks_placed, failed_to_place, lines_filled);
       });
-      fruits.update(player, blocks_placed);
+      fruits.update(player, blocks_placed, lines_filled);
 
       if (lines_filled) {
         player.score += 10 * (2 * lines_filled - 1);

@@ -84,8 +84,14 @@ Fruits::Fruits(Board& board) : board(board) {
   active_fruits = 0;
 }
 
-void Fruits::update(Player& player, bool blocks_placed) {
-  if (blocks_placed) fruit_credits++;
+void Fruits::update(Player& player, bool blocks_placed, u8 lines_filled) {
+  if (lines_filled) {
+    spawn_timer += SPAWN_DELAY * lines_filled;
+    fruit_credits += lines_filled;
+  } else if (blocks_placed) {
+    fruit_credits++;
+  }
+
 
   for(auto fruit : fruits) {
     if (fruit.active) {
@@ -103,7 +109,7 @@ void Fruits::update(Player& player, bool blocks_placed) {
   }
 
   if (fruit_credits > 0 && active_fruits < NUM_FRUITS && ++spawn_timer > SPAWN_DELAY) {
-    spawn_timer = 0;
+    spawn_timer -= SPAWN_DELAY;
     for (auto fruit : fruits) {
       if (!fruit.active) {
         spawn_on_board(fruit);

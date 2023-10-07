@@ -1,6 +1,10 @@
 # Things to do - postjam
-- [o] more food when completing lines
 - [ ] avoid spawning on player and on food
+- [ ] better polyomino controls
+      - up for hard drop
+      - down for soft drop
+      - hold left/right repeat movement
+- [ ] better instructions? (remove multiple buttons for minotaur side)
 - [ ] spawn polyomino on a viable column
 - [ ] next pieces
 - [ ] bag of pieces
