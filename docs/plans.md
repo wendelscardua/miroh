@@ -1,6 +1,5 @@
 # Things to do - postjam
-- [ ] avoid spawning on player and on food
-- [ ] better polyomino controls
+- [o] better polyomino controls
       - up for hard drop
       - down for soft drop
       - hold left/right repeat movement
