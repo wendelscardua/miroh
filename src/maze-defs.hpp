@@ -5,7 +5,7 @@
 
 #include "board.hpp"
 
-#define NUM_MAZES 5
+#define NUM_MAZES 10
 #define MAZE_NAME_WIDTH 10
 
 struct TemplateCell {
