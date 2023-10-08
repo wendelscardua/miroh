@@ -209,7 +209,6 @@ u8 Polyomino::freeze_blocks() {
 
   active = false;
   u8 filled_lines = 0;
-  Attributes::enable_vram_buffer();
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
@@ -230,7 +229,6 @@ u8 Polyomino::freeze_blocks() {
                       FROZEN_BLOCK_ATTRIBUTE);
     }
   }
-  Attributes::flush_vram_update();
 
   return filled_lines;
 }
