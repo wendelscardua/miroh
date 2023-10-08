@@ -33,7 +33,10 @@ auto Polyomino::pieces = Bag<u8, 32>([](auto* bag) {
 });
 
 Polyomino::Polyomino(Board &board)
-    : board(board), definition(NULL), active(false) {}
+  : board(board),
+    definition(NULL),
+    next(polyominos[pieces.take()]),
+    active(false) {}
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   active = true;
@@ -43,9 +46,9 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   column = 5;
   row = 0;
 
-  u8 random_index = pieces.take();
+  definition = next;
+  next = polyominos[pieces.take()];
 
-  definition = polyominos[random_index];
   s8 max_delta = 0;
   for (auto delta : definition->deltas) {
     if (delta.delta_row > max_delta)
