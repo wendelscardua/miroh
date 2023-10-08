@@ -1,0 +1,123 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+
+  gem 'thor'
+end
+
+require 'thor'
+
+# Tool for generating maze data
+class Mazer < Thor
+  def self.exit_on_failure?
+    true
+  end
+
+  desc 'generate ASM_FILE MAZE_FOLDER', 'Generates asm file based on maze texts'
+  method_option :bank, type: :string, required: false
+
+  def generate(s_file, maze_folder)
+    bank = options[:bank] || '.prg_rom_last'
+    max_size = options[:max_size] || 256
+
+    maze_data = MazeData.new(Dir["#{maze_folder}/*.txt"])
+
+    File.open(s_file, 'w') do |f|
+      f.puts <<~ASM
+        .section #{bank}
+        .global mazes
+        mazes:
+      ASM
+      labels = maze_data.mazes.map(&:label)
+      labels.each do |label|
+        f.puts ".byte piece_#{label}@mos16lo"
+      end
+      labels.each do |label|
+        f.puts ".byte piece_#{label}@mos16hi"
+      end
+
+      f.puts <<~ASM
+        .global maze_names
+         maze_names:
+      ASM
+      maze_data.mazes.each do |maze|
+        f.puts ".byte #{maze.name_bytes.map { |byte| format('$%02x', byte) }.join(', ')}"
+      end
+
+
+      maze_data.mazes.each do |maze|
+        f.puts "#{maze.label}:"
+        f.puts ".byte #{maze.bytes.map { |byte| format('$%02x', byte) }.join(', ')}"
+      end
+    end
+  end
+
+  class MazeData
+    attr_reader :mazes
+
+    def initialize(files)
+      @mazes = files.select { |file| File.basename(file) =~ /\A\d+-/ }
+                    .sort
+                    .map { |file| Maze.from_file(file) }
+    end
+  end
+
+  class Maze
+    WIDTH = 12
+    HEIGHT = 10
+    NAME_WIDTH = 10
+    UP = 0x1
+    RIGHT = 0x2
+    DOWN = 0x4
+    LEFT = 0x8
+
+    attr_reader :name, :bytes
+
+    def initialize(name, bytes)
+      @name = name
+      @bytes = bytes
+    end
+
+    def name_bytes
+      format("%-#{NAME_WIDTH}s", @name).bytes.map { |b| b - 0x20 }
+    end
+
+    def label
+      @name.downcase.gsub(/\W+/, '_')
+    end
+
+    def self.from_file(file)
+      lines = File.readlines(file, chomp: true)
+
+      name = lines.shift
+
+      array = Array.new(HEIGHT) { Array.new(WIDTH) { 0 } }
+
+      (0...HEIGHT).each do |i|
+        (0...WIDTH).each do |j|
+          up = lines[2 * i][2 * j + 1]
+          down = lines[2 * i + 2][2 * j + 1]
+          left = lines[2 * i + 1][2 * j]
+          right = lines[2 * i + 1][2 * j + 2]
+
+          array[i][j] |= UP if up != ' '
+          array[i][j] |= DOWN if down != ' '
+          array[i][j] |= LEFT if left != ' '
+          array[i][j] |= RIGHT if right != ' '
+          array[i][j] |= (UP << 4) if up == '#'
+          array[i][j] |= (DOWN << 4) if down == '#'
+          array[i][j] |= (LEFT << 4) if left == '#'
+          array[i][j] |= (RIGHT << 4) if right == '#'
+        end
+      end
+
+      Maze.new(name, array.flatten)
+    end
+  end
+end
+
+Mazer.start
