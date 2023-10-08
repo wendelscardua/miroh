@@ -1,7 +1,6 @@
 #pragma once
 
 #include <soa.h>
-#include <array>
 
 #include "board.hpp"
 #include "common.hpp"
@@ -28,15 +27,14 @@ struct Kick {
 };
 
 struct PolyominoDef {
-  const PolyominoDef* const left_rotation;
-  const PolyominoDef* const right_rotation;
-  const Kick* const left_kick;
-  const Kick* const right_kick;
+  const PolyominoDef *const left_rotation;
+  const PolyominoDef *const right_rotation;
+  const Kick *const left_kick;
+  const Kick *const right_kick;
   const u8 size;
   const soa::Array<const Coordinates, 5> deltas;
 
-  bool collide(Board& board, s8 row, s8 column) const;
+  bool collide(Board &board, s8 row, s8 column) const;
 };
 
 extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;
-extern "C" const std::array<u8, NUM_POLYOMINOS> polyomino_weights;
