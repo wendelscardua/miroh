@@ -24,3 +24,15 @@ void PolyominoDef::render(u8 x, u8 y) const {
     oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
   }
 }
+
+void PolyominoDef::chibi_render(u8 x, u8 y) const {
+  for (u8 i = 0; i < size; i++) {
+    auto delta = deltas[i];
+    u8 block_x = x + (u8)(delta.delta_column << 3);
+    u8 block_y = y + (u8)(delta.delta_row << 3);
+    if (block_y == 0) {
+      block_y++;
+    }
+    oam_spr((u8)block_x, (u8)block_y, CHIBI_TILE, 0x01);
+  }
+}

@@ -7,6 +7,8 @@
 
 #define NUM_POLYOMINOS 28
 
+#define CHIBI_TILE 0x1a
+
 struct Coordinates {
   s8 delta_row;
   s8 delta_column;
@@ -36,6 +38,7 @@ struct PolyominoDef {
 
   bool collide(Board &board, s8 row, s8 column) const;
   void render(u8 x, u8 y) const;
+  void chibi_render(u8 x, u8 y) const;
 };
 
 extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;
