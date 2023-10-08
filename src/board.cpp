@@ -262,77 +262,82 @@ void Board::block_maze_cell(s8 row, s8 column) {
 void Board::restore_maze_cell(s8 row, s8 column) {
   auto current_cell = &cell[row][column];
   int position = NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
+  char metatile_top[2];
+  char metatile_bottom[2];
 
   if (current_cell->up_wall) {
     if (current_cell->left_wall) { // up left
-      one_vram_buffer(TILE_BASE + 7, position);
+      metatile_top[0] = TILE_BASE + 7;
     } else { // up !left
-      one_vram_buffer(TILE_BASE + 1, position);
+      metatile_top[0] = TILE_BASE + 1;
     }
   } else {
     if (current_cell->left_wall) { // !up left
-      one_vram_buffer(TILE_BASE + 6, position);
+      metatile_top[0] = TILE_BASE + 6;
     } else { // !up !left
       if (row == 0 || column == 0)
-        one_vram_buffer(TILE_BASE + 0, position);
+        metatile_top[0] = TILE_BASE + 0;
       else
-        one_vram_buffer(TILE_BASE + 9, position);
+        metatile_top[0] = TILE_BASE + 9;
     }
   }
 
   // top right tile
   if (current_cell->up_wall) {
     if (current_cell->right_wall) { // up right
-      one_vram_buffer(TILE_BASE + 3, position + 1);
+      metatile_top[1] = TILE_BASE + 3;
     } else { // up !right
-      one_vram_buffer(TILE_BASE + 1, position + 1);
+      metatile_top[1] = TILE_BASE + 1;
     }
   } else {
     if (current_cell->right_wall) { // !up right
-      one_vram_buffer(TILE_BASE + 2, position + 1);
+      metatile_top[1] = TILE_BASE + 2;
     } else { // !up !right
       if (row == 0 || column == WIDTH - 1)
-        one_vram_buffer(TILE_BASE + 0, position + 1);
+        metatile_top[1] = TILE_BASE + 0;
       else
-        one_vram_buffer(TILE_BASE + 10, position + 1);
+        metatile_top[1] = TILE_BASE + 10;
     }
   }
 
   // bottom left tile
   if (current_cell->down_wall) {
     if (current_cell->left_wall) { // down left
-      one_vram_buffer(TILE_BASE + 8, position + 0x20);
+      metatile_bottom[0] = TILE_BASE + 8;
     } else { // down !left
-      one_vram_buffer(TILE_BASE + 4, position + 0x20);
+      metatile_bottom[0] = TILE_BASE + 4;
     }
   } else {
     if (current_cell->left_wall) { // !down left
-      one_vram_buffer(TILE_BASE + 6, position + 0x20);
+      metatile_bottom[0] = TILE_BASE + 6;
     } else { // !down !left
       if (row == HEIGHT - 1 || column == 0)
-        one_vram_buffer(TILE_BASE + 0, position + 0x20);
+        metatile_bottom[0] = TILE_BASE + 0;
       else
-        one_vram_buffer(TILE_BASE + 12, position + 0x20);
+        metatile_bottom[0] = TILE_BASE + 12;
     }
   }
 
   // bottom right tile (vram_adr auto advanced)
   if (current_cell->down_wall) {
     if (current_cell->right_wall) { // down right
-      one_vram_buffer(TILE_BASE + 5, position + 0x21);
+      metatile_bottom[1] = TILE_BASE + 5;
     } else { // down !right
-      one_vram_buffer(TILE_BASE + 4, position + 0x21);
+      metatile_bottom[1] = TILE_BASE + 4;
     }
   } else {
     if (current_cell->right_wall) { // !down right
-      one_vram_buffer(TILE_BASE + 2, position + 0x21);
+      metatile_bottom[1] = TILE_BASE + 2;
     } else { // !down !right
       if (row == HEIGHT - 1 || column == WIDTH - 1)
-        one_vram_buffer(TILE_BASE + 0, position + 0x21);
+        metatile_bottom[1] = TILE_BASE + 0;
       else
-        one_vram_buffer(TILE_BASE + 11, position + 0x21);
+        metatile_bottom[1] = TILE_BASE + 11;
     }
   }
+
+  multi_vram_buffer_horz(metatile_top, 2, position);
+  multi_vram_buffer_horz(metatile_bottom, 2, position+0x20);
 
   Attributes::enable_vram_buffer();
   Attributes::set((u8) ((origin_x >> 4) + column), (u8) ((origin_y >> 4) + row), WALL_ATTRIBUTE);
