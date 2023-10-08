@@ -18,9 +18,10 @@ void Cell::reset() {
 
 Cell *Cell::representative() {
   Cell *temp = this;
-  while(temp != temp->parent)
+  while(temp != temp->parent) {
+    temp->parent = temp->parent->parent;
     temp = temp->parent;
-  this->parent = temp;
+  }
   return temp;
 }
 
