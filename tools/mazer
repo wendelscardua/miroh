@@ -34,10 +34,10 @@ class Mazer < Thor
       ASM
       labels = maze_data.mazes.map(&:label)
       labels.each do |label|
-        f.puts ".byte piece_#{label}@mos16lo"
+        f.puts ".byte #{label}@mos16lo"
       end
       labels.each do |label|
-        f.puts ".byte piece_#{label}@mos16hi"
+        f.puts ".byte #{label}@mos16hi"
       end
 
       f.puts <<~ASM
@@ -51,7 +51,9 @@ class Mazer < Thor
 
       maze_data.mazes.each do |maze|
         f.puts "#{maze.label}:"
-        f.puts ".byte #{maze.bytes.map { |byte| format('$%02x', byte) }.join(', ')}"
+        maze.array.each do |row|
+          f.puts ".byte #{row.map { |byte| format('$%02x', byte) }.join(', ')}"
+        end
       end
     end
   end
@@ -75,11 +77,11 @@ class Mazer < Thor
     DOWN = 0x4
     LEFT = 0x8
 
-    attr_reader :name, :bytes
+    attr_reader :name, :array
 
-    def initialize(name, bytes)
+    def initialize(name, array)
       @name = name
-      @bytes = bytes
+      @array = array
     end
 
     def name_bytes
@@ -87,7 +89,7 @@ class Mazer < Thor
     end
 
     def label
-      @name.downcase.gsub(/\W+/, '_')
+      "maze_" + @name.downcase.gsub(/\W+/, '_')
     end
 
     def self.from_file(file)
@@ -103,19 +105,21 @@ class Mazer < Thor
           down = lines[2 * i + 2][2 * j + 1]
           left = lines[2 * i + 1][2 * j]
           right = lines[2 * i + 1][2 * j + 2]
-
-          array[i][j] |= UP if up != ' '
-          array[i][j] |= DOWN if down != ' '
-          array[i][j] |= LEFT if left != ' '
-          array[i][j] |= RIGHT if right != ' '
-          array[i][j] |= (UP << 4) if up == '#'
-          array[i][j] |= (DOWN << 4) if down == '#'
-          array[i][j] |= (LEFT << 4) if left == '#'
-          array[i][j] |= (RIGHT << 4) if right == '#'
+          walls = 0
+          maybe_walls = 0
+          walls |= UP if up != ' ' && up != '#'
+          walls |= DOWN if down != ' ' && down != '#'
+          walls |= LEFT if left != ' ' && left != '#'
+          walls |= RIGHT if right != ' ' && right != '#'
+          maybe_walls |= UP if up == '#'
+          maybe_walls |= DOWN if down == '#'
+          maybe_walls |= LEFT if left == '#'
+          maybe_walls |= RIGHT if right == '#'
+          array[i][j] = (maybe_walls << 4) | walls
         end
       end
 
-      Maze.new(name, array.flatten)
+      Maze.new(name, array)
     end
   end
 end

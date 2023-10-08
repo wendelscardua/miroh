@@ -1,13 +1,20 @@
 #include "board.hpp"
 #include "attributes.hpp"
+#include "bank-helper.hpp"
 #include "common.hpp"
+#include "log.hpp"
+#include "maze-defs.hpp"
+#include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
 
-Cell::Cell() :
-  walls(0),
-  occupied(false),
-  parent(this) {}
+Cell::Cell() : walls(0), occupied(false), parent(NULL) {}
+
+void Cell::reset() {
+  this->walls = 0;
+  this->parent = this;
+}
+
 Cell *Cell::representative() {
   Cell *temp = this;
   while(temp != temp->parent)
@@ -35,31 +42,49 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
   dropping_column = -1;
   dropping_row = -1;
 
-  // some sparse random walls
-  for(u8 i = 0; i < HEIGHT - 1; i++) {
-    for(u8 j = 0; j < WIDTH - 1; j++) {
-      switch(rand8() & 0b11) {
-      case 0:
-        cell[i][j].right_wall = true;
-        cell[i][j + 1].left_wall = true;
-        break;
-      case 1:
-        cell[i][j + 1].down_wall = true;
-        cell[i + 1][j + 1].up_wall = true;
-        break;
-      case 2:
-        cell[i + 1][j].right_wall = true;
-        cell[i + 1][j + 1].left_wall = true;
-        break;
-      case 3:
-        cell[i][j].down_wall = true;
-        cell[i + 1][j].up_wall = true;
-        break;
-      }
+  // reset walls
+  for(u8 i = 0; i < HEIGHT; i++) {
+    for(u8 j = 0; j < WIDTH; j++) {
+      cell[i][j].reset();
     }
   }
 
-  // TODO read template
+#define NEED_WALL(direction) (template_cell.maybe_##direction##_wall && ((rand8() & 0b11) == 0))
+  banked_lambda(GET_BANK(mazes), [this]() {
+    static_assert(sizeof(TemplateCell) == 1, "TemplateCell is too big");
+
+    // read required walls from template
+    for(u8 i = 0; i < HEIGHT; i++) {
+      for(u8 j = 0; j < WIDTH; j++) {
+        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+        cell[i][j].walls = template_cell.walls;
+      }
+    }
+
+    // read "maybe" walls from template
+    for(u8 i = 0; i < HEIGHT; i++) {
+      for(u8 j = 0; j < WIDTH; j++) {
+        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+
+        if (NEED_WALL(up)) {
+          cell[i][j].up_wall = true;
+          if (i > 0) { cell[i - 1][j].down_wall = true; }
+        }
+        if (NEED_WALL(down)) {
+          cell[i][j].down_wall = true;
+          if (i < HEIGHT - 1) { cell[i + 1][j].up_wall = true; }
+        }
+        if (NEED_WALL(left)) {
+          cell[i][j].left_wall = true;
+          if (j > 0) { cell[i][j - 1].right_wall = true; }
+        }
+        if (NEED_WALL(right)) {
+          cell[i][j].right_wall = true;
+          if (j < WIDTH - 1) { cell[i][j + 1].left_wall = true; }
+        }
+      }
+    }
+  });
 
   // border walls
   for(u8 i = 0; i < HEIGHT; i++) {
