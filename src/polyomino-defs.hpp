@@ -35,6 +35,7 @@ struct PolyominoDef {
   const soa::Array<const Coordinates, 5> deltas;
 
   bool collide(Board &board, s8 row, s8 column) const;
+  void render(u8 x, u8 y) const;
 };
 
 extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;

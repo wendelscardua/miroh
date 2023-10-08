@@ -169,26 +169,14 @@ Polyomino::update(bool &blocks_placed, bool &failed_to_place,
   }
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::banked_render() {
-  for (u8 i = 0; i < definition->size; i++) {
-    auto delta = definition->deltas[i];
-    auto block_x = board.origin_x + ((column + delta.delta_column) << 4);
-    auto block_y = board.origin_y + ((row + delta.delta_row) << 4);
-    if (block_y >= 0) {
-      if (row < 0) {
-        block_y++;
-      }
-      oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
-    }
-  }
-}
-
 void Polyomino::render() {
   if (!active)
     return;
 
-  banked_lambda(GET_BANK(polyominos), [this]() { banked_render(); });
+  banked_lambda(GET_BANK(polyominos), [this]() {
+    definition->render(board.origin_x + (u8)(column << 4),
+                       board.origin_y + (u8)(row << 4));
+  });
 }
 
 bool Polyomino::can_be_frozen() {
