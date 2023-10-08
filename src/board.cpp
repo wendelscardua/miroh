@@ -146,8 +146,8 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
   });
 
   for(u8 rows = 0; rows < HEIGHT; rows++) {
+    u8 i = row_bag.take();
     for(u8 columns = 0; columns < WIDTH; columns++) {
-      u8 i = row_bag.take();
       u8 j = column_bag.take();
       auto current_cell = &cell[i][j];
       auto right_cell = j < WIDTH - 1 ? &cell[i][j + 1] : NULL;
