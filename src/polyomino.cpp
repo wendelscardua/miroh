@@ -182,6 +182,17 @@ void Polyomino::render() {
   });
 }
 
+void Polyomino::render_next() {
+  banked_lambda(GET_BANK(polyominos), [this]() {
+    u8 next_x = board.origin_x + 0x10 * (WIDTH / 2);
+    u8 next_y = board.origin_y - 0x20;
+    if (active && row < 0) {
+      next_x += 0x40;
+    }
+    next->chibi_render(next_x, next_y);
+  });
+}
+
 bool Polyomino::can_be_frozen() {
   s8 min_y_delta = 2;
 

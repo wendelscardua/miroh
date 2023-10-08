@@ -42,6 +42,8 @@ public:
 
   void render();
 
+  void render_next();
+
   // checks if polyomino is already inside the board
   bool can_be_frozen();
 
