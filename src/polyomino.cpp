@@ -1,4 +1,5 @@
 #include "polyomino.hpp"
+#include "bag.hpp"
 #include "attributes.hpp"
 #include "bank-helper.hpp"
 #include "direction.hpp"
@@ -13,24 +14,35 @@
 
 #define POLYOMINOS_TEXT ".prg_rom_0.text"
 
-Polyomino::Polyomino(Board &board, bool active)
-    : board(board), definition(NULL), active(active) {}
+static auto pentominos = Bag<u8, 32>([](auto *bag) {
+  // pentomino indices
+  // TODO un-hardcode them
+  for(u8 i = 8; i < 25; i++) {
+    bag->insert(i);
+  }
+});
 
-void Polyomino::spawn() {
+auto Polyomino::pieces = Bag<u8, 32>([](auto* bag) {
+  for(u8 i = 0; i < NUM_POLYOMINOS; i++) {
+    if (i >= 8 && i < 25) continue;
+    bag->insert(i);
+  }
+  bag->insert(pentominos.take());
+  bag->insert(pentominos.take());
+});
+
+Polyomino::Polyomino(Board &board)
+    : board(board), definition(NULL), active(false) {}
+
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   active = true;
   grounded_timer = 0;
   move_timer = 0;
   sideways_direction = Direction::None;
   column = 5;
   row = 0;
-  set_prg_bank(GET_BANK(polyominos));
 
-  u8 random_weight = rand8();
-  u8 random_index = 0;
-  while (random_weight >= polyomino_weights[random_index]) {
-    random_weight -= polyomino_weights[random_index];
-    random_index++;
-  }
+  u8 random_index = pieces.take();
 
   definition = polyominos[random_index];
   s8 max_delta = 0;
