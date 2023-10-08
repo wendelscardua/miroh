@@ -1,5 +1,6 @@
 #include "board.hpp"
 #include "attributes.hpp"
+#include "bag.hpp"
 #include "bank-helper.hpp"
 #include "common.hpp"
 #include "log.hpp"
@@ -136,11 +137,28 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
     }
   }
 
-  for(u8 i = 0; i < HEIGHT; i++) {
-    for(u8 j = 0; j < WIDTH; j++) {
+  Bag<u8, HEIGHT> row_bag([](auto * bag){
+    for(u8 i = 0; i < HEIGHT; i++) { bag->insert(i); }
+  });
+  Bag<u8, WIDTH> column_bag([](auto * bag){
+    for(u8 j = 0; j < WIDTH; j++) { bag->insert(j); }
+  });
+
+  for(u8 rows = 0; rows < HEIGHT; rows++) {
+    for(u8 columns = 0; columns < WIDTH; columns++) {
+      u8 i = row_bag.take();
+      u8 j = column_bag.take();
       auto current_cell = &cell[i][j];
       auto right_cell = j < WIDTH - 1 ? &cell[i][j + 1] : NULL;
       auto down_cell = i < HEIGHT -1 ? &cell[i + 1][j] : NULL;
+
+      bool down_first = rand8() & 0b1;
+
+      if (down_first && down_cell && current_cell->representative() != down_cell->representative()) {
+        current_cell->down_wall = false;
+        down_cell->up_wall = false;
+        down_cell->join(current_cell);
+      }
 
       if (right_cell && current_cell->representative() != right_cell->representative()) {
         current_cell->right_wall = false;
@@ -148,7 +166,7 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
         right_cell->join(current_cell);
       }
 
-      if (down_cell && current_cell->representative() != down_cell->representative()) {
+      if (!down_first && down_cell && current_cell->representative() != down_cell->representative()) {
         current_cell->down_wall = false;
         down_cell->up_wall = false;
         down_cell->join(current_cell);
