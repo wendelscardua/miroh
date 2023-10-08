@@ -1,6 +1,7 @@
 #include "board.hpp"
+#include "direction.hpp"
 #include "input-mode.hpp"
-#include "polyominos.hpp"
+#include "polyomino-defs.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -9,21 +10,28 @@
 #define FROZEN_BLOCK_ATTRIBUTE 2
 
 class Polyomino {
-  Board& board;
+  static const s8 SIDEWAYS_INITIAL_DELAY = 16;
+  static const s8 SIDEWAYS_DELAY = 6;
+  Board &board;
   const PolyominoDef *definition;
   s8 row;
   s8 column;
   u8 drop_timer;
+  s8 move_timer;
+  Direction sideways_direction;
 
   bool able_to_kick(auto kick_deltas);
+
 public:
   u8 grounded_timer;
   bool active;
-  Polyomino(Board& board, bool active);
+  Polyomino(Board &board, bool active);
 
   void spawn();
 
-  void update(InputMode &input_mode, u8 pressed, u8 held, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled);
+  void handle_input(InputMode &input_mode, u8 pressed, u8 held);
+
+  void update(bool &blocks_placed, bool &failed_to_place, u8 &lines_filled);
 
   void banked_render();
 

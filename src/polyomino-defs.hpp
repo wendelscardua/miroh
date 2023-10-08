@@ -3,6 +3,7 @@
 #include <soa.h>
 #include <array>
 
+#include "board.hpp"
 #include "common.hpp"
 
 #define NUM_POLYOMINOS 27
@@ -33,6 +34,8 @@ struct PolyominoDef {
   const Kick* const right_kick;
   const u8 size;
   const soa::Array<const Coordinates, 5> deltas;
+
+  bool collide(Board& board, s8 row, s8 column) const;
 };
 
 extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;
