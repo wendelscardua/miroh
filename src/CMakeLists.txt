@@ -40,6 +40,16 @@ if (NOT POLYOMINO)
   message(FATAL_ERROR "The polyomino tool is required!")
 endif()
 
+find_program(
+  MAZER
+  mazer
+  PATHS "${CMAKE_SOURCE_DIR}/tools"
+)
+
+if (NOT MAZER)
+  message(FATAL_ERROR "The mazer tool is required!")
+endif()
+
 add_custom_command(
   OUTPUT metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp
   COMMAND ${GENERATE_METASPRITES} generate ${CMAKE_CURRENT_BINARY_DIR}/metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp ${CMAKE_SOURCE_DIR}/assets/metasprites.nss --bank .prg_rom_last --label-prefix metasprite
@@ -62,6 +72,12 @@ add_custom_command(
   OUTPUT polyominos.s
   COMMAND ${POLYOMINO} generate ${CMAKE_CURRENT_BINARY_DIR}/polyominos.s ${CMAKE_SOURCE_DIR}/assets/polyominos.json --max-size 4 --bank .prg_rom_0
   DEPENDS ${POLYOMINO} ${CMAKE_SOURCE_DIR}/assets/polyominos.json
+)
+
+add_custom_command(
+  OUTPUT maze-defs.s
+  COMMAND ${MAZER} generate ${CMAKE_CURRENT_BINARY_DIR}/maze-defs.s ${CMAKE_SOURCE_DIR}/assets/mazes --bank .prg_rom_0
+  DEPENDS ${MAZER} ${CMAKE_SOURCE_DIR}/assets/mazes
 )
 
 add_library(SourceObj
@@ -90,6 +106,7 @@ add_library(SourceObj
   palettes.s
   soundtrack.s
   polyominos.s
+  maze-defs.s
 
   soundtrack.hpp
 

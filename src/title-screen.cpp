@@ -8,6 +8,7 @@
 #include "common.hpp"
 #include "donut.hpp"
 #include "ggsound.hpp"
+#include "maze-defs.hpp"
 #include "metasprites.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
@@ -32,11 +33,6 @@ const unsigned char settings_text[24 * 3] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x32, 0x45, 0x54, 0x55, 0x52, 0x4e, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-const u8 maze_names[][10] = {
-  {0x2e,0x4f,0x52,0x4d,0x41,0x4c,0x00,0x00,0x00,0x00},
-  {0x22,0x49,0x47,0x00,0x32,0x4f,0x4f,0x4d,0x53,0x00},
-};
 
 const TitleScreen::MenuOption left_of[] = {
   TitleScreen::MenuOption::Controls,// Controls
@@ -358,8 +354,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
           banked_lambda(GET_BANK(sfx_list), []() {
             GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
           });
-          if ((u8)maze > 0) {
-            maze = (Maze)(((u8) maze) - 1);
+          if (maze > 0) {
+            maze--;
           }
           break;
         case SettingsOption::Return:
@@ -377,8 +373,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
           banked_lambda(GET_BANK(sfx_list), []() {
             GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
           });
-          if ((u8)maze < ((u8) Maze::None) - 1) {
-            maze = (Maze)(((u8) maze) + 1);
+          if (maze < NUM_MAZES - 1) {
+            maze++;
           }
           break;
         case SettingsOption::Return:
@@ -396,8 +392,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
           banked_lambda(GET_BANK(sfx_list), []() {
             GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
           });
-          if ((u8)maze < ((u8) Maze::None) - 1) {
-            maze = (Maze)(((u8) maze) + 1);
+          if (maze < NUM_MAZES - 1) {
+            maze++;
           }
           break;
         case SettingsOption::Return:

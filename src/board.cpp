@@ -59,32 +59,7 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
     }
   }
 
-  // big rooms?
-  switch(maze) {
-  case Maze::BigRooms:
-    for(u8 min_i = 1; min_i < HEIGHT - 1; min_i += 3) {
-      for(u8 min_j = 1; min_j < WIDTH - 1; min_j += 4) {
-        u8 max_i = min_i + 1;
-        u8 max_j = min_j + 2;
-        if (max_i + 1 >= HEIGHT) max_i = HEIGHT - 2;
-        if (max_j + 1 >= WIDTH) max_j = WIDTH - 2;
-        if (max_i >= min_i && max_j >= min_j) {
-          for(u8 i = min_i; i <= max_i; i++) {
-            for(u8 j = min_j; j <= max_j; j++) {
-              cell[i][j].up_wall = false; cell[i-1][j].down_wall = false;
-              cell[i][j].down_wall = false; cell[i+1][j].up_wall = false;
-              cell[i][j].left_wall = false; cell[i][j-1].right_wall = false;
-              cell[i][j].right_wall = false; cell[i][j+1].left_wall = false;
-            }
-          }
-        }
-      }
-    }
-    break;
-  case Maze::Normal:
-  case Maze::None:
-    break;
-  }
+  // TODO read template
 
   // border walls
   for(u8 i = 0; i < HEIGHT; i++) {
