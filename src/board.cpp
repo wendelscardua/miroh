@@ -57,7 +57,9 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
     for(u8 i = 0; i < HEIGHT; i++) {
       for(u8 j = 0; j < WIDTH; j++) {
         TemplateCell template_cell = mazes[maze]->template_cells[i][j];
-        cell[i][j].walls = template_cell.walls;
+        if (template_cell.value != 0xff) {
+          cell[i][j].walls = template_cell.walls;
+        }
       }
     }
 
@@ -65,6 +67,30 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
     for(u8 i = 0; i < HEIGHT; i++) {
       for(u8 j = 0; j < WIDTH; j++) {
         TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+
+        if (template_cell.value == 0xff) {
+          // use the old berzerk algorithm
+          // assumes the cell is on the valid range
+          switch(rand8() & 0b11) {
+          case 0:
+            cell[i][j].right_wall = true;
+            cell[i][j + 1].left_wall = true;
+            break;
+          case 1:
+            cell[i][j + 1].down_wall = true;
+            cell[i + 1][j + 1].up_wall = true;
+            break;
+          case 2:
+            cell[i + 1][j].right_wall = true;
+            cell[i + 1][j + 1].left_wall = true;
+            break;
+          case 3:
+            cell[i][j].down_wall = true;
+            cell[i + 1][j].up_wall = true;
+            break;
+          }
+          continue;
+        }
 
         if (NEED_WALL(up)) {
           cell[i][j].up_wall = true;

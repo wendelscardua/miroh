@@ -101,6 +101,11 @@ class Mazer < Thor
 
       (0...HEIGHT).each do |i|
         (0...WIDTH).each do |j|
+          if lines[2 * i + 2][2 * j + 2] == '@'
+            # original berzerk algorithm
+            array[i][j] = 0xff
+            next
+          end
           up = lines[2 * i][2 * j + 1]
           down = lines[2 * i + 2][2 * j + 1]
           left = lines[2 * i + 1][2 * j]
