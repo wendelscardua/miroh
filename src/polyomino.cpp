@@ -36,6 +36,7 @@ Polyomino::Polyomino(Board &board)
   : board(board),
     definition(NULL),
     next(polyominos[pieces.take()]),
+    second_next(polyominos[pieces.take()]),
     active(false) {}
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
@@ -47,7 +48,8 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   row = 0;
 
   definition = next;
-  next = polyominos[pieces.take()];
+  next = second_next;
+  second_next = polyominos[pieces.take()];
 
   s8 max_delta = 0;
   for (auto delta : definition->deltas) {
@@ -187,9 +189,11 @@ void Polyomino::render_next() {
     u8 next_x = board.origin_x + 0x10 * (WIDTH / 2);
     u8 next_y = board.origin_y - 0x20;
     if (active && row < 0) {
-      next_x += 0x40;
+      next->chibi_render(next_x + 0x40, next_y);
+    } else {
+      next->chibi_render(next_x, next_y);
+      second_next->chibi_render(next_x + 0x40, next_y);
     }
-    next->chibi_render(next_x, next_y);
   });
 }
 

@@ -19,6 +19,7 @@ class Polyomino {
   Board &board;
   const PolyominoDef *definition;
   const PolyominoDef *next;
+  const PolyominoDef *second_next;
   s8 row;
   s8 column;
   u8 drop_timer;
