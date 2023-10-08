@@ -1,3 +1,4 @@
+#include "bag.hpp"
 #include "board.hpp"
 #include "direction.hpp"
 #include "input-mode.hpp"
@@ -12,6 +13,9 @@
 class Polyomino {
   static const s8 SIDEWAYS_INITIAL_DELAY = 16;
   static const s8 SIDEWAYS_DELAY = 6;
+
+  static Bag<u8, 32> pieces;
+
   Board &board;
   const PolyominoDef *definition;
   s8 row;
@@ -25,7 +29,7 @@ class Polyomino {
 public:
   u8 grounded_timer;
   bool active;
-  Polyomino(Board &board, bool active);
+  Polyomino(Board &board);
 
   void spawn();
 

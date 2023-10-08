@@ -24,7 +24,7 @@ __attribute__((noinline)) Gameplay::Gameplay() :
   spawn_timer(INITIAL_SPAWN_DELAY),
   board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
   player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
-  polyomino(board, false),
+  polyomino(board),
   fruits(board),
   input_mode(InputMode::Player) {
     set_chr_bank(0);
@@ -118,7 +118,9 @@ void Gameplay::loop() {
     if (!board.ongoing_line_clearing()
         && !polyomino.active
         && --spawn_timer == 0) {
-      polyomino.spawn();
+      banked_lambda(GET_BANK(polyominos), [this] () {
+        polyomino.spawn();
+      });
       spawn_timer = INITIAL_SPAWN_DELAY; // TODO make this go faster
     }
 
