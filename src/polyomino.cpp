@@ -14,7 +14,7 @@
 
 #define POLYOMINOS_TEXT ".prg_rom_0.text"
 
-static Bag<u8, 32> pentominos = Bag<u8, 32>([](Bag<u8, 32> *bag) {
+static auto pentominos = Bag<u8, 32>([](auto *bag) {
   // pentomino indices
   // TODO un-hardcode them
   for(u8 i = 8; i < 25; i++) {
@@ -22,7 +22,7 @@ static Bag<u8, 32> pentominos = Bag<u8, 32>([](Bag<u8, 32> *bag) {
   }
 });
 
-Bag<u8, 32> Polyomino::pieces = Bag<u8, 32>([](Bag<u8, 32>* bag) {
+auto Polyomino::pieces = Bag<u8, 32>([](auto* bag) {
   for(u8 i = 0; i < NUM_POLYOMINOS; i++) {
     if (i >= 8 && i < 25) continue;
     bag->insert(i);
