@@ -3,6 +3,7 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
+#include "attributes.hpp"
 #include "bank-helper.hpp"
 
 #include "chr-data.hpp"
@@ -10,77 +11,73 @@
 #include "donut.hpp"
 #include "fixed-point.hpp"
 #include "fruits.hpp"
+#include "gameplay.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
 #include "player.hpp"
-#include "gameplay.hpp"
 
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
-__attribute__((noinline)) Gameplay::Gameplay() :
-  spawn_timer(INITIAL_SPAWN_DELAY),
-  board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
-  player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
-  polyomino(board),
-  fruits(board),
-  input_mode(InputMode::Player) {
-    set_chr_bank(0);
+__attribute__((noinline)) Gameplay::Gameplay()
+    : spawn_timer(INITIAL_SPAWN_DELAY), board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
+      player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
+      polyomino(board), fruits(board), input_mode(InputMode::Player) {
+  set_chr_bank(0);
 
-    banked_lambda(GET_BANK(bg_chr), [] () {
-      // assume all chr are on same bank
-      vram_adr(PPU_PATTERN_TABLE_0);
-      Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
+  banked_lambda(GET_BANK(bg_chr), []() {
+    // assume all chr are on same bank
+    vram_adr(PPU_PATTERN_TABLE_0);
+    Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
 
-      vram_adr(PPU_PATTERN_TABLE_1);
-      Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
-    });
+    vram_adr(PPU_PATTERN_TABLE_1);
+    Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
+  });
 
-    banked_lambda(GET_BANK(title_nam), [] () {
-      // idem nametables
-      vram_adr(NAMETABLE_D);
-      vram_write(game_over_nam, 1024);
+  banked_lambda(GET_BANK(title_nam), []() {
+    // idem nametables
+    vram_adr(NAMETABLE_D);
+    vram_write(game_over_nam, 1024);
 
-      vram_adr(NAMETABLE_A);
-      vram_write(gameplay_nam, 1024);
-    });
+    vram_adr(NAMETABLE_A);
+    vram_write(gameplay_nam, 1024);
+  });
 
-    board.render();
+  board.render();
 
-    banked_lambda(GET_BANK(bg_palette), [] () {
-      // idem palettes
-      pal_bg(bg_palette);
-      pal_spr(sprites_player_palette);
-    });
+  banked_lambda(GET_BANK(bg_palette), []() {
+    // idem palettes
+    pal_bg(bg_palette);
+    pal_spr(sprites_player_palette);
+  });
 
-    pal_bright(0);
+  pal_bright(0);
 
-    oam_clear();
+  oam_clear();
 
-    scroll(0, 0);
+  scroll(0, 0);
 
-    ppu_on_all();
+  ppu_on_all();
 
-    pal_fade_to(0, 4);
+  pal_fade_to(0, 4);
 }
 
 __attribute__((noinline)) Gameplay::~Gameplay() {
-    pal_fade_to(4, 0);
-    ppu_off();
+  pal_fade_to(4, 0);
+  ppu_off();
 }
 
 void Gameplay::render() {
   oam_clear();
   if (player.state == Player::State::Dying ||
-      player.state == Player::State::Dead)
-    {
-      player.render();
-      return;
-    }
+      player.state == Player::State::Dead) {
+    player.render();
+    return;
+  }
 
-  switch(get_frame_count() & 0b11) {
+  switch (get_frame_count() & 0b11) {
   case 0:
     player.render();
     fruits.render();
@@ -105,22 +102,22 @@ void Gameplay::render() {
 }
 
 extern volatile char FRAME_CNT1;
-static bool no_lag_frame;
+static bool no_lag_frame = true;
 
 void Gameplay::loop() {
-  while(current_mode == GameMode::Gameplay) {
+  while (current_mode == GameMode::Gameplay) {
     ppu_wait_nmi();
+
     u8 frame = FRAME_CNT1;
+
+    Attributes::enable_vram_buffer();
 
     InputMode old_mode = input_mode;
 
     // we only spawn when there's no line clearing going on
-    if (!board.ongoing_line_clearing()
-        && !polyomino.active
-        && --spawn_timer == 0) {
-      banked_lambda(GET_BANK(polyominos), [this] () {
-        polyomino.spawn();
-      });
+    if (!board.ongoing_line_clearing() && !polyomino.active &&
+        --spawn_timer == 0) {
+      banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
       spawn_timer = INITIAL_SPAWN_DELAY; // TODO make this go faster
     }
 
@@ -130,7 +127,8 @@ void Gameplay::loop() {
     u8 held = pad_state(0);
 
     player.update(input_mode, pressed, held);
-    if (player.state != Player::State::Dying && player.state != Player::State::Dead) {
+    if (player.state != Player::State::Dying &&
+        player.state != Player::State::Dead) {
       bool blocks_placed = false;
       bool failed_to_place = false;
       u8 lines_filled = 0;
@@ -151,17 +149,17 @@ void Gameplay::loop() {
         player.hunger_upkeep(3 * HUNGER_TICKS);
       }
 
-      switch(input_mode) {
+      switch (input_mode) {
       case InputMode::Player:
-        if (pressed & (PAD_SELECT|PAD_A|PAD_B|PAD_START)) {
+        if (pressed & (PAD_SELECT | PAD_A | PAD_B | PAD_START)) {
           input_mode = InputMode::Polyomino;
-          pressed &= ~(PAD_SELECT|PAD_A|PAD_B|PAD_START);
+          pressed &= ~(PAD_SELECT | PAD_A | PAD_B | PAD_START);
         }
         break;
       case InputMode::Polyomino:
-        if (pressed & (PAD_SELECT|PAD_START)) {
+        if (pressed & (PAD_SELECT | PAD_START)) {
           input_mode = InputMode::Player;
-          pressed &= ~(PAD_SELECT|PAD_START);
+          pressed &= ~(PAD_SELECT | PAD_START);
         }
         break;
       }
@@ -170,11 +168,11 @@ void Gameplay::loop() {
     }
 
     if (input_mode != old_mode) {
-      banked_lambda(GET_BANK(sfx_list), [] () {
+      banked_lambda(GET_BANK(sfx_list), []() {
         GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
       });
-      banked_lambda(GET_BANK(bg_palette), [this] () {
-        switch(input_mode) {
+      banked_lambda(GET_BANK(bg_palette), [this]() {
+        switch (input_mode) {
         case InputMode::Polyomino:
           set_prg_bank(GET_BANK(sprites_polyomino_palette));
           pal_spr(sprites_polyomino_palette);
@@ -188,6 +186,8 @@ void Gameplay::loop() {
       });
     }
 
+    Attributes::flush_vram_update();
+
     extern u8 VRAM_INDEX;
     if (VRAM_INDEX + 16 < 64) {
       player.refresh_score_hud();
@@ -198,13 +198,13 @@ void Gameplay::loop() {
     } else {
 #ifndef NDEBUG
       putchar('X');
+      putchar('\n');
 #endif
     }
 
     no_lag_frame = frame == FRAME_CNT1;
-
-    #ifndef NDEBUG
+#ifndef NDEBUG
     gray_line();
-    #endif
+#endif
   }
 }
