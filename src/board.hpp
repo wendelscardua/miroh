@@ -31,11 +31,16 @@ class Cell {
 };
 
 class Board {
+  // these are used for the coroutinish line clearing function
+  static const u8 LINE_CLEARING_BUDGET = 4;
   s8 cracking_row;
   s8 cracking_column;
   s8 erasing_row;
   s8 erasing_column;
+  s8 dropping_row;
   s8 dropping_column;
+  bool dropping_column_new_states[HEIGHT];
+
 public:
   Cell cell[HEIGHT][WIDTH]; // each of the board's cells
   u8 tally[HEIGHT]; // counts how many occupied cells are in each row

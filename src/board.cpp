@@ -33,6 +33,7 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
   erasing_row = -1;
   erasing_column = -1;
   dropping_column = -1;
+  dropping_row = -1;
 
   // some sparse random walls
   for(u8 i = 0; i < HEIGHT - 1; i++) {
@@ -397,17 +398,17 @@ bool Board::ongoing_line_clearing() {
       for(auto deleted_row : deleted) {
         if (deleted_row) {
           dropping_column = 0;
+          dropping_row = -1;
           ongoing = true;
           break;
         }
       }
     }
-  } else {
+  } else if (dropping_row < 0) {
     ongoing = true;
 
-    bool new_states[HEIGHT];
     for(s8 i = 0; i < HEIGHT; i++) {
-      new_states[i] = occupied(i, dropping_column);
+      dropping_column_new_states[i] = occupied(i, dropping_column);
     }
 
     s8 current_row = HEIGHT - 1;
@@ -418,13 +419,13 @@ bool Board::ongoing_line_clearing() {
         source_row--;
       }
       if (source_row < current_row) {
-        bool source_occupied = source_row < 0 ? false : new_states[source_row];
+        bool source_occupied = source_row < 0 ? false : dropping_column_new_states[source_row];
 
         if (source_occupied) {
-          new_states[current_row] = true;
-          if (source_row >= 0) new_states[source_row] = false;
+          dropping_column_new_states[current_row] = true;
+          if (source_row >= 0) dropping_column_new_states[source_row] = false;
         } else {
-          new_states[current_row] = false;
+          dropping_column_new_states[current_row] = false;
         }
       }
 
@@ -432,22 +433,30 @@ bool Board::ongoing_line_clearing() {
       source_row--;
     }
 
-    for(s8 i = 0; i < HEIGHT; i++) {
-      if (new_states[i] != occupied(i, dropping_column)) {
-        if (new_states[i]) {
-          block_maze_cell(i, dropping_column);
+    dropping_row = HEIGHT - 1;
+  } else { // dropping row and column >= 0
+
+    // we don't have budget to do too many changes per frame
+    // so we arbitrarily limit them
+    for(u8 changes = 0; dropping_row >= 0 && changes < LINE_CLEARING_BUDGET; dropping_row--) {
+      if (dropping_column_new_states[dropping_row] != occupied(dropping_row, dropping_column)) {
+        changes++;
+        if (dropping_column_new_states[dropping_row]) {
+          block_maze_cell(dropping_row, dropping_column);
         } else {
-          restore_maze_cell(i, dropping_column);
+          restore_maze_cell(dropping_row, dropping_column);
         }
       }
     }
 
-    dropping_column++;
-    if (dropping_column == WIDTH) {
-      for(s8 i = 0; i < HEIGHT; i++) {
-        deleted[i] = false;
+    if (dropping_row < 0) {
+      dropping_column++;
+      if (dropping_column == WIDTH) {
+        for(s8 i = 0; i < HEIGHT; i++) {
+          deleted[i] = false;
+        }
+        dropping_column = -1;
       }
-      dropping_column = -1;
     }
   }
 
