@@ -92,7 +92,11 @@
     "l3":   { "blocks": [[ 0,  0], [ 1,  0], [ 1,  1]],                     "rotateTo": "l3R",  "kicks": "j" },
     "l3R":  { "blocks": [[ 0,  0], [ 0,  1], [ 1,  0]],                     "rotateTo": "l32",  "kicks": "j" },
     "l32":  { "blocks": [[ 0,  0], [ 0,  1], [ 1,  1]],                     "rotateTo": "l3L",  "kicks": "j" },
-    "l3L":  { "blocks": [[ 0,  1], [ 1,  0], [ 1,  1]],                     "rotateTo": "l3",   "kicks": "j" }
+    "l3L":  { "blocks": [[ 0,  1], [ 1,  0], [ 1,  1]],                     "rotateTo": "l3",   "kicks": "j" },
+    "i2":   { "blocks": [[ 0,  0], [ 0,  1]],                               "rotateTo": "i2R",  "kicks": "i" },
+    "i2R":  { "blocks": [[ 0,  1], [ 1,  1]],                               "rotateTo": "i22",  "kicks": "i" },
+    "i22":  { "blocks": [[ 1,  0], [ 1,  1]],                               "rotateTo": "i2L",  "kicks": "i" },
+    "i2L":  { "blocks": [[ 0,  0], [ 1,  0]],                               "rotateTo": "i2",   "kicks": "i" }
   },
   "kicks": {
     "o":  [ [0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0] ],
@@ -117,6 +121,9 @@
   },
   "canon": [
     "n0",
+    "i2",
+    "i3",
+    "l3",
     "i4",
     "j4",
     "l4",
@@ -140,8 +147,6 @@
     "z5",
     "fz5",
     "n5",
-    "fn5",
-    "i3",
-    "l3"
+    "fn5"
   ]
 }

@@ -5,7 +5,7 @@
 #include "board.hpp"
 #include "common.hpp"
 
-#define NUM_POLYOMINOS 27
+#define NUM_POLYOMINOS 28
 
 struct Coordinates {
   s8 delta_row;
