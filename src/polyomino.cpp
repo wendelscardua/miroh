@@ -33,7 +33,11 @@ auto Polyomino::pieces = Bag<u8, 32>([](auto* bag) {
 });
 
 Polyomino::Polyomino(Board &board)
-    : board(board), definition(NULL), active(false) {}
+  : board(board),
+    definition(NULL),
+    next(polyominos[pieces.take()]),
+    second_next(polyominos[pieces.take()]),
+    active(false) {}
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   active = true;
@@ -43,9 +47,10 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   column = 5;
   row = 0;
 
-  u8 random_index = pieces.take();
+  definition = next;
+  next = second_next;
+  second_next = polyominos[pieces.take()];
 
-  definition = polyominos[random_index];
   s8 max_delta = 0;
   for (auto delta : definition->deltas) {
     if (delta.delta_row > max_delta)
@@ -169,26 +174,27 @@ Polyomino::update(bool &blocks_placed, bool &failed_to_place,
   }
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::banked_render() {
-  for (u8 i = 0; i < definition->size; i++) {
-    auto delta = definition->deltas[i];
-    auto block_x = board.origin_x + ((column + delta.delta_column) << 4);
-    auto block_y = board.origin_y + ((row + delta.delta_row) << 4);
-    if (block_y >= 0) {
-      if (row < 0) {
-        block_y++;
-      }
-      oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
-    }
-  }
-}
-
 void Polyomino::render() {
   if (!active)
     return;
 
-  banked_lambda(GET_BANK(polyominos), [this]() { banked_render(); });
+  banked_lambda(GET_BANK(polyominos), [this]() {
+    definition->render(board.origin_x + (u8)(column << 4),
+                       board.origin_y + (u8)(row << 4));
+  });
+}
+
+void Polyomino::render_next() {
+  banked_lambda(GET_BANK(polyominos), [this]() {
+    u8 next_x = board.origin_x + 0x10 * (WIDTH / 2);
+    u8 next_y = board.origin_y - 0x20;
+    if (active && row < 0) {
+      next->chibi_render(next_x + 0x40, next_y);
+    } else {
+      next->chibi_render(next_x, next_y);
+      second_next->chibi_render(next_x + 0x40, next_y);
+    }
+  });
 }
 
 bool Polyomino::can_be_frozen() {

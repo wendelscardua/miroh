@@ -82,8 +82,10 @@ void Gameplay::render() {
     player.render();
     fruits.render();
     polyomino.render();
+    polyomino.render_next();
     break;
   case 1:
+    polyomino.render_next();
     polyomino.render();
     player.render();
     fruits.render();
@@ -91,9 +93,11 @@ void Gameplay::render() {
   case 2:
     player.render();
     polyomino.render();
+    polyomino.render_next();
     fruits.render();
     break;
   default:
+    polyomino.render_next();
     polyomino.render();
     fruits.render();
     player.render();
