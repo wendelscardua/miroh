@@ -179,86 +179,10 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
 Board::~Board() {}
 
 void Board::render() {
-  u8 x = origin_x >> 3;
-  u8 y = origin_y >> 3;
-  for(u8 i = 0; i < HEIGHT; i++) {
-    for(u8 j = 0; j < WIDTH; j++) {
-      auto current_cell = &cell[i][j];
-
-      vram_adr(NTADR_A(x + 2 * j, y + 2 * i));
-
-      if (current_cell->up_wall) {
-        if (current_cell->left_wall) { // up left
-          vram_put(TILE_BASE + 7);
-        } else { // up !left
-          vram_put(TILE_BASE + 1);
-        }
-      } else {
-        if (current_cell->left_wall) { // !up left
-          vram_put(TILE_BASE + 6);
-        } else { // !up !left
-          if (i == 0 || j == 0)
-            vram_put(TILE_BASE + 0);
-          else
-            vram_put(TILE_BASE + 9);
-        }
-      }
-
-      // top right tile (vram_adr auto advanced)
-      if (current_cell->up_wall) {
-        if (current_cell->right_wall) { // up right
-          vram_put(TILE_BASE + 3);
-        } else { // up !right
-          vram_put(TILE_BASE + 1);
-        }
-      } else {
-        if (current_cell->right_wall) { // !up right
-          vram_put(TILE_BASE + 2);
-        } else { // !up !right
-          if (i == 0 || j == WIDTH - 1)
-            vram_put(TILE_BASE + 0);
-          else
-            vram_put(TILE_BASE + 10);
-        }
-      }
-
-      vram_adr(NTADR_A(x + 2 * j, y + 2 * i + 1));
-
-      // bottom left tile
-      if (current_cell->down_wall) {
-        if (current_cell->left_wall) { // down left
-          vram_put(TILE_BASE + 8);
-        } else { // down !left
-          vram_put(TILE_BASE + 4);
-        }
-      } else {
-        if (current_cell->left_wall) { // !down left
-          vram_put(TILE_BASE + 6);
-        } else { // !down !left
-          if (i == HEIGHT - 1 || j == 0)
-            vram_put(TILE_BASE + 0);
-          else
-            vram_put(TILE_BASE + 12);
-        }
-      }
-
-      // bottom right tile (vram_adr auto advanced)
-      if (current_cell->down_wall) {
-        if (current_cell->right_wall) { // down right
-          vram_put(TILE_BASE + 5);
-        } else { // down !right
-          vram_put(TILE_BASE + 4);
-        }
-      } else {
-        if (current_cell->right_wall) { // !down right
-          vram_put(TILE_BASE + 2);
-        } else { // !down !right
-          if (i == HEIGHT - 1 || j == WIDTH - 1)
-            vram_put(TILE_BASE + 0);
-          else
-            vram_put(TILE_BASE + 11);
-        }
-      }
+  for(s8 i = 0; i < HEIGHT; i++) {
+    for(s8 j = 0; j < WIDTH; j++) {
+      restore_maze_cell(i, j);
+      flush_vram_update2();
     }
   }
   for(u8 meta_x = origin_x >> 4; meta_x < ((origin_x >> 4) + WIDTH); meta_x++) {
