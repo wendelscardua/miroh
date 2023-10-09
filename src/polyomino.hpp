@@ -10,8 +10,8 @@
 #define FROZEN_BLOCK_ATTRIBUTE 2
 
 class Polyomino {
-  static const s8 SIDEWAYS_INITIAL_DELAY = 16;
-  static const s8 SIDEWAYS_DELAY = 6;
+  static const s8 MOVEMENT_INITIAL_DELAY = 16;
+  static const s8 MOVEMENT_DELAY = 6;
 
   static Bag<u8, 32> pieces;
 
@@ -23,7 +23,7 @@ class Polyomino {
   s8 column;
   u8 drop_timer;
   s8 move_timer;
-  Direction sideways_direction;
+  Direction movement_direction;
 
   bool able_to_kick(auto kick_deltas);
 

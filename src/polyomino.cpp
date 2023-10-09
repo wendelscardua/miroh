@@ -39,7 +39,7 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   active = true;
   grounded_timer = 0;
   move_timer = 0;
-  sideways_direction = Direction::None;
+  movement_direction = Direction::None;
   column = 5;
   row = 0;
 
@@ -86,28 +86,28 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
   }
 
   if (pressed & PAD_LEFT) {
-    move_timer = SIDEWAYS_INITIAL_DELAY;
-    sideways_direction = Direction::Left;
+    move_timer = MOVEMENT_INITIAL_DELAY;
+    movement_direction = Direction::Left;
   } else if (held & PAD_LEFT) {
     if (--move_timer <= 0) {
-      move_timer = SIDEWAYS_DELAY;
-      sideways_direction = Direction::Left;
+      move_timer = MOVEMENT_DELAY;
+      movement_direction = Direction::Left;
     }
   } else if (pressed & PAD_RIGHT) {
-    move_timer = SIDEWAYS_INITIAL_DELAY;
-    sideways_direction = Direction::Right;
+    move_timer = MOVEMENT_INITIAL_DELAY;
+    movement_direction = Direction::Right;
   } else if (held & PAD_RIGHT) {
     if (--move_timer <= 0) {
-      move_timer = SIDEWAYS_DELAY;
-      sideways_direction = Direction::Right;
+      move_timer = MOVEMENT_DELAY;
+      movement_direction = Direction::Right;
     }
   } else if (pressed & PAD_DOWN) {
-    move_timer = SIDEWAYS_INITIAL_DELAY;
-    sideways_direction = Direction::Down;
+    move_timer = MOVEMENT_INITIAL_DELAY;
+    movement_direction = Direction::Down;
   } else if (held & PAD_DOWN) {
     if (--move_timer <= 0) {
-      move_timer = SIDEWAYS_DELAY;
-      sideways_direction = Direction::Down;
+      move_timer = MOVEMENT_DELAY;
+      movement_direction = Direction::Down;
     }
   }
 
@@ -161,18 +161,18 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
     }
   }
 
-  switch (sideways_direction) {
+  switch (movement_direction) {
   case Direction::Left:
     if (!definition->collide(board, row, column - 1)) {
       column--;
     }
-    sideways_direction = Direction::None;
+    movement_direction = Direction::None;
     break;
   case Direction::Right:
     if (!definition->collide(board, row, column + 1)) {
       column++;
     }
-    sideways_direction = Direction::None;
+    movement_direction = Direction::None;
     break;
   case Direction::Down:
     if (definition->collide(board, row + 1, column)) {
@@ -184,7 +184,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
       }
     } else {
       row++;
-      sideways_direction = Direction::None;
+      movement_direction = Direction::None;
     }
   default:
     break;
