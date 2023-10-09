@@ -3,7 +3,6 @@
 #include "bag.hpp"
 #include "bank-helper.hpp"
 #include "common.hpp"
-#include "log.hpp"
 #include "maze-defs.hpp"
 #include <cstdio>
 #include <nesdoug.h>
@@ -13,6 +12,14 @@ Cell::Cell() : walls(0), occupied(false), parent(NULL) {}
 
 void Cell::reset() {
   this->walls = 0;
+
+  this->occupied = false;
+
+  this->empty_bottom_right = false;
+  this->empty_bottom_left = false;
+  this->empty_top_right = false;
+  this->empty_top_left = false;
+
   this->parent = this;
 }
 
@@ -145,6 +152,7 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
     for(u8 j = 0; j < WIDTH; j++) { bag->insert(j); }
   });
 
+  // randomize order of rows, then within a row, the order of columns
   for(u8 rows = 0; rows < HEIGHT; rows++) {
     u8 i = row_bag.take();
     for(u8 columns = 0; columns < WIDTH; columns++) {
@@ -153,6 +161,7 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
       auto right_cell = j < WIDTH - 1 ? &cell[i][j + 1] : NULL;
       auto down_cell = i < HEIGHT -1 ? &cell[i + 1][j] : NULL;
 
+      // randomize if we are looking first horizontally or vertically
       bool down_first = rand8() & 0b1;
 
       if (down_first && down_cell && current_cell->representative() != down_cell->representative()) {
@@ -171,6 +180,31 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
         current_cell->down_wall = false;
         down_cell->up_wall = false;
         down_cell->join(current_cell);
+      }
+    }
+  }
+
+  // maze is done, let's precompute empty corners
+  //
+  //  +-+-+
+  //  |   | This is an example of the 4 cells we are checking
+  //  + + + We want to mark on each of them that they don't
+  //  |   | need that "+" in the middle
+  //  +-+-+
+  for(u8 row = 0; row < HEIGHT - 1; row++) {
+    for(u8 column = 0; column < WIDTH - 1; column++) {
+      auto current_cell = &cell[row][column];
+      if (!current_cell->right_wall && !current_cell->down_wall) {
+        auto right_down_cell = &cell[row + 1][column + 1];
+        if (!right_down_cell->up_wall && !right_down_cell->left_wall) {
+          auto right_cell = &cell[row][column + 1];
+          auto down_cell = &cell[row + 1][column];
+
+          current_cell->empty_bottom_right = true;
+          right_cell->empty_bottom_left = true;
+          down_cell->empty_top_right = true;
+          right_down_cell->empty_top_left = true;
+        }
       }
     }
   }
@@ -242,7 +276,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     if (current_cell->left_wall) { // !up left
       metatile_top[0] = TILE_BASE + 6;
     } else { // !up !left
-      if (row == 0 || column == 0)
+      if (row == 0 || column == 0 || current_cell->empty_top_left)
         metatile_top[0] = TILE_BASE + 0;
       else
         metatile_top[0] = TILE_BASE + 9;
@@ -260,7 +294,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     if (current_cell->right_wall) { // !up right
       metatile_top[1] = TILE_BASE + 2;
     } else { // !up !right
-      if (row == 0 || column == WIDTH - 1)
+      if (row == 0 || column == WIDTH - 1 || current_cell->empty_top_right)
         metatile_top[1] = TILE_BASE + 0;
       else
         metatile_top[1] = TILE_BASE + 10;
@@ -278,7 +312,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     if (current_cell->left_wall) { // !down left
       metatile_bottom[0] = TILE_BASE + 6;
     } else { // !down !left
-      if (row == HEIGHT - 1 || column == 0)
+      if (row == HEIGHT - 1 || column == 0 || current_cell->empty_bottom_left)
         metatile_bottom[0] = TILE_BASE + 0;
       else
         metatile_bottom[0] = TILE_BASE + 12;
@@ -296,7 +330,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     if (current_cell->right_wall) { // !down right
       metatile_bottom[1] = TILE_BASE + 2;
     } else { // !down !right
-      if (row == HEIGHT - 1 || column == WIDTH - 1)
+      if (row == HEIGHT - 1 || column == WIDTH - 1 || current_cell->empty_bottom_right)
         metatile_bottom[1] = TILE_BASE + 0;
       else
         metatile_bottom[1] = TILE_BASE + 11;

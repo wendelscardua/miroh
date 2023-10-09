@@ -24,7 +24,17 @@ class Cell {
       bool left_wall : 1;
     };
   };
-  bool occupied;
+
+  // true if a block is here
+  bool occupied : 1;
+
+  // if true, don't render corner at that direction
+  bool empty_top_left : 1;
+  bool empty_top_right : 1;
+  bool empty_bottom_left : 1;
+  bool empty_bottom_right : 1;
+
+  // used for union-find
   Cell *parent;
 
   Cell();
