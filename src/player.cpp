@@ -55,16 +55,16 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   }
   switch (state) {
   case State::Idle: {
-    if (!pressed && !input_buffer.empty()) {
-      pressed = input_buffer.take();
-      held |= pressed;
+    if (!pressed && buffered_input) {
+      pressed = buffered_input;
+      buffered_input = 0;
     }
     auto current_row = y.whole >> 4;
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell[current_row][current_column];
 
     if (input_mode != InputMode::Player) break;
-#define PRESS_HELD(button) ((pressed & (button)) || (moving != Direction::None && (held & (button))))
+#define PRESS_HELD(button) ((pressed & (button)) || (!pressed && moving != Direction::None && (held & (button))))
     if (PRESS_HELD(PAD_UP)) {
       if (!current_cell.up_wall &&
           current_row > 0 &&
@@ -112,10 +112,10 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   } break;
   case State::Moving:
     if (pressed) {
-      input_buffer.insert(pressed);
+      buffered_input = pressed;
     }
-    if (!held && !input_buffer.empty()) {
-      held |= input_buffer.peek();
+    if (!held && buffered_input) {
+      held |= buffered_input;
     }
     switch (moving) {
     case Direction::Up:
