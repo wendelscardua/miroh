@@ -11,6 +11,8 @@
 #define BOARD_X_ORIGIN 0x20
 #define BOARD_Y_ORIGIN 0x30
 
+#define SPECIAL_DELTA 0x60 // how many tiles away from tile base are the special variants
+
 class Cell {
  public:
   union {

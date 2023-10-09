@@ -303,6 +303,13 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     }
   }
 
+  if (mazes[maze]->has_special_cells && mazes[maze]->is_special[row][column]) {
+    metatile_top[0] += SPECIAL_DELTA;
+    metatile_top[1] += SPECIAL_DELTA;
+    metatile_bottom[0] += SPECIAL_DELTA;
+    metatile_bottom[1] += SPECIAL_DELTA;
+  }
+
   multi_vram_buffer_horz(metatile_top, 2, position);
   multi_vram_buffer_horz(metatile_bottom, 2, position+0x20);
 
