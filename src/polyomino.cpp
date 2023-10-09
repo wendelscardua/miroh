@@ -85,7 +85,7 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
   }
 
   if ((held & PAD_UP) || (pressed & PAD_DOWN)) {
-    drop_timer = DROP_FRAMES;
+    drop_timer = 200; // XXX: any absurd-but-not-max number
   }
 
   if (pressed & PAD_LEFT) {
@@ -130,11 +130,11 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::update(bool &blocks_placed, bool &failed_to_place,
+Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
                   u8 &lines_filled) {
   if (!active)
     return;
-  if (drop_timer++ >= DROP_FRAMES) {
+  if (drop_timer++ >= drop_frames) {
     drop_timer = 0;
     if (definition->collide(board, row + 1, column)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {

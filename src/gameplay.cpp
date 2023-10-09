@@ -140,7 +140,7 @@ void Gameplay::loop() {
       banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed,
                                            &failed_to_place, &lines_filled]() {
         polyomino.handle_input(input_mode, pressed, held);
-        polyomino.update(blocks_placed, failed_to_place, lines_filled);
+        polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed, failed_to_place, lines_filled);
       });
       fruits.update(player, blocks_placed, lines_filled);
 

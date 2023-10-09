@@ -24,6 +24,20 @@ class Gameplay {
     75,  // 8
     60   // 9
   };
+
+  static constexpr u8 DROP_FRAMES_PER_LEVEL[] = {
+    60, // 0
+    54, // 1
+    48, // 2
+    42, // 3
+    36, // 4
+    30, // 5
+    24, // 6
+    18, // 7
+    12, // 8
+     6  // 9
+  };
+
   u16 experience;
   u8 current_level;
   u16 spawn_timer;
