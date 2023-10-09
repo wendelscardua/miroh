@@ -22,7 +22,8 @@
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
 __attribute__((noinline)) Gameplay::Gameplay()
-    : spawn_timer(INITIAL_SPAWN_DELAY), board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
+    : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
+      board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), input_mode(InputMode::Player) {
   set_chr_bank(0);
@@ -122,7 +123,7 @@ void Gameplay::loop() {
     if (!board.ongoing_line_clearing() && !polyomino.active &&
         --spawn_timer == 0) {
       banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
-      spawn_timer = INITIAL_SPAWN_DELAY; // TODO make this go faster
+      spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
     }
 
     pad_poll(0);
@@ -139,14 +140,17 @@ void Gameplay::loop() {
       banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed,
                                            &failed_to_place, &lines_filled]() {
         polyomino.handle_input(input_mode, pressed, held);
-        polyomino.update(blocks_placed, failed_to_place, lines_filled);
+        polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed, failed_to_place, lines_filled);
       });
       fruits.update(player, blocks_placed, lines_filled);
 
       if (lines_filled) {
-        player.score += 10 * (2 * lines_filled - 1);
+        u16 points = 10 * (2 * lines_filled - 1);
+        player.score += points;
+        add_experience(points);
       } else if (blocks_placed) {
         player.score += 1;
+        add_experience(1);
       }
 
       if (failed_to_place) {
@@ -210,5 +214,16 @@ void Gameplay::loop() {
 #ifndef NDEBUG
     gray_line();
 #endif
+  }
+}
+
+void Gameplay::add_experience(u16 exp) {
+  if (current_level < MAX_LEVEL) {
+    experience += exp;
+    while (experience >= LEVEL_UP_POINTS && current_level < MAX_LEVEL) {
+      experience -= LEVEL_UP_POINTS;
+      current_level++;
+      // TODO: level up fanfare ?
+    }
   }
 }

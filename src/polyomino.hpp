@@ -6,7 +6,6 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define DROP_FRAMES 60
 #define MAX_GROUNDED_TIMER 2
 #define FROZEN_BLOCK_ATTRIBUTE 2
 
@@ -37,7 +36,7 @@ public:
 
   void handle_input(InputMode &input_mode, u8 pressed, u8 held);
 
-  void update(bool &blocks_placed, bool &failed_to_place, u8 &lines_filled);
+  void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled);
 
   void banked_render();
 
