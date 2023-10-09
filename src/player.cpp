@@ -3,6 +3,7 @@
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
+#include "maze-defs.hpp"
 #include "metasprites.hpp"
 #include <bank.h>
 #include <nesdoug.h>
@@ -20,6 +21,14 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
     x(starting_x),
     y(starting_y),
     score(0) {}
+
+const fixed_point& Player::move_speed() {
+  if (mazes[maze]->has_special_cells && mazes[maze]->is_special[y.whole >> 4][x.whole >> 4]) {
+    return FAST_MOVE_SPEED;
+  } else {
+    return DEFAULT_MOVE_SPEED;
+  }
+}
 
 void Player::hunger_upkeep(s16 delta) {
   hunger_timer += delta;
@@ -93,7 +102,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   case State::Moving:
     switch (moving) {
     case Direction::Up:
-      y -= move_speed;
+      y -= move_speed();
       if (y < target_y) {
         y = target_y;
         state = State::Idle;
@@ -103,7 +112,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       }
       break;
     case Direction::Right:
-      x += move_speed;
+      x += move_speed();
       if (x > target_x) {
         x = target_x;
         state = State::Idle;
@@ -113,7 +122,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       }
       break;
     case Direction::Down:
-      y += move_speed;
+      y += move_speed();
       if (y > target_y) {
         y = target_y;
         state = State::Idle;
@@ -123,7 +132,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       }
       break;
     case Direction::Left:
-      x -= move_speed;
+      x -= move_speed();
       if (x < target_x) {
         x = target_x;
         state = State::Idle;
