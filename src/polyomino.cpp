@@ -59,7 +59,7 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   row -= (max_delta + 1);
 }
 
-bool Polyomino::able_to_kick(auto kick_deltas) {
+__attribute__((noinline, section(POLYOMINOS_TEXT))) bool Polyomino::able_to_kick(auto kick_deltas) {
   for (auto kick : kick_deltas) {
     s8 new_row = row + kick.delta_row;
     s8 new_column = column + kick.delta_column;
