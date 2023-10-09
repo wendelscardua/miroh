@@ -5,12 +5,13 @@
 #include "fixed-point.hpp"
 #include "input-mode.hpp"
 
-#define move_speed fixed_point(1, 0x2000)
 #define HUNGER_TICKS 90
 #define MAX_HUNGER 32
 #define HUNGER_BAR_BASE_TILE 0x92
 
 class Player {
+  static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x2000);
+  static constexpr fixed_point FAST_MOVE_SPEED = fixed_point(2, 0x0000);
 private:
   Direction facing;
   Direction moving;
@@ -41,4 +42,5 @@ public:
   void hunger_upkeep(s16 delta);
   void refresh_hunger_hud();
   void refresh_score_hud();
+  const fixed_point& move_speed();
 };
