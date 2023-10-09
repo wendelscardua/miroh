@@ -86,7 +86,7 @@ class MapParser < Thor
     def self.build_action53(banks:)
       areas = [
         Area.new('Zero Page', 0x00...0x100),
-        Area.new('RAM', 0x100...0x1000)
+        Area.new('RAM', 0x100...0x800)
       ]
 
       (0..banks - 2).each do |bank|

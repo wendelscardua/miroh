@@ -22,10 +22,11 @@ class Cell {
       bool left_wall : 1;
     };
   };
-  bool occupied : 1;
+  bool occupied;
   Cell *parent;
 
   Cell();
+  void reset();
   Cell *representative();
   void join(Cell *other);
 };

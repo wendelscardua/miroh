@@ -5,6 +5,7 @@
 #include "bank-helper.hpp"
 #include "common.hpp"
 #include "ggsound.hpp"
+#include "maze-defs.hpp"
 #include "title-screen.hpp"
 #include "gameplay.hpp"
 
@@ -22,7 +23,7 @@ static void main_init() {
   high_score = 0;
 
   line_gravity_enabled = true;
-  maze = Maze::Normal;
+  maze = 0;
 
   ppu_off();
 

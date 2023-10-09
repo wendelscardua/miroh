@@ -1,18 +1,27 @@
 #include "board.hpp"
 #include "attributes.hpp"
+#include "bag.hpp"
+#include "bank-helper.hpp"
 #include "common.hpp"
+#include "log.hpp"
+#include "maze-defs.hpp"
+#include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
 
-Cell::Cell() :
-  walls(0),
-  occupied(false),
-  parent(this) {}
+Cell::Cell() : walls(0), occupied(false), parent(NULL) {}
+
+void Cell::reset() {
+  this->walls = 0;
+  this->parent = this;
+}
+
 Cell *Cell::representative() {
   Cell *temp = this;
-  while(temp != temp->parent)
+  while(temp != temp->parent) {
+    temp->parent = temp->parent->parent;
     temp = temp->parent;
-  this->parent = temp;
+  }
   return temp;
 }
 
@@ -35,56 +44,75 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
   dropping_column = -1;
   dropping_row = -1;
 
-  // some sparse random walls
-  for(u8 i = 0; i < HEIGHT - 1; i++) {
-    for(u8 j = 0; j < WIDTH - 1; j++) {
-      switch(rand8() & 0b11) {
-      case 0:
-        cell[i][j].right_wall = true;
-        cell[i][j + 1].left_wall = true;
-        break;
-      case 1:
-        cell[i][j + 1].down_wall = true;
-        cell[i + 1][j + 1].up_wall = true;
-        break;
-      case 2:
-        cell[i + 1][j].right_wall = true;
-        cell[i + 1][j + 1].left_wall = true;
-        break;
-      case 3:
-        cell[i][j].down_wall = true;
-        cell[i + 1][j].up_wall = true;
-        break;
-      }
+  // reset walls
+  for(u8 i = 0; i < HEIGHT; i++) {
+    for(u8 j = 0; j < WIDTH; j++) {
+      cell[i][j].reset();
     }
   }
 
-  // big rooms?
-  switch(maze) {
-  case Maze::BigRooms:
-    for(u8 min_i = 1; min_i < HEIGHT - 1; min_i += 3) {
-      for(u8 min_j = 1; min_j < WIDTH - 1; min_j += 4) {
-        u8 max_i = min_i + 1;
-        u8 max_j = min_j + 2;
-        if (max_i + 1 >= HEIGHT) max_i = HEIGHT - 2;
-        if (max_j + 1 >= WIDTH) max_j = WIDTH - 2;
-        if (max_i >= min_i && max_j >= min_j) {
-          for(u8 i = min_i; i <= max_i; i++) {
-            for(u8 j = min_j; j <= max_j; j++) {
-              cell[i][j].up_wall = false; cell[i-1][j].down_wall = false;
-              cell[i][j].down_wall = false; cell[i+1][j].up_wall = false;
-              cell[i][j].left_wall = false; cell[i][j-1].right_wall = false;
-              cell[i][j].right_wall = false; cell[i][j+1].left_wall = false;
-            }
-          }
+#define NEED_WALL(direction) (template_cell.maybe_##direction##_wall && ((rand8() & 0b11) == 0))
+  banked_lambda(GET_BANK(mazes), [this]() {
+    static_assert(sizeof(TemplateCell) == 1, "TemplateCell is too big");
+
+    // read required walls from template
+    for(u8 i = 0; i < HEIGHT; i++) {
+      for(u8 j = 0; j < WIDTH; j++) {
+        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+        if (template_cell.value != 0xff) {
+          cell[i][j].walls = template_cell.walls;
         }
       }
     }
-    break;
-  case Maze::Normal:
-  case Maze::None:
-    break;
-  }
+
+    // read "maybe" walls from template
+    for(u8 i = 0; i < HEIGHT; i++) {
+      for(u8 j = 0; j < WIDTH; j++) {
+        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+
+        if (template_cell.value == 0xff) {
+          // use the old berzerk algorithm
+          // assumes the cell is on the valid range
+          switch(rand8() & 0b11) {
+          case 0:
+            cell[i][j].right_wall = true;
+            cell[i][j + 1].left_wall = true;
+            break;
+          case 1:
+            cell[i][j + 1].down_wall = true;
+            cell[i + 1][j + 1].up_wall = true;
+            break;
+          case 2:
+            cell[i + 1][j].right_wall = true;
+            cell[i + 1][j + 1].left_wall = true;
+            break;
+          case 3:
+            cell[i][j].down_wall = true;
+            cell[i + 1][j].up_wall = true;
+            break;
+          }
+          continue;
+        }
+
+        if (NEED_WALL(up)) {
+          cell[i][j].up_wall = true;
+          if (i > 0) { cell[i - 1][j].down_wall = true; }
+        }
+        if (NEED_WALL(down)) {
+          cell[i][j].down_wall = true;
+          if (i < HEIGHT - 1) { cell[i + 1][j].up_wall = true; }
+        }
+        if (NEED_WALL(left)) {
+          cell[i][j].left_wall = true;
+          if (j > 0) { cell[i][j - 1].right_wall = true; }
+        }
+        if (NEED_WALL(right)) {
+          cell[i][j].right_wall = true;
+          if (j < WIDTH - 1) { cell[i][j + 1].left_wall = true; }
+        }
+      }
+    }
+  });
 
   // border walls
   for(u8 i = 0; i < HEIGHT; i++) {
@@ -110,11 +138,28 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
     }
   }
 
-  for(u8 i = 0; i < HEIGHT; i++) {
-    for(u8 j = 0; j < WIDTH; j++) {
+  Bag<u8, HEIGHT> row_bag([](auto * bag){
+    for(u8 i = 0; i < HEIGHT; i++) { bag->insert(i); }
+  });
+  Bag<u8, WIDTH> column_bag([](auto * bag){
+    for(u8 j = 0; j < WIDTH; j++) { bag->insert(j); }
+  });
+
+  for(u8 rows = 0; rows < HEIGHT; rows++) {
+    u8 i = row_bag.take();
+    for(u8 columns = 0; columns < WIDTH; columns++) {
+      u8 j = column_bag.take();
       auto current_cell = &cell[i][j];
       auto right_cell = j < WIDTH - 1 ? &cell[i][j + 1] : NULL;
       auto down_cell = i < HEIGHT -1 ? &cell[i + 1][j] : NULL;
+
+      bool down_first = rand8() & 0b1;
+
+      if (down_first && down_cell && current_cell->representative() != down_cell->representative()) {
+        current_cell->down_wall = false;
+        down_cell->up_wall = false;
+        down_cell->join(current_cell);
+      }
 
       if (right_cell && current_cell->representative() != right_cell->representative()) {
         current_cell->right_wall = false;
@@ -122,7 +167,7 @@ Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) 
         right_cell->join(current_cell);
       }
 
-      if (down_cell && current_cell->representative() != down_cell->representative()) {
+      if (!down_first && down_cell && current_cell->representative() != down_cell->representative()) {
         current_cell->down_wall = false;
         down_cell->up_wall = false;
         down_cell->join(current_cell);
