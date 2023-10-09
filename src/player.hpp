@@ -1,6 +1,7 @@
 #pragma once
 
 #include "board.hpp"
+#include "circular-buffer.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "input-mode.hpp"
@@ -34,6 +35,9 @@ public:
   fixed_point x;
   fixed_point y;
   u16 score;
+
+  CircularBuffer<u8, 8> input_buffer;
+
   Player(Board& board, fixed_point starting_x, fixed_point starting_y);
 
   void update(InputMode input_mode, u8 pressed, u8 held);
