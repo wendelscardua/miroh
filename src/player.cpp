@@ -236,8 +236,6 @@ void Player::feed(u8 nutrition) {
     hunger = 0;
   }
 
-  score += 1;
-
   refresh_hunger_hud();
 }
 
