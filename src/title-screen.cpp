@@ -4,6 +4,7 @@
 
 #include "bank-helper.hpp"
 
+#include "banked-asset-helpers.hpp"
 #include "chr-data.hpp"
 #include "common.hpp"
 #include "donut.hpp"
@@ -24,7 +25,7 @@ const unsigned char menu_text[24 * 3] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x33, 0x54, 0x41, 0x52, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x2f, 0x50, 0x54, 0x49, 0x4f, 0x4e, 0x53, 0x00, 0x00, 0x00, 0x00 };
+    0x00, 0x2f, 0x50, 0x54, 0x49, 0x4f, 0x4e, 0x53, 0x00, 0x00, 0x00, 0x00};
 
 const unsigned char settings_text[24 * 3] = {
     0x00, 0x00, 0x00, 0x2c, 0x49, 0x4e, 0x45, 0x00, 0x47, 0x52, 0x41, 0x56,
@@ -35,17 +36,17 @@ const unsigned char settings_text[24 * 3] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 const TitleScreen::MenuOption left_of[] = {
-  TitleScreen::MenuOption::Controls,// Controls
-  TitleScreen::MenuOption::Controls,// Credits
-  TitleScreen::MenuOption::Start,   // Start
-  TitleScreen::MenuOption::Start,   // Settings
+    TitleScreen::MenuOption::Controls, // Controls
+    TitleScreen::MenuOption::Controls, // Credits
+    TitleScreen::MenuOption::Start,    // Start
+    TitleScreen::MenuOption::Start,    // Settings
 };
 
 const TitleScreen::MenuOption right_of[] = {
-  TitleScreen::MenuOption::Credits,// Controls
-  TitleScreen::MenuOption::Credits,// Credits
-  TitleScreen::MenuOption::Settings,   // Start
-  TitleScreen::MenuOption::Settings,   // Settings
+    TitleScreen::MenuOption::Credits,  // Controls
+    TitleScreen::MenuOption::Credits,  // Credits
+    TitleScreen::MenuOption::Settings, // Start
+    TitleScreen::MenuOption::Settings, // Settings
 };
 
 const TitleScreen::MenuOption above_of[] = {
@@ -56,38 +57,38 @@ const TitleScreen::MenuOption above_of[] = {
 };
 
 const TitleScreen::MenuOption below_of[] = {
-  TitleScreen::MenuOption::Start,// Controls
-  TitleScreen::MenuOption::Settings,// Credits
-  TitleScreen::MenuOption::Start,   // Start
-  TitleScreen::MenuOption::Settings,   // Settings
+    TitleScreen::MenuOption::Start,    // Controls
+    TitleScreen::MenuOption::Settings, // Credits
+    TitleScreen::MenuOption::Start,    // Start
+    TitleScreen::MenuOption::Settings, // Settings
 };
 
 const TitleScreen::MenuOption next[] = {
     TitleScreen::MenuOption::Start,    // Controls
-    TitleScreen::MenuOption::Settings,  // Credits
-    TitleScreen::MenuOption::Credits, // Start
+    TitleScreen::MenuOption::Settings, // Credits
+    TitleScreen::MenuOption::Credits,  // Start
     TitleScreen::MenuOption::Controls, // Settings
 };
 
 const u8 option_mino_x[] = {
-  0x20, // Controls
-  0x78, // Credits
-  0x20, // Start
-  0x78, // Settings
+    0x20, // Controls
+    0x78, // Credits
+    0x20, // Start
+    0x78, // Settings
 };
 
 const u8 option_mino_y[] = {
-  0x70, // Controls
-  0x70, // Credits
-  0x80, // Start
-  0x80, // Settings
+    0x70, // Controls
+    0x70, // Credits
+    0x80, // Start
+    0x80, // Settings
 };
 
 const u8 option_mino_frame_mod[] = {
-  0x10, // Controls
-  0x10, // Credits
-  0x08, // Start
-  0x20, // Settings
+    0x10, // Controls
+    0x10, // Credits
+    0x08, // Start
+    0x20, // Settings
 };
 
 const u8 setting_mino_y[] = {
@@ -97,68 +98,65 @@ const u8 setting_mino_y[] = {
 };
 
 const TitleScreen::SettingsOption setting_above[] = {
-  TitleScreen::SettingsOption::Return,
-  TitleScreen::SettingsOption::LineGravity,
-  TitleScreen::SettingsOption::Maze,
+    TitleScreen::SettingsOption::Return,
+    TitleScreen::SettingsOption::LineGravity,
+    TitleScreen::SettingsOption::Maze,
 };
 
 const TitleScreen::SettingsOption setting_below[] = {
-  TitleScreen::SettingsOption::Maze,
-  TitleScreen::SettingsOption::Return,
-  TitleScreen::SettingsOption::LineGravity,
+    TitleScreen::SettingsOption::Maze,
+    TitleScreen::SettingsOption::Return,
+    TitleScreen::SettingsOption::LineGravity,
 };
 
-__attribute__((noinline)) TitleScreen::TitleScreen() :
-  state(State::PressStart),
-  current_option(MenuOption::Controls) {
-    set_chr_bank(0);
+__attribute__((noinline)) TitleScreen::TitleScreen()
+    : state(State::PressStart), current_option(MenuOption::Controls) {
+  set_chr_bank(0);
 
-    banked_lambda(GET_BANK(bg_chr), [] () {
-      // assume all chr are on same bank
-      vram_adr(PPU_PATTERN_TABLE_0);
-      Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
+  banked_lambda(GET_BANK(bg_chr), []() {
+    // assume all chr are on same bank
+    vram_adr(PPU_PATTERN_TABLE_0);
+    Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
 
-      vram_adr(PPU_PATTERN_TABLE_1);
-      Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
-    });
+    vram_adr(PPU_PATTERN_TABLE_1);
+    Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
+  });
 
-    banked_lambda(GET_BANK(title_nam), [] () {
-      // idem nametables
-      vram_adr(NAMETABLE_D);
-      vram_write(how_to_nam, 1024);
+  banked_lambda(GET_BANK(title_nam), []() {
+    // idem nametables
+    vram_adr(NAMETABLE_D);
+    vram_write(how_to_nam, 1024);
 
-      vram_adr(NAMETABLE_A);
-      vram_write(title_nam, 1024);
-    });
+    vram_adr(NAMETABLE_A);
+    vram_write(title_nam, 1024);
+  });
 
-    banked_lambda(GET_BANK(bg_palette), [] () {
-      // idem palettes
-      pal_bg(bg_palette);
-      pal_spr(sprites_player_palette);
-    });
+  banked_lambda(GET_BANK(bg_palette), []() {
+    // idem palettes
+    pal_bg(bg_palette);
+    pal_spr(sprites_player_palette);
+  });
 
-    pal_bright(0);
+  pal_bright(0);
 
-    oam_clear();
+  oam_clear();
 
-    scroll(0, 0);
+  scroll(0, 0);
 
-    ppu_on_all();
+  ppu_on_all();
 
-    banked_lambda(GET_BANK(song_list), [] () {
-      GGSound::play_song(Song::Miroh);
-    });
+  banked_lambda(GET_BANK(song_list), []() { GGSound::play_song(Song::Miroh); });
 
-    pal_fade_to(0, 4);
+  pal_fade_to(0, 4);
 }
 
 __attribute__((noinline)) TitleScreen::~TitleScreen() {
-    pal_fade_to(4, 0);
-    ppu_off();
+  pal_fade_to(4, 0);
+  ppu_off();
 }
 
 __attribute__((noinline)) void TitleScreen::loop() {
-  while(current_mode == GameMode::TitleScreen) {
+  while (current_mode == GameMode::TitleScreen) {
     ppu_wait_nmi();
 
     oam_clear();
@@ -169,12 +167,12 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
     u8 pressed = get_pad_new(0);
 
-    switch(state) {
+    switch (state) {
     case State::PressStart:
       if (pressed & (PAD_START | PAD_A)) {
         multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
-        multi_vram_buffer_horz(menu_text+24, 24, NTADR_A(4, 16));
-        multi_vram_buffer_horz(menu_text+48, 24, NTADR_A(4, 17));
+        multi_vram_buffer_horz(menu_text + 24, 24, NTADR_A(4, 16));
+        multi_vram_buffer_horz(menu_text + 48, 24, NTADR_A(4, 17));
 
         banked_lambda(GET_BANK(sfx_list), []() {
           GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
@@ -185,7 +183,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
       break;
     case State::Options:
       if (pressed & (PAD_START | PAD_A)) {
-        switch(current_option) {
+        switch (current_option) {
         case MenuOption::Controls:
           banked_lambda(GET_BANK(sfx_list), []() {
             GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
@@ -201,7 +199,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
           pal_fade_to(4, 0);
           ppu_off();
 
-          banked_lambda(GET_BANK(credits_nam), [] () {
+          banked_lambda(GET_BANK(credits_nam), []() {
             vram_adr(NAMETABLE_D);
             vram_write(credits_nam, 1024);
           });
@@ -225,8 +223,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
           state = State::Settings;
           current_setting = SettingsOption::LineGravity;
           multi_vram_buffer_horz(settings_text, 24, NTADR_A(4, 15));
-          multi_vram_buffer_horz(settings_text+24, 24, NTADR_A(4, 16));
-          multi_vram_buffer_horz(settings_text+48, 24, NTADR_A(4, 17));
+          multi_vram_buffer_horz(settings_text + 24, 24, NTADR_A(4, 16));
+          multi_vram_buffer_horz(settings_text + 48, 24, NTADR_A(4, 17));
           break;
         }
         break;
@@ -234,33 +232,37 @@ __attribute__((noinline)) void TitleScreen::loop() {
         banked_lambda(GET_BANK(sfx_list), []() {
           GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
         });
-        current_option = above_of[(u8) current_option];
+        current_option = above_of[(u8)current_option];
       } else if (pressed & PAD_DOWN) {
         banked_lambda(GET_BANK(sfx_list), []() {
           GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
         });
-        current_option = below_of[(u8) current_option];
+        current_option = below_of[(u8)current_option];
       } else if (pressed & PAD_LEFT) {
         banked_lambda(GET_BANK(sfx_list), []() {
           GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
         });
-        current_option = left_of[(u8) current_option];
+        current_option = left_of[(u8)current_option];
       } else if (pressed & PAD_RIGHT) {
         banked_lambda(GET_BANK(sfx_list), []() {
           GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
         });
-        current_option = right_of[(u8) current_option];
-      } else if (pressed & (PAD_SELECT|PAD_B)) {
+        current_option = right_of[(u8)current_option];
+      } else if (pressed & (PAD_SELECT | PAD_B)) {
         banked_lambda(GET_BANK(sfx_list), []() {
           GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
         });
         current_option = next[(u8)current_option];
       }
 
-      if (get_frame_count() & option_mino_frame_mod[(u8) current_option]) {
-        oam_meta_spr(option_mino_x[(u8) current_option], option_mino_y[(u8) current_option], metasprite_Menutaur1);
+      if (get_frame_count() & option_mino_frame_mod[(u8)current_option]) {
+        banked_oam_meta_spr(option_mino_x[(u8)current_option],
+                            option_mino_y[(u8)current_option],
+                            metasprite_Menutaur1);
       } else {
-        oam_meta_spr(option_mino_x[(u8) current_option], option_mino_y[(u8) current_option], metasprite_Menutaur2);
+        banked_oam_meta_spr(option_mino_x[(u8)current_option],
+                            option_mino_y[(u8)current_option],
+                            metasprite_Menutaur2);
       }
       break;
     case State::HowToPlay:
@@ -269,43 +271,43 @@ __attribute__((noinline)) void TitleScreen::loop() {
           GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
         });
         scroll(0, 0);
-        banked_lambda(GET_BANK(bg_palette), [] () {
+        banked_lambda(GET_BANK(bg_palette), []() {
           set_prg_bank(GET_BANK(sprites_player_palette));
           pal_spr(sprites_player_palette);
         });
         state = State::Options;
         break;
       }
-      if (get_frame_count() & 0b1000) {
-        oam_meta_spr(0x40, 0x60, metasprite_MinoRight1);
-      } else {
-        oam_meta_spr(0x40, 0x60, metasprite_MinoRight2);
-      }
-
       {
         u8 frame = get_frame_count();
 
-        switch(frame & 0b1100000) {
+        if (frame & 0b1000) {
+          banked_oam_meta_spr(0x40, 0x60, metasprite_MinoRight1);
+        } else {
+          banked_oam_meta_spr(0x40, 0x60, metasprite_MinoRight2);
+        }
+
+        switch (frame & 0b1100000) {
         case 0b0000000:
-          oam_meta_spr(0x38, 0xa0, metasprite_Menumino0);
-          oam_meta_spr(0xa8, 0xa0, metasprite_Menumino0);
+          banked_oam_meta_spr(0x38, 0xa0, metasprite_Menumino0);
+          banked_oam_meta_spr(0xa8, 0xa0, metasprite_Menumino0);
           break;
         case 0b0100000:
-          oam_meta_spr(0x38, 0xa0, metasprite_MenuminoL);
-          oam_meta_spr(0xa8, 0xa0, metasprite_MenuminoR);
+          banked_oam_meta_spr(0x38, 0xa0, metasprite_MenuminoL);
+          banked_oam_meta_spr(0xa8, 0xa0, metasprite_MenuminoR);
           break;
         case 0b1000000:
-          oam_meta_spr(0x38, 0xa0, metasprite_Menumino2);
-          oam_meta_spr(0xa8, 0xa0, metasprite_Menumino2);
+          banked_oam_meta_spr(0x38, 0xa0, metasprite_Menumino2);
+          banked_oam_meta_spr(0xa8, 0xa0, metasprite_Menumino2);
           break;
         default:
-          oam_meta_spr(0x38, 0xa0, metasprite_MenuminoR);
-          oam_meta_spr(0xa8, 0xa0, metasprite_MenuminoL);
+          banked_oam_meta_spr(0x38, 0xa0, metasprite_MenuminoR);
+          banked_oam_meta_spr(0xa8, 0xa0, metasprite_MenuminoL);
           break;
         }
 
-        banked_lambda(GET_BANK(bg_palette), [frame] () {
-          if(frame & 0b10000000) {
+        banked_lambda(GET_BANK(bg_palette), [frame]() {
+          if (frame & 0b10000000) {
             set_prg_bank(GET_BANK(sprites_polyomino_palette));
             pal_spr(sprites_polyomino_palette);
           } else {
@@ -324,7 +326,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         pal_fade_to(4, 0);
         ppu_off();
 
-        banked_lambda(GET_BANK(credits_nam), [] () {
+        banked_lambda(GET_BANK(credits_nam), []() {
           vram_adr(NAMETABLE_D);
           vram_write(how_to_nam, 1024);
         });
@@ -337,13 +339,13 @@ __attribute__((noinline)) void TitleScreen::loop() {
     case State::Settings:
       if (pressed & PAD_UP) {
         current_setting = setting_above[(u8)current_setting];
-      } else if (pressed & (PAD_DOWN|PAD_SELECT)) {
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-          });
+      } else if (pressed & (PAD_DOWN | PAD_SELECT)) {
+        banked_lambda(GET_BANK(sfx_list), []() {
+          GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        });
         current_setting = setting_below[(u8)current_setting];
       } else if (pressed & PAD_LEFT) {
-        switch(current_setting) {
+        switch (current_setting) {
         case SettingsOption::LineGravity:
           banked_lambda(GET_BANK(sfx_list), []() {
             GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
@@ -362,7 +364,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
           break;
         }
       } else if (pressed & PAD_RIGHT) {
-        switch(current_setting) {
+        switch (current_setting) {
         case SettingsOption::LineGravity:
           banked_lambda(GET_BANK(sfx_list), []() {
             GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
@@ -381,7 +383,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
           break;
         }
       } else if (pressed & (PAD_A | PAD_START)) {
-        switch(current_setting) {
+        switch (current_setting) {
         case SettingsOption::LineGravity:
           banked_lambda(GET_BANK(sfx_list), []() {
             GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
@@ -402,23 +404,26 @@ __attribute__((noinline)) void TitleScreen::loop() {
           });
           state = State::Options;
           multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
-          multi_vram_buffer_horz(menu_text+24, 24, NTADR_A(4, 16));
-          multi_vram_buffer_horz(menu_text+48, 24, NTADR_A(4, 17));
+          multi_vram_buffer_horz(menu_text + 24, 24, NTADR_A(4, 16));
+          multi_vram_buffer_horz(menu_text + 48, 24, NTADR_A(4, 17));
           break;
         }
       } else {
         if (line_gravity_enabled) {
-          multi_vram_buffer_horz((const u8[]){0x2f, 0x4e, 0x00}, 3, NTADR_A(21, 15));
+          multi_vram_buffer_horz((const u8[]){0x2f, 0x4e, 0x00}, 3,
+                                 NTADR_A(21, 15));
         } else {
-          multi_vram_buffer_horz((const u8[]){0x2f, 0x46, 0x46}, 3, NTADR_A(21, 15));
+          multi_vram_buffer_horz((const u8[]){0x2f, 0x46, 0x46}, 3,
+                                 NTADR_A(21, 15));
         }
         multi_vram_buffer_horz(maze_names[(u8)maze], 10, NTADR_A(14, 16));
 
-        if (get_frame_count() & 0b1000) {
-          oam_meta_spr(0x24, setting_mino_y[(u8) current_setting], metasprite_Menutaur1);
-        } else {
-          oam_meta_spr(0x24, setting_mino_y[(u8) current_setting], metasprite_Menutaur2);
-        }
+        u8 setting_y = setting_mino_y[(u8)current_setting];
+          if (get_frame_count() & 0b1000) {
+            banked_oam_meta_spr(0x24, setting_y, metasprite_Menutaur1);
+          } else {
+            banked_oam_meta_spr(0x24, setting_y, metasprite_Menutaur2);
+          }
       }
       break;
     }

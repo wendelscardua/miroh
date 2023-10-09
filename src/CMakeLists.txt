@@ -52,7 +52,7 @@ endif()
 
 add_custom_command(
   OUTPUT metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp
-  COMMAND ${GENERATE_METASPRITES} generate ${CMAKE_CURRENT_BINARY_DIR}/metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp ${CMAKE_SOURCE_DIR}/assets/metasprites.nss --bank .prg_rom_last --label-prefix metasprite
+  COMMAND ${GENERATE_METASPRITES} generate ${CMAKE_CURRENT_BINARY_DIR}/metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp ${CMAKE_SOURCE_DIR}/assets/metasprites.nss --bank .prg_rom_1 --label-prefix metasprite
   DEPENDS ${CMAKE_SOURCE_DIR}/assets/metasprites.nss
 )
 
@@ -90,6 +90,7 @@ add_library(SourceObj
   gameplay.cpp
 
   attributes.cpp
+  banked-asset-helpers.cpp
   board.cpp
   donut.cpp
   donut.s
