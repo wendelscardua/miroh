@@ -62,46 +62,53 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     auto current_row = y.whole >> 4;
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell[current_row][current_column];
+
     if (input_mode != InputMode::Player) break;
 #define PRESS_HELD(button) ((pressed & (button)) || (moving != Direction::None && (held & (button))))
     if (PRESS_HELD(PAD_UP)) {
-      moving = Direction::Up;
       if (!current_cell.up_wall &&
           current_row > 0 &&
           !board.occupied((s8)(current_row - 1), (s8)current_column)) {
+        moving = Direction::Up;
         target_x = x;
         target_y = y - GRID_SIZE;
         state = State::Moving;
+        break;
       }
-    } else if (PRESS_HELD(PAD_DOWN)) {
-      moving = Direction::Down;
+    }
+    if (PRESS_HELD(PAD_DOWN)) {
       if (!current_cell.down_wall &&
           !board.occupied((s8)(current_row + 1), (s8)current_column)) {
+        moving = Direction::Down;
         target_x = x;
         target_y = y + GRID_SIZE;
         state = State::Moving;
+        break;
       }
-    } else if (PRESS_HELD(PAD_LEFT)) {
+    }
+    if (PRESS_HELD(PAD_LEFT)) {
       facing = Direction::Left;
-      moving = Direction::Left;
       if (!current_cell.left_wall &&
           !board.occupied((s8)current_row, (s8)(current_column - 1))) {
+        moving = Direction::Left;
         target_x = x - GRID_SIZE;
         target_y = y;
         state = State::Moving;
+        break;
       }
-    } else if (PRESS_HELD(PAD_RIGHT)) {
+    }
+    if (PRESS_HELD(PAD_RIGHT)) {
       facing = Direction::Right;
-      moving = Direction::Right;
       if (!current_cell.right_wall &&
           !board.occupied((s8)current_row, (s8)(current_column + 1))) {
+        moving = Direction::Right;
         target_x = x + GRID_SIZE;
         target_y = y;
         state = State::Moving;
+        break;
       }
-    } else {
-      moving = Direction::None;
     }
+    moving = Direction::None;
   } break;
   case State::Moving:
     if (pressed) {
