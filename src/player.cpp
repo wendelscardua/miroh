@@ -1,5 +1,6 @@
 #include "player.hpp"
 #include "bank-helper.hpp"
+#include "banked-asset-helpers.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
@@ -12,18 +13,13 @@
 #define GRID_SIZE fixed_point(0x10, 0)
 
 Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
-  : facing(Direction::Right),
-    moving(Direction::Right),
-    hunger(0),
-    hunger_timer(0),
-    state(State::Idle),
-    board(board),
-    x(starting_x),
-    y(starting_y),
-    score(0) {}
+    : facing(Direction::Right), moving(Direction::Right), hunger(0),
+      hunger_timer(0), state(State::Idle), board(board), x(starting_x),
+      y(starting_y), score(0) {}
 
-const fixed_point& Player::move_speed() {
-  if (mazes[maze]->has_special_cells && mazes[maze]->is_special[y.whole >> 4][x.whole >> 4]) {
+const fixed_point &Player::move_speed() {
+  if (mazes[maze]->has_special_cells &&
+      mazes[maze]->is_special[y.whole >> 4][x.whole >> 4]) {
     return FAST_MOVE_SPEED;
   } else {
     return DEFAULT_MOVE_SPEED;
@@ -63,11 +59,13 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell[current_row][current_column];
 
-    if (input_mode != InputMode::Player) break;
-#define PRESS_HELD(button) ((pressed & (button)) || (!pressed && moving != Direction::None && (held & (button))))
+    if (input_mode != InputMode::Player)
+      break;
+#define PRESS_HELD(button)                                                     \
+  ((pressed & (button)) ||                                                     \
+   (!pressed && moving != Direction::None && (held & (button))))
     if (PRESS_HELD(PAD_UP)) {
-      if (!current_cell.up_wall &&
-          current_row > 0 &&
+      if (!current_cell.up_wall && current_row > 0 &&
           !board.occupied((s8)(current_row - 1), (s8)current_column)) {
         moving = Direction::Up;
         target_x = x;
@@ -123,7 +121,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       if (y < target_y) {
         y = target_y;
         state = State::Idle;
-        if (!(held & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT))) {
+        if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
       }
@@ -133,7 +131,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       if (x > target_x) {
         x = target_x;
         state = State::Idle;
-        if (!(held & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT))) {
+        if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
       }
@@ -143,7 +141,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       if (y > target_y) {
         y = target_y;
         state = State::Idle;
-        if (!(held & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT))) {
+        if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
       }
@@ -153,7 +151,7 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       if (x < target_x) {
         x = target_x;
         state = State::Idle;
-        if (!(held & (PAD_UP|PAD_DOWN|PAD_LEFT|PAD_RIGHT))) {
+        if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
       }
@@ -162,46 +160,41 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
       break;
     }
     break;
-  case State::Dying:
-    {
-      if (get_frame_count() & 0b100) {
-        ghost_height++;
-      }
-      if (ghost_height > 0x40) {
-        ghost_height = 0;
-        state = State::Dead;
-      }
+  case State::Dying: {
+    if (get_frame_count() & 0b100) {
+      ghost_height++;
     }
-    break;
-  case State::Dead:
-    {
-      if (ghost_height < 0x30 && (get_frame_count() & 0b100)) {
-        ghost_height++;
-        set_scroll_y(ghost_height);
-      }
+    if (ghost_height > 0x40) {
+      ghost_height = 0;
+      state = State::Dead;
     }
-    break;
+  } break;
+  case State::Dead: {
+    if (ghost_height < 0x30 && (get_frame_count() & 0b100)) {
+      ghost_height++;
+      set_scroll_y(ghost_height);
+    }
+  } break;
   }
 }
 
 void Player::render() {
-  const u8 *metasprite;
-  switch (state) {
-  case State::Idle:
-    switch (facing) {
-    case Direction::Up:
-    case Direction::Right:
-    case Direction::Down:
-    case Direction::None:
-      metasprite = metasprite_MinoRight1;
+    const u8 *metasprite;
+    switch (state) {
+    case State::Idle:
+      switch (facing) {
+      case Direction::Up:
+      case Direction::Right:
+      case Direction::Down:
+      case Direction::None:
+        metasprite = metasprite_MinoRight1;
+        break;
+      case Direction::Left:
+        metasprite = metasprite_MinoLeft1;
+        break;
+      }
       break;
-    case Direction::Left:
-      metasprite = metasprite_MinoLeft1;
-      break;
-    }
-    break;
-  case State::Moving:
-    {
+    case State::Moving: {
       bool toggle = ((x.whole ^ y.whole) & 0b1000) != 0;
       switch (facing) {
       case Direction::Up:
@@ -222,22 +215,23 @@ void Player::render() {
         }
         break;
       }
+    } break;
+    case State::Dying:
+      if (ghost_height > 4 && board.origin_y + (u8)y.whole > ghost_height) {
+        banked_oam_meta_spr(board.origin_x + (u8)x.whole,
+                     board.origin_y + (u8)y.whole - ghost_height,
+                     metasprite_Ghost);
+      }
+      metasprite = metasprite_RIP;
+      break;
+    case State::Dead:
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                   board.origin_y + (u8)y.round() - ghost_height,
+                   metasprite_RIP);
+      return;
     }
-    break;
-  case State::Dying:
-    if (ghost_height > 4 && board.origin_y + (u8)y.whole > ghost_height) {
-      oam_meta_spr(board.origin_x + (u8)x.whole, board.origin_y + (u8)y.whole - ghost_height,
-                   metasprite_Ghost);
-    }
-    metasprite = metasprite_RIP;
-    break;
-  case State::Dead:
-    oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round() - ghost_height,
-                 metasprite_RIP);
-    return;
-  }
-  oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round(),
-               metasprite);
+    banked_oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round(),
+                 metasprite);
 }
 
 void Player::feed(u8 nutrition) {
@@ -260,7 +254,7 @@ void Player::refresh_hunger_hud() {
   // refresh hunger hud
   u8 hunger_bar[4];
   u8 temp = hunger;
-  for(auto &hunger_cell : hunger_bar) {
+  for (auto &hunger_cell : hunger_bar) {
     if (temp >= 8) {
       hunger_cell = HUNGER_BAR_BASE_TILE + 8;
       temp -= 8;
@@ -273,7 +267,8 @@ void Player::refresh_hunger_hud() {
   multi_vram_buffer_horz(hunger_bar, 4, NTADR_A(12, 27));
 }
 
-__attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4], u16 value) {
+__attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
+                                                             u16 value) {
   score_text[0] = 0x10;
   if (value >= 8000) {
     score_text[0] += 8;
@@ -328,7 +323,7 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4], u
     value -= 10;
   }
 
-  score_text[3] =  0x10 + (u8)value;
+  score_text[3] = 0x10 + (u8)value;
 }
 
 extern u16 high_score;

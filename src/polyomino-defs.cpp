@@ -1,12 +1,13 @@
 #include "polyomino-defs.hpp"
+#include "bank-helper.hpp"
+#include "banked-asset-helpers.hpp"
 #include "metasprites.hpp"
 #include <neslib.h>
 
-bool PolyominoDef::collide(Board& board, s8 row, s8 column) const {
+bool PolyominoDef::collide(Board &board, s8 row, s8 column) const {
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];
-    if (board.occupied(row + delta.delta_row,
-                       column + delta.delta_column)) {
+    if (board.occupied(row + delta.delta_row, column + delta.delta_column)) {
       return true;
     }
   }
@@ -21,7 +22,7 @@ void PolyominoDef::render(u8 x, u8 y) const {
     if (block_y == 0) {
       block_y++;
     }
-    oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
+    banked_oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
   }
 }
 

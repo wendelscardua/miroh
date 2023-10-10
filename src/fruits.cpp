@@ -1,4 +1,6 @@
 #include "fruits.hpp"
+#include "bank-helper.hpp"
+#include "banked-asset-helpers.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"
 #include <nesdoug.h>
@@ -7,7 +9,7 @@
 void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.row = -1;
   fruit.column = -1;
-  for(u8 tries = 0; tries < HEIGHT / 2; tries++) {
+  for (u8 tries = 0; tries < HEIGHT / 2; tries++) {
     s8 i = rand8() & 0x0f;
     if (i < HEIGHT && board.tally[i] < WIDTH) {
       fruit.row = i;
@@ -18,14 +20,14 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
     // random row failed, look each row
     // arbitrarily look from up to bottom or from bottom to up
     if (get_frame_count() & 0b1) {
-      for(s8 i = 0; i < HEIGHT; i++) {
+      for (s8 i = 0; i < HEIGHT; i++) {
         if (board.tally[i] < WIDTH) {
           fruit.row = i;
           break;
         }
       }
     } else {
-      for(s8 i = HEIGHT - 1; i >= 0; i--) {
+      for (s8 i = HEIGHT - 1; i >= 0; i--) {
         if (board.tally[i] < WIDTH) {
           fruit.row = i;
           break;
@@ -39,7 +41,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   }
 
   // now we do the same for column
-  for(u8 tries = 0; tries < WIDTH / 2; tries++) {
+  for (u8 tries = 0; tries < WIDTH / 2; tries++) {
     s8 j = rand8() & 0x0f;
     if (j < WIDTH && !board.cell[fruit.row][j].occupied) {
       fruit.column = j;
@@ -49,15 +51,15 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   if (fruit.column < 0) {
     // random column failed, look each column
     // arbitrarily look from left to right or from right to left
-    if ((get_frame_count()^fruit.row) & 0b1) {
-      for(s8 j = 0; j < WIDTH; j++) {
+    if ((get_frame_count() ^ fruit.row) & 0b1) {
+      for (s8 j = 0; j < WIDTH; j++) {
         if (!board.cell[fruit.row][j].occupied) {
           fruit.column = j;
           break;
         }
       }
     } else {
-      for(s8 j = WIDTH - 1; j >= 0; j--) {
+      for (s8 j = WIDTH - 1; j >= 0; j--) {
         if (!board.cell[fruit.row][j].occupied) {
           fruit.column = j;
           break;
@@ -72,8 +74,9 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   }
 
   // avoid placing on other fruits
-  for(auto other : fruits) {
-    if (!other.active) continue;
+  for (auto other : fruits) {
+    if (!other.active)
+      continue;
 
     if (other.row == fruit.row && other.column == fruit.column) {
       return;
@@ -85,16 +88,17 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
 }
 
-Fruits::Fruits(Board& board) : board(board) {
+Fruits::Fruits(Board &board) : board(board) {
   fruit_credits = INITIAL_CREDITS;
-  spawn_timer = SPAWN_DELAY / 2; // just so player don't wait too much to see the first fruit
+  spawn_timer = SPAWN_DELAY /
+                2; // just so player don't wait too much to see the first fruit
   for (auto fruit : fruits) {
     fruit.active = false;
   }
   active_fruits = 0;
 }
 
-void Fruits::update(Player& player, bool blocks_placed, u8 lines_filled) {
+void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
   if (lines_filled) {
     spawn_timer += SPAWN_DELAY / 2 * lines_filled;
     fruit_credits += lines_filled;
@@ -102,8 +106,7 @@ void Fruits::update(Player& player, bool blocks_placed, u8 lines_filled) {
     fruit_credits++;
   }
 
-
-  for(auto fruit : fruits) {
+  for (auto fruit : fruits) {
     if (fruit.active) {
       if (board.occupied(fruit.row, fruit.column)) {
         fruit.active = false;
@@ -118,7 +121,8 @@ void Fruits::update(Player& player, bool blocks_placed, u8 lines_filled) {
     }
   }
 
-  if (fruit_credits > 0 && active_fruits < NUM_FRUITS && ++spawn_timer > SPAWN_DELAY) {
+  if (fruit_credits > 0 && active_fruits < NUM_FRUITS &&
+      ++spawn_timer > SPAWN_DELAY) {
     spawn_timer -= SPAWN_DELAY;
     for (auto fruit : fruits) {
       if (!fruit.active) {
@@ -134,9 +138,9 @@ void Fruits::update(Player& player, bool blocks_placed, u8 lines_filled) {
 }
 
 void Fruits::render() {
-  for(auto fruit : fruits) {
+  for (auto fruit : fruits) {
     if (fruit.active) {
-      oam_meta_spr(fruit.x, fruit.y, metasprite_fruit);
+      banked_oam_meta_spr(fruit.x, fruit.y, metasprite_fruit);
     };
   }
 }
