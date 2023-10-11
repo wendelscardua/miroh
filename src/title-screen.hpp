@@ -12,10 +12,10 @@ public:
   };
 
   enum class MenuOption : u8 {
-    Controls = 0,
-    Credits = 1,
-    Start = 2,
-    Settings = 3,
+    Start = 0,
+    Controls = 1,
+    Settings = 2,
+    Credits = 3,
   };
 
   enum class SettingsOption : u8 {

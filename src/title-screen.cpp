@@ -20,12 +20,12 @@
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
 const unsigned char menu_text[24 * 3] = {
-    0x00, 0x00, 0x23, 0x4f, 0x4e, 0x54, 0x52, 0x4f, 0x4c, 0x53, 0x00, 0x00,
-    0x00, 0x23, 0x52, 0x45, 0x44, 0x49, 0x54, 0x53, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x30, 0x4c, 0x41, 0x59, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x2f, 0x50, 0x54, 0x49, 0x4f, 0x4e, 0x53, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x33, 0x54, 0x41, 0x52, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x2f, 0x50, 0x54, 0x49, 0x4f, 0x4e, 0x53, 0x00, 0x00, 0x00, 0x00};
+    0x00, 0x00, 0x00, 0x00, 0x28, 0x45, 0x4c, 0x50, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x23, 0x52, 0x45, 0x44, 0x49, 0x54, 0x53, 0x00, 0x00, 0x00, 0x00};
 
 const unsigned char settings_text[24 * 3] = {
     0x00, 0x00, 0x00, 0x2c, 0x49, 0x4e, 0x45, 0x00, 0x47, 0x52, 0x41, 0x56,
@@ -36,59 +36,59 @@ const unsigned char settings_text[24 * 3] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 const TitleScreen::MenuOption left_of[] = {
-    TitleScreen::MenuOption::Controls, // Controls
-    TitleScreen::MenuOption::Controls, // Credits
     TitleScreen::MenuOption::Start,    // Start
+    TitleScreen::MenuOption::Controls, // Controls
     TitleScreen::MenuOption::Start,    // Settings
+    TitleScreen::MenuOption::Controls, // Credits
 };
 
 const TitleScreen::MenuOption right_of[] = {
-    TitleScreen::MenuOption::Credits,  // Controls
-    TitleScreen::MenuOption::Credits,  // Credits
     TitleScreen::MenuOption::Settings, // Start
+    TitleScreen::MenuOption::Credits,  // Controls
     TitleScreen::MenuOption::Settings, // Settings
+    TitleScreen::MenuOption::Credits,  // Credits
 };
 
 const TitleScreen::MenuOption above_of[] = {
-    TitleScreen::MenuOption::Controls, // Controls
-    TitleScreen::MenuOption::Credits,  // Credits
-    TitleScreen::MenuOption::Controls, // Start
-    TitleScreen::MenuOption::Credits,  // Settings
+    TitleScreen::MenuOption::Start,    // Start
+    TitleScreen::MenuOption::Start,    // Controls
+    TitleScreen::MenuOption::Settings, // Settings
+    TitleScreen::MenuOption::Settings, // Credits
 };
 
 const TitleScreen::MenuOption below_of[] = {
-    TitleScreen::MenuOption::Start,    // Controls
-    TitleScreen::MenuOption::Settings, // Credits
-    TitleScreen::MenuOption::Start,    // Start
-    TitleScreen::MenuOption::Settings, // Settings
+    TitleScreen::MenuOption::Controls, // Start
+    TitleScreen::MenuOption::Controls, // Controls
+    TitleScreen::MenuOption::Credits,  // Settings
+    TitleScreen::MenuOption::Credits,  // Credits
 };
 
 const TitleScreen::MenuOption next[] = {
-    TitleScreen::MenuOption::Start,    // Controls
-    TitleScreen::MenuOption::Settings, // Credits
-    TitleScreen::MenuOption::Credits,  // Start
-    TitleScreen::MenuOption::Controls, // Settings
+    TitleScreen::MenuOption::Controls, // Start
+    TitleScreen::MenuOption::Settings, // Controls
+    TitleScreen::MenuOption::Credits,  // Settings
+    TitleScreen::MenuOption::Start,    // Credits
 };
 
 const u8 option_mino_x[] = {
-    0x20, // Controls
-    0x78, // Credits
-    0x20, // Start
+    0x30, // Start
+    0x30, // Controls
     0x78, // Settings
+    0x78, // Credits
 };
 
 const u8 option_mino_y[] = {
-    0x70, // Controls
-    0x70, // Credits
-    0x80, // Start
-    0x80, // Settings
+    0x70, // Start
+    0x80, // Controls
+    0x70, // Settings
+    0x80, // Credits
 };
 
 const u8 option_mino_frame_mod[] = {
-    0x10, // Controls
-    0x10, // Credits
     0x08, // Start
+    0x10, // Controls
     0x20, // Settings
+    0x10, // Credits
 };
 
 const u8 setting_mino_y[] = {
@@ -110,7 +110,7 @@ const TitleScreen::SettingsOption setting_below[] = {
 };
 
 __attribute__((noinline)) TitleScreen::TitleScreen()
-    : state(State::PressStart), current_option(MenuOption::Controls) {
+    : state(State::PressStart), current_option(MenuOption::Start) {
   set_chr_bank(0);
 
   banked_lambda(GET_BANK(bg_chr), []() {
@@ -178,7 +178,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
           GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
         });
         state = State::Options;
-        current_option = MenuOption::Controls;
+        current_option = MenuOption::Start;
       }
       break;
     case State::Options:
