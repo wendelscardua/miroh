@@ -43,7 +43,8 @@ void Player::hunger_upkeep(s16 delta) {
   refresh_hunger_hud();
 }
 
-__attribute__((noinline, section(PLAYER_TEXT_SECTION))) void Player::update(InputMode input_mode, u8 pressed, u8 held) {
+__attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
+Player::update(InputMode input_mode, u8 pressed, u8 held) {
   if (state != State::Dying && state != State::Dead) {
     hunger_upkeep(1);
   }
@@ -323,7 +324,7 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
   score_text[3] = 0x10 + (u8)value;
 }
 
-extern u16 high_score;
+extern u16 high_score[];
 
 void Player::refresh_score_hud() {
   // refresh hunger hud
@@ -334,10 +335,10 @@ void Player::refresh_score_hud() {
   int_to_text(score_text, score);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 27));
 
-  if (score > high_score) {
-    high_score = score;
+  if (score > high_score[maze]) {
+    high_score[maze] = score;
   }
-  int_to_text(score_text, high_score);
+  int_to_text(score_text, high_score[maze]);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 28));
   set_prg_bank(old_bank);
 }

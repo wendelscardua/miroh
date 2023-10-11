@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <soa.h>
 
 #include "board.hpp"
@@ -40,7 +39,7 @@ struct MazeDef {
 
 typedef u8 Maze;
 
-extern "C" const soa::Array<MazeDef*, NUM_MAZES> mazes;
+extern "C" const soa::Array<MazeDef *, NUM_MAZES> mazes;
 
 extern "C" const char maze_names[NUM_MAZES][MAZE_NAME_WIDTH];
 

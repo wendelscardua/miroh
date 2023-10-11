@@ -4,23 +4,25 @@
 
 #include "bank-helper.hpp"
 #include "common.hpp"
+#include "gameplay.hpp"
 #include "ggsound.hpp"
 #include "maze-defs.hpp"
 #include "title-screen.hpp"
-#include "gameplay.hpp"
 
 #include "soundtrack-ptr.hpp"
 
 GameMode current_mode;
 GameMode previous_mode;
-u16 high_score;
+u16 high_score[NUM_MAZES];
 bool line_gravity_enabled;
 Maze maze;
 
 static void main_init() {
   previous_mode = GameMode::None;
   current_mode = GameMode::TitleScreen;
-  high_score = 0;
+  for (u8 i = 0; i < NUM_MAZES; i++) {
+    high_score[i] = 0;
+  }
 
   line_gravity_enabled = true;
   maze = 0;
@@ -40,10 +42,7 @@ static void main_init() {
   set_vram_buffer();
 
   set_prg_bank(GET_BANK(song_list));
-  GGSound::init(GGSound::Region::NTSC,
-                song_list,
-                sfx_list,
-                instrument_list,
+  GGSound::init(GGSound::Region::NTSC, song_list, sfx_list, instrument_list,
                 GET_BANK(song_list));
 }
 
@@ -53,13 +52,13 @@ int main() {
   while (true) {
     switch (current_mode) {
     case GameMode::TitleScreen:
-      banked_lambda(0, [](){
+      banked_lambda(0, []() {
         TitleScreen titleScreen;
         titleScreen.loop();
       });
       break;
     case GameMode::Gameplay:
-      banked_lambda(0, [](){
+      banked_lambda(0, []() {
         Gameplay gameplay;
         gameplay.loop();
       });
