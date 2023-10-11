@@ -13,6 +13,14 @@
 
 #define POLYOMINOS_TEXT ".prg_rom_0.text"
 
+static auto littleminos = Bag<u8, 5>([](auto *bag) {
+  for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
+    if (polyominos[i]->size <= 3) {
+      bag->insert(i);
+    }
+  }
+});
+
 static auto pentominos = Bag<u8, 32>([](auto *bag) {
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
     if (polyominos[i]->size == 5) {
@@ -22,13 +30,19 @@ static auto pentominos = Bag<u8, 32>([](auto *bag) {
 });
 
 auto Polyomino::pieces = Bag<u8, 32>([](auto *bag) {
+  // add all tetrominos to the bag
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
-    if (polyominos[i]->size != 5) {
+    if (polyominos[i]->size == 4) {
       bag->insert(i);
     }
   }
+
+  // also add two random pentominos
   bag->insert(pentominos.take());
   bag->insert(pentominos.take());
+
+  // ... and a random 1-2-or-3-mino
+  bag->insert(littleminos.take());
 });
 
 Polyomino::Polyomino(Board &board)
@@ -214,8 +228,8 @@ void Polyomino::render_next() {
   });
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT)))
-bool Polyomino::can_be_frozen() {
+__attribute__((noinline, section(POLYOMINOS_TEXT))) bool
+Polyomino::can_be_frozen() {
   s8 min_y_delta = 2;
 
   for (u8 i = 0; i < definition->size; i++) {
