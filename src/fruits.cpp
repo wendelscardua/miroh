@@ -1,5 +1,4 @@
 #include "fruits.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"

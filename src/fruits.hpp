@@ -6,7 +6,6 @@
 #include "common.hpp"
 #include "player.hpp"
 
-#define NUM_FRUITS 8
 #define INITIAL_CREDITS 1
 #define SPAWN_DELAY 480
 
@@ -31,6 +30,7 @@ struct Fruit {
 #include <soa-struct.inc>
 
 class Fruits {
+  static constexpr u8 NUM_FRUITS = 5;
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
   Board &board;
