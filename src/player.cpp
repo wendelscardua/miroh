@@ -43,7 +43,7 @@ void Player::hunger_upkeep(s16 delta) {
   refresh_hunger_hud();
 }
 
-void Player::update(InputMode input_mode, u8 pressed, u8 held) {
+__attribute__((noinline, section(PLAYER_TEXT_SECTION))) void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   if (state != State::Dying && state != State::Dead) {
     hunger_upkeep(1);
   }

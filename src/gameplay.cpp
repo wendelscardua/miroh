@@ -131,7 +131,10 @@ void Gameplay::loop() {
     u8 pressed = get_pad_new(0);
     u8 held = pad_state(0);
 
-    player.update(input_mode, pressed, held);
+    banked_lambda(PLAYER_BANK, [this, pressed, held]() {
+      player.update(input_mode, pressed, held);
+    });
+    
     if (player.state != Player::State::Dying &&
         player.state != Player::State::Dead) {
       bool blocks_placed = false;

@@ -14,6 +14,8 @@
 
 - assets rodata
 
+- some player code
+
 # prg rom 2
 
 - ggsound

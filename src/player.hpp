@@ -9,6 +9,9 @@
 #define MAX_HUNGER 32
 #define HUNGER_BAR_BASE_TILE 0x92
 
+#define PLAYER_BANK 1
+#define PLAYER_TEXT_SECTION ".prg_rom_1.text.player"
+
 class Player {
   static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x2000);
   static constexpr fixed_point FAST_MOVE_SPEED = fixed_point(2, 0x0000);
