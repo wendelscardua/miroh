@@ -17,12 +17,52 @@
           "CMAKE_MODULE_PATH": "${sourceDir}/cmake",
           "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
         }
+      },
+      {
+        "name": "release-web",
+        "displayName": "Release Web",
+        "description": "User-defined presets for release to be embedded on a web page",
+        "inherits": "default",
+        "cacheVariables": {
+          "ROM_PLATFORM": "web"
+        }
+      },
+      {
+        "name": "release-nes",
+        "displayName": "Release NES",
+        "description": "User-defined presets for release to be distributed as a ROM",
+        "inherits": "default",
+        "cacheVariables": {
+          "ROM_PLATFORM": "nes"
+        }
+      },
+      {
+        "name": "debug",
+        "displayName": "Debug",
+        "description": "User-defined presets for debug",
+        "inherits": "default",
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+          "ROM_PLATFORM": "nes"
+        }
       }
     ],
     "buildPresets": [
       {
         "name": "default",
         "configurePreset": "default"
+      },
+      {
+        "name": "release-web",
+        "configurePreset": "release-web"
+      },
+      {
+        "name": "release-nes",
+        "configurePreset": "release-nes"
+      },
+      {
+        "name": "debug",
+        "configurePreset": "debug"
       }
     ]
 }

@@ -31,10 +31,8 @@ void Player::hunger_upkeep(s16 delta) {
   while (hunger_timer >= HUNGER_TICKS) {
     hunger_timer -= HUNGER_TICKS;
     if (hunger == MAX_HUNGER) {
-      u8 old_bank = get_prg_bank();
-      set_prg_bank(GET_BANK(song_list));
-      GGSound::play_song(Song::Rip_in_peace);
-      set_prg_bank(old_bank);
+      banked_lambda(GET_BANK(song_list),
+                    []() { GGSound::play_song(Song::Rip_in_peace); });
       state = State::Dying;
       ghost_height = 0;
       break;
@@ -45,7 +43,7 @@ void Player::hunger_upkeep(s16 delta) {
   refresh_hunger_hud();
 }
 
-void Player::update(InputMode input_mode, u8 pressed, u8 held) {
+__attribute__((noinline, section(PLAYER_TEXT_SECTION))) void Player::update(InputMode input_mode, u8 pressed, u8 held) {
   if (state != State::Dying && state != State::Dead) {
     hunger_upkeep(1);
   }
@@ -179,66 +177,65 @@ void Player::update(InputMode input_mode, u8 pressed, u8 held) {
 }
 
 void Player::render() {
-    const u8 *metasprite;
-    switch (state) {
-    case State::Idle:
-      switch (facing) {
-      case Direction::Up:
-      case Direction::Right:
-      case Direction::Down:
-      case Direction::None:
-        metasprite = metasprite_MinoRight1;
-        break;
-      case Direction::Left:
-        metasprite = metasprite_MinoLeft1;
-        break;
-      }
+  const u8 *metasprite;
+  switch (state) {
+  case State::Idle:
+    switch (facing) {
+    case Direction::Up:
+    case Direction::Right:
+    case Direction::Down:
+    case Direction::None:
+      metasprite = metasprite_MinoRight1;
       break;
-    case State::Moving: {
-      bool toggle = ((x.whole ^ y.whole) & 0b1000) != 0;
-      switch (facing) {
-      case Direction::Up:
-      case Direction::Right:
-      case Direction::Down:
-      case Direction::None:
-        if (toggle) {
-          metasprite = metasprite_MinoRight1;
-        } else {
-          metasprite = metasprite_MinoRight2;
-        }
-        break;
-      case Direction::Left:
-        if (toggle) {
-          metasprite = metasprite_MinoLeft1;
-        } else {
-          metasprite = metasprite_MinoLeft2;
-        }
-        break;
-      }
-    } break;
-    case State::Dying:
-      if (ghost_height > 4 && board.origin_y + (u8)y.whole > ghost_height) {
-        banked_oam_meta_spr(board.origin_x + (u8)x.whole,
-                     board.origin_y + (u8)y.whole - ghost_height,
-                     metasprite_Ghost);
-      }
-      metasprite = metasprite_RIP;
+    case Direction::Left:
+      metasprite = metasprite_MinoLeft1;
       break;
-    case State::Dead:
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                   board.origin_y + (u8)y.round() - ghost_height,
-                   metasprite_RIP);
-      return;
     }
-    banked_oam_meta_spr(board.origin_x + (u8)x.round(), board.origin_y + (u8)y.round(),
-                 metasprite);
+    break;
+  case State::Moving: {
+    bool toggle = ((x.whole ^ y.whole) & 0b1000) != 0;
+    switch (facing) {
+    case Direction::Up:
+    case Direction::Right:
+    case Direction::Down:
+    case Direction::None:
+      if (toggle) {
+        metasprite = metasprite_MinoRight1;
+      } else {
+        metasprite = metasprite_MinoRight2;
+      }
+      break;
+    case Direction::Left:
+      if (toggle) {
+        metasprite = metasprite_MinoLeft1;
+      } else {
+        metasprite = metasprite_MinoLeft2;
+      }
+      break;
+    }
+  } break;
+  case State::Dying:
+    if (ghost_height > 4 && board.origin_y + (u8)y.whole > ghost_height) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.whole,
+                          board.origin_y + (u8)y.whole - ghost_height,
+                          metasprite_Ghost);
+    }
+    metasprite = metasprite_RIP;
+    break;
+  case State::Dead:
+    banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                        board.origin_y + (u8)y.round() - ghost_height,
+                        metasprite_RIP);
+    return;
+  }
+  banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                      board.origin_y + (u8)y.round(), metasprite);
 }
 
 void Player::feed(u8 nutrition) {
-  u8 old_bank = get_prg_bank();
-  set_prg_bank(GET_BANK(sfx_list));
-  GGSound::play_sfx(SFX::Nom, GGSound::SFXPriority::One);
-  set_prg_bank(old_bank);
+  banked_lambda(GET_BANK(sfx_list), []() {
+    GGSound::play_sfx(SFX::Nom, GGSound::SFXPriority::One);
+  });
 
   hunger_timer = 0;
   if (hunger > nutrition) {

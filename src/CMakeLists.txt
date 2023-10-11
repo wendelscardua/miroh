@@ -114,7 +114,7 @@ add_library(SourceObj
   ${CMAKE_CURRENT_BINARY_DIR}/metasprites.s
 )
 
-add_donut_asset(SOURCE "bg.chr")
+add_donut_asset(SOURCE "bg-${ROM_PLATFORM}.chr" TARGET "bg.chr.donut")
 add_donut_asset(SOURCE "sprites.chr")
 
 set_property(
