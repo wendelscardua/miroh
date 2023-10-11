@@ -1,75 +1,53 @@
 #include "fruits.hpp"
+#include "bag.hpp"
 #include "banked-asset-helpers.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
+static Bag<s8, HEIGHT> row_bag([](auto *bag) {
+  for (s8 i = 0; i < HEIGHT; i++) {
+    bag->insert(i);
+  }
+});
+
+static Bag<s8, WIDTH> column_bag([](auto *bag) {
+  for (s8 j = 0; j < WIDTH; j++) {
+    bag->insert(j);
+  }
+});
+
 void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.row = -1;
   fruit.column = -1;
-  for (u8 tries = 0; tries < HEIGHT / 2; tries++) {
-    s8 i = rand8() & 0x0f;
-    if (i < HEIGHT && board.tally[i] < WIDTH) {
-      fruit.row = i;
+
+  // pick a random row
+  for (u8 tries = 0; tries < HEIGHT; tries++) {
+    s8 candidate_row = row_bag.take();
+    if (board.tally[candidate_row] < WIDTH) {
+      fruit.row = candidate_row;
       break;
     }
   }
+
   if (fruit.row < 0) {
-    // random row failed, look each row
-    // arbitrarily look from up to bottom or from bottom to up
-    if (get_frame_count() & 0b1) {
-      for (s8 i = 0; i < HEIGHT; i++) {
-        if (board.tally[i] < WIDTH) {
-          fruit.row = i;
-          break;
-        }
-      }
-    } else {
-      for (s8 i = HEIGHT - 1; i >= 0; i--) {
-        if (board.tally[i] < WIDTH) {
-          fruit.row = i;
-          break;
-        }
-      }
-    }
-    if (fruit.row < 0) {
-      // no good row? well, give up spawning then
-      return;
-    }
+    // no good row? it should be impossible, but oh well, let's give up
+    return;
   }
 
   // now we do the same for column
-  for (u8 tries = 0; tries < WIDTH / 2; tries++) {
-    s8 j = rand8() & 0x0f;
-    if (j < WIDTH && !board.cell[fruit.row][j].occupied) {
-      fruit.column = j;
+  for (u8 tries = 0; tries < WIDTH; tries++) {
+    s8 candidate_column = column_bag.take();
+    if (!board.cell[fruit.row][candidate_column].occupied) {
+      fruit.column = candidate_column;
       break;
     }
   }
   if (fruit.column < 0) {
-    // random column failed, look each column
-    // arbitrarily look from left to right or from right to left
-    if ((get_frame_count() ^ fruit.row) & 0b1) {
-      for (s8 j = 0; j < WIDTH; j++) {
-        if (!board.cell[fruit.row][j].occupied) {
-          fruit.column = j;
-          break;
-        }
-      }
-    } else {
-      for (s8 j = WIDTH - 1; j >= 0; j--) {
-        if (!board.cell[fruit.row][j].occupied) {
-          fruit.column = j;
-          break;
-        }
-      }
-    }
-    if (fruit.column < 0) {
-      // no good column? well, give up spawning then
-      // wait a minute, that shoulnd't even be possible?
-      return;
-    }
+    // no good column? well, give up spawning then
+    // wait a minute, that's even more impossible!?
+    return;
   }
 
   // avoid placing on other fruits
@@ -126,13 +104,13 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
 
   if (fruit_credits > 0 && active_fruits < NUM_FRUITS &&
       ++spawn_timer > SPAWN_DELAY) {
-    spawn_timer -= SPAWN_DELAY;
     for (auto fruit : fruits) {
       if (!fruit.active) {
         spawn_on_board(fruit);
         if (fruit.active) {
           active_fruits++;
           fruit_credits--;
+          spawn_timer -= SPAWN_DELAY;
         }
         break;
       }
