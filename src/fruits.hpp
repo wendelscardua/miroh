@@ -33,7 +33,7 @@ struct Fruit {
 
 class Fruits {
   static constexpr u8 NUM_FRUITS = 5;
-  static constexpr u16 EXPIRATION_TIME = 720;
+  static constexpr u16 EXPIRATION_TIME = 15 * 60;
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
   Board &board;
