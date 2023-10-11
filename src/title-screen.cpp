@@ -72,15 +72,15 @@ const TitleScreen::MenuOption next[] = {
 
 const u8 option_mino_x[] = {
     0x30, // Start
-    0x78, // Controls
-    0x30, // Settings
+    0x30, // Controls
+    0x78, // Settings
     0x78, // Credits
 };
 
 const u8 option_mino_y[] = {
     0x70, // Start
-    0x70, // Controls
-    0x80, // Settings
+    0x80, // Controls
+    0x70, // Settings
     0x80, // Credits
 };
 
@@ -110,7 +110,7 @@ const TitleScreen::SettingsOption setting_below[] = {
 };
 
 __attribute__((noinline)) TitleScreen::TitleScreen()
-    : state(State::PressStart), current_option(MenuOption::Controls) {
+    : state(State::PressStart), current_option(MenuOption::Start) {
   set_chr_bank(0);
 
   banked_lambda(GET_BANK(bg_chr), []() {
@@ -178,7 +178,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
           GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
         });
         state = State::Options;
-        current_option = MenuOption::Controls;
+        current_option = MenuOption::Start;
       }
       break;
     case State::Options:
