@@ -18,8 +18,15 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
       y(starting_y), score(0) {}
 
 const fixed_point &Player::move_speed() {
-  if (mazes[maze]->has_special_cells &&
-      mazes[maze]->is_special[y.whole >> 4][x.whole >> 4]) {
+  u8 row = (u8)(y.whole >> 4);
+  u8 column = (u8)(x.whole >> 4);
+  bool fast;
+  banked_lambda(GET_BANK(mazes), [&fast, row, column]() {
+    fast =
+        mazes[maze]->has_special_cells && mazes[maze]->is_special[row][column];
+  });
+
+  if (fast) {
     return FAST_MOVE_SPEED;
   } else {
     return DEFAULT_MOVE_SPEED;
