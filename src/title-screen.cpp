@@ -36,59 +36,59 @@ const unsigned char settings_text[24 * 3] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 const TitleScreen::MenuOption left_of[] = {
-    TitleScreen::MenuOption::Controls, // Controls
-    TitleScreen::MenuOption::Controls, // Credits
     TitleScreen::MenuOption::Start,    // Start
+    TitleScreen::MenuOption::Controls, // Controls
     TitleScreen::MenuOption::Start,    // Settings
+    TitleScreen::MenuOption::Controls, // Credits
 };
 
 const TitleScreen::MenuOption right_of[] = {
-    TitleScreen::MenuOption::Credits,  // Controls
-    TitleScreen::MenuOption::Credits,  // Credits
     TitleScreen::MenuOption::Settings, // Start
+    TitleScreen::MenuOption::Credits,  // Controls
     TitleScreen::MenuOption::Settings, // Settings
+    TitleScreen::MenuOption::Credits,  // Credits
 };
 
 const TitleScreen::MenuOption above_of[] = {
-    TitleScreen::MenuOption::Controls, // Controls
-    TitleScreen::MenuOption::Credits,  // Credits
-    TitleScreen::MenuOption::Controls, // Start
-    TitleScreen::MenuOption::Credits,  // Settings
+    TitleScreen::MenuOption::Start,    // Start
+    TitleScreen::MenuOption::Start,    // Controls
+    TitleScreen::MenuOption::Settings, // Settings
+    TitleScreen::MenuOption::Settings, // Credits
 };
 
 const TitleScreen::MenuOption below_of[] = {
-    TitleScreen::MenuOption::Start,    // Controls
-    TitleScreen::MenuOption::Settings, // Credits
-    TitleScreen::MenuOption::Start,    // Start
-    TitleScreen::MenuOption::Settings, // Settings
+    TitleScreen::MenuOption::Controls, // Start
+    TitleScreen::MenuOption::Controls, // Controls
+    TitleScreen::MenuOption::Credits,  // Settings
+    TitleScreen::MenuOption::Credits,  // Credits
 };
 
 const TitleScreen::MenuOption next[] = {
-    TitleScreen::MenuOption::Start,    // Controls
-    TitleScreen::MenuOption::Settings, // Credits
-    TitleScreen::MenuOption::Credits,  // Start
-    TitleScreen::MenuOption::Controls, // Settings
+    TitleScreen::MenuOption::Controls, // Start
+    TitleScreen::MenuOption::Settings, // Controls
+    TitleScreen::MenuOption::Credits,  // Settings
+    TitleScreen::MenuOption::Start,    // Credits
 };
 
 const u8 option_mino_x[] = {
-    0x20, // Controls
+    0x30, // Start
+    0x78, // Controls
+    0x30, // Settings
     0x78, // Credits
-    0x20, // Start
-    0x78, // Settings
 };
 
 const u8 option_mino_y[] = {
+    0x70, // Start
     0x70, // Controls
-    0x70, // Credits
-    0x80, // Start
     0x80, // Settings
+    0x80, // Credits
 };
 
 const u8 option_mino_frame_mod[] = {
-    0x10, // Controls
-    0x10, // Credits
     0x08, // Start
+    0x10, // Controls
     0x20, // Settings
+    0x10, // Credits
 };
 
 const u8 setting_mino_y[] = {
