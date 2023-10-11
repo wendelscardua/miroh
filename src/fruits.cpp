@@ -1,5 +1,4 @@
 #include "fruits.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"
@@ -86,6 +85,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.active = true;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
+  fruit.life = EXPIRATION_TIME;
 }
 
 Fruits::Fruits(Board &board) : board(board) {
@@ -117,6 +117,9 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
         fruit.active = false;
         active_fruits--;
         player.feed(FRUIT_NUTRITION);
+      } else if (--fruit.life == 0) {
+        fruit.active = false;
+        active_fruits--;
       }
     }
   }

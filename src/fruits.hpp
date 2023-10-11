@@ -6,7 +6,6 @@
 #include "common.hpp"
 #include "player.hpp"
 
-#define NUM_FRUITS 8
 #define INITIAL_CREDITS 1
 #define SPAWN_DELAY 480
 
@@ -17,6 +16,7 @@ struct Fruit {
   s8 column;
   u8 x;
   u8 y;
+  u16 life;
   bool active;
 };
 
@@ -26,11 +26,14 @@ struct Fruit {
   MEMBER(column)                                                               \
   MEMBER(x)                                                                    \
   MEMBER(y)                                                                    \
+  MEMBER(life)                                                                 \
   MEMBER(active)
 
 #include <soa-struct.inc>
 
 class Fruits {
+  static constexpr u8 NUM_FRUITS = 5;
+  static constexpr u16 EXPIRATION_TIME = 720;
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
   Board &board;
