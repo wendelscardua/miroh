@@ -23,7 +23,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.column = -1;
 
   // pick a random row
-  for (u8 tries = 0; tries < HEIGHT; tries++) {
+  for (u8 tries = 0; tries < 4; tries++) {
     s8 candidate_row = row_bag.take();
     if (board.tally[candidate_row] < WIDTH) {
       fruit.row = candidate_row;
@@ -32,12 +32,12 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   }
 
   if (fruit.row < 0) {
-    // no good row? it should be impossible, but oh well, let's give up
+    // no good row? give up for now, we'll try next frame
     return;
   }
 
   // now we do the same for column
-  for (u8 tries = 0; tries < WIDTH; tries++) {
+  for (u8 tries = 0; tries < 4; tries++) {
     s8 candidate_column = column_bag.take();
     if (!board.cell[fruit.row][candidate_column].occupied) {
       fruit.column = candidate_column;
@@ -45,8 +45,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
     }
   }
   if (fruit.column < 0) {
-    // no good column? well, give up spawning then
-    // wait a minute, that's even more impossible!?
+    // no good column? give up for now, we'll try next frame
     return;
   }
 
