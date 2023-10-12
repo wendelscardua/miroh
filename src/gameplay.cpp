@@ -134,7 +134,7 @@ void Gameplay::loop() {
     banked_lambda(PLAYER_BANK, [this, pressed, held]() {
       player.update(input_mode, pressed, held);
     });
-    
+
     if (player.state != Player::State::Dying &&
         player.state != Player::State::Dead) {
       bool blocks_placed = false;
@@ -143,7 +143,8 @@ void Gameplay::loop() {
       banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed,
                                            &failed_to_place, &lines_filled]() {
         polyomino.handle_input(input_mode, pressed, held);
-        polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed, failed_to_place, lines_filled);
+        polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
+                         failed_to_place, lines_filled);
       });
       fruits.update(player, blocks_placed, lines_filled);
 
@@ -162,15 +163,15 @@ void Gameplay::loop() {
 
       switch (input_mode) {
       case InputMode::Player:
-        if (pressed & (PAD_SELECT | PAD_A | PAD_B | PAD_START)) {
+        if (pressed & (PAD_SELECT | PAD_A | PAD_B)) {
           input_mode = InputMode::Polyomino;
-          pressed &= ~(PAD_SELECT | PAD_A | PAD_B | PAD_START);
+          pressed &= ~(PAD_SELECT | PAD_A | PAD_B);
         }
         break;
       case InputMode::Polyomino:
-        if (pressed & (PAD_SELECT | PAD_START)) {
+        if (pressed & (PAD_SELECT)) {
           input_mode = InputMode::Player;
-          pressed &= ~(PAD_SELECT | PAD_START);
+          pressed &= ~(PAD_SELECT);
         }
         break;
       }
