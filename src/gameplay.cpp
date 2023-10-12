@@ -6,6 +6,7 @@
 #include "attributes.hpp"
 #include "bank-helper.hpp"
 
+#include "banked-asset-helpers.hpp"
 #include "chr-data.hpp"
 #include "common.hpp"
 #include "donut.hpp"
@@ -14,6 +15,7 @@
 #include "gameplay.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
+#include "metasprites.hpp"
 #include "nametables.hpp"
 #include "palettes.hpp"
 #include "player.hpp"
@@ -23,7 +25,7 @@
 
 __attribute__((noinline)) Gameplay::Gameplay()
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
-      board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
+      pause_option(0), board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), input_mode(InputMode::Player) {
   set_chr_bank(0);
@@ -106,6 +108,15 @@ void Gameplay::render() {
   }
 }
 
+void Gameplay::paused_render() {
+  oam_clear();
+  if (pause_option == 0) {
+    banked_oam_meta_spr(0x30, 0x70, metasprite_MenuminoL);
+  } else {
+    banked_oam_meta_spr(0x80, 0x70, metasprite_MenuminoR);
+  }
+}
+
 extern volatile char FRAME_CNT1;
 static bool no_lag_frame = true;
 
@@ -119,18 +130,41 @@ void Gameplay::loop() {
 
     InputMode old_mode = input_mode;
 
+    pad_poll(0);
+
+    u8 pressed = get_pad_new(0);
+    u8 held = pad_state(0);
+
+    if (input_mode == InputMode::Pause) {
+      if (pressed & (PAD_START | PAD_B)) {
+        input_mode = InputMode::Player;
+        pressed &= ~(PAD_START | PAD_B);
+        set_scroll_y(0);
+        banked_lambda(GET_BANK(song_list), []() { GGSound::resume(); });
+      } else if (pressed &
+                 (PAD_LEFT | PAD_RIGHT | PAD_UP | PAD_DOWN | PAD_SELECT)) {
+        pause_option = 1 - pause_option;
+      } else if (pressed & PAD_A) {
+        banked_lambda(GET_BANK(song_list), []() { GGSound::resume(); });
+        input_mode = InputMode::Player;
+        set_scroll_y(0);
+        if (pause_option == 1) {
+          current_mode = GameMode::TitleScreen;
+        }
+      }
+    }
+
+    if (input_mode == InputMode::Pause) {
+      paused_render();
+      continue;
+    }
+
     // we only spawn when there's no line clearing going on
     if (!board.ongoing_line_clearing() && !polyomino.active &&
         --spawn_timer == 0) {
       banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
       spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
     }
-
-    pad_poll(0);
-
-    u8 pressed = get_pad_new(0);
-    u8 held = pad_state(0);
-
     banked_lambda(PLAYER_BANK, [this, pressed, held]() {
       player.update(input_mode, pressed, held);
     });
@@ -166,14 +200,23 @@ void Gameplay::loop() {
         if (pressed & (PAD_SELECT | PAD_A | PAD_B)) {
           input_mode = InputMode::Polyomino;
           pressed &= ~(PAD_SELECT | PAD_A | PAD_B);
+        } else if (pressed & PAD_START) {
+          input_mode = InputMode::Pause;
+          set_scroll_y(0x130);
+          banked_lambda(GET_BANK(song_list), []() { GGSound::pause(); });
         }
         break;
       case InputMode::Polyomino:
         if (pressed & (PAD_SELECT)) {
           input_mode = InputMode::Player;
           pressed &= ~(PAD_SELECT);
+        } else if (pressed & PAD_START) {
+          input_mode = InputMode::Pause;
+          set_scroll_y(0x130);
+          banked_lambda(GET_BANK(song_list), []() { GGSound::pause(); });
         }
         break;
+      default:
       }
     } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
       current_mode = GameMode::TitleScreen;
@@ -191,6 +234,7 @@ void Gameplay::loop() {
 
           break;
         case InputMode::Player:
+        case InputMode::Pause:
           set_prg_bank(GET_BANK(sprites_player_palette));
           pal_spr(sprites_player_palette);
           break;
