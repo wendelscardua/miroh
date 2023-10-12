@@ -95,11 +95,12 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
     return;
   }
 
-  if (held & PAD_UP) {
-    drop_timer = 200; // XXX: any absurd-but-not-max number
-  }
-
-  if (pressed & PAD_LEFT) {
+  if (pressed & PAD_UP) {
+    // just some high enough value for the drop to proceed until the end
+    drop_timer = HEIGHT * 60;
+    grounded_timer = MAX_GROUNDED_TIMER;
+    movement_direction = Direction::Up;
+  } else if (pressed & PAD_LEFT) {
     move_timer = MOVEMENT_INITIAL_DELAY;
     movement_direction = Direction::Left;
   } else if (held & PAD_LEFT) {
@@ -154,10 +155,12 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
   if (!active)
     return;
   if (drop_timer++ >= drop_frames) {
-    drop_timer = 0;
+    drop_timer -= drop_frames;
     if (definition->collide(board, row + 1, column)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
+        drop_timer = 0;
+        movement_direction = Direction::None;
         if (can_be_frozen()) {
           lines_filled = freeze_blocks();
           blocks_placed = true;
@@ -171,7 +174,9 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
       }
     } else {
       row++;
-      grounded_timer = 0;
+      if (movement_direction != Direction::Up) {
+        grounded_timer = 0;
+      }
     }
   }
 

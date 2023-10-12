@@ -21,7 +21,7 @@ class Polyomino {
   const PolyominoDef *second_next;
   s8 row;
   s8 column;
-  u8 drop_timer;
+  u16 drop_timer;
   s8 move_timer;
   Direction movement_direction;
 
@@ -36,7 +36,8 @@ public:
 
   void handle_input(InputMode &input_mode, u8 pressed, u8 held);
 
-  void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place, u8 &lines_filled);
+  void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
+              u8 &lines_filled);
 
   void banked_render();
 
