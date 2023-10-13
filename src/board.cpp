@@ -255,6 +255,59 @@ void Board::block_maze_cell(s8 row, s8 column) {
   occupy(row, column);
 }
 
+static const Cell null_cell;
+
+static constexpr u8 upper_left_block_tile[] = {
+    Board::TILE_BASE + 0x0f, Board::TILE_BASE + 0x18, Board::TILE_BASE + 0x16,
+    Board::TILE_BASE + 0x16, Board::TILE_BASE + 0x14, Board::TILE_BASE + 0x0e,
+    Board::TILE_BASE + 0x11, Board::TILE_BASE + 0x11, Board::TILE_BASE + 0x18,
+    Board::TILE_BASE + 0x18, Board::TILE_BASE + 0x12, Board::TILE_BASE + 0x16,
+    Board::TILE_BASE + 0x14, Board::TILE_BASE + 0x14, Board::TILE_BASE + 0x11,
+    Board::TILE_BASE + 0x11};
+
+static constexpr u8 upper_right_block_tile[] = {
+    Board::TILE_BASE + 0x0f, Board::TILE_BASE + 0x15, Board::TILE_BASE + 0x15,
+    Board::TILE_BASE + 0x15, Board::TILE_BASE + 0x10, Board::TILE_BASE + 0x0d,
+    Board::TILE_BASE + 0x10, Board::TILE_BASE + 0x10, Board::TILE_BASE + 0x17,
+    Board::TILE_BASE + 0x17, Board::TILE_BASE + 0x12, Board::TILE_BASE + 0x17,
+    Board::TILE_BASE + 0x13, Board::TILE_BASE + 0x13, Board::TILE_BASE + 0x13,
+    Board::TILE_BASE + 0x13};
+
+static constexpr u8 lower_left_block_tile[] = {
+    Board::TILE_BASE + 0x0f, Board::TILE_BASE + 0x08, Board::TILE_BASE + 0x01,
+    Board::TILE_BASE + 0x06, Board::TILE_BASE + 0x04, Board::TILE_BASE + 0x0e,
+    Board::TILE_BASE + 0x01, Board::TILE_BASE + 0x06, Board::TILE_BASE + 0x04,
+    Board::TILE_BASE + 0x08, Board::TILE_BASE + 0x02, Board::TILE_BASE + 0x06,
+    Board::TILE_BASE + 0x04, Board::TILE_BASE + 0x08, Board::TILE_BASE + 0x01,
+    Board::TILE_BASE + 0x06};
+
+static constexpr u8 lower_right_block_tile[] = {
+    Board::TILE_BASE + 0x0f, Board::TILE_BASE + 0x05, Board::TILE_BASE + 0x00,
+    Board::TILE_BASE + 0x05, Board::TILE_BASE + 0x00, Board::TILE_BASE + 0x0d,
+    Board::TILE_BASE + 0x00, Board::TILE_BASE + 0x05, Board::TILE_BASE + 0x03,
+    Board::TILE_BASE + 0x07, Board::TILE_BASE + 0x02, Board::TILE_BASE + 0x07,
+    Board::TILE_BASE + 0x03, Board::TILE_BASE + 0x07, Board::TILE_BASE + 0x03,
+    Board::TILE_BASE + 0x07};
+
+// converts 4 boolean walls into a integer value between 0 and 15
+u8 walls_to_index(bool wall_going_up, bool wall_going_right,
+                  bool wall_going_down, bool wall_going_left) {
+  u8 value = 0;
+  if (wall_going_up) {
+    value |= 0b0001;
+  }
+  if (wall_going_right) {
+    value |= 0b0010;
+  }
+  if (wall_going_down) {
+    value |= 0b0100;
+  }
+  if (wall_going_left) {
+    value |= 0b1000;
+  }
+  return value;
+}
+
 void Board::restore_maze_cell(s8 row, s8 column) {
   auto current_cell = &cell[row][column];
   int position =
@@ -262,74 +315,51 @@ void Board::restore_maze_cell(s8 row, s8 column) {
   char metatile_top[2];
   char metatile_bottom[2];
 
-  if (current_cell->up_wall) {
-    if (current_cell->left_wall) { // up left
-      metatile_top[0] = TILE_BASE + 7;
-    } else { // up !left
-      metatile_top[0] = TILE_BASE + 1;
+  auto upper_cell = row > 0 ? &cell[row - 1][column] : &null_cell;
+  auto lower_cell = row < HEIGHT - 1 ? &cell[row + 1][column] : &null_cell;
+  auto left_cell = column > 0 ? &cell[row][column - 1] : &null_cell;
+  auto right_cell = column < WIDTH - 1 ? &cell[row][column + 1] : &null_cell;
+
+  metatile_top[0] = upper_left_block_tile[walls_to_index(
+      upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
+      left_cell->up_wall)];
+  metatile_top[1] = upper_right_block_tile[walls_to_index(
+      upper_cell->right_wall, right_cell->up_wall, current_cell->right_wall,
+      current_cell->up_wall)];
+  metatile_bottom[0] = lower_left_block_tile[walls_to_index(
+      current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
+      left_cell->down_wall)];
+  metatile_bottom[1] = lower_right_block_tile[walls_to_index(
+      current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
+      current_cell->down_wall)];
+
+  if (row == 0) {
+    if (column > 0 && current_cell->left_wall) {
+      metatile_top[0] = TILE_BASE + 0x0a;
     }
-  } else {
-    if (current_cell->left_wall) { // !up left
-      metatile_top[0] = TILE_BASE + 6;
-    } else { // !up !left
-      if (row == 0 || column == 0)
-        metatile_top[0] = TILE_BASE + 0;
-      else
-        metatile_top[0] = TILE_BASE + 9;
+    if (column < WIDTH - 1 && current_cell->right_wall) {
+      metatile_top[1] = TILE_BASE + 0x09;
+    }
+  } else if (row == HEIGHT - 1) {
+    if (column > 0 && current_cell->left_wall) {
+      metatile_bottom[0] = TILE_BASE + 0x1a;
+    }
+    if (column < WIDTH - 1 && current_cell->right_wall) {
+      metatile_bottom[1] = TILE_BASE + 0x19;
     }
   }
 
-  // top right tile
-  if (current_cell->up_wall) {
-    if (current_cell->right_wall) { // up right
-      metatile_top[1] = TILE_BASE + 3;
-    } else { // up !right
-      metatile_top[1] = TILE_BASE + 1;
+  if (column == 0) {
+    if (row > 0 && current_cell->up_wall) {
+      metatile_top[0] = TILE_BASE + 0x1b;
+    } else if (row < HEIGHT - 1 && current_cell->down_wall) {
+      metatile_bottom[0] = TILE_BASE + 0x0b;
     }
-  } else {
-    if (current_cell->right_wall) { // !up right
-      metatile_top[1] = TILE_BASE + 2;
-    } else { // !up !right
-      if (row == 0 || column == WIDTH - 1)
-        metatile_top[1] = TILE_BASE + 0;
-      else
-        metatile_top[1] = TILE_BASE + 10;
-    }
-  }
-
-  // bottom left tile
-  if (current_cell->down_wall) {
-    if (current_cell->left_wall) { // down left
-      metatile_bottom[0] = TILE_BASE + 8;
-    } else { // down !left
-      metatile_bottom[0] = TILE_BASE + 4;
-    }
-  } else {
-    if (current_cell->left_wall) { // !down left
-      metatile_bottom[0] = TILE_BASE + 6;
-    } else { // !down !left
-      if (row == HEIGHT - 1 || column == 0)
-        metatile_bottom[0] = TILE_BASE + 0;
-      else
-        metatile_bottom[0] = TILE_BASE + 12;
-    }
-  }
-
-  // bottom right tile (vram_adr auto advanced)
-  if (current_cell->down_wall) {
-    if (current_cell->right_wall) { // down right
-      metatile_bottom[1] = TILE_BASE + 5;
-    } else { // down !right
-      metatile_bottom[1] = TILE_BASE + 4;
-    }
-  } else {
-    if (current_cell->right_wall) { // !down right
-      metatile_bottom[1] = TILE_BASE + 2;
-    } else { // !down !right
-      if (row == HEIGHT - 1 || column == WIDTH - 1)
-        metatile_bottom[1] = TILE_BASE + 0;
-      else
-        metatile_bottom[1] = TILE_BASE + 11;
+  } else if (column == WIDTH - 1) {
+    if (row > 0 && current_cell->up_wall) {
+      metatile_top[1] = TILE_BASE + 0x1c;
+    } else if (row < HEIGHT - 1 && current_cell->down_wall) {
+      metatile_bottom[1] = TILE_BASE + 0x0c;
     }
   }
 
