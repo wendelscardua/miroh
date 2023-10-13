@@ -16,11 +16,6 @@ void Cell::reset() {
 
   this->occupied = false;
 
-  this->empty_bottom_right = false;
-  this->empty_bottom_left = false;
-  this->empty_top_right = false;
-  this->empty_top_left = false;
-
   this->parent = this;
 }
 
@@ -200,31 +195,6 @@ Board::Board(u8 origin_x, u8 origin_y)
       }
     }
   }
-
-  // maze is done, let's precompute empty corners
-  //
-  //  +-+-+
-  //  |   | This is an example of the 4 cells we are checking
-  //  + + + We want to mark on each of them that they don't
-  //  |   | need that "+" in the middle
-  //  +-+-+
-  for (u8 row = 0; row < HEIGHT - 1; row++) {
-    for (u8 column = 0; column < WIDTH - 1; column++) {
-      auto current_cell = &cell[row][column];
-      if (!current_cell->right_wall && !current_cell->down_wall) {
-        auto right_down_cell = &cell[row + 1][column + 1];
-        if (!right_down_cell->up_wall && !right_down_cell->left_wall) {
-          auto right_cell = &cell[row][column + 1];
-          auto down_cell = &cell[row + 1][column];
-
-          current_cell->empty_bottom_right = true;
-          right_cell->empty_bottom_left = true;
-          down_cell->empty_top_right = true;
-          right_down_cell->empty_top_left = true;
-        }
-      }
-    }
-  }
 }
 
 Board::~Board() {}
@@ -302,7 +272,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     if (current_cell->left_wall) { // !up left
       metatile_top[0] = TILE_BASE + 6;
     } else { // !up !left
-      if (row == 0 || column == 0 || current_cell->empty_top_left)
+      if (row == 0 || column == 0)
         metatile_top[0] = TILE_BASE + 0;
       else
         metatile_top[0] = TILE_BASE + 9;
@@ -320,7 +290,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     if (current_cell->right_wall) { // !up right
       metatile_top[1] = TILE_BASE + 2;
     } else { // !up !right
-      if (row == 0 || column == WIDTH - 1 || current_cell->empty_top_right)
+      if (row == 0 || column == WIDTH - 1)
         metatile_top[1] = TILE_BASE + 0;
       else
         metatile_top[1] = TILE_BASE + 10;
@@ -338,7 +308,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     if (current_cell->left_wall) { // !down left
       metatile_bottom[0] = TILE_BASE + 6;
     } else { // !down !left
-      if (row == HEIGHT - 1 || column == 0 || current_cell->empty_bottom_left)
+      if (row == HEIGHT - 1 || column == 0)
         metatile_bottom[0] = TILE_BASE + 0;
       else
         metatile_bottom[0] = TILE_BASE + 12;
@@ -356,19 +326,11 @@ void Board::restore_maze_cell(s8 row, s8 column) {
     if (current_cell->right_wall) { // !down right
       metatile_bottom[1] = TILE_BASE + 2;
     } else { // !down !right
-      if (row == HEIGHT - 1 || column == WIDTH - 1 ||
-          current_cell->empty_bottom_right)
+      if (row == HEIGHT - 1 || column == WIDTH - 1)
         metatile_bottom[1] = TILE_BASE + 0;
       else
         metatile_bottom[1] = TILE_BASE + 11;
     }
-  }
-
-  if (mazes[maze]->has_special_cells && mazes[maze]->is_special[row][column]) {
-    metatile_top[0] += SPECIAL_DELTA;
-    metatile_top[1] += SPECIAL_DELTA;
-    metatile_bottom[0] += SPECIAL_DELTA;
-    metatile_bottom[1] += SPECIAL_DELTA;
   }
 
   multi_vram_buffer_horz(metatile_top, 2, position);
