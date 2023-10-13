@@ -4,6 +4,7 @@
 #include "bank-helper.hpp"
 #include "common.hpp"
 #include "maze-defs.hpp"
+#include "polyomino.hpp"
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
@@ -274,8 +275,13 @@ void Board::free(s8 row, s8 column) {
 void Board::block_maze_cell(s8 row, s8 column) {
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
-  multi_vram_buffer_horz((const u8[2]){0x74, 0x75}, 2, position);
-  multi_vram_buffer_horz((const u8[2]){0x84, 0x85}, 2, position + 0x20);
+
+  multi_vram_buffer_horz((const u8[2]){Polyomino::BLOCK_UPPER_LEFT_TILE,
+                                       Polyomino::BLOCK_UPPER_RIGHT_TILE},
+                         2, position);
+  multi_vram_buffer_horz((const u8[2]){Polyomino::BLOCK_LOWER_LEFT_TILE,
+                                       Polyomino::BLOCK_LOWER_RIGHT_TILE},
+                         2, position + 0x20);
   Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
                   BLOCK_ATTRIBUTE);
   occupy(row, column);
