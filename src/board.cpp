@@ -47,8 +47,6 @@ Board::Board(u8 origin_x, u8 origin_y)
     tally[i] = 0;
     deleted[i] = 0;
   }
-  cracking_row = -1;
-  cracking_column = -1;
   erasing_row = -1;
   erasing_column = -1;
   dropping_column = -1;
@@ -385,36 +383,17 @@ void Board::restore_maze_cell(s8 row, s8 column) {
 bool Board::ongoing_line_clearing() {
   bool ongoing = false;
 
-  if (cracking_row < 0) {
-    for (s8 i = erasing_row + 1; i < HEIGHT; i++) {
+  if (erasing_row < 0) {
+    for (s8 i = 0; i < HEIGHT; i++) {
       if (tally[i] == WIDTH) {
         deleted[i] = true;
-        cracking_row = i;
-        cracking_column = 0;
+        erasing_row = i;
+        erasing_column = 0;
         ongoing = true;
         break;
       }
     }
   } else {
-    ongoing = true;
-    Attributes::set((u8)((origin_x >> 4) + cracking_column),
-                    (u8)((origin_y >> 4) + cracking_row), FLASH_ATTRIBUTE);
-    int position = NTADR_A((origin_x >> 3) + (cracking_column << 1),
-                           (origin_y >> 3) + (cracking_row << 1));
-    multi_vram_buffer_horz((const u8[2]){0x76, 0x77}, 2, position);
-    multi_vram_buffer_horz((const u8[2]){0x86, 0x87}, 2, position + 0x20);
-
-    cracking_column++;
-    if (cracking_column == WIDTH) {
-      if (erasing_row < 0) {
-        erasing_row = cracking_row;
-        erasing_column = 0;
-      }
-      cracking_row = -1;
-    }
-  }
-
-  if (erasing_row >= 0) {
     ongoing = true;
 
     restore_maze_cell(erasing_row, erasing_column);
@@ -435,8 +414,7 @@ bool Board::ongoing_line_clearing() {
   }
 
   if (dropping_column < 0) {
-    if (!ongoing && erasing_row < 0 && cracking_row < 0 &&
-        line_gravity_enabled) {
+    if (!ongoing && erasing_row < 0 && line_gravity_enabled) {
       // dropping column will only start doing stuff if it ever becomes zero
       for (auto deleted_row : deleted) {
         if (deleted_row) {

@@ -11,10 +11,11 @@
 #define BOARD_X_ORIGIN 0x20
 #define BOARD_Y_ORIGIN 0x30
 
-#define SPECIAL_DELTA 0x60 // how many tiles away from tile base are the special variants
+#define SPECIAL_DELTA                                                          \
+  0x60 // how many tiles away from tile base are the special variants
 
 class Cell {
- public:
+public:
   union {
     u8 walls : 4;
     struct {
@@ -46,8 +47,6 @@ class Cell {
 class Board {
   // these are used for the coroutinish line clearing function
   static const u8 LINE_CLEARING_BUDGET = 4;
-  s8 cracking_row;
-  s8 cracking_column;
   s8 erasing_row;
   s8 erasing_column;
   s8 dropping_row;
@@ -56,7 +55,7 @@ class Board {
 
 public:
   Cell cell[HEIGHT][WIDTH]; // each of the board's cells
-  u8 tally[HEIGHT]; // counts how many occupied cells are in each row
+  u8 tally[HEIGHT];         // counts how many occupied cells are in each row
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
   u8 origin_x; // where to start rendering the board and its contents (x)
   u8 origin_y; // where to start rendering the board and its contents (y)
