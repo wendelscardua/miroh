@@ -33,8 +33,6 @@ struct TemplateCell {
 
 struct MazeDef {
   const TemplateCell template_cells[HEIGHT][WIDTH];
-  const bool has_special_cells;
-  const bool is_special[HEIGHT][WIDTH];
 };
 
 typedef u8 Maze;

@@ -28,6 +28,11 @@ class Polyomino {
   bool able_to_kick(auto kick_deltas);
 
 public:
+  static const u8 BLOCK_UPPER_LEFT_TILE = 0x74;
+  static constexpr u8 BLOCK_UPPER_RIGHT_TILE = BLOCK_UPPER_LEFT_TILE + 0x1;
+  static constexpr u8 BLOCK_LOWER_LEFT_TILE = BLOCK_UPPER_LEFT_TILE + 0x10;
+  static constexpr u8 BLOCK_LOWER_RIGHT_TILE = BLOCK_LOWER_LEFT_TILE + 0x1;
+
   u8 grounded_timer;
   bool active;
   Polyomino(Board &board);

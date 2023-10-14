@@ -3,18 +3,14 @@
 #include "common.hpp"
 #define HEIGHT 10
 #define WIDTH 12
-#define TILE_BASE 0x60
 #define WALL_ATTRIBUTE 1
 #define BLOCK_ATTRIBUTE 2
-#define FLASH_ATTRIBUTE 3
 
 #define BOARD_X_ORIGIN 0x20
 #define BOARD_Y_ORIGIN 0x30
 
-#define SPECIAL_DELTA 0x60 // how many tiles away from tile base are the special variants
-
 class Cell {
- public:
+public:
   union {
     u8 walls : 4;
     struct {
@@ -28,12 +24,6 @@ class Cell {
   // true if a block is here
   bool occupied : 1;
 
-  // if true, don't render corner at that direction
-  bool empty_top_left : 1;
-  bool empty_top_right : 1;
-  bool empty_bottom_left : 1;
-  bool empty_bottom_right : 1;
-
   // used for union-find
   Cell *parent;
 
@@ -46,8 +36,6 @@ class Cell {
 class Board {
   // these are used for the coroutinish line clearing function
   static const u8 LINE_CLEARING_BUDGET = 4;
-  s8 cracking_row;
-  s8 cracking_column;
   s8 erasing_row;
   s8 erasing_column;
   s8 dropping_row;
@@ -55,8 +43,9 @@ class Board {
   bool dropping_column_new_states[HEIGHT];
 
 public:
+  static constexpr u8 TILE_BASE = 0x40;
   Cell cell[HEIGHT][WIDTH]; // each of the board's cells
-  u8 tally[HEIGHT]; // counts how many occupied cells are in each row
+  u8 tally[HEIGHT];         // counts how many occupied cells are in each row
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
   u8 origin_x; // where to start rendering the board and its contents (x)
   u8 origin_y; // where to start rendering the board and its contents (y)
