@@ -134,25 +134,25 @@ class MapParser < Thor
                               )/x)
         next unless match
 
-        # vma = match['vma'].to_i(16)
-        lma = match['lma'].to_i(16)
+        vma = match['vma'].to_i(16)
+        #lma = match['lma'].to_i(16)
         size = match['size'].to_i(16)
 
         if (out_name = match['out'])
           break if out_name == '.debug_line'
 
-          current_area = areas.find { |area| area.range.include? lma }
+          current_area = areas.find { |area| area.range.include? vma }
           next unless current_area
 
           current_out_section = OutSection.new(name: out_name,
-                                               used_range: lma...lma + size)
+                                               used_range: vma...vma + size)
           current_area.out_sections << current_out_section
         elsif (in_name = match['in'])
           current_in_section = InSection.new(name: in_name,
-                                             used_range: lma...lma + size)
+                                             used_range: vma...vma + size)
           current_out_section.in_sections << current_in_section
         elsif (sym_name = match['sym'])
-          current_in_section.symbols << Symbol.new(name: sym_name, used_range: lma...lma + size)
+          current_in_section.symbols << Symbol.new(name: sym_name, used_range: vma...vma + size)
         end
       end
 
