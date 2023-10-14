@@ -46,6 +46,7 @@ class Polyomino < Thor
         values => { rotateTo: rotate_to }
         pieces[rotate_to.to_sym][:leftRotateTo] = key
       end
+      canon.select! {|key| pieces.has_key?(key.to_sym) }
       canon.each do |key|
         f.puts ".byte piece_#{key}@mos16lo"
       end
