@@ -120,9 +120,12 @@ class MapParser < Thor
 
     def self.read(file:, layout:)
       areas = layout.areas.map { |area| Area.new(area) }
-      current_area = nil
-      current_out_section = nil
-      current_in_section = nil
+      current_vma_area = nil
+      current_lma_area = nil
+      current_vma_out_section = nil
+      current_lma_out_section = nil
+      current_vma_in_section = nil
+      current_lma_in_section = nil
       File.read(file).lines(chomp: true).drop(1).each do |line|
         match = line.match(/\A(?<vma>.{8})\s
                               (?<lma>.{8})\s
@@ -134,25 +137,43 @@ class MapParser < Thor
                               )/x)
         next unless match
 
-        # vma = match['vma'].to_i(16)
+        vma = match['vma'].to_i(16)
         lma = match['lma'].to_i(16)
         size = match['size'].to_i(16)
 
         if (out_name = match['out'])
           break if out_name == '.debug_line'
 
-          current_area = areas.find { |area| area.range.include? lma }
-          next unless current_area
+          current_vma_area = areas.find { |area| area.range.include? vma }
+          next unless current_vma_area
 
-          current_out_section = OutSection.new(name: out_name,
-                                               used_range: lma...lma + size)
-          current_area.out_sections << current_out_section
+          current_vma_out_section = OutSection.new(name: out_name,
+                                                   used_range: vma...vma + size)
+          current_vma_area.out_sections << current_vma_out_section
+
+          if lma != vma
+            current_lma_area = areas.find { |area| area.range.include? lma }
+            next unless current_lma_area
+
+            current_lma_out_section = OutSection.new(name: out_name,
+                                                     used_range: lma...lma + size)
+            current_lma_area.out_sections << current_lma_out_section
+
+          end
         elsif (in_name = match['in'])
-          current_in_section = InSection.new(name: in_name,
-                                             used_range: lma...lma + size)
-          current_out_section.in_sections << current_in_section
+          current_vma_in_section = InSection.new(name: in_name,
+                                                 used_range: vma...vma + size)
+          current_vma_out_section.in_sections << current_vma_in_section
+          if lma != vma
+            current_lma_in_section = InSection.new(name: in_name,
+                                                  used_range: lma...lma + size)
+            current_lma_out_section.in_sections << current_lma_in_section
+          end
         elsif (sym_name = match['sym'])
-          current_in_section.symbols << Symbol.new(name: sym_name, used_range: lma...lma + size)
+          current_vma_in_section.symbols << Symbol.new(name: sym_name, used_range: vma...vma + size)
+          if lma != vma
+            current_lma_in_section.symbols << Symbol.new(name: sym_name, used_range: lma...lma + size)
+          end
         end
       end
 

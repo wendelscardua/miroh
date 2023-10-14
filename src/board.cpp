@@ -9,13 +9,10 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-Cell::Cell() : walls(0), occupied(false), parent(NULL) {}
+Cell::Cell() : walls(0), parent(NULL) {}
 
 void Cell::reset() {
   this->walls = 0;
-
-  this->occupied = false;
-
   this->parent = this;
 }
 
@@ -195,6 +192,13 @@ Board::Board(u8 origin_x, u8 origin_y)
       }
     }
   }
+
+  // make all cells free - from this point on we don't use "parent" anymore
+  for (u8 i = 0; i < HEIGHT; i++) {
+    for (u8 j = 0; j < WIDTH; j++) {
+      cell[i][j].occupied = false;
+    }
+  }
 }
 
 Board::~Board() {}
@@ -206,14 +210,6 @@ void Board::render() {
       flush_vram_update2();
     }
   }
-  for (u8 meta_x = origin_x >> 4; meta_x < ((origin_x >> 4) + WIDTH / 2);
-       meta_x++) {
-    for (u8 meta_y = origin_y >> 4; meta_y < ((origin_y >> 4) + HEIGHT / 2);
-         meta_y++) {
-      Attributes::set(meta_x, meta_y, WALL_ATTRIBUTE);
-    }
-  }
-  Attributes::update_vram();
 }
 
 bool Board::occupied(s8 row, s8 column) {

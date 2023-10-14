@@ -22,10 +22,11 @@ public:
   };
 
   // true if a block is here
-  bool occupied : 1;
-
-  // used for union-find
-  Cell *parent;
+  union {
+    bool occupied;
+    // used for union-find
+    Cell *parent;
+  };
 
   Cell();
   void reset();
