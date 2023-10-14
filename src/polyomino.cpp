@@ -21,7 +21,7 @@ static auto littleminos = Bag<u8, 5>([](auto *bag) {
   }
 });
 
-static auto pentominos = Bag<u8, 32>([](auto *bag) {
+static auto pentominos = Bag<u8, 18>([](auto *bag) {
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
     if (polyominos[i]->size == 5) {
       bag->insert(i);
@@ -29,7 +29,7 @@ static auto pentominos = Bag<u8, 32>([](auto *bag) {
   }
 });
 
-auto Polyomino::pieces = Bag<u8, 32>([](auto *bag) {
+auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
   // add all tetrominos to the bag
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
     if (polyominos[i]->size == 4) {
