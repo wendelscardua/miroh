@@ -13,7 +13,6 @@
 
 class Player {
   static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x2000);
-  static constexpr fixed_point FAST_MOVE_SPEED = fixed_point(2, 0x0000);
   static constexpr u8 HUNGER_BAR_BASE_TILE = 0x62;
 
 private:

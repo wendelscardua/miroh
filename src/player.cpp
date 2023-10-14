@@ -17,21 +17,7 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
       hunger_timer(0), state(State::Idle), board(board), x(starting_x),
       y(starting_y), score(0) {}
 
-const fixed_point &Player::move_speed() {
-  u8 row = (u8)(y.whole >> 4);
-  u8 column = (u8)(x.whole >> 4);
-  bool fast;
-  banked_lambda(GET_BANK(mazes), [&fast, row, column]() {
-    fast =
-        mazes[maze]->has_special_cells && mazes[maze]->is_special[row][column];
-  });
-
-  if (fast) {
-    return FAST_MOVE_SPEED;
-  } else {
-    return DEFAULT_MOVE_SPEED;
-  }
-}
+const fixed_point &Player::move_speed() { return DEFAULT_MOVE_SPEED; }
 
 void Player::hunger_upkeep(s16 delta) {
   hunger_timer += delta;
