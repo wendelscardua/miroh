@@ -46,9 +46,10 @@ __attribute__((noinline)) Gameplay::Gameplay()
 
     vram_adr(NAMETABLE_A);
     vram_write(gameplay_nam, 1024);
-  });
 
-  Attributes::reset_shadow();
+    Attributes::reset_shadow();
+    vram_adr(NAMETABLE_A);
+  });
 
   board.render();
 
