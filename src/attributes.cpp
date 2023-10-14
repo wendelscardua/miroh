@@ -56,4 +56,9 @@ namespace Attributes {
     buffered = true;
     dirty_index = 0xff;
   }
+
+  void reset_shadow() {
+    vram_adr(NAMETABLE_A + 0x3c0);
+    vram_read(shadow, 64);
+  }
 } // namespace Attributes

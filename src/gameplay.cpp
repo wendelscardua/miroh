@@ -48,6 +48,8 @@ __attribute__((noinline)) Gameplay::Gameplay()
     vram_write(gameplay_nam, 1024);
   });
 
+  Attributes::reset_shadow();
+
   board.render();
 
   banked_lambda(GET_BANK(bg_palette), []() {

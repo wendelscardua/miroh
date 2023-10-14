@@ -15,4 +15,8 @@ namespace Attributes {
 
   // Send any pending writes to vram buffer, then disables it
   void flush_vram_update();
+
+  // Resets shadow copy of attributes, reading them from PPU
+  // (rendering must be off)
+  void reset_shadow();
 } // namespace Attributes
