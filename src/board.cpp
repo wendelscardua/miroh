@@ -406,11 +406,14 @@ bool Board::ongoing_line_clearing() {
                 : occupied(erasing_row_source, erasing_column);
 
         if (source_occupied) {
-          block_maze_cell(erasing_row, erasing_column);
-          if (erasing_row_source >= 0) {
+          if (!occupied(erasing_row, erasing_column)) {
+            block_maze_cell(erasing_row, erasing_column);
+          }
+          if (erasing_row_source >= 0 &&
+              occupied(erasing_row_source, erasing_column)) {
             restore_maze_cell(erasing_row_source, erasing_column);
           }
-        } else {
+        } else if (occupied(erasing_row, erasing_column)) {
           restore_maze_cell(erasing_row, erasing_column);
         }
       }
