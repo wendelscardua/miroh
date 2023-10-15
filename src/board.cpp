@@ -368,7 +368,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
 bool Board::ongoing_line_clearing() {
   bool any_deleted = false;
 
-  CORO_INIT {}
+  CORO_INIT;
 
   for (s8 i = 0; i < HEIGHT; i++) {
     if (tally[i] == WIDTH) {

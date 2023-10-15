@@ -8,9 +8,7 @@
 
   static int index;
   bool counter() {
-    CORO_INIT {
-      index = 1;
-    }
+    CORO_INIT;
 
     while(index <= 10) {
       index++;
@@ -27,15 +25,15 @@
 #define UNIQUE_LABEL _CAT(step_, __LINE__)
 
 #define CORO_INIT                                                              \
-  static void *resume_label = NULL;                                            \
-  if (resume_label != NULL) {                                                  \
-    goto *resume_label;                                                        \
-  } else
+  static void *CORO_RESUME_LABEL = NULL;                                       \
+  if (CORO_RESUME_LABEL != NULL) {                                             \
+    goto *CORO_RESUME_LABEL;                                                   \
+  }
 #define STR(value) #value
 #define CORO_YIELD(retval)                                                     \
-  resume_label = &&UNIQUE_LABEL;                                               \
+  CORO_RESUME_LABEL = &&UNIQUE_LABEL;                                          \
   return retval;                                                               \
   UNIQUE_LABEL:
 #define CORO_FINISH(retval)                                                    \
-  resume_label = NULL;                                                         \
+  CORO_RESUME_LABEL = NULL;                                                    \
   return retval
