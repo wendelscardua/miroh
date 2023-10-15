@@ -39,9 +39,7 @@ class Board {
   static const u8 LINE_CLEARING_BUDGET = 4;
   s8 erasing_row;
   s8 erasing_column;
-  s8 dropping_row;
-  s8 dropping_column;
-  bool dropping_column_new_states[HEIGHT];
+  s8 erasing_row_source;
 
 public:
   static constexpr u8 TILE_BASE = 0x40;
