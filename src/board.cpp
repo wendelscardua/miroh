@@ -425,5 +425,9 @@ bool Board::ongoing_line_clearing() {
     }
   }
 
+  for (s8 i = 0; i < HEIGHT; i++) {
+    deleted[i] = false;
+  }
+
   CORO_FINISH(false);
 }
