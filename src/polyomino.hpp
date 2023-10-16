@@ -22,14 +22,22 @@ class Polyomino {
   s8 row;
   s8 column;
   u16 drop_timer;
-  s8 move_timer;
+  union {
+    s8 move_timer;
+    u8 settling_timer;
+  };
   Direction movement_direction;
 
   bool able_to_kick(auto kick_deltas);
 
 public:
+  enum class State {
+    Inactive,
+    Active,
+    Settling,
+  };
   u8 grounded_timer;
-  bool active;
+  State state;
   Polyomino(Board &board);
 
   void spawn();

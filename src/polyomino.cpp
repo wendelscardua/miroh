@@ -1,5 +1,4 @@
 #include "polyomino.hpp"
-#include "attributes.hpp"
 #include "bag.hpp"
 #include "bank-helper.hpp"
 #include "direction.hpp"
@@ -47,10 +46,10 @@ auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
 
 Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), next(polyominos[pieces.take()]),
-      second_next(polyominos[pieces.take()]), active(false) {}
+      second_next(polyominos[pieces.take()]), state(State::Inactive) {}
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
-  active = true;
+  state = State::Active;
   grounded_timer = 0;
   move_timer = 0;
   movement_direction = Direction::None;
@@ -86,7 +85,7 @@ Polyomino::able_to_kick(auto kick_deltas) {
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
-  if (!active) {
+  if (state != Polyomino::State::Active) {
     if (input_mode == InputMode::Polyomino) {
       input_mode = InputMode::Player;
     }
@@ -152,7 +151,7 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
                   u8 &lines_filled) {
-  if (!active)
+  if (state != State::Active)
     return;
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
@@ -211,7 +210,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
 }
 
 void Polyomino::render() {
-  if (!active)
+  if (state != State::Active)
     return;
 
   banked_lambda(GET_BANK(polyominos), [this]() {
@@ -224,7 +223,7 @@ void Polyomino::render_next() {
   banked_lambda(GET_BANK(polyominos), [this]() {
     u8 next_x = board.origin_x + 0x10 * (WIDTH / 2);
     u8 next_y = board.origin_y - 0x20;
-    if (active && row < 0) {
+    if (state == State::Active && row < 0) {
       next->chibi_render(next_x + 0x40, next_y);
     } else {
       next->chibi_render(next_x, next_y);
@@ -251,7 +250,7 @@ Polyomino::freeze_blocks() {
     GGSound::play_sfx(SFX::Click, GGSound::SFXPriority::Two);
   });
 
-  active = false;
+  state = State::Settling;
   u8 filled_lines = 0;
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];

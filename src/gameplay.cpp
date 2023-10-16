@@ -163,8 +163,8 @@ void Gameplay::loop() {
     }
 
     // we only spawn when there's no line clearing going on
-    if (!board.ongoing_line_clearing() && !polyomino.active &&
-        --spawn_timer == 0) {
+    if (!board.ongoing_line_clearing() &&
+        polyomino.state == Polyomino::State::Inactive && --spawn_timer == 0) {
       banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
       spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
     }
