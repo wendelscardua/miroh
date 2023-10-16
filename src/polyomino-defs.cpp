@@ -1,6 +1,6 @@
 #include "polyomino-defs.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "board.hpp"
 #include "metasprites.hpp"
 #include <neslib.h>
 
@@ -35,5 +35,19 @@ void PolyominoDef::chibi_render(u8 x, u8 y) const {
       block_y++;
     }
     oam_spr((u8)block_x, (u8)block_y, CHIBI_TILE, 0x01);
+  }
+}
+
+void PolyominoDef::board_render(Board &board, s8 row, s8 column,
+                                bool jiggling) const {
+  for (u8 i = 0; i < size; i++) {
+    auto delta = deltas[i];
+    s8 block_row = row + delta.delta_row;
+    s8 block_column = column + delta.delta_column;
+    if (!board.occupied(block_row, block_column)) {
+      if (block_row >= 0) {
+        board.block_maze_cell(block_row, block_column, jiggling);
+      }
+    }
   }
 }
