@@ -4,7 +4,7 @@
 #define HEIGHT 10
 #define WIDTH 12
 #define WALL_ATTRIBUTE 1
-#define BLOCK_ATTRIBUTE 2
+#define BLOCK_ATTRIBUTE 1
 
 #define BOARD_X_ORIGIN 0x20
 #define BOARD_Y_ORIGIN 0x30

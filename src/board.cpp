@@ -240,10 +240,58 @@ void Board::block_maze_cell(s8 row, s8 column) {
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
 
-  metatile_top[0] = 0x60;
-  metatile_top[1] = 0x61;
-  metatile_bottom[0] = 0x70;
-  metatile_bottom[1] = 0x71;
+  if (row == 0) {
+    if (column == 0) {
+      metatile_top[0] = 0x66;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x72;
+      metatile_bottom[1] = 0x71;
+    } else if (column == WIDTH - 1) {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x67;
+      metatile_bottom[0] = 0x70;
+      metatile_bottom[1] = 0x73;
+    } else {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x70;
+      metatile_bottom[1] = 0x71;
+    }
+  } else if (row == HEIGHT - 1) {
+    if (column == 0) {
+      metatile_top[0] = 0x62;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x74;
+      metatile_bottom[1] = 0x77;
+    } else if (column == WIDTH - 1) {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x63;
+      metatile_bottom[0] = 0x76;
+      metatile_bottom[1] = 0x75;
+    } else {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x76;
+      metatile_bottom[1] = 0x77;
+    }
+  } else {
+    if (column == 0) {
+      metatile_top[0] = 0x62;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x72;
+      metatile_bottom[1] = 0x71;
+    } else if (column == WIDTH - 1) {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x63;
+      metatile_bottom[0] = 0x70;
+      metatile_bottom[1] = 0x73;
+    } else {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x70;
+      metatile_bottom[1] = 0x71;
+    }
+  }
 
   multi_vram_buffer_horz(metatile_top, 2, position);
   multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
