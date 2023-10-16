@@ -24,7 +24,7 @@ class Polyomino {
   u16 drop_timer;
   union {
     s8 move_timer;
-    u8 settling_timer;
+    u8 jiggling_timer;
   };
   Direction movement_direction;
 
@@ -46,6 +46,9 @@ public:
 
   void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
               u8 &lines_filled);
+
+  // coroutine for jiggling the blocks before freezing for real
+  void jiggling();
 
   void banked_render();
 

@@ -1,6 +1,7 @@
 #include "polyomino.hpp"
 #include "bag.hpp"
 #include "bank-helper.hpp"
+#include "coroutine.hpp"
 #include "direction.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
@@ -148,11 +149,31 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
   }
 }
 
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::jiggling() {
+  CORO_INIT;
+
+  for (grounded_timer = 0; grounded_timer < 3; grounded_timer++) {
+    for (jiggling_timer = 0; jiggling_timer < 16; jiggling_timer++) {
+      CORO_YIELD();
+    }
+    definition->board_render(board, row, column, grounded_timer & 0b1);
+    CORO_YIELD();
+  }
+  state = State::Inactive;
+
+  CORO_FINISH();
+}
+
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
                   u8 &lines_filled) {
-  if (state != State::Active)
+  if (state == State::Settling) {
+    jiggling();
     return;
+  }
+  if (state == State::Inactive) {
+    return;
+  }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
     if (definition->collide(board, row + 1, column)) {
@@ -251,13 +272,14 @@ Polyomino::freeze_blocks() {
   });
 
   state = State::Settling;
+  jiggling_timer = 0;
   u8 filled_lines = 0;
   definition->board_render(board, row, column, true);
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
-        if (board.tally[block_row] == WIDTH) {
-          filled_lines++;
+    if (board.tally[block_row] == WIDTH) {
+      filled_lines++;
     }
   }
 
