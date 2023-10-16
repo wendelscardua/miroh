@@ -298,6 +298,7 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   }
 
   if (jiggling) {
+    // TODO: fix this offset, it's not always the same
     metatile_top[0] += 0x08;
     metatile_top[1] += 0x08;
     metatile_bottom[0] += 0x08;
