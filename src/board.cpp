@@ -234,6 +234,10 @@ void Board::free(s8 row, s8 column) {
 }
 
 void Board::block_maze_cell(s8 row, s8 column) {
+  block_maze_cell(row, column, false);
+}
+
+void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   char metatile_top[2];
   char metatile_bottom[2];
 
@@ -291,6 +295,13 @@ void Board::block_maze_cell(s8 row, s8 column) {
       metatile_bottom[0] = 0x70;
       metatile_bottom[1] = 0x71;
     }
+  }
+
+  if (jiggling) {
+    metatile_top[0] += 0x08;
+    metatile_top[1] += 0x08;
+    metatile_bottom[0] += 0x08;
+    metatile_bottom[1] += 0x08;
   }
 
   multi_vram_buffer_horz(metatile_top, 2, position);

@@ -66,6 +66,7 @@ public:
 
   // draw a block and occupy these coordinates
   void block_maze_cell(s8 row, s8 column);
+  void block_maze_cell(s8 row, s8 column, bool jiggling);
 
   // restore a maze andfree these coordinates
   void restore_maze_cell(s8 row, s8 column);
