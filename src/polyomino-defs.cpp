@@ -44,10 +44,6 @@ void PolyominoDef::board_render(Board &board, s8 row, s8 column,
     auto delta = deltas[i];
     s8 block_row = row + delta.delta_row;
     s8 block_column = column + delta.delta_column;
-    if (!board.occupied(block_row, block_column)) {
-      if (block_row >= 0) {
-        board.block_maze_cell(block_row, block_column, jiggling);
-      }
-    }
+    board.block_maze_cell(block_row, block_column, jiggling);
   }
 }

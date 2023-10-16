@@ -153,7 +153,7 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::jiggling() {
   CORO_INIT;
 
   for (grounded_timer = 0; grounded_timer < 3; grounded_timer++) {
-    for (jiggling_timer = 0; jiggling_timer < 16; jiggling_timer++) {
+    for (jiggling_timer = 0; jiggling_timer < 8; jiggling_timer++) {
       CORO_YIELD();
     }
     definition->board_render(board, row, column, grounded_timer & 0b1);
