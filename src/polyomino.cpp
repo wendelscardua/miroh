@@ -252,17 +252,12 @@ Polyomino::freeze_blocks() {
 
   state = State::Settling;
   u8 filled_lines = 0;
+  definition->board_render(board, row, column, true);
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
-    s8 block_column = column + delta.delta_column;
-    if (!board.occupied(block_row, block_column)) {
-      if (block_row >= 0) {
-        board.block_maze_cell(block_row, block_column);
         if (board.tally[block_row] == WIDTH) {
           filled_lines++;
-        }
-      }
     }
   }
 
