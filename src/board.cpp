@@ -298,11 +298,49 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   }
 
   if (jiggling) {
-    // TODO: fix this offset, it's not always the same
-    metatile_top[0] += 0x08;
-    metatile_top[1] += 0x08;
-    metatile_bottom[0] += 0x08;
-    metatile_bottom[1] += 0x08;
+    switch (metatile_top[0]) {
+    case 0x66:
+      metatile_top[0] = 0x6c;
+      break;
+    default:
+      metatile_top[0] += 0x08;
+    }
+
+    switch (metatile_top[1]) {
+    case 0x67:
+      metatile_top[1] = 0x6d;
+      break;
+    default:
+      metatile_top[1] += 0x08;
+    }
+
+    switch (metatile_bottom[0]) {
+    case 0x72:
+      metatile_bottom[0] = 0x72;
+      break;
+    case 0x74:
+      metatile_bottom[0] = 0x74;
+      break;
+    case 0x76:
+      metatile_bottom[0] = 0x7a;
+      break;
+    default:
+      metatile_bottom[0] += 0x08;
+    }
+
+    switch (metatile_bottom[1]) {
+    case 0x73:
+      metatile_bottom[1] = 0x73;
+      break;
+    case 0x77:
+      metatile_bottom[1] = 0x7a;
+      break;
+    case 0x75:
+      metatile_bottom[1] = 0x75;
+      break;
+    default:
+      metatile_bottom[1] += 0x08;
+    }
   }
 
   multi_vram_buffer_horz(metatile_top, 2, position);
