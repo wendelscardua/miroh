@@ -4,7 +4,7 @@
 #define HEIGHT 10
 #define WIDTH 12
 #define WALL_ATTRIBUTE 1
-#define BLOCK_ATTRIBUTE 2
+#define BLOCK_ATTRIBUTE 1
 
 #define BOARD_X_ORIGIN 0x20
 #define BOARD_Y_ORIGIN 0x30
@@ -66,6 +66,7 @@ public:
 
   // draw a block and occupy these coordinates
   void block_maze_cell(s8 row, s8 column);
+  void block_maze_cell(s8 row, s8 column, bool jiggling);
 
   // restore a maze andfree these coordinates
   void restore_maze_cell(s8 row, s8 column);

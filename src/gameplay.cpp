@@ -1,5 +1,7 @@
 #include <bank.h>
+#ifndef NDEBUG
 #include <cstdio>
+#endif
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -56,7 +58,7 @@ __attribute__((noinline)) Gameplay::Gameplay()
   banked_lambda(GET_BANK(bg_palette), []() {
     // idem palettes
     pal_bg(bg_palette);
-    pal_spr(sprites_player_palette);
+    pal_spr(sprites_palette);
   });
 
   pal_bright(0);
@@ -163,8 +165,8 @@ void Gameplay::loop() {
     }
 
     // we only spawn when there's no line clearing going on
-    if (!board.ongoing_line_clearing() && !polyomino.active &&
-        --spawn_timer == 0) {
+    if (polyomino.state == Polyomino::State::Inactive &&
+        !board.ongoing_line_clearing() && --spawn_timer == 0) {
       banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
       spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
     }
@@ -232,14 +234,14 @@ void Gameplay::loop() {
       banked_lambda(GET_BANK(bg_palette), [this]() {
         switch (input_mode) {
         case InputMode::Polyomino:
-          set_prg_bank(GET_BANK(sprites_polyomino_palette));
-          pal_spr(sprites_polyomino_palette);
+          set_prg_bank(GET_BANK(sprites_palette));
+          pal_spr(sprites_palette);
 
           break;
         case InputMode::Player:
         case InputMode::Pause:
-          set_prg_bank(GET_BANK(sprites_player_palette));
-          pal_spr(sprites_player_palette);
+          set_prg_bank(GET_BANK(sprites_palette));
+          pal_spr(sprites_palette);
           break;
         }
       });

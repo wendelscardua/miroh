@@ -134,7 +134,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
   banked_lambda(GET_BANK(bg_palette), []() {
     // idem palettes
     pal_bg(bg_palette);
-    pal_spr(sprites_player_palette);
+    pal_spr(sprites_palette);
   });
 
   pal_bright(0);
@@ -273,8 +273,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
           GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
         });
         scroll(0, 0);
-        banked_lambda(GET_BANK(bg_palette),
-                      []() { pal_spr(sprites_player_palette); });
+        banked_lambda(GET_BANK(bg_palette), []() { pal_spr(sprites_palette); });
         state = State::Options;
         break;
       }
@@ -288,16 +287,16 @@ __attribute__((noinline)) void TitleScreen::loop() {
         if (how_to_animation_framecount == 0) {
           how_to_animation_framecount = 90;
         }
-        banked_lambda(GET_BANK(bg_palette),
-                      []() { pal_spr(sprites_player_palette); });
+        banked_lambda(GET_BANK(sprites_palette),
+                      []() { pal_spr(sprites_palette); });
         break;
       case 1: // show polyomino selected
       case 3:
         if (how_to_animation_framecount == 0) {
           how_to_animation_framecount = 90;
         }
-        banked_lambda(GET_BANK(bg_palette),
-                      []() { pal_spr(sprites_polyomino_palette); });
+        banked_lambda(GET_BANK(sprites_palette),
+                      []() { pal_spr(sprites_palette); });
         break;
       case 4: // rotating minos
         if (how_to_animation_framecount == 0) {

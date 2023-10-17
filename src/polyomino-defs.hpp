@@ -39,6 +39,7 @@ struct PolyominoDef {
   bool collide(Board &board, s8 row, s8 column) const;
   void render(u8 x, u8 y) const;
   void chibi_render(u8 x, u8 y) const;
+  void board_render(Board &board, s8 row, s8 column, bool jiggling) const;
 };
 
 extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;

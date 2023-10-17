@@ -1,7 +1,7 @@
 #include "polyomino.hpp"
-#include "attributes.hpp"
 #include "bag.hpp"
 #include "bank-helper.hpp"
+#include "coroutine.hpp"
 #include "direction.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
@@ -47,10 +47,10 @@ auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
 
 Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), next(polyominos[pieces.take()]),
-      second_next(polyominos[pieces.take()]), active(false) {}
+      second_next(polyominos[pieces.take()]), state(State::Inactive) {}
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
-  active = true;
+  state = State::Active;
   grounded_timer = 0;
   move_timer = 0;
   movement_direction = Direction::None;
@@ -86,7 +86,7 @@ Polyomino::able_to_kick(auto kick_deltas) {
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
-  if (!active) {
+  if (state != Polyomino::State::Active) {
     if (input_mode == InputMode::Polyomino) {
       input_mode = InputMode::Player;
     }
@@ -149,11 +149,31 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
   }
 }
 
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::jiggling() {
+  CORO_INIT;
+
+  for (grounded_timer = 0; grounded_timer < 3; grounded_timer++) {
+    for (jiggling_timer = 0; jiggling_timer < 8; jiggling_timer++) {
+      CORO_YIELD();
+    }
+    definition->board_render(board, row, column, grounded_timer & 0b1);
+    CORO_YIELD();
+  }
+  state = State::Inactive;
+
+  CORO_FINISH();
+}
+
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
                   u8 &lines_filled) {
-  if (!active)
+  if (state == State::Settling) {
+    jiggling();
     return;
+  }
+  if (state == State::Inactive) {
+    return;
+  }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
     if (definition->collide(board, row + 1, column)) {
@@ -211,7 +231,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
 }
 
 void Polyomino::render() {
-  if (!active)
+  if (state != State::Active)
     return;
 
   banked_lambda(GET_BANK(polyominos), [this]() {
@@ -224,7 +244,7 @@ void Polyomino::render_next() {
   banked_lambda(GET_BANK(polyominos), [this]() {
     u8 next_x = board.origin_x + 0x10 * (WIDTH / 2);
     u8 next_y = board.origin_y - 0x20;
-    if (active && row < 0) {
+    if (state == State::Active && row < 0) {
       next->chibi_render(next_x + 0x40, next_y);
     } else {
       next->chibi_render(next_x, next_y);
@@ -251,26 +271,15 @@ Polyomino::freeze_blocks() {
     GGSound::play_sfx(SFX::Click, GGSound::SFXPriority::Two);
   });
 
-  active = false;
+  state = State::Settling;
+  jiggling_timer = 0;
   u8 filled_lines = 0;
+  definition->board_render(board, row, column, true);
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
-    s8 block_column = column + delta.delta_column;
-    if (!board.occupied(block_row, block_column)) {
-      if (block_row >= 0) {
-        board.occupy(block_row, block_column);
-        if (board.tally[block_row] == WIDTH) {
-          filled_lines++;
-        }
-      }
-      int position = NTADR_A((board.origin_x >> 3) + (block_column << 1),
-                             (board.origin_y >> 3) + (block_row << 1));
-      multi_vram_buffer_horz((const u8[2]){0x74, 0x75}, 2, position);
-      multi_vram_buffer_horz((const u8[2]){0x84, 0x85}, 2, position + 0x20);
-      Attributes::set((board.origin_x >> 4) + (u8)block_column,
-                      (board.origin_y >> 4) + (u8)block_row,
-                      FROZEN_BLOCK_ATTRIBUTE);
+    if (board.tally[block_row] == WIDTH) {
+      filled_lines++;
     }
   }
 

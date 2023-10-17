@@ -22,19 +22,22 @@ class Polyomino {
   s8 row;
   s8 column;
   u16 drop_timer;
-  s8 move_timer;
+  union {
+    s8 move_timer;
+    u8 jiggling_timer;
+  };
   Direction movement_direction;
 
   bool able_to_kick(auto kick_deltas);
 
 public:
-  static const u8 BLOCK_UPPER_LEFT_TILE = 0x74;
-  static constexpr u8 BLOCK_UPPER_RIGHT_TILE = BLOCK_UPPER_LEFT_TILE + 0x1;
-  static constexpr u8 BLOCK_LOWER_LEFT_TILE = BLOCK_UPPER_LEFT_TILE + 0x10;
-  static constexpr u8 BLOCK_LOWER_RIGHT_TILE = BLOCK_LOWER_LEFT_TILE + 0x1;
-
+  enum class State {
+    Inactive,
+    Active,
+    Settling,
+  };
   u8 grounded_timer;
-  bool active;
+  State state;
   Polyomino(Board &board);
 
   void spawn();
@@ -43,6 +46,9 @@ public:
 
   void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
               u8 &lines_filled);
+
+  // coroutine for jiggling the blocks before freezing for real
+  void jiggling();
 
   void banked_render();
 

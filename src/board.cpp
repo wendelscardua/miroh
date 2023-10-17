@@ -234,15 +234,117 @@ void Board::free(s8 row, s8 column) {
 }
 
 void Board::block_maze_cell(s8 row, s8 column) {
+  block_maze_cell(row, column, false);
+}
+
+void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
+  char metatile_top[2];
+  char metatile_bottom[2];
+
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
 
-  multi_vram_buffer_horz((const u8[2]){Polyomino::BLOCK_UPPER_LEFT_TILE,
-                                       Polyomino::BLOCK_UPPER_RIGHT_TILE},
-                         2, position);
-  multi_vram_buffer_horz((const u8[2]){Polyomino::BLOCK_LOWER_LEFT_TILE,
-                                       Polyomino::BLOCK_LOWER_RIGHT_TILE},
-                         2, position + 0x20);
+  if (row == 0) {
+    if (column == 0) {
+      metatile_top[0] = 0x66;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x72;
+      metatile_bottom[1] = 0x71;
+    } else if (column == WIDTH - 1) {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x67;
+      metatile_bottom[0] = 0x70;
+      metatile_bottom[1] = 0x73;
+    } else {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x70;
+      metatile_bottom[1] = 0x71;
+    }
+  } else if (row == HEIGHT - 1) {
+    if (column == 0) {
+      metatile_top[0] = 0x62;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x74;
+      metatile_bottom[1] = 0x77;
+    } else if (column == WIDTH - 1) {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x63;
+      metatile_bottom[0] = 0x76;
+      metatile_bottom[1] = 0x75;
+    } else {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x76;
+      metatile_bottom[1] = 0x77;
+    }
+  } else {
+    if (column == 0) {
+      metatile_top[0] = 0x62;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x72;
+      metatile_bottom[1] = 0x71;
+    } else if (column == WIDTH - 1) {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x63;
+      metatile_bottom[0] = 0x70;
+      metatile_bottom[1] = 0x73;
+    } else {
+      metatile_top[0] = 0x60;
+      metatile_top[1] = 0x61;
+      metatile_bottom[0] = 0x70;
+      metatile_bottom[1] = 0x71;
+    }
+  }
+
+  if (jiggling) {
+    switch (metatile_top[0]) {
+    case 0x66:
+      metatile_top[0] = 0x6c;
+      break;
+    default:
+      metatile_top[0] += 0x08;
+    }
+
+    switch (metatile_top[1]) {
+    case 0x67:
+      metatile_top[1] = 0x6d;
+      break;
+    default:
+      metatile_top[1] += 0x08;
+    }
+
+    switch (metatile_bottom[0]) {
+    case 0x72:
+      metatile_bottom[0] = 0x72;
+      break;
+    case 0x74:
+      metatile_bottom[0] = 0x74;
+      break;
+    case 0x76:
+      metatile_bottom[0] = 0x7a;
+      break;
+    default:
+      metatile_bottom[0] += 0x08;
+    }
+
+    switch (metatile_bottom[1]) {
+    case 0x73:
+      metatile_bottom[1] = 0x73;
+      break;
+    case 0x77:
+      metatile_bottom[1] = 0x7a;
+      break;
+    case 0x75:
+      metatile_bottom[1] = 0x75;
+      break;
+    default:
+      metatile_bottom[1] += 0x08;
+    }
+  }
+
+  multi_vram_buffer_horz(metatile_top, 2, position);
+  multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
   Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
                   BLOCK_ATTRIBUTE);
   occupy(row, column);
@@ -406,11 +508,14 @@ bool Board::ongoing_line_clearing() {
                 : occupied(erasing_row_source, erasing_column);
 
         if (source_occupied) {
-          block_maze_cell(erasing_row, erasing_column);
-          if (erasing_row_source >= 0) {
+          if (!occupied(erasing_row, erasing_column)) {
+            block_maze_cell(erasing_row, erasing_column);
+          }
+          if (erasing_row_source >= 0 &&
+              occupied(erasing_row_source, erasing_column)) {
             restore_maze_cell(erasing_row_source, erasing_column);
           }
-        } else {
+        } else if (occupied(erasing_row, erasing_column)) {
           restore_maze_cell(erasing_row, erasing_column);
         }
       }
@@ -423,6 +528,10 @@ bool Board::ongoing_line_clearing() {
         CORO_YIELD(true);
       }
     }
+  }
+
+  for (s8 i = 0; i < HEIGHT; i++) {
+    deleted[i] = false;
   }
 
   CORO_FINISH(false);
