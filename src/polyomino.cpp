@@ -3,6 +3,7 @@
 #include "bank-helper.hpp"
 #include "coroutine.hpp"
 #include "direction.hpp"
+#include "gameplay.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "polyomino-defs.hpp"
@@ -236,14 +237,15 @@ void Polyomino::render() {
 
   banked_lambda(GET_BANK(polyominos), [this]() {
     definition->render(board.origin_x + (u8)(column << 4),
-                       board.origin_y + (u8)(row << 4));
+                       board.origin_y - Gameplay::DEFAULT_SCROLL_Y +
+                           (u8)(row << 4));
   });
 }
 
 void Polyomino::render_next() {
   banked_lambda(GET_BANK(polyominos), [this]() {
     u8 next_x = board.origin_x + 0x10 * (WIDTH / 2);
-    u8 next_y = board.origin_y - 0x20;
+    u8 next_y = board.origin_y - 0x20 - Gameplay::DEFAULT_SCROLL_Y;
     if (state == State::Active && row < 0) {
       next->chibi_render(next_x + 0x40, next_y);
     } else {

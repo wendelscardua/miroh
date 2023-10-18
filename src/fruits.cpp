@@ -1,6 +1,7 @@
 #include "fruits.hpp"
 #include "bag.hpp"
 #include "banked-asset-helpers.hpp"
+#include "gameplay.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"
 #include <nesdoug.h>
@@ -61,7 +62,8 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
 
   fruit.active = true;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
-  fruit.y = (u8)((fruit.row << 4) + board.origin_y);
+  fruit.y =
+      (u8)((fruit.row << 4) + board.origin_y - Gameplay::DEFAULT_SCROLL_Y);
   fruit.life = EXPIRATION_TIME;
 }
 

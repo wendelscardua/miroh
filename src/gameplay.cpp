@@ -60,7 +60,7 @@ __attribute__((noinline)) Gameplay::Gameplay()
 
   oam_clear();
 
-  scroll(0, 0);
+  scroll(0, DEFAULT_SCROLL_Y);
 
   ppu_on_all();
 
@@ -139,7 +139,7 @@ void Gameplay::loop() {
       if (pressed & (PAD_START | PAD_B)) {
         input_mode = InputMode::Player;
         pressed &= ~(PAD_START | PAD_B);
-        set_scroll_y(0);
+        set_scroll_y(DEFAULT_SCROLL_Y);
         banked_lambda(GET_BANK(song_list), []() { GGSound::resume(); });
       } else if (pressed &
                  (PAD_LEFT | PAD_RIGHT | PAD_UP | PAD_DOWN | PAD_SELECT)) {
@@ -147,7 +147,7 @@ void Gameplay::loop() {
       } else if (pressed & PAD_A) {
         banked_lambda(GET_BANK(song_list), []() { GGSound::resume(); });
         input_mode = InputMode::Player;
-        set_scroll_y(0);
+        set_scroll_y(DEFAULT_SCROLL_Y);
         if (pause_option == 1) {
           current_mode = GameMode::TitleScreen;
         }
@@ -202,7 +202,7 @@ void Gameplay::loop() {
           pressed &= ~(PAD_SELECT | PAD_A | PAD_B);
         } else if (pressed & PAD_START) {
           input_mode = InputMode::Pause;
-          set_scroll_y(0x130);
+          set_scroll_y(PAUSE_SCROLL_Y);
           banked_lambda(GET_BANK(song_list), []() { GGSound::pause(); });
         }
         break;
@@ -212,7 +212,7 @@ void Gameplay::loop() {
           pressed &= ~(PAD_SELECT);
         } else if (pressed & PAD_START) {
           input_mode = InputMode::Pause;
-          set_scroll_y(0x130);
+          set_scroll_y(PAUSE_SCROLL_Y);
           banked_lambda(GET_BANK(song_list), []() { GGSound::pause(); });
         }
         break;

@@ -3,6 +3,7 @@
 #include "banked-asset-helpers.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
+#include "gameplay.hpp"
 #include "ggsound.hpp"
 #include "maze-defs.hpp"
 #include "metasprites.hpp"
@@ -171,6 +172,7 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
 }
 
 void Player::render() {
+  u8 reference_y = board.origin_y - Gameplay::DEFAULT_SCROLL_Y;
   const u8 *metasprite;
   switch (state) {
   case State::Idle:
@@ -209,21 +211,21 @@ void Player::render() {
     }
   } break;
   case State::Dying:
-    if (ghost_height > 4 && board.origin_y + (u8)y.whole > ghost_height) {
+    if (ghost_height > 4 && reference_y + (u8)y.whole > ghost_height) {
       banked_oam_meta_spr(board.origin_x + (u8)x.whole,
-                          board.origin_y + (u8)y.whole - ghost_height,
+                          reference_y + (u8)y.whole - ghost_height,
                           metasprite_Ghost);
     }
     metasprite = metasprite_RIP;
     break;
   case State::Dead:
     banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                        board.origin_y + (u8)y.round() - ghost_height,
+                        reference_y + (u8)y.round() - ghost_height,
                         metasprite_RIP);
     return;
   }
   banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                      board.origin_y + (u8)y.round(), metasprite);
+                      reference_y + (u8)y.round(), metasprite);
 }
 
 void Player::feed(u8 nutrition) {

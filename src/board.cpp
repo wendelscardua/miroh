@@ -5,7 +5,6 @@
 #include "common.hpp"
 #include "coroutine.hpp"
 #include "maze-defs.hpp"
-#include "polyomino.hpp"
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
