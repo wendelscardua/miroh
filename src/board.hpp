@@ -1,10 +1,11 @@
 #pragma once
 
 #include "common.hpp"
-#define HEIGHT 10
-#define WIDTH 12
-#define WALL_ATTRIBUTE 1
-#define BLOCK_ATTRIBUTE 1
+
+constexpr u8 HEIGHT = 10;
+constexpr u8 WIDTH = 12;
+constexpr u8 WALL_ATTRIBUTE = 0;
+constexpr u8 BLOCK_ATTRIBUTE = 0;
 
 #define BOARD_X_ORIGIN 0x20
 #define BOARD_Y_ORIGIN 0x30
