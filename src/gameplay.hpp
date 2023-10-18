@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assets.hpp"
 #include "board.hpp"
 #include "fruits.hpp"
 #include "input-mode.hpp"
@@ -7,6 +8,7 @@
 #include "polyomino.hpp"
 
 class Gameplay {
+  static constexpr int PAUSE_SCROLL_Y = 0x130;
   // we level up every 50 points
   static constexpr u16 LEVEL_UP_POINTS = 50;
 
@@ -44,11 +46,14 @@ class Gameplay {
   u8 pause_option;
 
 public:
+  static constexpr int DEFAULT_SCROLL_Y = 0x08;
+
   Board board;
   Player player;
   Polyomino polyomino;
   Fruits fruits;
   InputMode input_mode;
+  Location current_location;
 
   Gameplay();
   ~Gameplay();

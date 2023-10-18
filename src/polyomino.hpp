@@ -1,3 +1,5 @@
+#pragma once
+
 #include "bag.hpp"
 #include "board.hpp"
 #include "direction.hpp"

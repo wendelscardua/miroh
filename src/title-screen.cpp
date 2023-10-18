@@ -2,17 +2,15 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
+#include "assets.hpp"
 #include "bank-helper.hpp"
 
 #include "banked-asset-helpers.hpp"
-#include "chr-data.hpp"
 #include "common.hpp"
 #include "donut.hpp"
 #include "ggsound.hpp"
 #include "maze-defs.hpp"
 #include "metasprites.hpp"
-#include "nametables.hpp"
-#include "palettes.hpp"
 #include "soundtrack.hpp"
 #include "title-screen.hpp"
 
@@ -113,28 +111,21 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
     : state(State::PressStart), current_option(MenuOption::Start) {
   set_chr_bank(0);
 
-  banked_lambda(GET_BANK(bg_chr), []() {
-    // assume all chr are on same bank
+  banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
+    Donut::decompress_to_ppu(level_bg_tiles[0], PPU_PATTERN_TABLE_SIZE / 64);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
-  });
+    Donut::decompress_to_ppu(level_spr_tiles[0], PPU_PATTERN_TABLE_SIZE / 64);
 
-  banked_lambda(GET_BANK(title_nam), []() {
-    // idem nametables
     vram_adr(NAMETABLE_D);
     vram_write(how_to_nam, 1024);
 
     vram_adr(NAMETABLE_A);
     vram_write(title_nam, 1024);
-  });
 
-  banked_lambda(GET_BANK(bg_palette), []() {
-    // idem palettes
-    pal_bg(bg_palette);
-    pal_spr(sprites_palette);
+    pal_bg(level_bg_palettes[0]);
+    pal_spr(level_spr_palettes[0]);
   });
 
   pal_bright(0);
@@ -273,7 +264,6 @@ __attribute__((noinline)) void TitleScreen::loop() {
           GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
         });
         scroll(0, 0);
-        banked_lambda(GET_BANK(bg_palette), []() { pal_spr(sprites_palette); });
         state = State::Options;
         break;
       }
@@ -287,16 +277,12 @@ __attribute__((noinline)) void TitleScreen::loop() {
         if (how_to_animation_framecount == 0) {
           how_to_animation_framecount = 90;
         }
-        banked_lambda(GET_BANK(sprites_palette),
-                      []() { pal_spr(sprites_palette); });
         break;
       case 1: // show polyomino selected
       case 3:
         if (how_to_animation_framecount == 0) {
           how_to_animation_framecount = 90;
         }
-        banked_lambda(GET_BANK(sprites_palette),
-                      []() { pal_spr(sprites_palette); });
         break;
       case 4: // rotating minos
         if (how_to_animation_framecount == 0) {

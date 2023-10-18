@@ -1,3 +1,4 @@
+#include "assets.hpp"
 #include <bank.h>
 #ifndef NDEBUG
 #include <cstdio>
@@ -9,7 +10,6 @@
 #include "bank-helper.hpp"
 
 #include "banked-asset-helpers.hpp"
-#include "chr-data.hpp"
 #include "common.hpp"
 #include "donut.hpp"
 #include "fixed-point.hpp"
@@ -18,54 +18,49 @@
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "metasprites.hpp"
-#include "nametables.hpp"
-#include "palettes.hpp"
 #include "player.hpp"
 
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
+// TODO: variable current_location
 __attribute__((noinline)) Gameplay::Gameplay()
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       pause_option(0), board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
-      polyomino(board), fruits(board), input_mode(InputMode::Player) {
+      polyomino(board), fruits(board), input_mode(InputMode::Player),
+      current_location(Location::StarlitStables) {
   set_chr_bank(0);
 
-  banked_lambda(GET_BANK(bg_chr), []() {
-    // assume all chr are on same bank
+  banked_lambda(ASSETS_BANK, [this]() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
+    Donut::decompress_to_ppu(level_bg_tiles[(u8)current_location],
+                             PPU_PATTERN_TABLE_SIZE / 64);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
-  });
+    Donut::decompress_to_ppu(level_spr_tiles[(u8)current_location],
+                             PPU_PATTERN_TABLE_SIZE / 64);
 
-  banked_lambda(GET_BANK(title_nam), []() {
-    // idem nametables
     vram_adr(NAMETABLE_D);
     vram_write(game_over_nam, 1024);
 
     vram_adr(NAMETABLE_A);
-    vram_write(gameplay_nam, 1024);
+    vram_write(level_nametables[(u8)current_location], 1024);
 
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);
+
+    pal_bg(level_bg_palettes[(u8)current_location]);
+    pal_spr(level_spr_palettes[(u8)current_location]);
   });
 
   board.render();
-
-  banked_lambda(GET_BANK(bg_palette), []() {
-    // idem palettes
-    pal_bg(bg_palette);
-    pal_spr(sprites_palette);
-  });
 
   pal_bright(0);
 
   oam_clear();
 
-  scroll(0, 0);
+  scroll(0, DEFAULT_SCROLL_Y);
 
   ppu_on_all();
 
@@ -144,7 +139,7 @@ void Gameplay::loop() {
       if (pressed & (PAD_START | PAD_B)) {
         input_mode = InputMode::Player;
         pressed &= ~(PAD_START | PAD_B);
-        set_scroll_y(0);
+        set_scroll_y(DEFAULT_SCROLL_Y);
         banked_lambda(GET_BANK(song_list), []() { GGSound::resume(); });
       } else if (pressed &
                  (PAD_LEFT | PAD_RIGHT | PAD_UP | PAD_DOWN | PAD_SELECT)) {
@@ -152,7 +147,7 @@ void Gameplay::loop() {
       } else if (pressed & PAD_A) {
         banked_lambda(GET_BANK(song_list), []() { GGSound::resume(); });
         input_mode = InputMode::Player;
-        set_scroll_y(0);
+        set_scroll_y(DEFAULT_SCROLL_Y);
         if (pause_option == 1) {
           current_mode = GameMode::TitleScreen;
         }
@@ -207,7 +202,7 @@ void Gameplay::loop() {
           pressed &= ~(PAD_SELECT | PAD_A | PAD_B);
         } else if (pressed & PAD_START) {
           input_mode = InputMode::Pause;
-          set_scroll_y(0x130);
+          set_scroll_y(PAUSE_SCROLL_Y);
           banked_lambda(GET_BANK(song_list), []() { GGSound::pause(); });
         }
         break;
@@ -217,7 +212,7 @@ void Gameplay::loop() {
           pressed &= ~(PAD_SELECT);
         } else if (pressed & PAD_START) {
           input_mode = InputMode::Pause;
-          set_scroll_y(0x130);
+          set_scroll_y(PAUSE_SCROLL_Y);
           banked_lambda(GET_BANK(song_list), []() { GGSound::pause(); });
         }
         break;
@@ -230,20 +225,6 @@ void Gameplay::loop() {
     if (input_mode != old_mode) {
       banked_lambda(GET_BANK(sfx_list), []() {
         GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-      });
-      banked_lambda(GET_BANK(bg_palette), [this]() {
-        switch (input_mode) {
-        case InputMode::Polyomino:
-          set_prg_bank(GET_BANK(sprites_palette));
-          pal_spr(sprites_palette);
-
-          break;
-        case InputMode::Player:
-        case InputMode::Pause:
-          set_prg_bank(GET_BANK(sprites_palette));
-          pal_spr(sprites_palette);
-          break;
-        }
       });
     }
 
