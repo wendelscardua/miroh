@@ -13,7 +13,7 @@ set(CMAKE_ASM_FLAGS_RELWITHDEBINFO "-Os -flto")
 set(LLVM_MOS_PLATFORM nes-action53)
 find_package(llvm-mos-sdk REQUIRED)
 
-project(miroh CXX ASM)
+project(miroh-jr CXX ASM)
 
 add_compile_options(
   -g -gdwarf-4
