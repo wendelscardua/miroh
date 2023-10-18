@@ -5,7 +5,7 @@
 #include "board.hpp"
 #include "common.hpp"
 
-#define NUM_POLYOMINOS 21
+#define NUM_POLYOMINOS 28
 
 #define CHIBI_TILE 0x1a
 
