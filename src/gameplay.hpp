@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assets.hpp"
 #include "board.hpp"
 #include "fruits.hpp"
 #include "input-mode.hpp"
@@ -49,6 +50,7 @@ public:
   Polyomino polyomino;
   Fruits fruits;
   InputMode input_mode;
+  Location current_location;
 
   Gameplay();
   ~Gameplay();

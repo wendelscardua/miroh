@@ -102,9 +102,7 @@ add_library(SourceObj
   polyomino.cpp
   polyomino-defs.cpp
 
-  chr-data.s
-  nametables.s
-  palettes.s
+  assets.s
   soundtrack.s
   polyominos.s
   maze-defs.s
@@ -114,47 +112,33 @@ add_library(SourceObj
   ${CMAKE_CURRENT_BINARY_DIR}/metasprites.s
 )
 
-add_donut_asset(SOURCE "bg.chr")
-add_donut_asset(SOURCE "sprites.chr")
-
 set_property(
   SOURCE
-  chr-data.s
+  assets.s
   PROPERTY
   OBJECT_DEPENDS
-  bg.chr.donut
-  sprites.chr.donut
-)
-
-add_raw_asset(SOURCE "bg.pal")
-add_raw_asset(SOURCE "sprites.pal")
-
-set_property(
-  SOURCE
-  palettes.s
-  PROPERTY
-  OBJECT_DEPENDS
-  bg.pal
-  sprites.pal
-)
-
-add_raw_asset(SOURCE "title.nam")
-add_raw_asset(SOURCE "gameplay.nam")
-add_raw_asset(SOURCE "game-over.nam")
-add_raw_asset(SOURCE "how-to.nam")
-add_raw_asset(SOURCE "credits.nam")
-
-set_property(
-  SOURCE
-  nametables.s
-  PROPERTY
-  OBJECT_DEPENDS
-  title.nam
-  gameplay.nam
+  StarlitStablesBG.pal
+  StarlitStablesSPR.pal
+  StarlitStablesBG.chr.donut
+  SPR.chr.donut
+  Title.nam
+  StarlitStables.nam
   game-over.nam
   how-to.nam
   credits.nam
 )
+
+add_raw_asset(SOURCE "StarlitStablesBG.pal")
+add_raw_asset(SOURCE "StarlitStablesSPR.pal")
+
+add_donut_asset(SOURCE "StarlitStablesBG.chr")
+add_donut_asset(SOURCE "SPR.chr")
+
+add_raw_asset(SOURCE "Title.nam")
+add_raw_asset(SOURCE "StarlitStables.nam")
+add_raw_asset(SOURCE "game-over.nam")
+add_raw_asset(SOURCE "how-to.nam")
+add_raw_asset(SOURCE "credits.nam")
 
 set_property(
   SOURCE
