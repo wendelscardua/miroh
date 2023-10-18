@@ -244,102 +244,112 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
 
-  if (row == 0) {
-    if (column == 0) {
-      metatile_top[0] = 0x66;
-      metatile_top[1] = 0x61;
-      metatile_bottom[0] = 0x72;
-      metatile_bottom[1] = 0x71;
-    } else if (column == WIDTH - 1) {
-      metatile_top[0] = 0x60;
-      metatile_top[1] = 0x67;
-      metatile_bottom[0] = 0x70;
-      metatile_bottom[1] = 0x73;
+  // TODO: maybe read from Edges session?
+  if (jiggling) {
+    if (row == 0) {
+      if (column == 0) {
+        metatile_top[0] = 0x6a;
+        metatile_top[1] = 0x67;
+        metatile_bottom[0] = 0x72;
+        metatile_bottom[1] = 0x79;
+      } else if (column == WIDTH - 1) {
+        metatile_top[0] = 0x66;
+        metatile_top[1] = 0x6b;
+        metatile_bottom[0] = 0x78;
+        metatile_bottom[1] = 0x73;
+      } else {
+        metatile_top[0] = 0x66;
+        metatile_top[1] = 0x67;
+        metatile_bottom[0] = 0x78;
+        metatile_bottom[1] = 0x79;
+      }
+    } else if (row == HEIGHT - 1) {
+      if (column == 0) {
+        metatile_top[0] = 0x68;
+        metatile_top[1] = 0x67;
+        metatile_bottom[0] = 0x74;
+        metatile_bottom[1] = 0x7a;
+      } else if (column == WIDTH - 1) {
+        metatile_top[0] = 0x66;
+        metatile_top[1] = 0x69;
+        metatile_bottom[0] = 0x7a;
+        metatile_bottom[1] = 0x75;
+      } else {
+        metatile_top[0] = 0x66;
+        metatile_top[1] = 0x67;
+        metatile_bottom[0] = 0x7a;
+        metatile_bottom[1] = 0x7a;
+      }
     } else {
-      metatile_top[0] = 0x60;
-      metatile_top[1] = 0x61;
-      metatile_bottom[0] = 0x70;
-      metatile_bottom[1] = 0x71;
-    }
-  } else if (row == HEIGHT - 1) {
-    if (column == 0) {
-      metatile_top[0] = 0x62;
-      metatile_top[1] = 0x61;
-      metatile_bottom[0] = 0x74;
-      metatile_bottom[1] = 0x77;
-    } else if (column == WIDTH - 1) {
-      metatile_top[0] = 0x60;
-      metatile_top[1] = 0x63;
-      metatile_bottom[0] = 0x76;
-      metatile_bottom[1] = 0x75;
-    } else {
-      metatile_top[0] = 0x60;
-      metatile_top[1] = 0x61;
-      metatile_bottom[0] = 0x76;
-      metatile_bottom[1] = 0x77;
+      if (column == 0) {
+        metatile_top[0] = 0x68;
+        metatile_top[1] = 0x67;
+        metatile_bottom[0] = 0x72;
+        metatile_bottom[1] = 0x79;
+      } else if (column == WIDTH - 1) {
+        metatile_top[0] = 0x66;
+        metatile_top[1] = 0x69;
+        metatile_bottom[0] = 0x78;
+        metatile_bottom[1] = 0x73;
+      } else {
+        metatile_top[0] = 0x66;
+        metatile_top[1] = 0x67;
+        metatile_bottom[0] = 0x78;
+        metatile_bottom[1] = 0x79;
+      }
     }
   } else {
-    if (column == 0) {
-      metatile_top[0] = 0x62;
-      metatile_top[1] = 0x61;
-      metatile_bottom[0] = 0x72;
-      metatile_bottom[1] = 0x71;
-    } else if (column == WIDTH - 1) {
-      metatile_top[0] = 0x60;
-      metatile_top[1] = 0x63;
-      metatile_bottom[0] = 0x70;
-      metatile_bottom[1] = 0x73;
+    if (row == 0) {
+      if (column == 0) {
+        metatile_top[0] = 0x64;
+        metatile_top[1] = 0x61;
+        metatile_bottom[0] = 0x72;
+        metatile_bottom[1] = 0x71;
+      } else if (column == WIDTH - 1) {
+        metatile_top[0] = 0x60;
+        metatile_top[1] = 0x65;
+        metatile_bottom[0] = 0x70;
+        metatile_bottom[1] = 0x73;
+      } else {
+        metatile_top[0] = 0x60;
+        metatile_top[1] = 0x61;
+        metatile_bottom[0] = 0x70;
+        metatile_bottom[1] = 0x71;
+      }
+    } else if (row == HEIGHT - 1) {
+      if (column == 0) {
+        metatile_top[0] = 0x62;
+        metatile_top[1] = 0x61;
+        metatile_bottom[0] = 0x74;
+        metatile_bottom[1] = 0x77;
+      } else if (column == WIDTH - 1) {
+        metatile_top[0] = 0x60;
+        metatile_top[1] = 0x63;
+        metatile_bottom[0] = 0x76;
+        metatile_bottom[1] = 0x75;
+      } else {
+        metatile_top[0] = 0x60;
+        metatile_top[1] = 0x61;
+        metatile_bottom[0] = 0x76;
+        metatile_bottom[1] = 0x77;
+      }
     } else {
-      metatile_top[0] = 0x60;
-      metatile_top[1] = 0x61;
-      metatile_bottom[0] = 0x70;
-      metatile_bottom[1] = 0x71;
-    }
-  }
-
-  if (jiggling) {
-    switch (metatile_top[0]) {
-    case 0x66:
-      metatile_top[0] = 0x6c;
-      break;
-    default:
-      metatile_top[0] += 0x08;
-    }
-
-    switch (metatile_top[1]) {
-    case 0x67:
-      metatile_top[1] = 0x6d;
-      break;
-    default:
-      metatile_top[1] += 0x08;
-    }
-
-    switch (metatile_bottom[0]) {
-    case 0x72:
-      metatile_bottom[0] = 0x72;
-      break;
-    case 0x74:
-      metatile_bottom[0] = 0x74;
-      break;
-    case 0x76:
-      metatile_bottom[0] = 0x7a;
-      break;
-    default:
-      metatile_bottom[0] += 0x08;
-    }
-
-    switch (metatile_bottom[1]) {
-    case 0x73:
-      metatile_bottom[1] = 0x73;
-      break;
-    case 0x77:
-      metatile_bottom[1] = 0x7a;
-      break;
-    case 0x75:
-      metatile_bottom[1] = 0x75;
-      break;
-    default:
-      metatile_bottom[1] += 0x08;
+      if (column == 0) {
+        metatile_top[0] = 0x62;
+        metatile_top[1] = 0x61;
+        metatile_bottom[0] = 0x72;
+        metatile_bottom[1] = 0x71;
+      } else if (column == WIDTH - 1) {
+        metatile_top[0] = 0x60;
+        metatile_top[1] = 0x63;
+        metatile_bottom[0] = 0x70;
+        metatile_bottom[1] = 0x73;
+      } else {
+        metatile_top[0] = 0x60;
+        metatile_top[1] = 0x61;
+        metatile_bottom[0] = 0x70;
+        metatile_bottom[1] = 0x71;
+      }
     }
   }
 
