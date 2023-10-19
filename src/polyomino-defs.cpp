@@ -2,6 +2,7 @@
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "metasprites.hpp"
+#include <nesdoug.h>
 #include <neslib.h>
 
 bool PolyominoDef::collide(Board &board, s8 row, s8 column) const {
@@ -26,16 +27,9 @@ void PolyominoDef::render(u8 x, u8 y) const {
   }
 }
 
-void PolyominoDef::chibi_render(u8 x, u8 y) const {
-  for (u8 i = 0; i < size; i++) {
-    auto delta = deltas[i];
-    u8 block_x = x + (u8)(delta.delta_column << 3);
-    u8 block_y = y + (u8)(delta.delta_row << 3);
-    if (block_y == 0) {
-      block_y++;
-    }
-    oam_spr((u8)block_x, (u8)block_y, CHIBI_TILE, 0x01);
-  }
+void PolyominoDef::chibi_render(u8 row, u8 column) const {
+  multi_vram_buffer_horz(preview_tiles, 2, NTADR_A(column, row));
+  multi_vram_buffer_horz(preview_tiles + 2, 2, NTADR_A(column, row + 1));
 }
 
 void PolyominoDef::board_render(Board &board, s8 row, s8 column,
