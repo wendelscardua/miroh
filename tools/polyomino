@@ -109,6 +109,7 @@ class Polyomino < Thor
         (5 - blocks.size).times do
           f.puts '  .byte 0'
         end
+        f.puts "  .byte #{preview_bytes(blocks).join(', ')}"
       end
 
       kicks.each do |key, values|
@@ -121,6 +122,32 @@ class Polyomino < Thor
         end
       end
     end
+  end
+
+  private
+
+  PREVIEW_BASE_TILE = 0x30
+
+  def preview_byte(block_matrix, row_offset, column_offset)
+    block_matrix[row_offset + 1][column_offset + 1] * 1 +
+    block_matrix[row_offset + 1][column_offset + 0] * 2 +
+    block_matrix[row_offset + 0][column_offset + 1] * 4 +
+    block_matrix[row_offset + 0][column_offset + 0] * 8 +
+    PREVIEW_BASE_TILE
+  end
+
+  def preview_bytes(blocks)
+    block_matrix = Array.new(4) { Array.new(4) { 0 } }
+    blocks.each do |delta_row, delta_column|
+      block_matrix[delta_row + 1][delta_column + 1] = 1
+    end
+
+    [
+      preview_byte(block_matrix, 0, 0),
+      preview_byte(block_matrix, 0, 2),
+      preview_byte(block_matrix, 2, 0),
+      preview_byte(block_matrix, 2, 2)
+    ]
   end
 end
 

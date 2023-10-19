@@ -48,7 +48,7 @@ auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
 
 Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), next(polyominos[pieces.take()]),
-      second_next(polyominos[pieces.take()]), state(State::Inactive) {}
+      state(State::Inactive) {}
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   state = State::Active;
@@ -59,8 +59,7 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   row = 0;
 
   definition = next;
-  next = second_next;
-  second_next = polyominos[pieces.take()];
+  next = polyominos[pieces.take()];
 
   s8 max_delta = 0;
   for (auto delta : definition->deltas) {
@@ -243,16 +242,7 @@ void Polyomino::render() {
 }
 
 void Polyomino::render_next() {
-  banked_lambda(GET_BANK(polyominos), [this]() {
-    u8 next_x = board.origin_x + 0x10 * (WIDTH / 2);
-    u8 next_y = board.origin_y - 0x20 - Gameplay::DEFAULT_SCROLL_Y;
-    if (state == State::Active && row < 0) {
-      next->chibi_render(next_x + 0x40, next_y);
-    } else {
-      next->chibi_render(next_x, next_y);
-      second_next->chibi_render(next_x + 0x40, next_y);
-    }
-  });
+  banked_lambda(GET_BANK(polyominos), [this]() { next->chibi_render(3, 5); });
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) bool
