@@ -35,6 +35,7 @@ struct PolyominoDef {
   const Kick *const right_kick;
   const u8 size;
   const soa::Array<const Coordinates, 5> deltas;
+  const char preview_tiles[4];
 
   bool collide(Board &board, s8 row, s8 column) const;
   void render(u8 x, u8 y) const;
