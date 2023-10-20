@@ -1,19 +1,17 @@
 #pragma once
 
+#include "common.hpp"
 #include <bank.h>
-#define GET_BANK(symbol) [] (){    \
-        register u8 bank asm("a"); \
-        asm ( \
-            "ld%0 #mos24bank(" # symbol ")\n"  \
-            : "=r" (bank) \
-            : "r" (bank) \
-            : "a" \
-            ); \
-        return bank; \
-    }()
+#define GET_BANK(symbol)                                                       \
+  []() {                                                                       \
+    register u8 bank asm("a");                                                 \
+    asm("ld%0 #mos24bank(" #symbol ")\n" : "=r"(bank) : "r"(bank) : "a");      \
+    return bank;                                                               \
+  }()
 
-template<typename Func>
-__attribute__((noinline, section(".prg_rom_last.text"))) void banked_lambda(char bank_id, Func lambda) {
+template <typename Func>
+__attribute__((noinline, section(".prg_rom_last.text"))) void
+banked_lambda(char bank_id, Func lambda) {
   char old_bank = get_prg_bank();
   set_prg_bank(bank_id);
   lambda();
