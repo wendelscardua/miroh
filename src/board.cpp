@@ -49,7 +49,9 @@ Board::Board(u8 origin_x, u8 origin_y)
 
 #define NEED_WALL(direction)                                                   \
   (template_cell.maybe_##direction##_wall && ((rand8() & 0b11) == 0))
-  banked_lambda(GET_BANK(mazes), [this]() {
+
+  {
+    ScopedBank scopedBank(GET_BANK(mazes));
     static_assert(sizeof(TemplateCell) == 1, "TemplateCell is too big");
 
     // read required walls from template
@@ -117,7 +119,7 @@ Board::Board(u8 origin_x, u8 origin_y)
         }
       }
     }
-  });
+  }
 
   // border walls
   for (u8 i = 0; i < HEIGHT; i++) {
