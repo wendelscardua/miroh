@@ -19,3 +19,15 @@ __attribute__((noinline, section(".prg_rom_last.text"))) void banked_lambda(char
   lambda();
   set_prg_bank(old_bank);
 }
+
+class ScopedBank {
+  u8 old_bank;
+
+public:
+  ScopedBank(u8 bank) {
+    old_bank = get_prg_bank();
+    set_prg_bank(bank);
+  };
+
+  ~ScopedBank() { set_prg_bank(old_bank); }
+};
