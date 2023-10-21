@@ -136,7 +136,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
 
   ppu_on_all();
 
-  banked_lambda(GET_BANK(song_list), []() { GGSound::play_song(Song::Miroh); });
+  banked_play_song(Song::Miroh);
 
   pal_fade_to(0, 4);
 }

@@ -10,6 +10,11 @@ void banked_oam_meta_spr(char x, char y, const void *data) {
   oam_meta_spr(x, y, data);
 }
 
+void banked_play_song(Song song) {
+  ScopedBank scoopedBank(GET_BANK(song_list));
+  GGSound::play_song(song);
+}
+
 void banked_play_sfx(SFX sfx, GGSound::SFXPriority priority) {
   ScopedBank scopedBank(GET_BANK(sfx_list));
   GGSound::play_sfx(sfx, priority);
