@@ -25,8 +25,7 @@ void Player::hunger_upkeep(s16 delta) {
   while (hunger_timer >= HUNGER_TICKS) {
     hunger_timer -= HUNGER_TICKS;
     if (hunger == MAX_HUNGER) {
-      banked_lambda(GET_BANK(song_list),
-                    []() { GGSound::play_song(Song::Rip_in_peace); });
+      banked_play_song(Song::Rip_in_peace);
       state = State::Dying;
       ghost_height = 0;
       break;
@@ -229,9 +228,7 @@ void Player::render() {
 }
 
 void Player::feed(u8 nutrition) {
-  banked_lambda(GET_BANK(sfx_list), []() {
-    GGSound::play_sfx(SFX::Nom, GGSound::SFXPriority::One);
-  });
+  banked_play_sfx(SFX::Nom, GGSound::SFXPriority::One);
 
   hunger_timer = 0;
   if (hunger > nutrition) {

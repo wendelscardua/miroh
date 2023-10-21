@@ -140,12 +140,12 @@ void Gameplay::loop() {
         input_mode = InputMode::Player;
         pressed &= ~(PAD_START | PAD_B);
         set_scroll_y(DEFAULT_SCROLL_Y);
-        banked_lambda(GET_BANK(song_list), []() { GGSound::resume(); });
+        GGSound::resume();
       } else if (pressed &
                  (PAD_LEFT | PAD_RIGHT | PAD_UP | PAD_DOWN | PAD_SELECT)) {
         pause_option = 1 - pause_option;
       } else if (pressed & PAD_A) {
-        banked_lambda(GET_BANK(song_list), []() { GGSound::resume(); });
+        GGSound::resume();
         input_mode = InputMode::Player;
         set_scroll_y(DEFAULT_SCROLL_Y);
         if (pause_option == 1) {
@@ -203,7 +203,7 @@ void Gameplay::loop() {
         } else if (pressed & PAD_START) {
           input_mode = InputMode::Pause;
           set_scroll_y(PAUSE_SCROLL_Y);
-          banked_lambda(GET_BANK(song_list), []() { GGSound::pause(); });
+          GGSound::pause();
         }
         break;
       case InputMode::Polyomino:
@@ -213,7 +213,7 @@ void Gameplay::loop() {
         } else if (pressed & PAD_START) {
           input_mode = InputMode::Pause;
           set_scroll_y(PAUSE_SCROLL_Y);
-          banked_lambda(GET_BANK(song_list), []() { GGSound::pause(); });
+          GGSound::pause();
         }
         break;
       default:
@@ -223,9 +223,7 @@ void Gameplay::loop() {
     }
 
     if (input_mode != old_mode) {
-      banked_lambda(GET_BANK(sfx_list), []() {
-        GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-      });
+      banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
     }
 
     Attributes::flush_vram_update();

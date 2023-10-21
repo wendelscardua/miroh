@@ -41,9 +41,11 @@ static void main_init() {
 
   set_vram_buffer();
 
-  set_prg_bank(GET_BANK(song_list));
-  GGSound::init(GGSound::Region::NTSC, song_list, sfx_list, instrument_list,
-                GET_BANK(song_list));
+  {
+    ScopedBank scopedBank(GET_BANK(song_list));
+    GGSound::init(GGSound::Region::NTSC, song_list, sfx_list, instrument_list,
+                  GET_BANK(song_list));
+  }
 }
 
 int main() {
@@ -51,17 +53,16 @@ int main() {
 
   while (true) {
     switch (current_mode) {
-    case GameMode::TitleScreen:
-      banked_lambda(0, []() {
-        TitleScreen titleScreen;
-        titleScreen.loop();
-      });
-      break;
-    case GameMode::Gameplay:
-      banked_lambda(0, []() {
-        Gameplay gameplay;
-        gameplay.loop();
-      });
+    case GameMode::TitleScreen: {
+      ScopedBank scopedBank(TitleScreen::BANK);
+      TitleScreen titleScreen;
+      titleScreen.loop();
+    }; break;
+    case GameMode::Gameplay: {
+      ScopedBank scopedBank(Gameplay::BANK);
+      Gameplay gameplay;
+      gameplay.loop();
+    };
     default:
       break;
     }
