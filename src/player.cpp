@@ -1,4 +1,5 @@
 #include "player.hpp"
+#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
@@ -253,7 +254,7 @@ void Player::refresh_hunger_hud() {
 
 __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
                                                              u16 value) {
-  score_text[0] = 0x10;
+  score_text[0] = 0x03;
   if (value >= 8000) {
     score_text[0] += 8;
     value -= 8000;
@@ -271,7 +272,7 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 1000;
   }
 
-  score_text[1] = 0x10;
+  score_text[1] = 0x03;
   if (value >= 800) {
     score_text[1] += 8;
     value -= 800;
@@ -289,7 +290,7 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 100;
   }
 
-  score_text[2] = 0x10;
+  score_text[2] = 0x03;
   if (value >= 80) {
     score_text[2] += 8;
     value -= 80;
@@ -307,24 +308,30 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 10;
   }
 
-  score_text[3] = 0x10 + (u8)value;
+  score_text[3] = 0x03 + (u8)value;
+
+  // leading zeroes are darker
+  for (u8 i = 0; i < 3; i++) {
+    if (score_text[i] > 0x03) {
+      break;
+    }
+    score_text[i] = 0x0d;
+  }
 }
 
 extern u16 high_score[];
 
 void Player::refresh_score_hud() {
   // refresh hunger hud
-  u8 old_bank = get_prg_bank();
-  set_prg_bank(0);
+  ScopedBank scopedBank(0); // int_to_text's bank
   u8 score_text[4];
 
   int_to_text(score_text, score);
-  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 27));
+  multi_vram_buffer_horz(score_text, 4, NTADR_A(22, 27));
 
   if (score > high_score[maze]) {
     high_score[maze] = score;
   }
   int_to_text(score_text, high_score[maze]);
-  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 28));
-  set_prg_bank(old_bank);
+  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 3));
 }
