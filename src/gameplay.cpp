@@ -111,9 +111,9 @@ void Gameplay::render() {
 void Gameplay::paused_render() {
   oam_clear();
   if (pause_option == 0) {
-    banked_oam_meta_spr(0x30, 0x70, metasprite_MenuminoL);
+    banked_oam_meta_spr(0x30, 0x70, metasprite_UniRightIdle);
   } else {
-    banked_oam_meta_spr(0x80, 0x70, metasprite_MenuminoR);
+    banked_oam_meta_spr(0x80, 0x70, metasprite_UniRightIdle);
   }
 }
 

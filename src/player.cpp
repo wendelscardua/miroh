@@ -1,5 +1,4 @@
 #include "player.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
@@ -180,10 +179,10 @@ void Player::render() {
     case Direction::Right:
     case Direction::Down:
     case Direction::None:
-      metasprite = metasprite_MinoRight1;
+      metasprite = metasprite_UniRightIdle;
       break;
     case Direction::Left:
-      metasprite = metasprite_MinoLeft1;
+      metasprite = metasprite_UniLeftIdle;
       break;
     }
     break;
@@ -195,32 +194,27 @@ void Player::render() {
     case Direction::Down:
     case Direction::None:
       if (toggle) {
-        metasprite = metasprite_MinoRight1;
+        metasprite = metasprite_UniRightWalk1;
       } else {
-        metasprite = metasprite_MinoRight2;
+        metasprite = metasprite_UniRightWalk2;
       }
       break;
     case Direction::Left:
       if (toggle) {
-        metasprite = metasprite_MinoLeft1;
+        metasprite = metasprite_UniLeftWalk1;
       } else {
-        metasprite = metasprite_MinoLeft2;
+        metasprite = metasprite_UniLeftWalk2;
       }
       break;
     }
   } break;
   case State::Dying:
-    if (ghost_height > 4 && reference_y + (u8)y.whole > ghost_height) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.whole,
-                          reference_y + (u8)y.whole - ghost_height,
-                          metasprite_Ghost);
-    }
-    metasprite = metasprite_RIP;
+    metasprite = metasprite_UniRightIdle;
     break;
   case State::Dead:
     banked_oam_meta_spr(board.origin_x + (u8)x.round(),
                         reference_y + (u8)y.round() - ghost_height,
-                        metasprite_RIP);
+                        metasprite_UniRightIdle);
     return;
   }
   banked_oam_meta_spr(board.origin_x + (u8)x.round(),

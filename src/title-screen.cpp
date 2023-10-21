@@ -178,8 +178,6 @@ __attribute__((noinline)) void TitleScreen::loop() {
           banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
 
           state = State::HowToPlay;
-          how_to_animation_framecount = 60;
-          how_to_animation_step = 0;
           scroll(0, 240);
           break;
         case MenuOption::Credits:
@@ -241,11 +239,11 @@ __attribute__((noinline)) void TitleScreen::loop() {
       if (get_frame_count() & option_mino_frame_mod[(u8)current_option]) {
         banked_oam_meta_spr(option_mino_x[(u8)current_option],
                             option_mino_y[(u8)current_option],
-                            metasprite_Menutaur1);
+                            metasprite_UniRightWalk1);
       } else {
         banked_oam_meta_spr(option_mino_x[(u8)current_option],
                             option_mino_y[(u8)current_option],
-                            metasprite_Menutaur2);
+                            metasprite_UniRightWalk2);
       }
       break;
     case State::HowToPlay:
@@ -256,127 +254,6 @@ __attribute__((noinline)) void TitleScreen::loop() {
         state = State::Options;
         break;
       }
-      if (--how_to_animation_framecount <= 0) {
-        how_to_animation_framecount = 0;
-        how_to_animation_step++;
-      }
-      switch (how_to_animation_step) {
-      case 0: // show player selected
-      case 2:
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 90;
-        }
-        break;
-      case 1: // show polyomino selected
-      case 3:
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 90;
-        }
-        break;
-      case 4: // rotating minos
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 256;
-        }
-        break;
-      case 5: // hard drop
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 60;
-        }
-        if (how_to_animation_framecount > 48) {
-          banked_oam_meta_spr(0x48, 0x70, metasprite_Menumino0);
-        } else if (how_to_animation_framecount > 16) {
-          banked_oam_meta_spr(
-              0x48, (u8)(0xb0 - (how_to_animation_framecount - 16) * 2) & 0xf8,
-              metasprite_Menumino0);
-        } else {
-          banked_oam_meta_spr(0x48, 0xb0, metasprite_Menumino0);
-        }
-        break;
-      case 6: // soft drop
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 256;
-        }
-        {
-          s8 delta_x = 0;
-          if (how_to_animation_framecount < 200 &&
-              how_to_animation_framecount > 160) {
-            delta_x = -4;
-          } else if (how_to_animation_framecount < 100 &&
-                     how_to_animation_framecount > 90) {
-            delta_x = 8;
-          } else if (how_to_animation_framecount < 120 &&
-                     how_to_animation_framecount > 75) {
-            delta_x = 4;
-          }
-          if (how_to_animation_framecount < 60) {
-            how_to_animation_framecount--;
-          }
-          banked_oam_meta_spr((u8)(0xa8 + delta_x),
-                              (u8)(0xb0 - how_to_animation_framecount / 4) &
-                                  0xf8,
-                              metasprite_Menumino2);
-        }
-        break;
-      case 7: // idle before loop
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 60;
-        }
-        break;
-      default:
-        how_to_animation_step = -1;
-      }
-
-      // always show minotaur
-      if (how_to_animation_framecount & 0b10000) {
-        banked_oam_meta_spr(0x48, 0x1e, metasprite_MinoRight1);
-      } else {
-        banked_oam_meta_spr(0x48, 0x1e, metasprite_MinoRight2);
-      }
-
-      // also show the switcheable polyomino
-      banked_oam_meta_spr(0xa8, 0x1e, metasprite_Menumino0);
-
-      // the rotating minos
-      {
-        if (how_to_animation_step == 4) {
-          switch (how_to_animation_framecount & 0b11000000) {
-          case 0b00000000:
-            banked_oam_meta_spr(0x38, 0x48, metasprite_Menumino0);
-            banked_oam_meta_spr(0xb8, 0x48, metasprite_Menumino0);
-            break;
-          case 0b01000000:
-            banked_oam_meta_spr(0x38, 0x48, metasprite_MenuminoL);
-            banked_oam_meta_spr(0xb8, 0x48, metasprite_MenuminoR);
-            break;
-          case 0b10000000:
-            banked_oam_meta_spr(0x38, 0x48, metasprite_Menumino2);
-            banked_oam_meta_spr(0xb8, 0x48, metasprite_Menumino2);
-            break;
-          case 0b11000000:
-            banked_oam_meta_spr(0x38, 0x48, metasprite_MenuminoR);
-            banked_oam_meta_spr(0xb8, 0x48, metasprite_MenuminoL);
-            break;
-          }
-        } else {
-          banked_oam_meta_spr(0x38, 0x48, metasprite_Menumino0);
-          banked_oam_meta_spr(0xb8, 0x48, metasprite_Menumino0);
-        }
-      }
-
-      // idle hard drop
-      if (how_to_animation_step < 5) {
-        banked_oam_meta_spr(0x48, 0x70, metasprite_Menumino0);
-      } else if (how_to_animation_step > 5) {
-        banked_oam_meta_spr(0x48, 0xb0, metasprite_Menumino0);
-      }
-
-      // idle soft drop
-      if (how_to_animation_step < 6) {
-        banked_oam_meta_spr(0xa8, 0x70, metasprite_Menumino2);
-      } else if (how_to_animation_step > 6) {
-        banked_oam_meta_spr(0xa8, 0xb0, metasprite_Menumino2);
-      }
-
       break;
     case State::Credits:
       if (pressed & (PAD_START | PAD_A)) {
@@ -464,9 +341,9 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
         u8 setting_y = setting_mino_y[(u8)current_setting];
         if (get_frame_count() & 0b1000) {
-          banked_oam_meta_spr(0x24, setting_y, metasprite_Menutaur1);
+          banked_oam_meta_spr(0x24, setting_y, metasprite_UniRightWalk1);
         } else {
-          banked_oam_meta_spr(0x24, setting_y, metasprite_Menutaur2);
+          banked_oam_meta_spr(0x24, setting_y, metasprite_UniRightWalk2);
         }
       }
       break;

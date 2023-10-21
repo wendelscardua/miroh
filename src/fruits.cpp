@@ -122,7 +122,8 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
 void Fruits::render() {
   for (auto fruit : fruits) {
     if (fruit.active) {
-      banked_oam_meta_spr(fruit.x, fruit.y, metasprite_fruit);
+      // TODO: different fruits, animate fruits
+      banked_oam_meta_spr(fruit.x, fruit.y, metasprite_AppleHigh);
     };
   }
 }

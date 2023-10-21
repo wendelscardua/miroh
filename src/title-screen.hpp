@@ -29,8 +29,6 @@ public:
   State state;
   MenuOption current_option;
   SettingsOption current_setting;
-  s8 how_to_animation_step;
-  s16 how_to_animation_framecount;
 
   TitleScreen();
   ~TitleScreen();
