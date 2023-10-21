@@ -223,9 +223,7 @@ void Gameplay::loop() {
     }
 
     if (input_mode != old_mode) {
-      banked_lambda(GET_BANK(sfx_list), []() {
-        GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-      });
+      banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
     }
 
     Attributes::flush_vram_update();

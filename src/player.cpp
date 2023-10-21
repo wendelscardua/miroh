@@ -229,9 +229,7 @@ void Player::render() {
 }
 
 void Player::feed(u8 nutrition) {
-  banked_lambda(GET_BANK(sfx_list), []() {
-    GGSound::play_sfx(SFX::Nom, GGSound::SFXPriority::One);
-  });
+  banked_play_sfx(SFX::Nom, GGSound::SFXPriority::One);
 
   hunger_timer = 0;
   if (hunger > nutrition) {
