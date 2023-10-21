@@ -3,6 +3,8 @@
 #include "common.hpp"
 class TitleScreen {
 public:
+  static constexpr u8 BANK = 0;
+
   enum class State : u8 {
     PressStart,
     Options,

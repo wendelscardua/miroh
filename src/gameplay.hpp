@@ -46,6 +46,7 @@ class Gameplay {
   u8 pause_option;
 
 public:
+  static constexpr u8 BANK = 0;
   static constexpr int DEFAULT_SCROLL_Y = 0x08;
 
   Board board;
