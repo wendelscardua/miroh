@@ -363,37 +363,73 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
 
 static const Cell null_cell;
 
-static constexpr u8 upper_left_block_tile[] = {
-    Board::TILE_BASE + 0x0f, Board::TILE_BASE + 0x18, Board::TILE_BASE + 0x16,
-    Board::TILE_BASE + 0x16, Board::TILE_BASE + 0x14, Board::TILE_BASE + 0x0e,
-    Board::TILE_BASE + 0x11, Board::TILE_BASE + 0x11, Board::TILE_BASE + 0x18,
-    Board::TILE_BASE + 0x18, Board::TILE_BASE + 0x12, Board::TILE_BASE + 0x16,
-    Board::TILE_BASE + 0x14, Board::TILE_BASE + 0x14, Board::TILE_BASE + 0x11,
-    Board::TILE_BASE + 0x11};
+static constexpr u8 upper_left_block_tile[] = {0x00,
+                                               Board::TILE_BASE + 0x18,
+                                               Board::TILE_BASE + 0x16,
+                                               Board::TILE_BASE + 0x16,
+                                               Board::TILE_BASE + 0x14,
+                                               Board::TILE_BASE + 0x0e,
+                                               Board::TILE_BASE + 0x11,
+                                               Board::TILE_BASE + 0x11,
+                                               Board::TILE_BASE + 0x18,
+                                               Board::TILE_BASE + 0x18,
+                                               Board::TILE_BASE + 0x12,
+                                               Board::TILE_BASE + 0x16,
+                                               Board::TILE_BASE + 0x14,
+                                               Board::TILE_BASE + 0x14,
+                                               Board::TILE_BASE + 0x11,
+                                               Board::TILE_BASE + 0x11};
 
-static constexpr u8 upper_right_block_tile[] = {
-    Board::TILE_BASE + 0x0f, Board::TILE_BASE + 0x15, Board::TILE_BASE + 0x15,
-    Board::TILE_BASE + 0x15, Board::TILE_BASE + 0x10, Board::TILE_BASE + 0x0d,
-    Board::TILE_BASE + 0x10, Board::TILE_BASE + 0x10, Board::TILE_BASE + 0x17,
-    Board::TILE_BASE + 0x17, Board::TILE_BASE + 0x12, Board::TILE_BASE + 0x17,
-    Board::TILE_BASE + 0x13, Board::TILE_BASE + 0x13, Board::TILE_BASE + 0x13,
-    Board::TILE_BASE + 0x13};
+static constexpr u8 upper_right_block_tile[] = {0x00,
+                                                Board::TILE_BASE + 0x15,
+                                                Board::TILE_BASE + 0x15,
+                                                Board::TILE_BASE + 0x15,
+                                                Board::TILE_BASE + 0x10,
+                                                Board::TILE_BASE + 0x0d,
+                                                Board::TILE_BASE + 0x10,
+                                                Board::TILE_BASE + 0x10,
+                                                Board::TILE_BASE + 0x17,
+                                                Board::TILE_BASE + 0x17,
+                                                Board::TILE_BASE + 0x12,
+                                                Board::TILE_BASE + 0x17,
+                                                Board::TILE_BASE + 0x13,
+                                                Board::TILE_BASE + 0x13,
+                                                Board::TILE_BASE + 0x13,
+                                                Board::TILE_BASE + 0x13};
 
-static constexpr u8 lower_left_block_tile[] = {
-    Board::TILE_BASE + 0x0f, Board::TILE_BASE + 0x08, Board::TILE_BASE + 0x01,
-    Board::TILE_BASE + 0x06, Board::TILE_BASE + 0x04, Board::TILE_BASE + 0x0e,
-    Board::TILE_BASE + 0x01, Board::TILE_BASE + 0x06, Board::TILE_BASE + 0x04,
-    Board::TILE_BASE + 0x08, Board::TILE_BASE + 0x02, Board::TILE_BASE + 0x06,
-    Board::TILE_BASE + 0x04, Board::TILE_BASE + 0x08, Board::TILE_BASE + 0x01,
-    Board::TILE_BASE + 0x06};
+static constexpr u8 lower_left_block_tile[] = {0x00,
+                                               Board::TILE_BASE + 0x08,
+                                               Board::TILE_BASE + 0x01,
+                                               Board::TILE_BASE + 0x06,
+                                               Board::TILE_BASE + 0x04,
+                                               Board::TILE_BASE + 0x0e,
+                                               Board::TILE_BASE + 0x01,
+                                               Board::TILE_BASE + 0x06,
+                                               Board::TILE_BASE + 0x04,
+                                               Board::TILE_BASE + 0x08,
+                                               Board::TILE_BASE + 0x02,
+                                               Board::TILE_BASE + 0x06,
+                                               Board::TILE_BASE + 0x04,
+                                               Board::TILE_BASE + 0x08,
+                                               Board::TILE_BASE + 0x01,
+                                               Board::TILE_BASE + 0x06};
 
-static constexpr u8 lower_right_block_tile[] = {
-    Board::TILE_BASE + 0x0f, Board::TILE_BASE + 0x05, Board::TILE_BASE + 0x00,
-    Board::TILE_BASE + 0x05, Board::TILE_BASE + 0x00, Board::TILE_BASE + 0x0d,
-    Board::TILE_BASE + 0x00, Board::TILE_BASE + 0x05, Board::TILE_BASE + 0x03,
-    Board::TILE_BASE + 0x07, Board::TILE_BASE + 0x02, Board::TILE_BASE + 0x07,
-    Board::TILE_BASE + 0x03, Board::TILE_BASE + 0x07, Board::TILE_BASE + 0x03,
-    Board::TILE_BASE + 0x07};
+static constexpr u8 lower_right_block_tile[] = {0x00,
+                                                Board::TILE_BASE + 0x05,
+                                                Board::TILE_BASE + 0x00,
+                                                Board::TILE_BASE + 0x05,
+                                                Board::TILE_BASE + 0x00,
+                                                Board::TILE_BASE + 0x0d,
+                                                Board::TILE_BASE + 0x00,
+                                                Board::TILE_BASE + 0x05,
+                                                Board::TILE_BASE + 0x03,
+                                                Board::TILE_BASE + 0x07,
+                                                Board::TILE_BASE + 0x02,
+                                                Board::TILE_BASE + 0x07,
+                                                Board::TILE_BASE + 0x03,
+                                                Board::TILE_BASE + 0x07,
+                                                Board::TILE_BASE + 0x03,
+                                                Board::TILE_BASE + 0x07};
 
 // converts 4 boolean walls into a integer value between 0 and 15
 u8 walls_to_index(bool wall_going_up, bool wall_going_right,
