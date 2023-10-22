@@ -17,7 +17,7 @@
 Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
     : facing(Direction::Right), moving(Direction::Right), hunger(0),
       hunger_timer(0), state(State::Idle), board(board), x(starting_x),
-      y(starting_y), score(0) {}
+      y(starting_y), score(0), lines(0) {}
 
 const fixed_point &Player::move_speed() { return DEFAULT_MOVE_SPEED; }
 

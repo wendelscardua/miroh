@@ -38,6 +38,7 @@ public:
   fixed_point x;
   fixed_point y;
   u16 score;
+  u8 lines;
 
   u8 buffered_input;
 

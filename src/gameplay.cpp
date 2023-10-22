@@ -185,6 +185,13 @@ void Gameplay::loop() {
       if (lines_filled) {
         u16 points = 10 * (2 * lines_filled - 1);
         player.score += points;
+        if (player.score > 9999) {
+          player.score = 9999;
+        }
+        player.lines += lines_filled;
+        if (player.lines > 99) {
+          player.lines = 99;
+        }
         add_experience(points);
       } else if (blocks_placed) {
         player.score += 1;
