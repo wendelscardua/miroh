@@ -355,6 +355,33 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
   }
 }
 
+__attribute__((section(".prg_rom_0.text"))) void u8_to_text(u8 score_text[4],
+                                                            u8 value) {
+  score_text[0] = 0x03;
+  if (value >= 80) {
+    score_text[0] += 8;
+    value -= 80;
+  }
+  if (value >= 40) {
+    score_text[0] += 4;
+    value -= 40;
+  }
+  if (value >= 20) {
+    score_text[0] += 2;
+    value -= 20;
+  }
+  if (value >= 10) {
+    score_text[0] += 1;
+    value -= 10;
+  }
+
+  score_text[1] = 0x03 + (u8)value;
+
+  if (score_text[0] == 0x03) {
+    score_text[0] = 0x0d;
+  }
+}
+
 extern u16 high_score[];
 
 void Player::refresh_score_hud() {
@@ -370,4 +397,7 @@ void Player::refresh_score_hud() {
   }
   int_to_text(score_text, high_score[maze]);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 3));
+
+  u8_to_text(score_text, lines);
+  multi_vram_buffer_horz(score_text, 2, NTADR_A(15, 27));
 }
