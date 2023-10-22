@@ -44,6 +44,7 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
   }
   switch (state) {
   case State::Idle: {
+  check_idle:
     if (!pressed && buffered_input) {
       pressed = buffered_input;
       buffered_input = 0;
@@ -111,42 +112,46 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
     switch (moving) {
     case Direction::Up:
       y -= move_speed();
-      if (y < target_y) {
+      if (y <= target_y) {
         y = target_y;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
+        goto check_idle;
       }
       break;
     case Direction::Right:
       x += move_speed();
-      if (x > target_x) {
+      if (x >= target_x) {
         x = target_x;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
+        goto check_idle;
       }
       break;
     case Direction::Down:
       y += move_speed();
-      if (y > target_y) {
+      if (y >= target_y) {
         y = target_y;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
+        goto check_idle;
       }
       break;
     case Direction::Left:
       x -= move_speed();
-      if (x < target_x) {
+      if (x <= target_x) {
         x = target_x;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
+        goto check_idle;
       }
       break;
     case Direction::None:
@@ -208,7 +213,7 @@ void Player::render() {
                           facing == Direction::Right ? metasprite_UniRightBlink
                                                      : metasprite_UniLeftBlink);
       if (animation_frame != 11) {
-      CORO_YIELD();
+        CORO_YIELD();
       }
     }
     break;
@@ -240,7 +245,7 @@ void Player::render() {
                           facing == Direction::Right ? metasprite_UniRightWalk4
                                                      : metasprite_UniLeftWalk3);
       if (animation_frame != 8) {
-      CORO_YIELD();
+        CORO_YIELD();
       }
     }
     break;
