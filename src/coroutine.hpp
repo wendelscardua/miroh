@@ -29,7 +29,15 @@
   if (CORO_RESUME_LABEL != NULL) {                                             \
     goto *CORO_RESUME_LABEL;                                                   \
   }
-#define STR(value) #value
+
+#define CORO_RESET_WHEN(expr)                                                  \
+  static void *CORO_RESUME_LABEL = NULL;                                       \
+  if (expr) {                                                                  \
+    CORO_RESUME_LABEL = NULL;                                                  \
+  } else if (CORO_RESUME_LABEL != NULL) {                                      \
+    goto *CORO_RESUME_LABEL;                                                   \
+  }
+
 #define CORO_YIELD(retval)                                                     \
   CORO_RESUME_LABEL = &&UNIQUE_LABEL;                                          \
   return retval;                                                               \
@@ -37,3 +45,4 @@
 #define CORO_FINISH(retval)                                                    \
   CORO_RESUME_LABEL = NULL;                                                    \
   return retval
+#define CORO_RESET CORO_RESUME_LABEL = NULL

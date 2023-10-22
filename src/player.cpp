@@ -1,6 +1,7 @@
 #include "player.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "coroutine.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "gameplay.hpp"
@@ -172,54 +173,84 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
 
 void Player::render() {
   u8 reference_y = board.origin_y - Gameplay::DEFAULT_SCROLL_Y;
-  const u8 *metasprite;
+  static u8 animation_frame;
+  static State current_state = State::Dead;
+  CORO_RESET_WHEN(current_state != state);
+
+  current_state = state;
+
   switch (state) {
   case State::Idle:
-    switch (facing) {
-    case Direction::Up:
-    case Direction::Right:
-    case Direction::Down:
-    case Direction::None:
-      metasprite = metasprite_UniRightIdle;
-      break;
-    case Direction::Left:
-      metasprite = metasprite_UniLeftIdle;
-      break;
+    for (animation_frame = 0; animation_frame < 162; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightIdle
+                                                     : metasprite_UniLeftIdle);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 12; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightBlink
+                                                     : metasprite_UniLeftBlink);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 8; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightIdle
+                                                     : metasprite_UniLeftIdle);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 12; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightBlink
+                                                     : metasprite_UniLeftBlink);
+      if (animation_frame != 11) {
+      CORO_YIELD();
+      }
     }
     break;
-  case State::Moving: {
-    bool toggle = ((x.whole ^ y.whole) & 0b1000) != 0;
-    switch (facing) {
-    case Direction::Up:
-    case Direction::Right:
-    case Direction::Down:
-    case Direction::None:
-      if (toggle) {
-        metasprite = metasprite_UniRightWalk1;
-      } else {
-        metasprite = metasprite_UniRightWalk2;
-      }
-      break;
-    case Direction::Left:
-      if (toggle) {
-        metasprite = metasprite_UniLeftWalk1;
-      } else {
-        metasprite = metasprite_UniLeftWalk2;
-      }
-      break;
+  case State::Moving:
+    for (animation_frame = 0; animation_frame < 5; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightWalk1
+                                                     : metasprite_UniLeftWalk1);
+      CORO_YIELD();
     }
-  } break;
-  case State::Dying:
-    metasprite = metasprite_UniRightIdle;
+    for (animation_frame = 0; animation_frame < 9; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightWalk2
+                                                     : metasprite_UniLeftWalk2);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 5; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightWalk3
+                                                     : metasprite_UniLeftWalk3);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 9; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightWalk4
+                                                     : metasprite_UniLeftWalk3);
+      if (animation_frame != 8) {
+      CORO_YIELD();
+      }
+    }
     break;
   case State::Dead:
-    banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                        reference_y + (u8)y.round() - ghost_height,
-                        metasprite_UniRightIdle);
-    return;
+  case State::Dying:
+    // TODO
+    break;
   }
-  banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                      reference_y + (u8)y.round(), metasprite);
+
+  CORO_FINISH();
 }
 
 void Player::feed(u8 nutrition) {
