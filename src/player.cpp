@@ -15,32 +15,33 @@
 #define GRID_SIZE fixed_point(0x10, 0)
 
 Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
-    : facing(Direction::Right), moving(Direction::Right), hunger(0),
-      hunger_timer(0), state(State::Idle), board(board), x(starting_x),
+    : facing(Direction::Right), moving(Direction::Right), energy(MAX_ENERGY),
+      energy_timer(0), state(State::Idle), board(board), x(starting_x),
       y(starting_y), score(0), lines(0) {}
 
 const fixed_point &Player::move_speed() { return DEFAULT_MOVE_SPEED; }
 
-void Player::hunger_upkeep(s16 delta) {
-  hunger_timer += delta;
-  while (hunger_timer >= HUNGER_TICKS) {
-    hunger_timer -= HUNGER_TICKS;
-    if (hunger == MAX_HUNGER) {
+void Player::energy_upkeep(s16 delta) {
+  energy_timer += delta;
+  while (energy_timer >= ENERGY_TICKS) {
+    energy_timer -= ENERGY_TICKS;
+    if (energy == 0) {
+      // TODO: don't die during co-op mode
       banked_play_song(Song::Rip_in_peace);
       state = State::Dying;
       ghost_height = 0;
       break;
     } else {
-      hunger++;
+      energy--;
     }
   }
-  refresh_hunger_hud();
+  refresh_energy_hud();
 }
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
 Player::update(InputMode input_mode, u8 pressed, u8 held) {
   if (state != State::Dying && state != State::Dead) {
-    hunger_upkeep(1);
+    energy_upkeep(1);
   }
   switch (state) {
   case State::Idle: {
@@ -261,31 +262,32 @@ void Player::render() {
 void Player::feed(u8 nutrition) {
   banked_play_sfx(SFX::Nom, GGSound::SFXPriority::One);
 
-  hunger_timer = 0;
-  if (hunger > nutrition) {
-    hunger -= nutrition;
+  energy_timer = 0;
+  if (energy < MAX_ENERGY - nutrition) {
+    energy += nutrition;
   } else {
-    hunger = 0;
+    energy = MAX_ENERGY;
   }
 
-  refresh_hunger_hud();
+  refresh_energy_hud();
 }
 
-void Player::refresh_hunger_hud() {
+void Player::refresh_energy_hud() {
   // refresh hunger hud
   u8 hunger_bar[4];
-  u8 temp = hunger;
+  u8 temp = energy;
   for (auto &hunger_cell : hunger_bar) {
+    // TODO: use proper energy tiles
     if (temp >= 8) {
-      hunger_cell = HUNGER_BAR_BASE_TILE + 8;
+      hunger_cell = 0x03;
       temp -= 8;
     } else {
-      hunger_cell = HUNGER_BAR_BASE_TILE + temp;
+      hunger_cell = 0xb4;
       temp = 0;
     }
   }
 
-  multi_vram_buffer_horz(hunger_bar, 4, NTADR_A(12, 27));
+  multi_vram_buffer_horz(hunger_bar, 4, NTADR_A(6, 27));
 }
 
 __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],

@@ -199,7 +199,7 @@ void Gameplay::loop() {
       }
 
       if (failed_to_place) {
-        player.hunger_upkeep(3 * HUNGER_TICKS);
+        player.energy_upkeep(3 * Player::ENERGY_TICKS);
       }
 
       switch (input_mode) {
