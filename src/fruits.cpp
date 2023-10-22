@@ -23,6 +23,8 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.row = -1;
   fruit.column = -1;
 
+  fruit.type = (Fruit::Type)(((u16)rand8() * (u16)FRUIT_TYPES) >> 8);
+
   // pick a random row
   for (u8 tries = 0; tries < 4; tries++) {
     s8 candidate_row = row_bag.take();
@@ -119,10 +121,24 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
   }
 }
 
+const u8 *const high_fruits[]{
+    metasprite_AppleHigh,
+    metasprite_CornHigh,
+};
+
+const u8 *const low_fruits[]{
+    metasprite_AppleLow,
+    metasprite_CornLow,
+};
+
 void Fruits::render() {
+  bool state = (get_frame_count() & 0b10000);
   for (auto fruit : fruits) {
     if (fruit.active) {
-      banked_oam_meta_spr(fruit.x, fruit.y, metasprite_fruit);
+      Fruit::Type type = fruit.type;
+      banked_oam_meta_spr(fruit.x, fruit.y,
+                          state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
     };
+    state = !state;
   }
 }

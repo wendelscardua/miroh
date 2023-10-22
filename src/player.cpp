@@ -1,6 +1,7 @@
 #include "player.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "coroutine.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "gameplay.hpp"
@@ -43,6 +44,7 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
   }
   switch (state) {
   case State::Idle: {
+  check_idle:
     if (!pressed && buffered_input) {
       pressed = buffered_input;
       buffered_input = 0;
@@ -110,42 +112,46 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
     switch (moving) {
     case Direction::Up:
       y -= move_speed();
-      if (y < target_y) {
+      if (y <= target_y) {
         y = target_y;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
+        goto check_idle;
       }
       break;
     case Direction::Right:
       x += move_speed();
-      if (x > target_x) {
+      if (x >= target_x) {
         x = target_x;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
+        goto check_idle;
       }
       break;
     case Direction::Down:
       y += move_speed();
-      if (y > target_y) {
+      if (y >= target_y) {
         y = target_y;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
+        goto check_idle;
       }
       break;
     case Direction::Left:
       x -= move_speed();
-      if (x < target_x) {
+      if (x <= target_x) {
         x = target_x;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
+        goto check_idle;
       }
       break;
     case Direction::None:
@@ -172,59 +178,84 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
 
 void Player::render() {
   u8 reference_y = board.origin_y - Gameplay::DEFAULT_SCROLL_Y;
-  const u8 *metasprite;
+  static u8 animation_frame;
+  static State current_state = State::Dead;
+  CORO_RESET_WHEN(current_state != state);
+
+  current_state = state;
+
   switch (state) {
   case State::Idle:
-    switch (facing) {
-    case Direction::Up:
-    case Direction::Right:
-    case Direction::Down:
-    case Direction::None:
-      metasprite = metasprite_MinoRight1;
-      break;
-    case Direction::Left:
-      metasprite = metasprite_MinoLeft1;
-      break;
+    for (animation_frame = 0; animation_frame < 162; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightIdle
+                                                     : metasprite_UniLeftIdle);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 12; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightBlink
+                                                     : metasprite_UniLeftBlink);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 8; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightIdle
+                                                     : metasprite_UniLeftIdle);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 12; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightBlink
+                                                     : metasprite_UniLeftBlink);
+      if (animation_frame != 11) {
+        CORO_YIELD();
+      }
     }
     break;
-  case State::Moving: {
-    bool toggle = ((x.whole ^ y.whole) & 0b1000) != 0;
-    switch (facing) {
-    case Direction::Up:
-    case Direction::Right:
-    case Direction::Down:
-    case Direction::None:
-      if (toggle) {
-        metasprite = metasprite_MinoRight1;
-      } else {
-        metasprite = metasprite_MinoRight2;
-      }
-      break;
-    case Direction::Left:
-      if (toggle) {
-        metasprite = metasprite_MinoLeft1;
-      } else {
-        metasprite = metasprite_MinoLeft2;
-      }
-      break;
+  case State::Moving:
+    for (animation_frame = 0; animation_frame < 5; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightWalk1
+                                                     : metasprite_UniLeftWalk1);
+      CORO_YIELD();
     }
-  } break;
-  case State::Dying:
-    if (ghost_height > 4 && reference_y + (u8)y.whole > ghost_height) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.whole,
-                          reference_y + (u8)y.whole - ghost_height,
-                          metasprite_Ghost);
+    for (animation_frame = 0; animation_frame < 9; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightWalk2
+                                                     : metasprite_UniLeftWalk2);
+      CORO_YIELD();
     }
-    metasprite = metasprite_RIP;
+    for (animation_frame = 0; animation_frame < 5; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightWalk3
+                                                     : metasprite_UniLeftWalk3);
+      CORO_YIELD();
+    }
+    for (animation_frame = 0; animation_frame < 9; animation_frame++) {
+      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
+                          reference_y + (u8)y.round(),
+                          facing == Direction::Right ? metasprite_UniRightWalk4
+                                                     : metasprite_UniLeftWalk3);
+      if (animation_frame != 8) {
+        CORO_YIELD();
+      }
+    }
     break;
   case State::Dead:
-    banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                        reference_y + (u8)y.round() - ghost_height,
-                        metasprite_RIP);
-    return;
+  case State::Dying:
+    // TODO
+    break;
   }
-  banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                      reference_y + (u8)y.round(), metasprite);
+
+  CORO_FINISH();
 }
 
 void Player::feed(u8 nutrition) {
@@ -259,7 +290,7 @@ void Player::refresh_hunger_hud() {
 
 __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
                                                              u16 value) {
-  score_text[0] = 0x10;
+  score_text[0] = 0x03;
   if (value >= 8000) {
     score_text[0] += 8;
     value -= 8000;
@@ -277,7 +308,7 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 1000;
   }
 
-  score_text[1] = 0x10;
+  score_text[1] = 0x03;
   if (value >= 800) {
     score_text[1] += 8;
     value -= 800;
@@ -295,7 +326,7 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 100;
   }
 
-  score_text[2] = 0x10;
+  score_text[2] = 0x03;
   if (value >= 80) {
     score_text[2] += 8;
     value -= 80;
@@ -313,24 +344,30 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 10;
   }
 
-  score_text[3] = 0x10 + (u8)value;
+  score_text[3] = 0x03 + (u8)value;
+
+  // leading zeroes are darker
+  for (u8 i = 0; i < 3; i++) {
+    if (score_text[i] > 0x03) {
+      break;
+    }
+    score_text[i] = 0x0d;
+  }
 }
 
 extern u16 high_score[];
 
 void Player::refresh_score_hud() {
   // refresh hunger hud
-  u8 old_bank = get_prg_bank();
-  set_prg_bank(0);
+  ScopedBank scopedBank(0); // int_to_text's bank
   u8 score_text[4];
 
   int_to_text(score_text, score);
-  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 27));
+  multi_vram_buffer_horz(score_text, 4, NTADR_A(22, 27));
 
   if (score > high_score[maze]) {
     high_score[maze] = score;
   }
   int_to_text(score_text, high_score[maze]);
-  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 28));
-  set_prg_bank(old_bank);
+  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 3));
 }
