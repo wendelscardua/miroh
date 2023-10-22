@@ -12,12 +12,18 @@
 #define FRUIT_NUTRITION 5
 
 struct Fruit {
+  enum class Type : u8 {
+    Apple,
+    Corn,
+  };
+
   s8 row;
   s8 column;
   u8 x;
   u8 y;
   u16 life;
   bool active;
+  Type type;
 };
 
 #define SOA_STRUCT Fruit
@@ -27,13 +33,15 @@ struct Fruit {
   MEMBER(x)                                                                    \
   MEMBER(y)                                                                    \
   MEMBER(life)                                                                 \
-  MEMBER(active)
+  MEMBER(active)                                                               \
+  MEMBER(type)
 
 #include <soa-struct.inc>
 
 class Fruits {
   static constexpr u8 NUM_FRUITS = 5;
   static constexpr u16 EXPIRATION_TIME = 15 * 60;
+  static constexpr u8 FRUIT_TYPES = 2;
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
   Board &board;
