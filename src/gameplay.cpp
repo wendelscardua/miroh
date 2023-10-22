@@ -185,6 +185,13 @@ void Gameplay::loop() {
       if (lines_filled) {
         u16 points = 10 * (2 * lines_filled - 1);
         player.score += points;
+        if (player.score > 9999) {
+          player.score = 9999;
+        }
+        player.lines += lines_filled;
+        if (player.lines > 99) {
+          player.lines = 99;
+        }
         add_experience(points);
       } else if (blocks_placed) {
         player.score += 1;
@@ -192,7 +199,7 @@ void Gameplay::loop() {
       }
 
       if (failed_to_place) {
-        player.hunger_upkeep(3 * HUNGER_TICKS);
+        player.energy_upkeep(3 * Player::ENERGY_TICKS);
       }
 
       switch (input_mode) {
