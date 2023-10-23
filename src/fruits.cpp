@@ -92,9 +92,10 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
       if (board.occupied(fruit.row, fruit.column)) {
         fruit.active = false;
         active_fruits--;
-      } else if (player.state == Player::State::Idle &&
-                 player.x.whole >> 4 == fruit.column &&
-                 player.y.whole >> 4 == fruit.row) {
+      } else if ((player.state == Player::State::Idle ||
+                  player.state == Player::State::Moving) &&
+                 (player.x.whole + 8) >> 4 == fruit.column &&
+                 (player.y.whole + 8) >> 4 == fruit.row) {
         fruit.active = false;
         active_fruits--;
         player.feed(FRUIT_NUTRITION);
