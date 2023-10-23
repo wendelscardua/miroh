@@ -244,7 +244,7 @@ void Player::render() {
       banked_oam_meta_spr(board.origin_x + (u8)x.round(),
                           reference_y + (u8)y.round(),
                           facing == Direction::Right ? metasprite_UniRightWalk4
-                                                     : metasprite_UniLeftWalk3);
+                                                     : metasprite_UniLeftWalk4);
       if (animation_frame != 8) {
         CORO_YIELD();
       }
