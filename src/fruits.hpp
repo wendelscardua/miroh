@@ -55,5 +55,5 @@ public:
 
   void spawn_on_board(soa::Ptr<Fruit> fruit);
 
-  void render();
+  void render(int y_scroll);
 };

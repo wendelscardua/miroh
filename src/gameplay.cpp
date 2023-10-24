@@ -29,7 +29,7 @@ __attribute__((noinline)) Gameplay::Gameplay()
       pause_option(0), board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), input_mode(InputMode::Player),
-      current_location(Location::StarlitStables) {
+      current_location(Location::StarlitStables), y_scroll(INTRO_SCROLL_Y) {
   set_chr_bank(0);
 
   banked_lambda(ASSETS_BANK, [this]() {
@@ -41,11 +41,11 @@ __attribute__((noinline)) Gameplay::Gameplay()
     Donut::decompress_to_ppu(level_spr_tiles[(u8)current_location],
                              PPU_PATTERN_TABLE_SIZE / 64);
 
-    vram_adr(NAMETABLE_D);
-    vram_write(game_over_nam, 1024);
-
     vram_adr(NAMETABLE_A);
     vram_write(level_nametables[(u8)current_location], 1024);
+
+    vram_adr(NAMETABLE_C);
+    vram_write(level_alt_nametables[(u8)current_location], 1024);
 
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);
@@ -60,11 +60,32 @@ __attribute__((noinline)) Gameplay::Gameplay()
 
   oam_clear();
 
-  scroll(0, DEFAULT_SCROLL_Y);
+  scroll(0, (unsigned int)y_scroll);
+
+  player.refresh_energy_hud();
+  player.refresh_score_hud();
 
   ppu_on_all();
 
   pal_fade_to(0, 4);
+
+  for (u16 waiting_frames = 0; waiting_frames < INTRO_DELAY; waiting_frames++) {
+    pad_poll(0);
+    pad_poll(1);
+    if (get_pad_new(0) | get_pad_new(1)) {
+      break;
+    }
+    ppu_wait_nmi();
+  }
+
+  while (y_scroll < Gameplay::DEFAULT_Y_SCROLL) {
+    ppu_wait_nmi();
+    y_scroll++;
+    if (y_scroll == -0x20) {
+      y_scroll = 0;
+    }
+    scroll(0, (unsigned int)y_scroll);
+  }
 }
 
 __attribute__((noinline)) Gameplay::~Gameplay() {
@@ -76,34 +97,32 @@ void Gameplay::render() {
   oam_clear();
   if (player.state == Player::State::Dying ||
       player.state == Player::State::Dead) {
-    player.render();
+    player.render(y_scroll);
     return;
   }
 
+  polyomino.render_next();
+
   switch (get_frame_count() & 0b11) {
   case 0:
-    player.render();
-    fruits.render();
-    polyomino.render();
-    polyomino.render_next();
+    player.render(y_scroll);
+    fruits.render(y_scroll);
+    polyomino.render(y_scroll);
     break;
   case 1:
-    polyomino.render_next();
-    polyomino.render();
-    player.render();
-    fruits.render();
+    polyomino.render(y_scroll);
+    player.render(y_scroll);
+    fruits.render(y_scroll);
     break;
   case 2:
-    player.render();
-    polyomino.render();
-    polyomino.render_next();
-    fruits.render();
+    player.render(y_scroll);
+    polyomino.render(y_scroll);
+    fruits.render(y_scroll);
     break;
   default:
-    polyomino.render_next();
-    polyomino.render();
-    fruits.render();
-    player.render();
+    polyomino.render(y_scroll);
+    fruits.render(y_scroll);
+    player.render(y_scroll);
     break;
   }
 }
@@ -139,7 +158,7 @@ void Gameplay::loop() {
       if (pressed & (PAD_START | PAD_B)) {
         input_mode = InputMode::Player;
         pressed &= ~(PAD_START | PAD_B);
-        set_scroll_y(DEFAULT_SCROLL_Y);
+        set_scroll_y((unsigned int)y_scroll);
         GGSound::resume();
       } else if (pressed &
                  (PAD_LEFT | PAD_RIGHT | PAD_UP | PAD_DOWN | PAD_SELECT)) {
@@ -147,7 +166,7 @@ void Gameplay::loop() {
       } else if (pressed & PAD_A) {
         GGSound::resume();
         input_mode = InputMode::Player;
-        set_scroll_y(DEFAULT_SCROLL_Y);
+        set_scroll_y((unsigned int)y_scroll);
         if (pause_option == 1) {
           current_mode = GameMode::TitleScreen;
         }

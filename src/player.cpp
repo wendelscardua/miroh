@@ -4,7 +4,6 @@
 #include "coroutine.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
-#include "gameplay.hpp"
 #include "ggsound.hpp"
 #include "maze-defs.hpp"
 #include "metasprites.hpp"
@@ -177,8 +176,8 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
   }
 }
 
-void Player::render() {
-  u8 reference_y = board.origin_y - Gameplay::DEFAULT_SCROLL_Y;
+void Player::render(int y_scroll) {
+  u8 reference_y = (u8)(board.origin_y - y_scroll);
   static u8 animation_frame;
   static State current_state = State::Dead;
   CORO_RESET_WHEN(current_state != state);
@@ -398,7 +397,7 @@ void Player::refresh_score_hud() {
     high_score[maze] = score;
   }
   int_to_text(score_text, high_score[maze]);
-  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 3));
+  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 4));
 
   u8_to_text(score_text, lines);
   multi_vram_buffer_horz(score_text, 2, NTADR_A(15, 27));

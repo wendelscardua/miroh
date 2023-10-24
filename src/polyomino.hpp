@@ -53,7 +53,7 @@ public:
 
   void banked_render();
 
-  void render();
+  void render(int y_scroll);
 
   void render_next();
 
