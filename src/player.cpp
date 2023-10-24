@@ -398,7 +398,7 @@ void Player::refresh_score_hud() {
     high_score[maze] = score;
   }
   int_to_text(score_text, high_score[maze]);
-  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 3));
+  multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 4));
 
   u8_to_text(score_text, lines);
   multi_vram_buffer_horz(score_text, 2, NTADR_A(15, 27));
