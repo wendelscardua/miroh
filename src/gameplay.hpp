@@ -8,7 +8,6 @@
 #include "polyomino.hpp"
 
 class Gameplay {
-  static constexpr int PAUSE_SCROLL_Y = 0x130;
   // we level up every 50 points
   static constexpr u16 LEVEL_UP_POINTS = 50;
 
@@ -47,14 +46,17 @@ class Gameplay {
 
 public:
   static constexpr u8 BANK = 0;
-  static constexpr int DEFAULT_SCROLL_Y = 0x08;
-
+  static constexpr u16 INTRO_DELAY = 900;
+  static constexpr int DEFAULT_Y_SCROLL = 0x08;
+  static constexpr int PAUSE_SCROLL_Y = 0x050;
+  static constexpr int INTRO_SCROLL_Y = -0x100 + 0x50;
   Board board;
   Player player;
   Polyomino polyomino;
   Fruits fruits;
   InputMode input_mode;
   Location current_location;
+  int y_scroll;
 
   Gameplay();
   ~Gameplay();

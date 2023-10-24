@@ -44,7 +44,7 @@ public:
   Player(Board &board, fixed_point starting_x, fixed_point starting_y);
 
   void update(InputMode input_mode, u8 pressed, u8 held);
-  void render();
+  void render(int y_scroll);
   void feed(u8 nutrition);
   void energy_upkeep(s16 delta);
   void refresh_energy_hud();

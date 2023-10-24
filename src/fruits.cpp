@@ -1,7 +1,6 @@
 #include "fruits.hpp"
 #include "bag.hpp"
 #include "banked-asset-helpers.hpp"
-#include "gameplay.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"
 #include <nesdoug.h>
@@ -64,8 +63,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
 
   fruit.active = true;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
-  fruit.y =
-      (u8)((fruit.row << 4) + board.origin_y - Gameplay::DEFAULT_SCROLL_Y);
+  fruit.y = (u8)((fruit.row << 4) + board.origin_y);
   fruit.life = EXPIRATION_TIME;
 }
 
@@ -132,12 +130,12 @@ const u8 *const low_fruits[]{
     metasprite_CornLow,
 };
 
-void Fruits::render() {
+void Fruits::render(int y_scroll) {
   bool state = (get_frame_count() & 0b10000);
   for (auto fruit : fruits) {
     if (fruit.active) {
       Fruit::Type type = fruit.type;
-      banked_oam_meta_spr(fruit.x, fruit.y,
+      banked_oam_meta_spr(fruit.x, (u8)(fruit.y - y_scroll),
                           state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
     };
     state = !state;
