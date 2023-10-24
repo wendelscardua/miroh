@@ -41,11 +41,11 @@ __attribute__((noinline)) Gameplay::Gameplay()
     Donut::decompress_to_ppu(level_spr_tiles[(u8)current_location],
                              PPU_PATTERN_TABLE_SIZE / 64);
 
-    vram_adr(NAMETABLE_D);
-    vram_write(game_over_nam, 1024);
-
     vram_adr(NAMETABLE_A);
     vram_write(level_nametables[(u8)current_location], 1024);
+
+    vram_adr(NAMETABLE_C);
+    vram_write(level_alt_nametables[(u8)current_location], 1024);
 
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);

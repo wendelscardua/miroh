@@ -123,7 +123,7 @@ set_property(
   SPR.chr.donut
   Title.nam
   StarlitStables.nam
-  game-over.nam
+  StarlitStablesAlt.nam
   how-to.nam
   credits.nam
 )
@@ -136,7 +136,7 @@ add_donut_asset(SOURCE "SPR.chr")
 
 add_raw_asset(SOURCE "Title.nam")
 add_raw_asset(SOURCE "StarlitStables.nam")
-add_raw_asset(SOURCE "game-over.nam")
+add_raw_asset(SOURCE "StarlitStablesAlt.nam")
 add_raw_asset(SOURCE "how-to.nam")
 add_raw_asset(SOURCE "credits.nam")
 
