@@ -234,202 +234,83 @@ void Board::free(s8 row, s8 column) {
   }
 }
 
-void Board::block_maze_cell(s8 row, s8 column) {
-  block_maze_cell(row, column, false);
-}
-
-void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
-  char metatile_top[2];
-  char metatile_bottom[2];
-
-  int position =
-      NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
-
-  // TODO: maybe read from Edges session?
-  if (jiggling) {
-    if (row == 0) {
-      if (column == 0) {
-        metatile_top[0] = 0x6a;
-        metatile_top[1] = 0x67;
-        metatile_bottom[0] = 0x72;
-        metatile_bottom[1] = 0x79;
-      } else if (column == WIDTH - 1) {
-        metatile_top[0] = 0x66;
-        metatile_top[1] = 0x6b;
-        metatile_bottom[0] = 0x78;
-        metatile_bottom[1] = 0x73;
-      } else {
-        metatile_top[0] = 0x66;
-        metatile_top[1] = 0x67;
-        metatile_bottom[0] = 0x78;
-        metatile_bottom[1] = 0x79;
-      }
-    } else if (row == HEIGHT - 1) {
-      if (column == 0) {
-        metatile_top[0] = 0x68;
-        metatile_top[1] = 0x67;
-        metatile_bottom[0] = 0x74;
-        metatile_bottom[1] = 0x7a;
-      } else if (column == WIDTH - 1) {
-        metatile_top[0] = 0x66;
-        metatile_top[1] = 0x69;
-        metatile_bottom[0] = 0x7a;
-        metatile_bottom[1] = 0x75;
-      } else {
-        metatile_top[0] = 0x66;
-        metatile_top[1] = 0x67;
-        metatile_bottom[0] = 0x7a;
-        metatile_bottom[1] = 0x7a;
-      }
-    } else {
-      if (column == 0) {
-        metatile_top[0] = 0x68;
-        metatile_top[1] = 0x67;
-        metatile_bottom[0] = 0x72;
-        metatile_bottom[1] = 0x79;
-      } else if (column == WIDTH - 1) {
-        metatile_top[0] = 0x66;
-        metatile_top[1] = 0x69;
-        metatile_bottom[0] = 0x78;
-        metatile_bottom[1] = 0x73;
-      } else {
-        metatile_top[0] = 0x66;
-        metatile_top[1] = 0x67;
-        metatile_bottom[0] = 0x78;
-        metatile_bottom[1] = 0x79;
-      }
-    }
-  } else {
-    if (row == 0) {
-      if (column == 0) {
-        metatile_top[0] = 0x64;
-        metatile_top[1] = 0x61;
-        metatile_bottom[0] = 0x72;
-        metatile_bottom[1] = 0x71;
-      } else if (column == WIDTH - 1) {
-        metatile_top[0] = 0x60;
-        metatile_top[1] = 0x65;
-        metatile_bottom[0] = 0x70;
-        metatile_bottom[1] = 0x73;
-      } else {
-        metatile_top[0] = 0x60;
-        metatile_top[1] = 0x61;
-        metatile_bottom[0] = 0x70;
-        metatile_bottom[1] = 0x71;
-      }
-    } else if (row == HEIGHT - 1) {
-      if (column == 0) {
-        metatile_top[0] = 0x62;
-        metatile_top[1] = 0x61;
-        metatile_bottom[0] = 0x74;
-        metatile_bottom[1] = 0x77;
-      } else if (column == WIDTH - 1) {
-        metatile_top[0] = 0x60;
-        metatile_top[1] = 0x63;
-        metatile_bottom[0] = 0x76;
-        metatile_bottom[1] = 0x75;
-      } else {
-        metatile_top[0] = 0x60;
-        metatile_top[1] = 0x61;
-        metatile_bottom[0] = 0x76;
-        metatile_bottom[1] = 0x77;
-      }
-    } else {
-      if (column == 0) {
-        metatile_top[0] = 0x62;
-        metatile_top[1] = 0x61;
-        metatile_bottom[0] = 0x72;
-        metatile_bottom[1] = 0x71;
-      } else if (column == WIDTH - 1) {
-        metatile_top[0] = 0x60;
-        metatile_top[1] = 0x63;
-        metatile_bottom[0] = 0x70;
-        metatile_bottom[1] = 0x73;
-      } else {
-        metatile_top[0] = 0x60;
-        metatile_top[1] = 0x61;
-        metatile_bottom[0] = 0x70;
-        metatile_bottom[1] = 0x71;
-      }
-    }
-  }
-
-  multi_vram_buffer_horz(metatile_top, 2, position);
-  multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
-  Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
-                  BLOCK_ATTRIBUTE);
-  occupy(row, column);
-}
-
 static const Cell null_cell;
 
-static constexpr u8 upper_left_block_tile[] = {0x00,
-                                               Board::TILE_BASE + 0x18,
-                                               Board::TILE_BASE + 0x16,
-                                               Board::TILE_BASE + 0x16,
-                                               Board::TILE_BASE + 0x14,
-                                               Board::TILE_BASE + 0x0e,
-                                               Board::TILE_BASE + 0x11,
-                                               Board::TILE_BASE + 0x11,
-                                               Board::TILE_BASE + 0x18,
-                                               Board::TILE_BASE + 0x18,
+static constexpr u8 upper_left_maze_tile[] = {0x00,
+                                              Board::TILE_BASE + 0x18,
+                                              Board::TILE_BASE + 0x16,
+                                              Board::TILE_BASE + 0x16,
+                                              Board::TILE_BASE + 0x14,
+                                              Board::TILE_BASE + 0x0e,
+                                              Board::TILE_BASE + 0x11,
+                                              Board::TILE_BASE + 0x11,
+                                              Board::TILE_BASE + 0x18,
+                                              Board::TILE_BASE + 0x18,
+                                              Board::TILE_BASE + 0x12,
+                                              Board::TILE_BASE + 0x16,
+                                              Board::TILE_BASE + 0x14,
+                                              Board::TILE_BASE + 0x14,
+                                              Board::TILE_BASE + 0x11,
+                                              Board::TILE_BASE + 0x11};
+
+static constexpr u8 upper_right_maze_tile[] = {0x00,
+                                               Board::TILE_BASE + 0x15,
+                                               Board::TILE_BASE + 0x15,
+                                               Board::TILE_BASE + 0x15,
+                                               Board::TILE_BASE + 0x10,
+                                               Board::TILE_BASE + 0x0d,
+                                               Board::TILE_BASE + 0x10,
+                                               Board::TILE_BASE + 0x10,
+                                               Board::TILE_BASE + 0x17,
+                                               Board::TILE_BASE + 0x17,
                                                Board::TILE_BASE + 0x12,
-                                               Board::TILE_BASE + 0x16,
-                                               Board::TILE_BASE + 0x14,
-                                               Board::TILE_BASE + 0x14,
-                                               Board::TILE_BASE + 0x11,
-                                               Board::TILE_BASE + 0x11};
+                                               Board::TILE_BASE + 0x17,
+                                               Board::TILE_BASE + 0x13,
+                                               Board::TILE_BASE + 0x13,
+                                               Board::TILE_BASE + 0x13,
+                                               Board::TILE_BASE + 0x13};
 
-static constexpr u8 upper_right_block_tile[] = {0x00,
-                                                Board::TILE_BASE + 0x15,
-                                                Board::TILE_BASE + 0x15,
-                                                Board::TILE_BASE + 0x15,
-                                                Board::TILE_BASE + 0x10,
-                                                Board::TILE_BASE + 0x0d,
-                                                Board::TILE_BASE + 0x10,
-                                                Board::TILE_BASE + 0x10,
-                                                Board::TILE_BASE + 0x17,
-                                                Board::TILE_BASE + 0x17,
-                                                Board::TILE_BASE + 0x12,
-                                                Board::TILE_BASE + 0x17,
-                                                Board::TILE_BASE + 0x13,
-                                                Board::TILE_BASE + 0x13,
-                                                Board::TILE_BASE + 0x13,
-                                                Board::TILE_BASE + 0x13};
+static constexpr u8 lower_left_maze_tile[] = {0x00,
+                                              Board::TILE_BASE + 0x08,
+                                              Board::TILE_BASE + 0x01,
+                                              Board::TILE_BASE + 0x06,
+                                              Board::TILE_BASE + 0x04,
+                                              Board::TILE_BASE + 0x0e,
+                                              Board::TILE_BASE + 0x01,
+                                              Board::TILE_BASE + 0x06,
+                                              Board::TILE_BASE + 0x04,
+                                              Board::TILE_BASE + 0x08,
+                                              Board::TILE_BASE + 0x02,
+                                              Board::TILE_BASE + 0x06,
+                                              Board::TILE_BASE + 0x04,
+                                              Board::TILE_BASE + 0x08,
+                                              Board::TILE_BASE + 0x01,
+                                              Board::TILE_BASE + 0x06};
 
-static constexpr u8 lower_left_block_tile[] = {0x00,
-                                               Board::TILE_BASE + 0x08,
-                                               Board::TILE_BASE + 0x01,
-                                               Board::TILE_BASE + 0x06,
-                                               Board::TILE_BASE + 0x04,
-                                               Board::TILE_BASE + 0x0e,
-                                               Board::TILE_BASE + 0x01,
-                                               Board::TILE_BASE + 0x06,
-                                               Board::TILE_BASE + 0x04,
-                                               Board::TILE_BASE + 0x08,
+static constexpr u8 lower_right_maze_tile[] = {0x00,
+                                               Board::TILE_BASE + 0x05,
+                                               Board::TILE_BASE + 0x00,
+                                               Board::TILE_BASE + 0x05,
+                                               Board::TILE_BASE + 0x00,
+                                               Board::TILE_BASE + 0x0d,
+                                               Board::TILE_BASE + 0x00,
+                                               Board::TILE_BASE + 0x05,
+                                               Board::TILE_BASE + 0x03,
+                                               Board::TILE_BASE + 0x07,
                                                Board::TILE_BASE + 0x02,
-                                               Board::TILE_BASE + 0x06,
-                                               Board::TILE_BASE + 0x04,
-                                               Board::TILE_BASE + 0x08,
-                                               Board::TILE_BASE + 0x01,
-                                               Board::TILE_BASE + 0x06};
+                                               Board::TILE_BASE + 0x07,
+                                               Board::TILE_BASE + 0x03,
+                                               Board::TILE_BASE + 0x07,
+                                               Board::TILE_BASE + 0x03,
+                                               Board::TILE_BASE + 0x07};
 
-static constexpr u8 lower_right_block_tile[] = {0x00,
-                                                Board::TILE_BASE + 0x05,
-                                                Board::TILE_BASE + 0x00,
-                                                Board::TILE_BASE + 0x05,
-                                                Board::TILE_BASE + 0x00,
-                                                Board::TILE_BASE + 0x0d,
-                                                Board::TILE_BASE + 0x00,
-                                                Board::TILE_BASE + 0x05,
-                                                Board::TILE_BASE + 0x03,
-                                                Board::TILE_BASE + 0x07,
-                                                Board::TILE_BASE + 0x02,
-                                                Board::TILE_BASE + 0x07,
-                                                Board::TILE_BASE + 0x03,
-                                                Board::TILE_BASE + 0x07,
-                                                Board::TILE_BASE + 0x03,
-                                                Board::TILE_BASE + 0x07};
+static constexpr u8 lower_left_block_tile[] = {
+    0x62, 0x66, 0x68, 0x68, 0x66, 0x64, 0x68, 0x68,
+    0x66, 0x66, 0x6a, 0x68, 0x66, 0x66, 0x68, 0x68};
+
+static constexpr u8 lower_right_block_tile[] = {
+    0x63, 0x67, 0x67, 0x67, 0x67, 0x65, 0x67, 0x67,
+    0x69, 0x69, 0x6b, 0x69, 0x69, 0x69, 0x69, 0x69};
 
 // converts 4 boolean walls into a integer value between 0 and 15
 u8 walls_to_index(bool wall_going_up, bool wall_going_right,
@@ -450,6 +331,65 @@ u8 walls_to_index(bool wall_going_up, bool wall_going_right,
   return value;
 }
 
+void Board::block_maze_cell(s8 row, s8 column) {
+  block_maze_cell(row, column, false);
+}
+
+void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
+  char metatile_top[2];
+  char metatile_bottom[2];
+
+  auto current_cell = &cell[row][column];
+  auto lower_cell = row < HEIGHT - 1 ? &cell[row + 1][column] : &null_cell;
+  auto left_cell = column > 0 ? &cell[row][column - 1] : &null_cell;
+  auto right_cell = column < WIDTH - 1 ? &cell[row][column + 1] : &null_cell;
+
+  int position =
+      NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
+
+  metatile_top[0] = 0x60;
+  metatile_top[1] = 0x61;
+
+  metatile_bottom[0] = lower_left_block_tile[walls_to_index(
+      current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
+      left_cell->down_wall)];
+  metatile_bottom[1] = lower_right_block_tile[walls_to_index(
+      current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
+      current_cell->down_wall)];
+
+  if (row == HEIGHT - 1) {
+    if (column > 0 && current_cell->left_wall) {
+      metatile_bottom[0] = 0x6a;
+    }
+    if (column < WIDTH - 1 && current_cell->right_wall) {
+      metatile_bottom[1] = 0x6b;
+    }
+  }
+
+  if (column == 0) {
+    if (row < HEIGHT - 1 && current_cell->down_wall) {
+      metatile_bottom[0] = 0x6a;
+    }
+  } else if (column == WIDTH - 1) {
+    if (row < HEIGHT - 1 && current_cell->down_wall) {
+      metatile_bottom[1] = 0x6b;
+    }
+  }
+
+  if (jiggling) {
+    metatile_top[0] += 0x10;
+    metatile_top[1] += 0x10;
+    metatile_bottom[0] += 0x10;
+    metatile_bottom[1] += 0x10;
+  }
+
+  multi_vram_buffer_horz(metatile_top, 2, position);
+  multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
+  Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
+                  BLOCK_ATTRIBUTE);
+  occupy(row, column);
+}
+
 void Board::restore_maze_cell(s8 row, s8 column) {
   auto current_cell = &cell[row][column];
   int position =
@@ -462,16 +402,16 @@ void Board::restore_maze_cell(s8 row, s8 column) {
   auto left_cell = column > 0 ? &cell[row][column - 1] : &null_cell;
   auto right_cell = column < WIDTH - 1 ? &cell[row][column + 1] : &null_cell;
 
-  metatile_top[0] = upper_left_block_tile[walls_to_index(
+  metatile_top[0] = upper_left_maze_tile[walls_to_index(
       upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
       left_cell->up_wall)];
-  metatile_top[1] = upper_right_block_tile[walls_to_index(
+  metatile_top[1] = upper_right_maze_tile[walls_to_index(
       upper_cell->right_wall, right_cell->up_wall, current_cell->right_wall,
       current_cell->up_wall)];
-  metatile_bottom[0] = lower_left_block_tile[walls_to_index(
+  metatile_bottom[0] = lower_left_maze_tile[walls_to_index(
       current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
       left_cell->down_wall)];
-  metatile_bottom[1] = lower_right_block_tile[walls_to_index(
+  metatile_bottom[1] = lower_right_maze_tile[walls_to_index(
       current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
       current_cell->down_wall)];
 
