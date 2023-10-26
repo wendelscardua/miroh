@@ -28,8 +28,9 @@ __attribute__((noinline)) Gameplay::Gameplay()
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       pause_option(0), board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
-      polyomino(board), fruits(board), input_mode(InputMode::Player),
-      current_location(Location::StarlitStables), y_scroll(INTRO_SCROLL_Y) {
+      polyomino(board), fruits(board, current_level),
+      input_mode(InputMode::Player), current_location(Location::StarlitStables),
+      y_scroll(INTRO_SCROLL_Y) {
   set_chr_bank(0);
 
   banked_lambda(ASSETS_BANK, [this]() {
