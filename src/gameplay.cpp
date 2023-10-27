@@ -102,8 +102,6 @@ void Gameplay::render() {
     return;
   }
 
-  polyomino.render_next();
-
   switch (get_frame_count() & 0b11) {
   case 0:
     player.render(y_scroll);
