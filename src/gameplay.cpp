@@ -98,12 +98,6 @@ void Gameplay::render() {
   oam_clear();
 
   player.render(y_scroll);
-
-  if (player.state == Player::State::Dying ||
-      player.state == Player::State::Dead) {
-    return;
-  }
-
   fruits.render(y_scroll);
   polyomino.render(y_scroll);
 }
