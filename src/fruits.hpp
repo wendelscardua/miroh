@@ -41,7 +41,7 @@ struct Fruit {
 #include <soa-struct.inc>
 
 class Fruits {
-  static constexpr u8 NUM_FRUITS = 5;
+  static constexpr u8 NUM_FRUITS = 2;
   static constexpr u16 EXPIRATION_TIME = 15 * 60;
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
