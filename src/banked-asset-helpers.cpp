@@ -5,9 +5,28 @@
 #include <bank.h>
 #include <neslib.h>
 
+struct Sprite {
+  s8 delta_x;
+  s8 delta_y;
+  u8 tile;
+  u8 attribute;
+};
+
 void banked_oam_meta_spr(char x, char y, const void *data) {
   ScopedBank scopedBank(GET_BANK(metasprite_list));
-  oam_meta_spr(x, y, data);
+
+  for (auto sprites = (const Sprite *)data; sprites->delta_x != -128;
+       sprites++) {
+    int spr_y = y + sprites->delta_y;
+    if (spr_y < 0 || spr_y > 0xef) {
+      continue;
+    }
+    int spr_x = x + sprites->delta_x;
+    if (spr_x < 0 || spr_x > 0xff) {
+      continue;
+    }
+    oam_spr((u8)spr_x, (u8)spr_y, sprites->tile, sprites->attribute);
+  }
 }
 
 void banked_play_song(Song song) {
