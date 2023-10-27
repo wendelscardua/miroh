@@ -96,34 +96,16 @@ __attribute__((noinline)) Gameplay::~Gameplay() {
 
 void Gameplay::render() {
   oam_clear();
+
+  player.render(y_scroll);
+
   if (player.state == Player::State::Dying ||
       player.state == Player::State::Dead) {
-    player.render(y_scroll);
     return;
   }
 
-  switch (get_frame_count() & 0b11) {
-  case 0:
-    player.render(y_scroll);
-    fruits.render(y_scroll);
-    polyomino.render(y_scroll);
-    break;
-  case 1:
-    polyomino.render(y_scroll);
-    player.render(y_scroll);
-    fruits.render(y_scroll);
-    break;
-  case 2:
-    player.render(y_scroll);
-    polyomino.render(y_scroll);
-    fruits.render(y_scroll);
-    break;
-  default:
-    polyomino.render(y_scroll);
-    fruits.render(y_scroll);
-    player.render(y_scroll);
-    break;
-  }
+  fruits.render(y_scroll);
+  polyomino.render(y_scroll);
 }
 
 void Gameplay::paused_render() {
