@@ -43,10 +43,10 @@ __attribute__((noinline)) Gameplay::Gameplay()
                              PPU_PATTERN_TABLE_SIZE / 64);
 
     vram_adr(NAMETABLE_A);
-    vram_write(level_nametables[(u8)current_location], 1024);
+    vram_unrle(level_nametables[(u8)current_location]);
 
     vram_adr(NAMETABLE_C);
-    vram_write(level_alt_nametables[(u8)current_location], 1024);
+    vram_unrle(level_alt_nametables[(u8)current_location]);
 
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);

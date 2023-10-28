@@ -31,19 +31,19 @@ level_alt_nametables:
     .byte StarlitStablesAlt_nam@mos16hi
 
     ; Generic
-    SPR_chr: .incbin "SPR.chr.donut"
+SPR_chr: .incbin "SPR.chr.donut"
  
     ; Starlit Stables
 StarlitStablesBG_pal: .incbin "StarlitStablesBG.pal"
 StarlitStablesSPR_pal: .incbin "StarlitStablesSPR.pal"
 StarlitStablesBG_chr: .incbin "StarlitStablesBG.chr.donut"
-StarlitStables_nam: .incbin "StarlitStables.nam"    
-StarlitStablesAlt_nam: .incbin "StarlitStablesAlt.nam"
+StarlitStables_nam: .incbin "StarlitStables.nam.rle"
+StarlitStablesAlt_nam: .incbin "StarlitStablesAlt.nam.rle"
 
     ; non-level stuff
 .global title_nam
-title_nam: .incbin "Title.nam"
+title_nam: .incbin "Title.nam.rle"
 .global how_to_nam
-how_to_nam: .incbin "how-to.nam"
+how_to_nam: .incbin "how-to.nam.rle"
 .global credits_nam
-credits_nam: .incbin "credits.nam"
+credits_nam: .incbin "credits.nam.rle"
