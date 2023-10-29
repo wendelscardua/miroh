@@ -168,10 +168,6 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
   } break;
   case State::Dead: {
-    if (ghost_height < 0x30 && (get_frame_count() & 0b100)) {
-      ghost_height++;
-      set_scroll_y(ghost_height);
-    }
   } break;
   }
 }
