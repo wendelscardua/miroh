@@ -119,10 +119,10 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
     Donut::decompress_to_ppu(level_spr_tiles[0], PPU_PATTERN_TABLE_SIZE / 64);
 
     vram_adr(NAMETABLE_D);
-    vram_write(how_to_nam, 1024);
+    vram_unrle(how_to_nam);
 
     vram_adr(NAMETABLE_A);
-    vram_write(title_nam, 1024);
+    vram_unrle(title_nam);
 
     pal_bg(level_bg_palettes[0]);
     pal_spr(level_spr_palettes[0]);
@@ -189,7 +189,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
           banked_lambda(GET_BANK(credits_nam), []() {
             vram_adr(NAMETABLE_D);
-            vram_write(credits_nam, 1024);
+            vram_unrle(credits_nam);
           });
 
           scroll(0, 240);
@@ -265,7 +265,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
         banked_lambda(GET_BANK(credits_nam), []() {
           vram_adr(NAMETABLE_D);
-          vram_write(how_to_nam, 1024);
+          vram_unrle(how_to_nam);
         });
         scroll(0, 0);
 

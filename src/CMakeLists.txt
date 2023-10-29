@@ -121,11 +121,11 @@ set_property(
   StarlitStablesSPR.pal
   StarlitStablesBG.chr.donut
   SPR.chr.donut
-  Title.nam
-  StarlitStables.nam
-  StarlitStablesAlt.nam
-  how-to.nam
-  credits.nam
+  Title.nam.rle
+  StarlitStables.nam.rle
+  StarlitStablesAlt.nam.rle
+  how-to.nam.rle
+  credits.nam.rle
 )
 
 add_raw_asset(SOURCE "StarlitStablesBG.pal")
@@ -134,11 +134,11 @@ add_raw_asset(SOURCE "StarlitStablesSPR.pal")
 add_donut_asset(SOURCE "StarlitStablesBG.chr")
 add_donut_asset(SOURCE "SPR.chr")
 
-add_raw_asset(SOURCE "Title.nam")
-add_raw_asset(SOURCE "StarlitStables.nam")
-add_raw_asset(SOURCE "StarlitStablesAlt.nam")
-add_raw_asset(SOURCE "how-to.nam")
-add_raw_asset(SOURCE "credits.nam")
+add_rle_asset(SOURCE "Title.nam")
+add_rle_asset(SOURCE "StarlitStables.nam")
+add_rle_asset(SOURCE "StarlitStablesAlt.nam")
+add_rle_asset(SOURCE "how-to.nam")
+add_rle_asset(SOURCE "credits.nam")
 
 set_property(
   SOURCE

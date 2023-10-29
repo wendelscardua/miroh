@@ -49,7 +49,9 @@ auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
 
 Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), next(polyominos[pieces.take()]),
-      state(State::Inactive) {}
+      state(State::Inactive) {
+  render_next();
+}
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   state = State::Active;
@@ -61,6 +63,8 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
 
   definition = next;
   next = polyominos[pieces.take()];
+
+  render_next();
 
   s8 max_delta = 0;
   for (auto delta : definition->deltas) {
@@ -233,7 +237,7 @@ void Polyomino::render(int y_scroll) {
 
   banked_lambda(GET_BANK(polyominos), [this, y_scroll]() {
     definition->render(board.origin_x + (u8)(column << 4),
-                       (u8)(board.origin_y - y_scroll + (row << 4)));
+                       (board.origin_y - y_scroll + (u8)(row << 4)));
   });
 }
 

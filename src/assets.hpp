@@ -23,6 +23,6 @@ extern "C" const soa::Array<char *, NUM_LEVELS> level_spr_tiles;
 extern "C" const soa::Array<char *, NUM_LEVELS> level_nametables;
 extern "C" const soa::Array<char *, NUM_LEVELS> level_alt_nametables;
 
-extern "C" const char *title_nam;
-extern "C" const char *how_to_nam;
-extern "C" const char *credits_nam;
+extern "C" const char title_nam[];
+extern "C" const char how_to_nam[];
+extern "C" const char credits_nam[];

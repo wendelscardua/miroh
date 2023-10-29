@@ -141,7 +141,7 @@ void Fruits::render(int y_scroll) {
   for (auto fruit : fruits) {
     if (fruit.active) {
       Fruit::Type type = fruit.type;
-      banked_oam_meta_spr(fruit.x, (u8)(fruit.y - y_scroll),
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
                           state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
     };
     state = !state;

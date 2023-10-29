@@ -111,14 +111,15 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
     switch (moving) {
     case Direction::Up:
-      y -= move_speed();
-      if (y <= target_y) {
+      if (y <= target_y + move_speed()) {
         y = target_y;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
         goto check_idle;
+      } else {
+        y -= move_speed();
       }
       break;
     case Direction::Right:
@@ -144,14 +145,15 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
       }
       break;
     case Direction::Left:
-      x -= move_speed();
-      if (x <= target_x) {
+      if (x <= target_x + move_speed()) {
         x = target_x;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
         goto check_idle;
+      } else {
+        x -= move_speed();
       }
       break;
     case Direction::None:
@@ -168,16 +170,33 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
   } break;
   case State::Dead: {
-    if (ghost_height < 0x30 && (get_frame_count() & 0b100)) {
-      ghost_height++;
-      set_scroll_y(ghost_height);
-    }
   } break;
   }
 }
 
-void Player::render(int y_scroll) {
-  u8 reference_y = (u8)(board.origin_y - y_scroll);
+extern "C" char OAM_BUF[256];
+
+void Player::fix_uni_priority(bool left_wall, bool right_wall) {
+  if (state != State::Moving) {
+    return;
+  }
+  u8 tile_y = y.round() & 0x0f;
+  if (tile_y < 0x07 || tile_y > 0x0c) {
+    return;
+  }
+
+  // XXX: assume player is first sprite, so we know the right indices to mess
+  // with here
+  if (!left_wall) {
+    OAM_BUF[2] ^= OAM_BEHIND;
+  }
+  if (!right_wall) {
+    OAM_BUF[6] ^= OAM_BEHIND;
+  }
+}
+
+void Player::render(int y_scroll, bool left_wall, bool right_wall) {
+  int reference_y = board.origin_y - y_scroll;
   static u8 animation_frame;
   static State current_state = State::Dead;
   CORO_RESET_WHEN(current_state != state);
@@ -223,6 +242,7 @@ void Player::render(int y_scroll) {
                           reference_y + (u8)y.round(),
                           facing == Direction::Right ? metasprite_UniRightWalk1
                                                      : metasprite_UniLeftWalk1);
+      fix_uni_priority(left_wall, right_wall);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 9; animation_frame++) {
@@ -230,6 +250,7 @@ void Player::render(int y_scroll) {
                           reference_y + (u8)y.round(),
                           facing == Direction::Right ? metasprite_UniRightWalk2
                                                      : metasprite_UniLeftWalk2);
+      fix_uni_priority(left_wall, right_wall);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 5; animation_frame++) {
@@ -237,6 +258,7 @@ void Player::render(int y_scroll) {
                           reference_y + (u8)y.round(),
                           facing == Direction::Right ? metasprite_UniRightWalk3
                                                      : metasprite_UniLeftWalk3);
+      fix_uni_priority(left_wall, right_wall);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 9; animation_frame++) {
@@ -244,6 +266,7 @@ void Player::render(int y_scroll) {
                           reference_y + (u8)y.round(),
                           facing == Direction::Right ? metasprite_UniRightWalk4
                                                      : metasprite_UniLeftWalk4);
+      fix_uni_priority(left_wall, right_wall);
       if (animation_frame != 8) {
         CORO_YIELD();
       }
