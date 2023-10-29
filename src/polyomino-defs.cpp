@@ -1,5 +1,4 @@
 #include "polyomino-defs.hpp"
-#include "bag.hpp"
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "metasprites.hpp"
