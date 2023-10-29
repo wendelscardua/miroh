@@ -9,7 +9,7 @@
 #define PLAYER_TEXT_SECTION ".prg_rom_1.text.player"
 
 class Player {
-  static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x2492);
+  static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x25);
   static constexpr u8 MAX_ENERGY = 32;
 
 private:
