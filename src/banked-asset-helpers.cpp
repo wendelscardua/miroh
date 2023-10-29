@@ -12,7 +12,7 @@ struct Sprite {
   u8 attribute;
 };
 
-void banked_oam_meta_spr(char x, char y, const void *data) {
+void banked_oam_meta_spr(char x, int y, const void *data) {
   ScopedBank scopedBank(GET_BANK(metasprite_list));
 
   for (auto sprites = (const Sprite *)data; sprites->delta_x != -128;
@@ -21,11 +21,11 @@ void banked_oam_meta_spr(char x, char y, const void *data) {
     if (spr_y < 0 || spr_y > 0xef) {
       continue;
     }
-    int spr_x = x + sprites->delta_x;
+    u8 spr_x = (u8)(x + sprites->delta_x);
     if (spr_x < 0 || spr_x > 0xff) {
       continue;
     }
-    oam_spr((u8)spr_x, (u8)spr_y, sprites->tile, sprites->attribute);
+    oam_spr(spr_x, (u8)spr_y, sprites->tile, sprites->attribute);
   }
 }
 

@@ -237,7 +237,7 @@ void Polyomino::render(int y_scroll) {
 
   banked_lambda(GET_BANK(polyominos), [this, y_scroll]() {
     definition->render(board.origin_x + (u8)(column << 4),
-                       (u8)(board.origin_y - y_scroll + (row << 4)));
+                       (board.origin_y - y_scroll + (u8)(row << 4)));
   });
 }
 

@@ -16,7 +16,7 @@ bool PolyominoDef::collide(Board &board, s8 row, s8 column) const {
   return false;
 }
 
-void PolyominoDef::render(u8 x, u8 y) const {
+void PolyominoDef::render(int x, int y) const {
   static u8 polyomino_start_index = 0;
 
   for (u8 j = 0; j < 5; j++) {
@@ -28,12 +28,9 @@ void PolyominoDef::render(u8 x, u8 y) const {
       continue;
     }
     auto delta = deltas[i];
-    u8 block_x = x + (u8)(delta.delta_column << 4);
-    u8 block_y = y + (u8)(delta.delta_row << 4);
-    if (block_y == 0) {
-      block_y++;
-    }
-    banked_oam_meta_spr((u8)block_x, (u8)block_y, metasprite_block);
+    u8 block_x = (u8)(x + (delta.delta_column << 4));
+    int block_y = y + (delta.delta_row << 4);
+    banked_oam_meta_spr(block_x, block_y, metasprite_block);
   }
 
   polyomino_start_index += 2;
