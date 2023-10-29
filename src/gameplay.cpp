@@ -69,6 +69,9 @@ __attribute__((noinline)) Gameplay::Gameplay()
 
   ppu_on_all();
 
+  // TODO: pick based on stage
+  banked_play_song(Song::Marshmallow_rally);
+
   pal_fade_to(0, 4);
 
   for (u16 waiting_frames = 0; waiting_frames < INTRO_DELAY; waiting_frames++) {
@@ -231,7 +234,7 @@ void Gameplay::loop() {
       }
 
       if (input_mode != old_mode) {
-        banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
       }
     }
     Attributes::flush_vram_update();

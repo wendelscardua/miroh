@@ -26,7 +26,7 @@ void Player::energy_upkeep(s16 delta) {
     energy_timer -= ENERGY_TICKS;
     if (energy == 0) {
       // TODO: don't die during co-op mode
-      banked_play_song(Song::Rip_in_peace);
+      banked_play_song(Song::Glitter);
       state = State::Dying;
       ghost_height = 0;
       break;
@@ -282,7 +282,7 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
 }
 
 void Player::feed(u8 nutrition) {
-  banked_play_sfx(SFX::Nom, GGSound::SFXPriority::One);
+  banked_play_sfx(SFX::Number1, GGSound::SFXPriority::One);
 
   energy_timer = 0;
   if (energy < MAX_ENERGY - nutrition) {

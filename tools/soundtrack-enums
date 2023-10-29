@@ -47,6 +47,13 @@ class SoundtrackEnums < Thor
         .sub(/\A_+/, '')
         .sub(/_+\z/, '')
         .capitalize
+        .then do |label|
+          if label =~ /^[A-Z]/
+            label
+          else
+            "Number#{label}"
+          end
+        end
   end
 end
 
