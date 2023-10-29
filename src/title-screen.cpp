@@ -136,7 +136,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
 
   ppu_on_all();
 
-  banked_play_song(Song::Miroh);
+  banked_play_song(Song::Baby_bullhead);
 
   pal_fade_to(0, 4);
 }
@@ -165,7 +165,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         multi_vram_buffer_horz(menu_text + 24, 24, NTADR_A(4, 16));
         multi_vram_buffer_horz(menu_text + 48, 24, NTADR_A(4, 17));
 
-        banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
 
         state = State::Options;
         current_option = MenuOption::Start;
@@ -175,13 +175,13 @@ __attribute__((noinline)) void TitleScreen::loop() {
       if (pressed & (PAD_START | PAD_A)) {
         switch (current_option) {
         case MenuOption::Controls:
-          banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
 
           state = State::HowToPlay;
           scroll(0, 240);
           break;
         case MenuOption::Credits:
-          banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
 
           state = State::Credits;
           pal_fade_to(4, 0);
@@ -198,13 +198,13 @@ __attribute__((noinline)) void TitleScreen::loop() {
           pal_fade_to(0, 4);
           break;
         case MenuOption::Start:
-          banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
 
           state = State::PressStart;
           current_mode = GameMode::Gameplay;
           break;
         case MenuOption::Settings:
-          banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
 
           state = State::Settings;
           current_setting = SettingsOption::LineGravity;
@@ -215,23 +215,23 @@ __attribute__((noinline)) void TitleScreen::loop() {
         }
         break;
       } else if (pressed & PAD_UP) {
-        banked_play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
 
         current_option = above_of[(u8)current_option];
       } else if (pressed & PAD_DOWN) {
-        banked_play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
 
         current_option = below_of[(u8)current_option];
       } else if (pressed & PAD_LEFT) {
-        banked_play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
 
         current_option = left_of[(u8)current_option];
       } else if (pressed & PAD_RIGHT) {
-        banked_play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
 
         current_option = right_of[(u8)current_option];
       } else if (pressed & (PAD_SELECT | PAD_B)) {
-        banked_play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
 
         current_option = next[(u8)current_option];
       }
@@ -248,7 +248,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
       break;
     case State::HowToPlay:
       if (pressed & (PAD_START | PAD_A)) {
-        banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
 
         scroll(0, 0);
         state = State::Options;
@@ -257,7 +257,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
       break;
     case State::Credits:
       if (pressed & (PAD_START | PAD_A)) {
-        banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
 
         state = State::Options;
         pal_fade_to(4, 0);
@@ -277,16 +277,16 @@ __attribute__((noinline)) void TitleScreen::loop() {
       if (pressed & PAD_UP) {
         current_setting = setting_above[(u8)current_setting];
       } else if (pressed & (PAD_DOWN | PAD_SELECT)) {
-        banked_play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
         current_setting = setting_below[(u8)current_setting];
       } else if (pressed & PAD_LEFT) {
         switch (current_setting) {
         case SettingsOption::LineGravity:
-          banked_play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
           line_gravity_enabled = !line_gravity_enabled;
           break;
         case SettingsOption::Maze:
-          banked_play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
           if (maze > 0) {
             maze--;
           }
@@ -297,11 +297,11 @@ __attribute__((noinline)) void TitleScreen::loop() {
       } else if (pressed & PAD_RIGHT) {
         switch (current_setting) {
         case SettingsOption::LineGravity:
-          banked_play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
           line_gravity_enabled = !line_gravity_enabled;
           break;
         case SettingsOption::Maze:
-          banked_play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
           if (maze < NUM_MAZES - 1) {
             maze++;
           }
@@ -312,17 +312,17 @@ __attribute__((noinline)) void TitleScreen::loop() {
       } else if (pressed & (PAD_A | PAD_START)) {
         switch (current_setting) {
         case SettingsOption::LineGravity:
-          banked_play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
           line_gravity_enabled = !line_gravity_enabled;
           break;
         case SettingsOption::Maze:
-          banked_play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
           if (maze < NUM_MAZES - 1) {
             maze++;
           }
           break;
         case SettingsOption::Return:
-          banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
+          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
           state = State::Options;
           multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
           multi_vram_buffer_horz(menu_text + 24, 24, NTADR_A(4, 16));
