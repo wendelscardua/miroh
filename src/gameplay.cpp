@@ -96,7 +96,7 @@ __attribute__((noinline)) Gameplay::~Gameplay() {
 
 void Gameplay::render() {
   oam_clear();
-
+  scroll(0, (unsigned int)y_scroll);
   player.render(y_scroll);
   fruits.render(y_scroll);
   polyomino.render(y_scroll);
@@ -133,7 +133,7 @@ void Gameplay::loop() {
       if (pressed & (PAD_START | PAD_B)) {
         input_mode = InputMode::Player;
         pressed &= ~(PAD_START | PAD_B);
-        set_scroll_y((unsigned int)y_scroll);
+        y_scroll = DEFAULT_Y_SCROLL;
         GGSound::resume();
       } else if (pressed &
                  (PAD_LEFT | PAD_RIGHT | PAD_UP | PAD_DOWN | PAD_SELECT)) {
@@ -141,92 +141,88 @@ void Gameplay::loop() {
       } else if (pressed & PAD_A) {
         GGSound::resume();
         input_mode = InputMode::Player;
-        set_scroll_y((unsigned int)y_scroll);
+        y_scroll = DEFAULT_Y_SCROLL;
         if (pause_option == 1) {
           current_mode = GameMode::TitleScreen;
         }
       }
-    }
+    } else {
 
-    if (input_mode == InputMode::Pause) {
-      paused_render();
-      continue;
-    }
-
-    // we only spawn when there's no line clearing going on
-    if (polyomino.state == Polyomino::State::Inactive &&
-        !board.ongoing_line_clearing() && --spawn_timer == 0) {
-      banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
-      spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
-    }
-    banked_lambda(PLAYER_BANK, [this, pressed, held]() {
-      player.update(input_mode, pressed, held);
-    });
-
-    if (player.state != Player::State::Dying &&
-        player.state != Player::State::Dead) {
-      bool blocks_placed = false;
-      bool failed_to_place = false;
-      u8 lines_filled = 0;
-      banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed,
-                                           &failed_to_place, &lines_filled]() {
-        polyomino.handle_input(input_mode, pressed, held);
-        polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
-                         failed_to_place, lines_filled);
+      // we only spawn when there's no line clearing going on
+      if (polyomino.state == Polyomino::State::Inactive &&
+          !board.ongoing_line_clearing() && --spawn_timer == 0) {
+        banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
+        spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
+      }
+      banked_lambda(PLAYER_BANK, [this, pressed, held]() {
+        player.update(input_mode, pressed, held);
       });
-      fruits.update(player, blocks_placed, lines_filled);
 
-      if (lines_filled) {
-        u16 points = 10 * (2 * lines_filled - 1);
-        player.score += points;
-        if (player.score > 9999) {
-          player.score = 9999;
+      if (player.state != Player::State::Dying &&
+          player.state != Player::State::Dead) {
+        bool blocks_placed = false;
+        bool failed_to_place = false;
+        u8 lines_filled = 0;
+        banked_lambda(GET_BANK(polyominos), [pressed, this, held,
+                                             &blocks_placed, &failed_to_place,
+                                             &lines_filled]() {
+          polyomino.handle_input(input_mode, pressed, held);
+          polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
+                           failed_to_place, lines_filled);
+        });
+        fruits.update(player, blocks_placed, lines_filled);
+
+        if (lines_filled) {
+          u16 points = 10 * (2 * lines_filled - 1);
+          player.score += points;
+          if (player.score > 9999) {
+            player.score = 9999;
+          }
+          player.lines += lines_filled;
+          if (player.lines > 99) {
+            player.lines = 99;
+          }
+          add_experience(points);
+        } else if (blocks_placed) {
+          player.score += 1;
+          add_experience(1);
         }
-        player.lines += lines_filled;
-        if (player.lines > 99) {
-          player.lines = 99;
+
+        if (failed_to_place) {
+          player.energy_upkeep(3 * Player::ENERGY_TICKS);
         }
-        add_experience(points);
-      } else if (blocks_placed) {
-        player.score += 1;
-        add_experience(1);
+
+        switch (input_mode) {
+        case InputMode::Player:
+          if (pressed & (PAD_SELECT | PAD_A | PAD_B)) {
+            input_mode = InputMode::Polyomino;
+            pressed &= ~(PAD_SELECT | PAD_A | PAD_B);
+          } else if (pressed & PAD_START) {
+            input_mode = InputMode::Pause;
+            y_scroll = PAUSE_SCROLL_Y;
+            GGSound::pause();
+          }
+          break;
+        case InputMode::Polyomino:
+          if (pressed & (PAD_SELECT)) {
+            input_mode = InputMode::Player;
+            pressed &= ~(PAD_SELECT);
+          } else if (pressed & PAD_START) {
+            input_mode = InputMode::Pause;
+            y_scroll = PAUSE_SCROLL_Y;
+            GGSound::pause();
+          }
+          break;
+        default:
+        }
+      } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
+        current_mode = GameMode::TitleScreen;
       }
 
-      if (failed_to_place) {
-        player.energy_upkeep(3 * Player::ENERGY_TICKS);
+      if (input_mode != old_mode) {
+        banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
       }
-
-      switch (input_mode) {
-      case InputMode::Player:
-        if (pressed & (PAD_SELECT | PAD_A | PAD_B)) {
-          input_mode = InputMode::Polyomino;
-          pressed &= ~(PAD_SELECT | PAD_A | PAD_B);
-        } else if (pressed & PAD_START) {
-          input_mode = InputMode::Pause;
-          set_scroll_y(PAUSE_SCROLL_Y);
-          GGSound::pause();
-        }
-        break;
-      case InputMode::Polyomino:
-        if (pressed & (PAD_SELECT)) {
-          input_mode = InputMode::Player;
-          pressed &= ~(PAD_SELECT);
-        } else if (pressed & PAD_START) {
-          input_mode = InputMode::Pause;
-          set_scroll_y(PAUSE_SCROLL_Y);
-          GGSound::pause();
-        }
-        break;
-      default:
-      }
-    } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
-      current_mode = GameMode::TitleScreen;
     }
-
-    if (input_mode != old_mode) {
-      banked_play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-    }
-
     Attributes::flush_vram_update();
 
     extern u8 VRAM_INDEX;
