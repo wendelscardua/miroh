@@ -4,6 +4,7 @@
 #include "bank-helper.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
+#include "log.hpp"
 #include "maze-defs.hpp"
 #include <cstdio>
 #include <nesdoug.h>
@@ -336,6 +337,7 @@ void Board::block_maze_cell(s8 row, s8 column) {
 }
 
 void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
+  START_MESEN_WATCH(2);
   char metatile_top[2];
   char metatile_bottom[2];
 
@@ -388,6 +390,7 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
                   BLOCK_ATTRIBUTE);
   occupy(row, column);
+  STOP_MESEN_WATCH;
 }
 
 void Board::restore_maze_cell(s8 row, s8 column) {
