@@ -1,4 +1,5 @@
 #include "assets.hpp"
+#include "board.hpp"
 #include <bank.h>
 #ifndef NDEBUG
 #include <cstdio>
@@ -97,7 +98,17 @@ __attribute__((noinline)) Gameplay::~Gameplay() {
 void Gameplay::render() {
   oam_clear();
   scroll(0, (unsigned int)y_scroll);
-  player.render(y_scroll);
+  bool left_wall = false, right_wall = false;
+  if (player.state == Player::State::Moving) {
+    u8 row = (u8)(player.y.round() >> 4) + 1;
+    u8 col = (u8)(player.x.round() >> 4);
+    if (row < HEIGHT) {
+      auto cell = board.cell[row][col];
+      left_wall = cell.left_wall;
+      right_wall = cell.right_wall;
+    }
+  }
+  player.render(y_scroll, left_wall, right_wall);
   fruits.render(y_scroll);
   polyomino.render(y_scroll);
 }
