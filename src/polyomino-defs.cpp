@@ -15,7 +15,7 @@ bool PolyominoDef::collide(Board &board, s8 row, s8 column) const {
   return false;
 }
 
-void PolyominoDef::render(int x, int y) const {
+void PolyominoDef::render(u8 x, int y) const {
   static u8 polyomino_start_index = 0;
 
   for (u8 j = 0; j < 5; j++) {
