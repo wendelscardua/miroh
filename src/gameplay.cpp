@@ -69,6 +69,9 @@ __attribute__((noinline)) Gameplay::Gameplay()
 
   ppu_on_all();
 
+  // TODO: pick based on stage
+  banked_play_song(Song::Marshmallow_rally);
+
   pal_fade_to(0, 4);
 
   for (u16 waiting_frames = 0; waiting_frames < INTRO_DELAY; waiting_frames++) {

@@ -136,6 +136,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
 
   ppu_on_all();
 
+  // TODO: pick title song
   banked_play_song(Song::Baby_bullhead);
 
   pal_fade_to(0, 4);
