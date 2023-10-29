@@ -111,14 +111,15 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
     switch (moving) {
     case Direction::Up:
-      y -= move_speed();
-      if (y <= target_y) {
+      if (y <= target_y + move_speed()) {
         y = target_y;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
         goto check_idle;
+      } else {
+        y -= move_speed();
       }
       break;
     case Direction::Right:
@@ -144,14 +145,15 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
       }
       break;
     case Direction::Left:
-      x -= move_speed();
-      if (x <= target_x) {
+      if (x <= target_x + move_speed()) {
         x = target_x;
         state = State::Idle;
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
         goto check_idle;
+      } else {
+        x -= move_speed();
       }
       break;
     case Direction::None:
