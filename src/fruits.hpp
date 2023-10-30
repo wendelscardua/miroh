@@ -17,6 +17,21 @@ struct Fruit {
     Corn,
     Pear,
     Avocado,
+    Eggplant,
+    Kiwi,
+    Broccoli,
+    GreenPeas,
+    Strawberry,
+    Cherries,
+    Grapes,
+    Cucumber,
+    Clementine,
+    Hallabong,
+    Carrot,
+    Berries,
+    BlueCorn,
+    Bananas,
+    SweetPotato
   };
 
   s8 row;
