@@ -32,7 +32,7 @@ struct TemplateCell {
 };
 
 struct MazeDef {
-  const TemplateCell template_cells[HEIGHT][WIDTH];
+  const TemplateCell template_cells[HEIGHT * WIDTH];
 };
 
 typedef u8 Maze;

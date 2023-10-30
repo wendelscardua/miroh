@@ -18,8 +18,10 @@ static constexpr u8 CELL_ROW_START[] = {
     5 * WIDTH,  6 * WIDTH,  7 * WIDTH, 8 * WIDTH, 9 * WIDTH,
     10 * WIDTH, 11 * WIDTH, 12 * WIDTH};
 
+u8 board_index(u8 row, u8 column) { return CELL_ROW_START[row] + column; }
+
 Cell &Board::cell_at(u8 row, u8 column) {
-  return this->cell[CELL_ROW_START[row] + column];
+  return this->cell[board_index(row, column)];
 }
 
 Board::Board(u8 origin_x, u8 origin_y)
@@ -42,7 +44,8 @@ Board::Board(u8 origin_x, u8 origin_y)
     // read required walls from template
     for (u8 i = 0; i < HEIGHT; i++) {
       for (u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+        TemplateCell template_cell =
+            mazes[maze]->template_cells[board_index(i, j)];
         if (template_cell.value != 0xff) {
           cell_at(i, j).walls = template_cell.walls;
         }
@@ -52,7 +55,8 @@ Board::Board(u8 origin_x, u8 origin_y)
     // read "maybe" walls from template
     for (u8 i = 0; i < HEIGHT; i++) {
       for (u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+        TemplateCell template_cell =
+            mazes[maze]->template_cells[board_index(i, j)];
 
         if (template_cell.value == 0xff) {
           // use the old berzerk algorithm
@@ -117,17 +121,17 @@ Board::Board(u8 origin_x, u8 origin_y)
     cell_at(HEIGHT - 1, j).down_wall = true;
   }
 
-  Set disjoint_set[HEIGHT][WIDTH];
+  Set disjoint_set[HEIGHT * WIDTH];
 
   // union-find-ish-ly ensure all cells are reachable
   for (u8 i = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
-      auto current_element = &disjoint_set[i][j];
+      auto current_element = &disjoint_set[board_index(i, j)];
       if (j < WIDTH - 1 && !cell_at(i, j).right_wall) {
-        current_element->join(&disjoint_set[i][j + 1]);
+        current_element->join(&disjoint_set[board_index(i, j + 1)]);
       }
       if (i < HEIGHT - 1 && !cell_at(i, j).down_wall) {
-        current_element->join(&disjoint_set[i + 1][j]);
+        current_element->join(&disjoint_set[board_index(i + 1, j)]);
       }
     }
   }
@@ -148,9 +152,11 @@ Board::Board(u8 origin_x, u8 origin_y)
     u8 i = row_bag.take();
     for (u8 columns = 0; columns < WIDTH; columns++) {
       u8 j = column_bag.take();
-      auto current_element = &disjoint_set[i][j];
-      auto right_element = j < WIDTH - 1 ? &disjoint_set[i][j + 1] : NULL;
-      auto down_element = i < HEIGHT - 1 ? &disjoint_set[i + 1][j] : NULL;
+      auto current_element = &disjoint_set[board_index(i, j)];
+      auto right_element =
+          j < WIDTH - 1 ? &disjoint_set[board_index(i, j + 1)] : NULL;
+      auto down_element =
+          i < HEIGHT - 1 ? &disjoint_set[board_index(i + 1, j)] : NULL;
 
       // randomize if we are looking first horizontally or vertically
       bool down_first = rand8() & 0b1;
