@@ -86,6 +86,7 @@ function display_times()
 end
 
 emu.addMemoryCallback(putchar_cb, emu.callbackType.write, 0x4018)
+emu.addMemoryCallback(putchar_cb, emu.callbackType.write, 0x401b)
 emu.addMemoryCallback(start_watch, emu.callbackType.write, 0x4020)
 emu.addMemoryCallback(stop_watch, emu.callbackType.write, 0x4021)
 emu.addEventCallback(display_times, emu.eventType.endFrame);
