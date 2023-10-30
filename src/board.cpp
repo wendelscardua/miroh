@@ -222,10 +222,12 @@ bool Board::occupied(s8 row, s8 column) {
 }
 
 void Board::occupy(s8 row, s8 column) {
+  START_MESEN_WATCH(41);
   if (!cell[row][column].occupied) { // just to be safe
     cell[row][column].occupied = true;
     tally[row]++;
   }
+  STOP_MESEN_WATCH;
 }
 
 void Board::free(s8 row, s8 column) {
@@ -340,6 +342,7 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   START_MESEN_WATCH(2);
   char metatile_top[2];
   char metatile_bottom[2];
+  START_MESEN_WATCH(3);
 
   auto current_cell = &cell[row][column];
   auto lower_cell = row < HEIGHT - 1 ? &cell[row + 1][column] : &null_cell;
@@ -349,6 +352,8 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
 
+  STOP_MESEN_WATCH;
+  START_MESEN_WATCH(4);
   metatile_top[0] = 0x60;
   metatile_top[1] = 0x61;
 
@@ -358,7 +363,8 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   metatile_bottom[1] = lower_right_block_tile[walls_to_index(
       current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
       current_cell->down_wall)];
-
+  STOP_MESEN_WATCH;
+  START_MESEN_WATCH(5);
   if (row == HEIGHT - 1) {
     if (column > 0 && current_cell->left_wall) {
       metatile_bottom[0] = 0x6a;
@@ -385,11 +391,16 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
     metatile_bottom[1] += 0x10;
   }
 
+  STOP_MESEN_WATCH;
+  START_MESEN_WATCH(6);
   multi_vram_buffer_horz(metatile_top, 2, position);
   multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
   Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
                   BLOCK_ATTRIBUTE);
+  STOP_MESEN_WATCH;
+  START_MESEN_WATCH(7);
   occupy(row, column);
+  STOP_MESEN_WATCH;
   STOP_MESEN_WATCH;
 }
 
@@ -500,6 +511,7 @@ bool Board::ongoing_line_clearing() {
         if (source_occupied) {
           if (!occupied(erasing_row, erasing_column)) {
             block_maze_cell(erasing_row, erasing_column);
+            occupy(erasing_row, erasing_column);
           }
           if (erasing_row_source >= 0 &&
               occupied(erasing_row_source, erasing_column)) {
