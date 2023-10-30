@@ -3,7 +3,6 @@
 #include "banked-asset-helpers.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"
-#include "polyomino-defs.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -49,7 +48,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   // pick a random row
   for (u8 tries = 0; tries < 4; tries++) {
     s8 candidate_row = row_bag.take();
-    if (board.row_filled(candidate_row)) {
+    if (!board.row_filled(candidate_row)) {
       fruit.row = candidate_row;
       break;
     }
