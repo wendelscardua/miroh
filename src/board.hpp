@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include <soa.h>
 
 constexpr u8 HEIGHT = 10;
 constexpr u8 WIDTH = 12;
@@ -31,7 +32,7 @@ class Board {
   static const u8 LINE_CLEARING_BUDGET = 4;
 
   // convert column into its bitmask
-  static constexpr u16 OCCUPIED_BITMASK[WIDTH] = {
+  static constexpr soa::Array<const u16, WIDTH> OCCUPIED_BITMASK = {
       0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
       0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800};
 
