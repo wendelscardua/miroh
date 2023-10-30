@@ -205,16 +205,12 @@ bool Board::occupied(s8 row, s8 column) {
 
 void Board::occupy(s8 row, s8 column) {
   START_MESEN_WATCH(41);
-  if (!occupied(row, column)) { // just to be safe
-    occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
-  }
+  occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
   STOP_MESEN_WATCH;
 }
 
 void Board::free(s8 row, s8 column) {
-  if (occupied(row, column)) { // just to be safe
-    occupied_bitset[(u8)row] &= ~OCCUPIED_BITMASK[(u8)column];
-  }
+  occupied_bitset[(u8)row] &= ~OCCUPIED_BITMASK[(u8)column];
 }
 
 static const Cell null_cell;
