@@ -67,6 +67,9 @@ function recursive_display(subtable, x, y, width)
 end
 
 function display_times()
+  if emu.getMouseState().left ~= true then
+    return
+  end
   display_stack = {}
   recursive_display(watch_table, 8, 8, 128)
   while #display_stack ~= 0 do
