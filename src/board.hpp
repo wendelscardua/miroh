@@ -51,6 +51,9 @@ public:
   u8 origin_x; // where to start rendering the board and its contents (x)
   u8 origin_y; // where to start rendering the board and its contents (y)
 
+  u8 origin_row;    // origin in metatile space (y)
+  u8 origin_column; // origin in metatile space (x)
+
   Board(u8 origin_x, u8 origin_y);
   ~Board();
 

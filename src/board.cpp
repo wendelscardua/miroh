@@ -16,7 +16,8 @@ Cell::Cell() : walls(0) {}
 void Cell::reset() { this->walls = 0; }
 
 Board::Board(u8 origin_x, u8 origin_y)
-    : origin_x(origin_x), origin_y(origin_y) {
+    : origin_x(origin_x), origin_y(origin_y), origin_row(origin_y >> 4),
+      origin_column(origin_x >> 4) {
   for (u8 i = 0; i < HEIGHT; i++) {
     deleted[i] = 0;
   }
@@ -204,9 +205,7 @@ bool Board::occupied(s8 row, s8 column) {
 }
 
 void Board::occupy(s8 row, s8 column) {
-  START_MESEN_WATCH(41);
   occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
-  STOP_MESEN_WATCH;
 }
 
 void Board::free(s8 row, s8 column) {
@@ -371,13 +370,16 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   START_MESEN_WATCH(6);
   multi_vram_buffer_horz(metatile_top, 2, position);
   multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
-  Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
-                  BLOCK_ATTRIBUTE);
   STOP_MESEN_WATCH;
   START_MESEN_WATCH(7);
+  Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
+                  BLOCK_ATTRIBUTE);
+  STOP_MESEN_WATCH;
+  START_MESEN_WATCH(8);
   occupy(row, column);
   STOP_MESEN_WATCH;
-  STOP_MESEN_WATCH;
+
+  STOP_MESEN_WATCH; // label 1
 }
 
 void Board::restore_maze_cell(s8 row, s8 column) {
@@ -438,7 +440,7 @@ void Board::restore_maze_cell(s8 row, s8 column) {
   multi_vram_buffer_horz(metatile_top, 2, position);
   multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
 
-  Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
+  Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
                   WALL_ATTRIBUTE);
 
   free(row, column);
