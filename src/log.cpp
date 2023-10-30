@@ -17,7 +17,5 @@ void put_hex(u16 h) {
   put_hex((u8)(h >> 8));
   put_hex((u8)h);
 }
-__attribute__((noinline)) void start_mesen_watch(u8 label) {
-  POKE(0x4020, label);
-}
-__attribute__((noinline)) void stop_mesen_watch() { POKE(0x4021, 0); }
+void start_mesen_watch(u8 label) { POKE(0x4020, label); }
+void stop_mesen_watch() { POKE(0x4021, 0); }
