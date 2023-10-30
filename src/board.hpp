@@ -40,7 +40,7 @@ class Board {
   s8 erasing_column;
   s8 erasing_row_source;
 
-  u16 occupied_bitset[HEIGHT];
+  soa::Array<u16, HEIGHT> occupied_bitset;
 
 public:
   static constexpr u8 TILE_BASE = 0x40;
