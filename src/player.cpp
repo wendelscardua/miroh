@@ -51,7 +51,7 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
     }
     auto current_row = y.whole >> 4;
     auto current_column = x.whole >> 4;
-    auto current_cell = board.cell[current_row][current_column];
+    auto current_cell = board.cell_at((u8)current_row, (u8)current_column);
 
     if (input_mode != InputMode::Player)
       break;

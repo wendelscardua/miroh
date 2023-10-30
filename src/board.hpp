@@ -46,7 +46,7 @@ class Board {
 
 public:
   static constexpr u8 TILE_BASE = 0x40;
-  Cell cell[HEIGHT][WIDTH]; // each of the board's cells
+  Cell cell[HEIGHT * WIDTH]; // each of the board's cells
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
   u8 origin_x; // where to start rendering the board and its contents (x)
   u8 origin_y; // where to start rendering the board and its contents (y)
@@ -82,4 +82,6 @@ public:
   // advances the process of clearing a filled line
   // returns true if such process is still ongoing
   bool ongoing_line_clearing();
+
+  Cell &cell_at(u8 row, u8 column);
 };

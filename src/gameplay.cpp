@@ -106,7 +106,7 @@ void Gameplay::render() {
     u8 row = (u8)(player.y.round() >> 4) + 1;
     u8 col = (u8)(player.x.round() >> 4);
     if (row < HEIGHT) {
-      auto cell = board.cell[row][col];
+      auto cell = board.cell_at(row, col);
       left_wall = cell.left_wall;
       right_wall = cell.right_wall;
     }
