@@ -21,7 +21,6 @@ function putchar_cb(address, value)
 end
 
 function start_watch(_address, label)
-  emu.log('Start time ' .. label)
   current_watch = watch_table
   for k, v in ipairs(label_stack) do
     current_watch = current_watch.children[v]
@@ -48,22 +47,39 @@ function stop_watch(_address, _value)
   end
 
   label = table.remove(label_stack)
-  emu.log('Stop time ' .. label)
   current_watch.events = current_watch.events + 1
   current_watch.cycles = current_watch.cycles + emu.getState()['cpu.cycleCount'] - current_watch.start
 end
 
-function recursive_display(subtable, level)
+display_stack = {}
+  
+function recursive_display(subtable, x, y, width)
+  local rect = { x = x, y = y, width = width, height = 2 }
   if subtable.cycles ~= nil then
-    emu.log("> " .. level .. " " .. subtable.label .. " " .. subtable.cycles .. " " .. subtable.events .. " " .. (subtable.cycles / subtable.events))
+    rect.label =  subtable.label .. " " .. string.format("%.2f", subtable.cycles / subtable.events)
+    rect.height = rect.height + 10
   end
   for label, inner in pairs(subtable.children) do
-    recursive_display(inner, level + 1)
+    rect.height = rect.height + recursive_display(inner, x + 2, y + rect.height, width - 4) + 2
   end
+  table.insert(display_stack, rect)
+  return rect.height
 end
 
 function display_times()
-  recursive_display(watch_table, 0)
+  display_stack = {}
+  recursive_display(watch_table, 8, 8, 128)
+  while #display_stack ~= 0 do
+    rect = table.remove(display_stack)
+    bgColor = 0x302060FF
+    fgColor = 0x30FF4040
+
+    emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, bgColor, true, 1)
+    emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, fgColor, false, 1)
+    if rect.label ~= nil then
+      emu.drawString(rect.x + 2, rect.y + 2, rect.label, 0xFFFFFF, 0xFF000000)
+    end
+  end
 end
 
 emu.addMemoryCallback(putchar_cb, emu.callbackType.write, 0x4018)
