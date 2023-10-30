@@ -53,19 +53,19 @@ endif()
 add_custom_command(
   OUTPUT metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp
   COMMAND ${GENERATE_METASPRITES} generate ${CMAKE_CURRENT_BINARY_DIR}/metasprites.s ${CMAKE_CURRENT_BINARY_DIR}/metasprites.hpp ${CMAKE_SOURCE_DIR}/assets/metasprites.nss --bank .prg_rom_1 --label-prefix metasprite
-  DEPENDS ${CMAKE_SOURCE_DIR}/assets/metasprites.nss
+  DEPENDS ${GENERATE_METASPRITES} ${CMAKE_SOURCE_DIR}/assets/metasprites.nss
 )
 
 add_custom_command(
   OUTPUT soundtrack.asm
   COMMAND ${Python3_EXECUTABLE} ${ft_to_asm} ${CMAKE_SOURCE_DIR}/music/soundtrack.txt ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.asm
-  DEPENDS ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
+  DEPENDS ${ft_to_asm} ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
 )
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.hpp
   COMMAND ${SOUNDTRACK_ENUMS} generate ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.hpp ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
-  DEPENDS ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
+  DEPENDS ${SOUNDTRACK_ENUMS} ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
 )
 
 add_custom_command(
@@ -121,11 +121,11 @@ set_property(
   StarlitStablesSPR.pal
   StarlitStablesBG.chr.donut
   SPR.chr.donut
-  Title.nam
-  StarlitStables.nam
-  StarlitStablesAlt.nam
-  how-to.nam
-  credits.nam
+  Title.nam.rle
+  StarlitStables.nam.rle
+  StarlitStablesAlt.nam.rle
+  how-to.nam.rle
+  credits.nam.rle
 )
 
 add_raw_asset(SOURCE "StarlitStablesBG.pal")
@@ -134,11 +134,11 @@ add_raw_asset(SOURCE "StarlitStablesSPR.pal")
 add_donut_asset(SOURCE "StarlitStablesBG.chr")
 add_donut_asset(SOURCE "SPR.chr")
 
-add_raw_asset(SOURCE "Title.nam")
-add_raw_asset(SOURCE "StarlitStables.nam")
-add_raw_asset(SOURCE "StarlitStablesAlt.nam")
-add_raw_asset(SOURCE "how-to.nam")
-add_raw_asset(SOURCE "credits.nam")
+add_rle_asset(SOURCE "Title.nam")
+add_rle_asset(SOURCE "StarlitStables.nam")
+add_rle_asset(SOURCE "StarlitStablesAlt.nam")
+add_rle_asset(SOURCE "how-to.nam")
+add_rle_asset(SOURCE "credits.nam")
 
 set_property(
   SOURCE

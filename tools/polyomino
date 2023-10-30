@@ -94,9 +94,12 @@ class Polyomino < Thor
                       else 'kick_type_jR0'
                       end
                     end
-
+        # pointers to lists of kick deltas for counterclockwise and clockwise rotations
         f.puts ".word #{left_kick}, #{right_kick}"
+
+        # SoA array [5] of (delta row, delta column), padded with zeroes
         f.puts ".byte #{blocks.size}"
+        blocks.sort_by! { |delta_row, delta_column| [delta_row, delta_column] }
         blocks.each do |delta_row, _delta_column|
           f.puts "  .byte #{delta_row}"
         end
@@ -109,6 +112,8 @@ class Polyomino < Thor
         (5 - blocks.size).times do
           f.puts '  .byte 0'
         end
+
+        # tiles for the nametable preview of the next piece
         f.puts "  .byte #{preview_bytes(blocks).join(', ')}"
       end
 

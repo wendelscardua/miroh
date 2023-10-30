@@ -15,6 +15,8 @@ struct Fruit {
   enum class Type : u8 {
     Apple,
     Corn,
+    Pear,
+    Avocado,
   };
 
   s8 row;
@@ -39,17 +41,17 @@ struct Fruit {
 #include <soa-struct.inc>
 
 class Fruits {
-  static constexpr u8 NUM_FRUITS = 5;
+  static constexpr u8 NUM_FRUITS = 2;
   static constexpr u16 EXPIRATION_TIME = 15 * 60;
-  static constexpr u8 FRUIT_TYPES = 2;
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
   Board &board;
   u8 fruit_credits;
   u16 spawn_timer;
+  u8 current_level;
 
 public:
-  Fruits(Board &board);
+  Fruits(Board &board, u8 current_level);
 
   void update(Player &player, bool blocks_placed, u8 lines_filled);
 

@@ -18,11 +18,20 @@ static Bag<s8, WIDTH> column_bag([](auto *bag) {
   }
 });
 
+const Fruit::Type fruit_types_per_level[][4] = {
+    // Starlit Stables
+    {Fruit::Type::Apple, Fruit::Type::Corn, Fruit::Type::Pear,
+     Fruit::Type::Avocado},
+};
+
 void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.row = -1;
   fruit.column = -1;
 
-  fruit.type = (Fruit::Type)(((u16)rand8() * (u16)FRUIT_TYPES) >> 8);
+  fruit.type = fruit_types_per_level
+      [current_level]
+      [((u16)rand8() * (u16)(sizeof(fruit_types_per_level[current_level]))) >>
+       8];
 
   // pick a random row
   for (u8 tries = 0; tries < 4; tries++) {
@@ -67,7 +76,8 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   fruit.life = EXPIRATION_TIME;
 }
 
-Fruits::Fruits(Board &board) : board(board) {
+Fruits::Fruits(Board &board, u8 current_level)
+    : board(board), current_level(current_level) {
   fruit_credits = INITIAL_CREDITS;
   spawn_timer = SPAWN_DELAY /
                 2; // just so player don't wait too much to see the first fruit
@@ -120,22 +130,18 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
   }
 }
 
-const u8 *const high_fruits[]{
-    metasprite_AppleHigh,
-    metasprite_CornHigh,
-};
+const u8 *const high_fruits[]{metasprite_AppleHigh, metasprite_CornHigh,
+                              metasprite_PearHigh, metasprite_AvocadoHigh};
 
-const u8 *const low_fruits[]{
-    metasprite_AppleLow,
-    metasprite_CornLow,
-};
+const u8 *const low_fruits[]{metasprite_AppleLow, metasprite_CornLow,
+                             metasprite_PearLow, metasprite_AvocadoLow};
 
 void Fruits::render(int y_scroll) {
   bool state = (get_frame_count() & 0b10000);
   for (auto fruit : fruits) {
     if (fruit.active) {
       Fruit::Type type = fruit.type;
-      banked_oam_meta_spr(fruit.x, (u8)(fruit.y - y_scroll),
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
                           state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
     };
     state = !state;
