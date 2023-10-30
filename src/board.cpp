@@ -6,32 +6,14 @@
 #include "coroutine.hpp"
 #include "log.hpp"
 #include "maze-defs.hpp"
+#include "union-find.hpp"
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
 
-Cell::Cell() : walls(0), parent(NULL) {}
+Cell::Cell() : walls(0) {}
 
-void Cell::reset() {
-  this->walls = 0;
-  this->parent = this;
-}
-
-Cell *Cell::representative() {
-  Cell *temp = this;
-  while (temp != temp->parent) {
-    temp->parent = temp->parent->parent;
-    temp = temp->parent;
-  }
-  return temp;
-}
-
-void Cell::join(Cell *other) {
-  Cell *x = this->representative();
-  Cell *y = other->representative();
-  if (x != y)
-    y->parent = x;
-}
+void Cell::reset() { this->walls = 0; }
 
 Board::Board(u8 origin_x, u8 origin_y)
     : origin_x(origin_x), origin_y(origin_y) {
@@ -133,15 +115,17 @@ Board::Board(u8 origin_x, u8 origin_y)
     cell[HEIGHT - 1][j].down_wall = true;
   }
 
+  Set disjoint_set[HEIGHT][WIDTH];
+
   // union-find-ish-ly ensure all cells are reachable
   for (u8 i = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
-      auto current_cell = &cell[i][j];
-      if (j < WIDTH - 1 && !current_cell->right_wall) {
-        current_cell->join(&cell[i][j + 1]);
+      auto current_element = &disjoint_set[i][j];
+      if (j < WIDTH - 1 && !cell[i][j].right_wall) {
+        current_element->join(&disjoint_set[i][j + 1]);
       }
-      if (i < HEIGHT - 1 && !current_cell->down_wall) {
-        current_cell->join(&cell[i + 1][j]);
+      if (i < HEIGHT - 1 && !cell[i][j].down_wall) {
+        current_element->join(&disjoint_set[i + 1][j]);
       }
     }
   }
@@ -162,40 +146,40 @@ Board::Board(u8 origin_x, u8 origin_y)
     u8 i = row_bag.take();
     for (u8 columns = 0; columns < WIDTH; columns++) {
       u8 j = column_bag.take();
-      auto current_cell = &cell[i][j];
-      auto right_cell = j < WIDTH - 1 ? &cell[i][j + 1] : NULL;
-      auto down_cell = i < HEIGHT - 1 ? &cell[i + 1][j] : NULL;
+      auto current_element = &disjoint_set[i][j];
+      auto right_element = j < WIDTH - 1 ? &disjoint_set[i][j + 1] : NULL;
+      auto down_element = i < HEIGHT - 1 ? &disjoint_set[i + 1][j] : NULL;
 
       // randomize if we are looking first horizontally or vertically
       bool down_first = rand8() & 0b1;
 
-      if (down_first && down_cell &&
-          current_cell->representative() != down_cell->representative()) {
-        current_cell->down_wall = false;
-        down_cell->up_wall = false;
-        down_cell->join(current_cell);
+      if (down_first && down_element &&
+          current_element->representative() != down_element->representative()) {
+        cell[i][j].down_wall = false;
+        cell[i][j].up_wall = false;
+        down_element->join(current_element);
       }
 
-      if (right_cell &&
-          current_cell->representative() != right_cell->representative()) {
-        current_cell->right_wall = false;
-        right_cell->left_wall = false;
-        right_cell->join(current_cell);
+      if (right_element && current_element->representative() !=
+                               right_element->representative()) {
+        cell[i][j].right_wall = false;
+        cell[i][j].left_wall = false;
+        right_element->join(current_element);
       }
 
-      if (!down_first && down_cell &&
-          current_cell->representative() != down_cell->representative()) {
-        current_cell->down_wall = false;
-        down_cell->up_wall = false;
-        down_cell->join(current_cell);
+      if (!down_first && down_element &&
+          current_element->representative() != down_element->representative()) {
+        cell[i][j].down_wall = false;
+        cell[i][j].up_wall = false;
+        down_element->join(current_element);
       }
     }
   }
 
-  // make all cells free - from this point on we don't use "parent" anymore
-  for (u8 i = 0; i < HEIGHT; i++) {
-    for (u8 j = 0; j < WIDTH; j++) {
-      cell[i][j].occupied = false;
+  // make all cells free
+  for (s8 i = 0; i < HEIGHT; i++) {
+    for (s8 j = 0; j < WIDTH; j++) {
+      free(i, j);
     }
   }
 }
@@ -218,21 +202,21 @@ bool Board::occupied(s8 row, s8 column) {
   if (row < 0)
     return false;
 
-  return cell[row][column].occupied;
+  return occupied_bitset[row] & OCCUPIED_BITMASK[column];
 }
 
 void Board::occupy(s8 row, s8 column) {
   START_MESEN_WATCH(41);
-  if (!cell[row][column].occupied) { // just to be safe
-    cell[row][column].occupied = true;
+  if (!occupied(row, column)) { // just to be safe
+    occupied_bitset[row] |= OCCUPIED_BITMASK[column];
     tally[row]++;
   }
   STOP_MESEN_WATCH;
 }
 
 void Board::free(s8 row, s8 column) {
-  if (cell[row][column].occupied) { // just to be safe
-    cell[row][column].occupied = false;
+  if (occupied(row, column)) { // just to be safe
+    occupied_bitset[row] &= ~OCCUPIED_BITMASK[column];
     tally[row]--;
   }
 }
