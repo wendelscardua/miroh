@@ -14,9 +14,11 @@
 Cell::Cell() : walls(0) {}
 
 static constexpr u8 CELL_ROW_START[] = {
-    0,          WIDTH,      2 * WIDTH, 3 * WIDTH, 4 * WIDTH,
-    5 * WIDTH,  6 * WIDTH,  7 * WIDTH, 8 * WIDTH, 9 * WIDTH,
-    10 * WIDTH, 11 * WIDTH, 12 * WIDTH};
+    0,         WIDTH,     2 * WIDTH, 3 * WIDTH, 4 * WIDTH,
+    5 * WIDTH, 6 * WIDTH, 7 * WIDTH, 8 * WIDTH, 9 * WIDTH};
+
+static_assert(sizeof(CELL_ROW_START) == HEIGHT,
+              "CELL_ROW_START does not have HEIGHT entries");
 
 u8 board_index(u8 row, u8 column) { return CELL_ROW_START[row] + column; }
 
