@@ -156,21 +156,21 @@ Board::Board(u8 origin_x, u8 origin_y)
       if (down_first && down_element &&
           current_element->representative() != down_element->representative()) {
         cell[i][j].down_wall = false;
-        cell[i][j].up_wall = false;
+        cell[i + 1][j].up_wall = false;
         down_element->join(current_element);
       }
 
       if (right_element && current_element->representative() !=
                                right_element->representative()) {
         cell[i][j].right_wall = false;
-        cell[i][j].left_wall = false;
+        cell[i][j + 1].left_wall = false;
         right_element->join(current_element);
       }
 
       if (!down_first && down_element &&
           current_element->representative() != down_element->representative()) {
         cell[i][j].down_wall = false;
-        cell[i][j].up_wall = false;
+        cell[i + 1][j].up_wall = false;
         down_element->join(current_element);
       }
     }
