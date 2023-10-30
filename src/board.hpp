@@ -5,8 +5,8 @@
 
 constexpr u8 HEIGHT = 10;
 constexpr u8 WIDTH = 12;
-constexpr u8 WALL_ATTRIBUTE = 0;
-constexpr u8 BLOCK_ATTRIBUTE = 0;
+constexpr u8 WALL_ATTRIBUTE = 0b00000000;
+constexpr u8 BLOCK_ATTRIBUTE = 0b00000000;
 
 #define BOARD_X_ORIGIN 0x20
 #define BOARD_Y_ORIGIN 0x30
