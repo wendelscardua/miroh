@@ -267,7 +267,7 @@ Polyomino::freeze_blocks() {
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
-    if (board.tally[block_row] == WIDTH) {
+    if (board.row_filled(block_row)) {
       filled_lines++;
     }
   }

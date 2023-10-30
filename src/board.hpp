@@ -36,6 +36,8 @@ class Board {
       0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
       0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800};
 
+  static constexpr u16 FULL_ROW_BITMASK = 0x0fff;
+
   s8 erasing_row;
   s8 erasing_column;
   s8 erasing_row_source;
@@ -45,7 +47,6 @@ class Board {
 public:
   static constexpr u8 TILE_BASE = 0x40;
   Cell cell[HEIGHT][WIDTH]; // each of the board's cells
-  u8 tally[HEIGHT];         // counts how many occupied cells are in each row
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
   u8 origin_x; // where to start rendering the board and its contents (x)
   u8 origin_y; // where to start rendering the board and its contents (y)
@@ -58,6 +59,9 @@ public:
 
   // tells if a cell is occupied by a solid block
   bool occupied(s8 row, s8 column);
+
+  // tells if a row if filled
+  bool row_filled(s8 row);
 
   // marks a position as occupied by a solid block
   void occupy(s8 row, s8 column);

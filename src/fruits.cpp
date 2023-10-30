@@ -36,7 +36,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   // pick a random row
   for (u8 tries = 0; tries < 4; tries++) {
     s8 candidate_row = row_bag.take();
-    if (board.tally[candidate_row] < WIDTH) {
+    if (board.row_filled(candidate_row)) {
       fruit.row = candidate_row;
       break;
     }

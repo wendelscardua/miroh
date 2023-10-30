@@ -17,9 +17,7 @@ void Cell::reset() { this->walls = 0; }
 
 Board::Board(u8 origin_x, u8 origin_y)
     : origin_x(origin_x), origin_y(origin_y) {
-  // reset tally
   for (u8 i = 0; i < HEIGHT; i++) {
-    tally[i] = 0;
     deleted[i] = 0;
   }
 
@@ -209,7 +207,6 @@ void Board::occupy(s8 row, s8 column) {
   START_MESEN_WATCH(41);
   if (!occupied(row, column)) { // just to be safe
     occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
-    tally[row]++;
   }
   STOP_MESEN_WATCH;
 }
@@ -217,7 +214,6 @@ void Board::occupy(s8 row, s8 column) {
 void Board::free(s8 row, s8 column) {
   if (occupied(row, column)) { // just to be safe
     occupied_bitset[(u8)row] &= ~OCCUPIED_BITMASK[(u8)column];
-    tally[row]--;
   }
 }
 
@@ -452,13 +448,17 @@ void Board::restore_maze_cell(s8 row, s8 column) {
   free(row, column);
 }
 
+bool Board::row_filled(s8 row) {
+  return occupied_bitset[(u8)row] == FULL_ROW_BITMASK;
+}
+
 bool Board::ongoing_line_clearing() {
   bool any_deleted = false;
 
   CORO_INIT;
 
   for (s8 i = 0; i < HEIGHT; i++) {
-    if (tally[i] == WIDTH) {
+    if (row_filled(i)) {
       deleted[i] = true;
       any_deleted = true;
     }
