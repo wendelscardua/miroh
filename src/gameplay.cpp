@@ -35,12 +35,10 @@ __attribute__((noinline)) Gameplay::Gameplay()
 
   banked_lambda(ASSETS_BANK, [this]() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu(level_bg_tiles[(u8)current_location],
-                             PPU_PATTERN_TABLE_SIZE / 64);
+    donut_bulk_load(level_bg_tiles[(u8)current_location]);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu(level_spr_tiles[(u8)current_location],
-                             PPU_PATTERN_TABLE_SIZE / 64);
+    donut_bulk_load(level_spr_tiles[(u8)current_location]);
 
     vram_adr(NAMETABLE_A);
     vram_unrle(level_nametables[(u8)current_location]);

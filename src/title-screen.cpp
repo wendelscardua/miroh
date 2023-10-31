@@ -112,10 +112,10 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
 
   banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu(level_bg_tiles[0], PPU_PATTERN_TABLE_SIZE / 64);
+    donut_bulk_load(level_bg_tiles[0]);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu(level_spr_tiles[0], PPU_PATTERN_TABLE_SIZE / 64);
+    donut_bulk_load(level_spr_tiles[0]);
 
     vram_adr(NAMETABLE_D);
     vram_unrle(how_to_nam);

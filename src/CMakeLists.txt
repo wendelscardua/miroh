@@ -92,7 +92,6 @@ add_library(SourceObj
   attributes.cpp
   banked-asset-helpers.cpp
   board.cpp
-  donut.cpp
   donut.s
   fruits.cpp
   ggsound.cpp
