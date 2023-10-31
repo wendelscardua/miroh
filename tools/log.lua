@@ -40,13 +40,18 @@ function start_watch(_address, label)
   table.insert(label_stack, label)
 end
 
-function stop_watch(_address, _value)
+function stop_watch(_address, label)
   current_watch = watch_table
   for k, v in ipairs(label_stack) do
     current_watch = current_watch.children[v]
   end
 
-  label = table.remove(label_stack)
+  removed_label = table.remove(label_stack)
+  
+  if removed_label ~= label then
+    emu.log("Warning: closing label " .. label .. " doesn't match opening label " .. removed_label)
+  end
+  
   current_watch.events = current_watch.events + 1
   current_watch.cycles = current_watch.cycles + emu.getState()['cpu.cycleCount'] - current_watch.start
 end
