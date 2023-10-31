@@ -1,6 +1,5 @@
 #include "assets.hpp"
 #include "board.hpp"
-#include <bank.h>
 #ifndef NDEBUG
 #include <cstdio>
 #endif

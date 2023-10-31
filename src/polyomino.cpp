@@ -7,7 +7,6 @@
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "polyomino-defs.hpp"
-#include <bank.h>
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>

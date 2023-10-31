@@ -1,4 +1,3 @@
-#include <bank.h>
 #include <nesdoug.h>
 #include <neslib.h>
 

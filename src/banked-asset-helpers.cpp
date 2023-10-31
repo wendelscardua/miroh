@@ -2,7 +2,7 @@
 #include "bank-helper.hpp"
 #include "ggsound.hpp"
 #include "soundtrack.hpp"
-#include <bank.h>
+#include <mapper.h>
 #include <neslib.h>
 
 struct Sprite {

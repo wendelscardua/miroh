@@ -7,7 +7,6 @@
 #include "ggsound.hpp"
 #include "maze-defs.hpp"
 #include "metasprites.hpp"
-#include <bank.h>
 #include <nesdoug.h>
 #include <neslib.h>
 
