@@ -327,25 +327,27 @@ void Board::block_maze_cell(s8 row, s8 column) {
 extern u8 VRAM_INDEX;
 extern char VRAM_BUF[256];
 
-void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
-  /*
-  VRAM BUFFER layout:
-  0: address.h + horizontal (top)
-  1: address.l
-  2: length (2)
-  3: tile (top 0)
-  4: tile (top 1)
-  5: address.h + horizontal (bottom)
-  6: address.l
-  7: length (2)
-  8: tile (bottom 0)
-  9: tile (bottom 1)
-  10: eof (0xff)
-  */
+/*
+ VRAM BUFFER layout:
+ 0: address.h + horizontal (top)
+ 1: address.l
+ 2: length (2)
+ 3: tile (top 0)
+ 4: tile (top 1)
+ 5: address.h + horizontal (bottom)
+ 6: address.l
+ 7: length (2)
+ 8: tile (bottom 0)
+ 9: tile (bottom 1)
+ 10: eof (0xff)
+ */
+
 #define TOP_0 VRAM_BUF[VRAM_INDEX + 3]
 #define TOP_1 VRAM_BUF[VRAM_INDEX + 4]
 #define BOTTOM_0 VRAM_BUF[VRAM_INDEX + 8]
 #define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
+
+void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   START_MESEN_WATCH(2);
   START_MESEN_WATCH(3);
 
@@ -432,8 +434,6 @@ void Board::restore_maze_cell(s8 row, s8 column) {
   auto current_cell = &cell_at((u8)row, (u8)column);
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
-  char metatile_top[2];
-  char metatile_bottom[2];
 
   auto upper_cell = row > 0 ? &cell_at((u8)row - 1, (u8)column) : &null_cell;
   auto lower_cell =
@@ -442,51 +442,65 @@ void Board::restore_maze_cell(s8 row, s8 column) {
   auto right_cell =
       column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
 
-  metatile_top[0] = upper_left_maze_tile[walls_to_index(
+  TOP_0 = upper_left_maze_tile[walls_to_index(
       upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
       left_cell->up_wall)];
-  metatile_top[1] = upper_right_maze_tile[walls_to_index(
+  TOP_1 = upper_right_maze_tile[walls_to_index(
       upper_cell->right_wall, right_cell->up_wall, current_cell->right_wall,
       current_cell->up_wall)];
-  metatile_bottom[0] = lower_left_maze_tile[walls_to_index(
+  BOTTOM_0 = lower_left_maze_tile[walls_to_index(
       current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
       left_cell->down_wall)];
-  metatile_bottom[1] = lower_right_maze_tile[walls_to_index(
+  BOTTOM_1 = lower_right_maze_tile[walls_to_index(
       current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
       current_cell->down_wall)];
 
   if (row == 0) {
     if (column > 0 && current_cell->left_wall) {
-      metatile_top[0] = TILE_BASE + 0x0a;
+      TOP_0 = TILE_BASE + 0x0a;
     }
     if (column < WIDTH - 1 && current_cell->right_wall) {
-      metatile_top[1] = TILE_BASE + 0x09;
+      TOP_1 = TILE_BASE + 0x09;
     }
   } else if (row == HEIGHT - 1) {
     if (column > 0 && current_cell->left_wall) {
-      metatile_bottom[0] = TILE_BASE + 0x1a;
+      BOTTOM_0 = TILE_BASE + 0x1a;
     }
     if (column < WIDTH - 1 && current_cell->right_wall) {
-      metatile_bottom[1] = TILE_BASE + 0x19;
+      BOTTOM_1 = TILE_BASE + 0x19;
     }
   }
 
   if (column == 0) {
     if (row > 0 && current_cell->up_wall) {
-      metatile_top[0] = TILE_BASE + 0x1b;
+      TOP_0 = TILE_BASE + 0x1b;
     } else if (row < HEIGHT - 1 && current_cell->down_wall) {
-      metatile_bottom[0] = TILE_BASE + 0x0b;
+      BOTTOM_0 = TILE_BASE + 0x0b;
     }
   } else if (column == WIDTH - 1) {
     if (row > 0 && current_cell->up_wall) {
-      metatile_top[1] = TILE_BASE + 0x1c;
+      TOP_1 = TILE_BASE + 0x1c;
     } else if (row < HEIGHT - 1 && current_cell->down_wall) {
-      metatile_bottom[1] = TILE_BASE + 0x0c;
+      BOTTOM_1 = TILE_BASE + 0x0c;
     }
   }
 
-  multi_vram_buffer_horz(metatile_top, 2, position);
-  multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
+  // unrolled equivalent of...
+  // multi_vram_buffer_horz(metatile_top, 2, position);
+  // multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
+
+  VRAM_BUF[VRAM_INDEX] = (u8)(position >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 1] = (u8)position;
+  VRAM_BUF[VRAM_INDEX + 2] = 2;
+  // 3, 4 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 5] = (u8)((position + 0x20) >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 6] = (u8)(position + 0x20);
+  VRAM_BUF[VRAM_INDEX + 7] = 2;
+  // 8, 9 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 10] = 0xff;
+  VRAM_INDEX += 10;
+
+  // end of unrolled
 
   Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
                   WALL_ATTRIBUTE);
