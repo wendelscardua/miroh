@@ -4,7 +4,6 @@
 #include "bank-helper.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
-#include "log.hpp"
 #include "maze-defs.hpp"
 #include "union-find.hpp"
 #include <cstdio>
@@ -348,9 +347,6 @@ extern char VRAM_BUF[256];
 #define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
 
 void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
-  START_MESEN_WATCH(2);
-  START_MESEN_WATCH(3);
-
   auto current_cell = &cell_at((u8)row, (u8)column);
   auto lower_cell =
       row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
@@ -359,8 +355,7 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
       column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
-  STOP_MESEN_WATCH; // 3
-  START_MESEN_WATCH(4);
+
   TOP_0 = 0x60;
   TOP_1 = 0x61;
 
@@ -370,8 +365,7 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   BOTTOM_1 = lower_right_block_tile[walls_to_index(
       current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
       current_cell->down_wall)];
-  STOP_MESEN_WATCH; // 4
-  START_MESEN_WATCH(5);
+
   if (row == HEIGHT - 1) {
     if (column > 0 && current_cell->left_wall) {
       BOTTOM_0 = 0x6a;
@@ -398,9 +392,6 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
     BOTTOM_1 += 0x10;
   }
 
-  STOP_MESEN_WATCH; // 5
-  START_MESEN_WATCH(6);
-
   // unrolled equivalent of...
   // multi_vram_buffer_horz(metatile_top, 2, position);
   // multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
@@ -418,16 +409,10 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
 
   // end of unrolled
 
-  STOP_MESEN_WATCH; // 6
-  START_MESEN_WATCH(7);
   Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
                   BLOCK_ATTRIBUTE);
-  STOP_MESEN_WATCH; // 7
-  START_MESEN_WATCH(8);
-  occupy(row, column);
-  STOP_MESEN_WATCH; // 8
 
-  STOP_MESEN_WATCH; // 1
+  occupy(row, column);
 }
 
 void Board::restore_maze_cell(s8 row, s8 column) {

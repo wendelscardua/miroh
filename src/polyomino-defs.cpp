@@ -1,7 +1,6 @@
 #include "polyomino-defs.hpp"
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
-#include "log.hpp"
 #include "metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -46,14 +45,10 @@ void PolyominoDef::chibi_render(u8 row, u8 column) const {
 
 void PolyominoDef::board_render(Board &board, s8 row, s8 column,
                                 bool jiggling) const {
-  START_MESEN_WATCH(1);
-
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];
     s8 block_row = row + delta.delta_row;
     s8 block_column = column + delta.delta_column;
     board.block_maze_cell(block_row, block_column, jiggling);
   }
-
-  STOP_MESEN_WATCH;
 }
