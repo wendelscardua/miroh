@@ -10,42 +10,42 @@
 ; rc5: data.h
 
 banked_oam_meta_spr:
-	sta __rc6
-	stx __rc7
+  sta __rc6
+  stx __rc7
 
-    jsr get_prg_bank
-    pha
-    lda #mos24bank(metasprite_list)
-    jsr set_prg_bank
+  jsr get_prg_bank
+  pha
+  lda #mos24bank(metasprite_list)
+  jsr set_prg_bank
 
-	ldx SPRID
-	ldy #0
+  ldx SPRID
+  ldy #0
 1:
-	lda (__rc4),y		;x offset
-	cmp #$80
-	beq 2f
-	iny
-	clc
-	adc __rc6
-	sta OAM_BUF+3,x
-	lda (__rc4),y		;y offset
-	iny
-	clc
-	adc __rc7
-	sta OAM_BUF+0,x
-	lda (__rc4),y		;tile
-	iny
-	sta OAM_BUF+1,x
-	lda (__rc4),y		;attribute
-	iny
-	sta OAM_BUF+2,x
-	inx
-	inx
-	inx
-	inx
-	jmp 1b
+  lda (__rc4),y  ;x offset
+  cmp #$80
+  beq 2f
+  iny
+  clc
+  adc __rc6
+  sta OAM_BUF+3,x
+  lda (__rc4),y  ;y offset
+  iny
+  clc
+  adc __rc7
+  sta OAM_BUF+0,x
+  lda (__rc4),y  ;tile
+  iny
+  sta OAM_BUF+1,x
+  lda (__rc4),y  ;attribute
+  iny
+  sta OAM_BUF+2,x
+  inx
+  inx
+  inx
+  inx
+  jmp 1b
 2:
-	stx SPRID
-    pla
-    jsr set_prg_bank
-    rts
+  stx SPRID
+  pla
+  jsr set_prg_bank
+  rts
