@@ -179,7 +179,7 @@ void Player::fix_uni_priority(bool left_wall, bool right_wall) {
   if (state != State::Moving) {
     return;
   }
-  u8 tile_y = y.round() & 0x0f;
+  u8 tile_y = y.whole & 0x0f;
   if (tile_y < 0x07 || tile_y > 0x0c) {
     return;
   }
@@ -205,29 +205,25 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
   switch (state) {
   case State::Idle:
     for (animation_frame = 0; animation_frame < 162; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                          reference_y + (u8)y.round(),
+      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightIdle
                                                      : metasprite_UniLeftIdle);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 12; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                          reference_y + (u8)y.round(),
+      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightBlink
                                                      : metasprite_UniLeftBlink);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 8; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                          reference_y + (u8)y.round(),
+      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightIdle
                                                      : metasprite_UniLeftIdle);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 12; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                          reference_y + (u8)y.round(),
+      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightBlink
                                                      : metasprite_UniLeftBlink);
       if (animation_frame != 11) {
@@ -237,32 +233,28 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
     break;
   case State::Moving:
     for (animation_frame = 0; animation_frame < 5; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                          reference_y + (u8)y.round(),
+      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightWalk1
                                                      : metasprite_UniLeftWalk1);
       fix_uni_priority(left_wall, right_wall);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 9; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                          reference_y + (u8)y.round(),
+      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightWalk2
                                                      : metasprite_UniLeftWalk2);
       fix_uni_priority(left_wall, right_wall);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 5; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                          reference_y + (u8)y.round(),
+      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightWalk3
                                                      : metasprite_UniLeftWalk3);
       fix_uni_priority(left_wall, right_wall);
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 9; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + (u8)x.round(),
-                          reference_y + (u8)y.round(),
+      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightWalk4
                                                      : metasprite_UniLeftWalk4);
       fix_uni_priority(left_wall, right_wall);
