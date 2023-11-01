@@ -108,9 +108,7 @@ void Gameplay::render() {
       right_wall = cell.right_wall;
     }
   }
-  START_MESEN_WATCH(10);
   player.render(y_scroll, left_wall, right_wall);
-  STOP_MESEN_WATCH(10);
   fruits.render(y_scroll);
   polyomino.render(y_scroll);
   oam_hide_rest();
