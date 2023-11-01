@@ -97,9 +97,6 @@ __attribute__((noinline)) Gameplay::~Gameplay() {
 }
 
 void Gameplay::render() {
-  START_MESEN_WATCH(11);
-  oam_clear();
-  STOP_MESEN_WATCH(11);
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (player.state == Player::State::Moving) {
@@ -122,6 +119,7 @@ void Gameplay::render() {
   START_MESEN_WATCH(15);
   polyomino.render(y_scroll);
   STOP_MESEN_WATCH(15);
+  oam_hide_rest();
 }
 
 void Gameplay::paused_render() {
