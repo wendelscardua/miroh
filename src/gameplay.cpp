@@ -68,7 +68,7 @@ __attribute__((noinline)) Gameplay::Gameplay()
   ppu_on_all();
 
   // TODO: pick based on stage
-  banked_play_song(Song::Marshmallow_rally);
+  banked_play_song(Song::Marshmallow_mountain);
 
   pal_fade_to(0, 4);
 

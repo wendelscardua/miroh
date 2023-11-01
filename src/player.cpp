@@ -25,7 +25,7 @@ void Player::energy_upkeep(s16 delta) {
     energy_timer -= ENERGY_TICKS;
     if (energy == 0) {
       // TODO: don't die during co-op mode
-      banked_play_song(Song::Glitter);
+      banked_play_song(Song::Glitter_grotto);
       state = State::Dying;
       ghost_height = 0;
       break;
