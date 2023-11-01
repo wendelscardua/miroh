@@ -1,5 +1,4 @@
 #include "ggsound.hpp"
-#include <bank.h>
 #include <peekpoke.h>
 
 #pragma clang section text = ".prg_rom_2.ggsound.text"

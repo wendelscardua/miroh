@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include <bank.h>
+#include <mapper.h>
 #define GET_BANK(symbol)                                                       \
   []() {                                                                       \
     register u8 bank asm("a");                                                 \

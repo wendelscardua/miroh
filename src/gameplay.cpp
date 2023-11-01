@@ -1,6 +1,6 @@
 #include "assets.hpp"
 #include "board.hpp"
-#include <bank.h>
+#include "log.hpp"
 #ifndef NDEBUG
 #include <cstdio>
 #endif
@@ -36,12 +36,10 @@ __attribute__((noinline)) Gameplay::Gameplay()
 
   banked_lambda(ASSETS_BANK, [this]() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu(level_bg_tiles[(u8)current_location],
-                             PPU_PATTERN_TABLE_SIZE / 64);
+    donut_bulk_load(level_bg_tiles[(u8)current_location]);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu(level_spr_tiles[(u8)current_location],
-                             PPU_PATTERN_TABLE_SIZE / 64);
+    donut_bulk_load(level_spr_tiles[(u8)current_location]);
 
     vram_adr(NAMETABLE_A);
     vram_unrle(level_nametables[(u8)current_location]);
@@ -99,14 +97,13 @@ __attribute__((noinline)) Gameplay::~Gameplay() {
 }
 
 void Gameplay::render() {
-  oam_clear();
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (player.state == Player::State::Moving) {
     u8 row = (u8)(player.y.round() >> 4) + 1;
     u8 col = (u8)(player.x.round() >> 4);
     if (row < HEIGHT) {
-      auto cell = board.cell[row][col];
+      auto cell = board.cell_at(row, col);
       left_wall = cell.left_wall;
       right_wall = cell.right_wall;
     }
@@ -114,6 +111,7 @@ void Gameplay::render() {
   player.render(y_scroll, left_wall, right_wall);
   fruits.render(y_scroll);
   polyomino.render(y_scroll);
+  oam_hide_rest();
 }
 
 void Gameplay::paused_render() {
@@ -131,6 +129,8 @@ static bool no_lag_frame = true;
 void Gameplay::loop() {
   while (current_mode == GameMode::Gameplay) {
     ppu_wait_nmi();
+
+    START_MESEN_WATCH(1);
 
     u8 frame = FRAME_CNT1;
 
@@ -161,13 +161,14 @@ void Gameplay::loop() {
         }
       }
     } else {
-
       // we only spawn when there's no line clearing going on
       if (polyomino.state == Polyomino::State::Inactive &&
           !board.ongoing_line_clearing() && --spawn_timer == 0) {
+
         banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
         spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
       }
+
       banked_lambda(PLAYER_BANK, [this, pressed, held]() {
         player.update(input_mode, pressed, held);
       });
@@ -177,6 +178,7 @@ void Gameplay::loop() {
         bool blocks_placed = false;
         bool failed_to_place = false;
         u8 lines_filled = 0;
+
         banked_lambda(GET_BANK(polyominos), [pressed, this, held,
                                              &blocks_placed, &failed_to_place,
                                              &lines_filled]() {
@@ -184,6 +186,7 @@ void Gameplay::loop() {
           polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
                            failed_to_place, lines_filled);
         });
+
         fruits.update(player, blocks_placed, lines_filled);
 
         if (lines_filled) {
@@ -237,6 +240,7 @@ void Gameplay::loop() {
         banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
       }
     }
+
     Attributes::flush_vram_update();
 
     extern u8 VRAM_INDEX;
@@ -245,13 +249,17 @@ void Gameplay::loop() {
     }
 
     if (no_lag_frame) {
+      START_MESEN_WATCH(2);
       render();
+      STOP_MESEN_WATCH(2);
     } else {
 #ifndef NDEBUG
       putchar('X');
       putchar('\n');
 #endif
     }
+
+    STOP_MESEN_WATCH(1);
 
     no_lag_frame = frame == FRAME_CNT1;
 #ifndef NDEBUG

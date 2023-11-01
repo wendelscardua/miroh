@@ -22,6 +22,18 @@ const Fruit::Type fruit_types_per_level[][4] = {
     // Starlit Stables
     {Fruit::Type::Apple, Fruit::Type::Corn, Fruit::Type::Pear,
      Fruit::Type::Avocado},
+    // Rainbow Retreat
+    {Fruit::Type::Eggplant, Fruit::Type::Kiwi, Fruit::Type::Broccoli,
+     Fruit::Type::GreenPeas},
+    // Fairy Forest
+    {Fruit::Type::Strawberry, Fruit::Type::Cherries, Fruit::Type::Grapes,
+     Fruit::Type::Cucumber},
+    // Glittery Grotto
+    {Fruit::Type::Clementine, Fruit::Type::Hallabong, Fruit::Type::Carrot,
+     Fruit::Type::Berries},
+    // Marshmallow Mountain
+    {Fruit::Type::Berries, Fruit::Type::BlueCorn, Fruit::Type::Bananas,
+     Fruit::Type::SweetPotato},
 };
 
 void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
@@ -36,7 +48,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   // pick a random row
   for (u8 tries = 0; tries < 4; tries++) {
     s8 candidate_row = row_bag.take();
-    if (board.tally[candidate_row] < WIDTH) {
+    if (!board.row_filled(candidate_row)) {
       fruit.row = candidate_row;
       break;
     }
@@ -50,7 +62,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   // now we do the same for column
   for (u8 tries = 0; tries < 4; tries++) {
     s8 candidate_column = column_bag.take();
-    if (!board.cell[fruit.row][candidate_column].occupied) {
+    if (!board.occupied(fruit.row, candidate_column)) {
       fruit.column = candidate_column;
       break;
     }

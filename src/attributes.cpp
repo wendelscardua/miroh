@@ -22,24 +22,27 @@ namespace Attributes {
 
   void set(unsigned char meta_x, unsigned char meta_y,
            unsigned char attribute) {
-    unsigned char attribute_x = (meta_x & 0x0f) >> 1;
+    unsigned char attribute_x = meta_x >> 1;
     unsigned char attribute_y = meta_y >> 1;
 
     unsigned char attribute_index = attribute_y * 8 + attribute_x;
 
-    unsigned char mask = 0b11;
-    unsigned char value = attribute;
+    unsigned char mask;
 
     if (meta_y & 0b1) {
-      value <<= 4;
-      mask <<= 4;
-    }
-    if (meta_x & 0b1) {
-      value <<= 2;
-      mask <<= 2;
+      if (meta_x & 0b1) {
+        mask = 0b11000000;
+      } else {
+        mask = 0b110000;
+      }
+    } else if (meta_x & 0b1) {
+      mask = 0b1100;
+    } else {
+      mask = 0b11;
     }
 
-    shadow[attribute_index] = (shadow[attribute_index] & (~mask)) | value;
+    shadow[attribute_index] =
+        (shadow[attribute_index] & (~mask)) | (attribute & mask);
 
     if (buffered && attribute_index != dirty_index) {
       send_dirty_to_vram_buffer();

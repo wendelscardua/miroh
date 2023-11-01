@@ -26,6 +26,7 @@ void PolyominoDef::render(u8 x, int y) const {
     if (i >= size) {
       continue;
     }
+
     auto delta = deltas[i];
     u8 block_x = (u8)(x + (delta.delta_column << 4));
     int block_y = y + (delta.delta_row << 4);

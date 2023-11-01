@@ -7,7 +7,6 @@
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "polyomino-defs.hpp"
-#include <bank.h>
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
@@ -236,7 +235,7 @@ void Polyomino::render(int y_scroll) {
 
   banked_lambda(GET_BANK(polyominos), [this, y_scroll]() {
     definition->render(board.origin_x + (u8)(column << 4),
-                       (board.origin_y - y_scroll + (u8)(row << 4)));
+                       (board.origin_y - y_scroll + (row << 4)));
   });
 }
 
@@ -267,7 +266,7 @@ Polyomino::freeze_blocks() {
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     s8 block_row = row + delta.delta_row;
-    if (board.tally[block_row] == WIDTH) {
+    if (board.row_filled(block_row)) {
       filled_lines++;
     }
   }

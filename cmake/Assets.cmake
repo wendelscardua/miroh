@@ -58,7 +58,7 @@ function(add_donut_asset)
 
   add_custom_command(
     OUTPUT ${ASSET_DEST}
-    COMMAND ${DONUT_TOOL} -f ${ASSET_SRC} -o ${ASSET_DEST}
+    COMMAND ${DONUT_TOOL} -f ${ASSET_SRC} ${ASSET_DEST}
     DEPENDS ${ASSET_SRC}
   )
   add_custom_target(${BASE_NAME} DEPENDS ${ASSET_DEST})

@@ -5,45 +5,33 @@
 #include "common.hpp"
 #include "coroutine.hpp"
 #include "maze-defs.hpp"
+#include "union-find.hpp"
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
 
-Cell::Cell() : walls(0), parent(NULL) {}
+Cell::Cell() : walls(0) {}
 
-void Cell::reset() {
-  this->walls = 0;
-  this->parent = this;
-}
+static constexpr u8 CELL_ROW_START[] = {
+    0,         WIDTH,     2 * WIDTH, 3 * WIDTH, 4 * WIDTH,
+    5 * WIDTH, 6 * WIDTH, 7 * WIDTH, 8 * WIDTH, 9 * WIDTH};
 
-Cell *Cell::representative() {
-  Cell *temp = this;
-  while (temp != temp->parent) {
-    temp->parent = temp->parent->parent;
-    temp = temp->parent;
-  }
-  return temp;
-}
+static_assert(sizeof(CELL_ROW_START) == HEIGHT,
+              "CELL_ROW_START does not have HEIGHT entries");
 
-void Cell::join(Cell *other) {
-  Cell *x = this->representative();
-  Cell *y = other->representative();
-  if (x != y)
-    y->parent = x;
+u8 board_index(u8 row, u8 column) { return CELL_ROW_START[row] + column; }
+
+Cell &Board::cell_at(u8 row, u8 column) {
+  return this->cell[board_index(row, column)];
 }
 
 Board::Board(u8 origin_x, u8 origin_y)
-    : origin_x(origin_x), origin_y(origin_y) {
-  // reset tally
-  for (u8 i = 0; i < HEIGHT; i++) {
-    tally[i] = 0;
-    deleted[i] = 0;
-  }
-
+    : origin_x(origin_x), origin_y(origin_y), origin_row(origin_y >> 4),
+      origin_column(origin_x >> 4) {
   // reset walls
   for (u8 i = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
-      cell[i][j].reset();
+      cell_at(i, j).walls = 0;
     }
   }
 
@@ -57,9 +45,10 @@ Board::Board(u8 origin_x, u8 origin_y)
     // read required walls from template
     for (u8 i = 0; i < HEIGHT; i++) {
       for (u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+        TemplateCell template_cell =
+            mazes[maze]->template_cells[board_index(i, j)];
         if (template_cell.value != 0xff) {
-          cell[i][j].walls = template_cell.walls;
+          cell_at(i, j).walls = template_cell.walls;
         }
       }
     }
@@ -67,54 +56,55 @@ Board::Board(u8 origin_x, u8 origin_y)
     // read "maybe" walls from template
     for (u8 i = 0; i < HEIGHT; i++) {
       for (u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+        TemplateCell template_cell =
+            mazes[maze]->template_cells[board_index(i, j)];
 
         if (template_cell.value == 0xff) {
           // use the old berzerk algorithm
           // assumes the cell is on the valid range
           switch (rand8() & 0b11) {
           case 0:
-            cell[i][j].right_wall = true;
-            cell[i][j + 1].left_wall = true;
+            cell_at(i, j).right_wall = true;
+            cell_at(i, j + 1).left_wall = true;
             break;
           case 1:
-            cell[i][j + 1].down_wall = true;
-            cell[i + 1][j + 1].up_wall = true;
+            cell_at(i, j + 1).down_wall = true;
+            cell_at(i + 1, j + 1).up_wall = true;
             break;
           case 2:
-            cell[i + 1][j].right_wall = true;
-            cell[i + 1][j + 1].left_wall = true;
+            cell_at(i + 1, j).right_wall = true;
+            cell_at(i + 1, j + 1).left_wall = true;
             break;
           case 3:
-            cell[i][j].down_wall = true;
-            cell[i + 1][j].up_wall = true;
+            cell_at(i, j).down_wall = true;
+            cell_at(i + 1, j).up_wall = true;
             break;
           }
           continue;
         }
 
         if (NEED_WALL(up)) {
-          cell[i][j].up_wall = true;
+          cell_at(i, j).up_wall = true;
           if (i > 0) {
-            cell[i - 1][j].down_wall = true;
+            cell_at(i - 1, j).down_wall = true;
           }
         }
         if (NEED_WALL(down)) {
-          cell[i][j].down_wall = true;
+          cell_at(i, j).down_wall = true;
           if (i < HEIGHT - 1) {
-            cell[i + 1][j].up_wall = true;
+            cell_at(i + 1, j).up_wall = true;
           }
         }
         if (NEED_WALL(left)) {
-          cell[i][j].left_wall = true;
+          cell_at(i, j).left_wall = true;
           if (j > 0) {
-            cell[i][j - 1].right_wall = true;
+            cell_at(i, j - 1).right_wall = true;
           }
         }
         if (NEED_WALL(right)) {
-          cell[i][j].right_wall = true;
+          cell_at(i, j).right_wall = true;
           if (j < WIDTH - 1) {
-            cell[i][j + 1].left_wall = true;
+            cell_at(i, j + 1).left_wall = true;
           }
         }
       }
@@ -123,24 +113,26 @@ Board::Board(u8 origin_x, u8 origin_y)
 
   // border walls
   for (u8 i = 0; i < HEIGHT; i++) {
-    cell[i][0].left_wall = true;
-    cell[i][WIDTH - 1].right_wall = true;
+    cell_at(i, 0).left_wall = true;
+    cell_at(i, WIDTH - 1).right_wall = true;
   }
 
   for (u8 j = 0; j < WIDTH; j++) {
-    cell[0][j].up_wall = true;
-    cell[HEIGHT - 1][j].down_wall = true;
+    cell_at(0, j).up_wall = true;
+    cell_at(HEIGHT - 1, j).down_wall = true;
   }
+
+  Set disjoint_set[HEIGHT * WIDTH];
 
   // union-find-ish-ly ensure all cells are reachable
   for (u8 i = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
-      auto current_cell = &cell[i][j];
-      if (j < WIDTH - 1 && !current_cell->right_wall) {
-        current_cell->join(&cell[i][j + 1]);
+      auto current_element = &disjoint_set[board_index(i, j)];
+      if (j < WIDTH - 1 && !cell_at(i, j).right_wall) {
+        current_element->join(&disjoint_set[board_index(i, j + 1)]);
       }
-      if (i < HEIGHT - 1 && !current_cell->down_wall) {
-        current_cell->join(&cell[i + 1][j]);
+      if (i < HEIGHT - 1 && !cell_at(i, j).down_wall) {
+        current_element->join(&disjoint_set[board_index(i + 1, j)]);
       }
     }
   }
@@ -161,40 +153,42 @@ Board::Board(u8 origin_x, u8 origin_y)
     u8 i = row_bag.take();
     for (u8 columns = 0; columns < WIDTH; columns++) {
       u8 j = column_bag.take();
-      auto current_cell = &cell[i][j];
-      auto right_cell = j < WIDTH - 1 ? &cell[i][j + 1] : NULL;
-      auto down_cell = i < HEIGHT - 1 ? &cell[i + 1][j] : NULL;
+      auto current_element = &disjoint_set[board_index(i, j)];
+      auto right_element =
+          j < WIDTH - 1 ? &disjoint_set[board_index(i, j + 1)] : NULL;
+      auto down_element =
+          i < HEIGHT - 1 ? &disjoint_set[board_index(i + 1, j)] : NULL;
 
       // randomize if we are looking first horizontally or vertically
       bool down_first = rand8() & 0b1;
 
-      if (down_first && down_cell &&
-          current_cell->representative() != down_cell->representative()) {
-        current_cell->down_wall = false;
-        down_cell->up_wall = false;
-        down_cell->join(current_cell);
+      if (down_first && down_element &&
+          current_element->representative() != down_element->representative()) {
+        cell_at(i, j).down_wall = false;
+        cell_at(i + 1, j).up_wall = false;
+        down_element->join(current_element);
       }
 
-      if (right_cell &&
-          current_cell->representative() != right_cell->representative()) {
-        current_cell->right_wall = false;
-        right_cell->left_wall = false;
-        right_cell->join(current_cell);
+      if (right_element && current_element->representative() !=
+                               right_element->representative()) {
+        cell_at(i, j).right_wall = false;
+        cell_at(i, j + 1).left_wall = false;
+        right_element->join(current_element);
       }
 
-      if (!down_first && down_cell &&
-          current_cell->representative() != down_cell->representative()) {
-        current_cell->down_wall = false;
-        down_cell->up_wall = false;
-        down_cell->join(current_cell);
+      if (!down_first && down_element &&
+          current_element->representative() != down_element->representative()) {
+        cell_at(i, j).down_wall = false;
+        cell_at(i + 1, j).up_wall = false;
+        down_element->join(current_element);
       }
     }
   }
 
-  // make all cells free - from this point on we don't use "parent" anymore
-  for (u8 i = 0; i < HEIGHT; i++) {
-    for (u8 j = 0; j < WIDTH; j++) {
-      cell[i][j].occupied = false;
+  // make all cells free
+  for (s8 i = 0; i < HEIGHT; i++) {
+    for (s8 j = 0; j < WIDTH; j++) {
+      free(i, j);
     }
   }
 }
@@ -217,21 +211,15 @@ bool Board::occupied(s8 row, s8 column) {
   if (row < 0)
     return false;
 
-  return cell[row][column].occupied;
+  return occupied_bitset[(u8)row] & OCCUPIED_BITMASK[(u8)column];
 }
 
 void Board::occupy(s8 row, s8 column) {
-  if (!cell[row][column].occupied) { // just to be safe
-    cell[row][column].occupied = true;
-    tally[row]++;
-  }
+  occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
 }
 
 void Board::free(s8 row, s8 column) {
-  if (cell[row][column].occupied) { // just to be safe
-    cell[row][column].occupied = false;
-    tally[row]--;
-  }
+  occupied_bitset[(u8)row] &= ~OCCUPIED_BITMASK[(u8)column];
 }
 
 static const Cell null_cell;
@@ -335,123 +323,178 @@ void Board::block_maze_cell(s8 row, s8 column) {
   block_maze_cell(row, column, false);
 }
 
+extern u8 VRAM_INDEX;
+extern char VRAM_BUF[256];
+
+/*
+ VRAM BUFFER layout:
+ 0: address.h + horizontal (top)
+ 1: address.l
+ 2: length (2)
+ 3: tile (top 0)
+ 4: tile (top 1)
+ 5: address.h + horizontal (bottom)
+ 6: address.l
+ 7: length (2)
+ 8: tile (bottom 0)
+ 9: tile (bottom 1)
+ 10: eof (0xff)
+ */
+
+#define TOP_0 VRAM_BUF[VRAM_INDEX + 3]
+#define TOP_1 VRAM_BUF[VRAM_INDEX + 4]
+#define BOTTOM_0 VRAM_BUF[VRAM_INDEX + 8]
+#define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
+
 void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
-  char metatile_top[2];
-  char metatile_bottom[2];
-
-  auto current_cell = &cell[row][column];
-  auto lower_cell = row < HEIGHT - 1 ? &cell[row + 1][column] : &null_cell;
-  auto left_cell = column > 0 ? &cell[row][column - 1] : &null_cell;
-  auto right_cell = column < WIDTH - 1 ? &cell[row][column + 1] : &null_cell;
-
+  auto current_cell = &cell_at((u8)row, (u8)column);
+  auto lower_cell =
+      row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
+  auto left_cell = column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
+  auto right_cell =
+      column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
 
-  metatile_top[0] = 0x60;
-  metatile_top[1] = 0x61;
+  TOP_0 = 0x60;
+  TOP_1 = 0x61;
 
-  metatile_bottom[0] = lower_left_block_tile[walls_to_index(
+  BOTTOM_0 = lower_left_block_tile[walls_to_index(
       current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
       left_cell->down_wall)];
-  metatile_bottom[1] = lower_right_block_tile[walls_to_index(
+  BOTTOM_1 = lower_right_block_tile[walls_to_index(
       current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
       current_cell->down_wall)];
 
   if (row == HEIGHT - 1) {
     if (column > 0 && current_cell->left_wall) {
-      metatile_bottom[0] = 0x6a;
+      BOTTOM_0 = 0x6a;
     }
     if (column < WIDTH - 1 && current_cell->right_wall) {
-      metatile_bottom[1] = 0x6b;
+      BOTTOM_1 = 0x6b;
     }
   }
 
   if (column == 0) {
     if (row < HEIGHT - 1 && current_cell->down_wall) {
-      metatile_bottom[0] = 0x6a;
+      BOTTOM_0 = 0x6a;
     }
   } else if (column == WIDTH - 1) {
     if (row < HEIGHT - 1 && current_cell->down_wall) {
-      metatile_bottom[1] = 0x6b;
+      BOTTOM_1 = 0x6b;
     }
   }
 
   if (jiggling) {
-    metatile_top[0] += 0x10;
-    metatile_top[1] += 0x10;
-    metatile_bottom[0] += 0x10;
-    metatile_bottom[1] += 0x10;
+    TOP_0 += 0x10;
+    TOP_1 += 0x10;
+    BOTTOM_0 += 0x10;
+    BOTTOM_1 += 0x10;
   }
 
-  multi_vram_buffer_horz(metatile_top, 2, position);
-  multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
-  Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
+  // unrolled equivalent of...
+  // multi_vram_buffer_horz(metatile_top, 2, position);
+  // multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
+
+  VRAM_BUF[VRAM_INDEX] = (u8)(position >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 1] = (u8)position;
+  VRAM_BUF[VRAM_INDEX + 2] = 2;
+  // 3, 4 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 5] = (u8)((position + 0x20) >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 6] = (u8)(position + 0x20);
+  VRAM_BUF[VRAM_INDEX + 7] = 2;
+  // 8, 9 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 10] = 0xff;
+  VRAM_INDEX += 10;
+
+  // end of unrolled
+
+  Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
                   BLOCK_ATTRIBUTE);
+
   occupy(row, column);
 }
 
 void Board::restore_maze_cell(s8 row, s8 column) {
-  auto current_cell = &cell[row][column];
+  auto current_cell = &cell_at((u8)row, (u8)column);
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
-  char metatile_top[2];
-  char metatile_bottom[2];
 
-  auto upper_cell = row > 0 ? &cell[row - 1][column] : &null_cell;
-  auto lower_cell = row < HEIGHT - 1 ? &cell[row + 1][column] : &null_cell;
-  auto left_cell = column > 0 ? &cell[row][column - 1] : &null_cell;
-  auto right_cell = column < WIDTH - 1 ? &cell[row][column + 1] : &null_cell;
+  auto upper_cell = row > 0 ? &cell_at((u8)row - 1, (u8)column) : &null_cell;
+  auto lower_cell =
+      row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
+  auto left_cell = column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
+  auto right_cell =
+      column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
 
-  metatile_top[0] = upper_left_maze_tile[walls_to_index(
+  TOP_0 = upper_left_maze_tile[walls_to_index(
       upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
       left_cell->up_wall)];
-  metatile_top[1] = upper_right_maze_tile[walls_to_index(
+  TOP_1 = upper_right_maze_tile[walls_to_index(
       upper_cell->right_wall, right_cell->up_wall, current_cell->right_wall,
       current_cell->up_wall)];
-  metatile_bottom[0] = lower_left_maze_tile[walls_to_index(
+  BOTTOM_0 = lower_left_maze_tile[walls_to_index(
       current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
       left_cell->down_wall)];
-  metatile_bottom[1] = lower_right_maze_tile[walls_to_index(
+  BOTTOM_1 = lower_right_maze_tile[walls_to_index(
       current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
       current_cell->down_wall)];
 
   if (row == 0) {
     if (column > 0 && current_cell->left_wall) {
-      metatile_top[0] = TILE_BASE + 0x0a;
+      TOP_0 = TILE_BASE + 0x0a;
     }
     if (column < WIDTH - 1 && current_cell->right_wall) {
-      metatile_top[1] = TILE_BASE + 0x09;
+      TOP_1 = TILE_BASE + 0x09;
     }
   } else if (row == HEIGHT - 1) {
     if (column > 0 && current_cell->left_wall) {
-      metatile_bottom[0] = TILE_BASE + 0x1a;
+      BOTTOM_0 = TILE_BASE + 0x1a;
     }
     if (column < WIDTH - 1 && current_cell->right_wall) {
-      metatile_bottom[1] = TILE_BASE + 0x19;
+      BOTTOM_1 = TILE_BASE + 0x19;
     }
   }
 
   if (column == 0) {
     if (row > 0 && current_cell->up_wall) {
-      metatile_top[0] = TILE_BASE + 0x1b;
+      TOP_0 = TILE_BASE + 0x1b;
     } else if (row < HEIGHT - 1 && current_cell->down_wall) {
-      metatile_bottom[0] = TILE_BASE + 0x0b;
+      BOTTOM_0 = TILE_BASE + 0x0b;
     }
   } else if (column == WIDTH - 1) {
     if (row > 0 && current_cell->up_wall) {
-      metatile_top[1] = TILE_BASE + 0x1c;
+      TOP_1 = TILE_BASE + 0x1c;
     } else if (row < HEIGHT - 1 && current_cell->down_wall) {
-      metatile_bottom[1] = TILE_BASE + 0x0c;
+      BOTTOM_1 = TILE_BASE + 0x0c;
     }
   }
 
-  multi_vram_buffer_horz(metatile_top, 2, position);
-  multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
+  // unrolled equivalent of...
+  // multi_vram_buffer_horz(metatile_top, 2, position);
+  // multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
 
-  Attributes::set((u8)((origin_x >> 4) + column), (u8)((origin_y >> 4) + row),
+  VRAM_BUF[VRAM_INDEX] = (u8)(position >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 1] = (u8)position;
+  VRAM_BUF[VRAM_INDEX + 2] = 2;
+  // 3, 4 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 5] = (u8)((position + 0x20) >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 6] = (u8)(position + 0x20);
+  VRAM_BUF[VRAM_INDEX + 7] = 2;
+  // 8, 9 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 10] = 0xff;
+  VRAM_INDEX += 10;
+
+  // end of unrolled
+
+  Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
                   WALL_ATTRIBUTE);
 
   free(row, column);
+}
+
+bool Board::row_filled(s8 row) {
+  return occupied_bitset[(u8)row] == FULL_ROW_BITMASK;
 }
 
 bool Board::ongoing_line_clearing() {
@@ -460,7 +503,7 @@ bool Board::ongoing_line_clearing() {
   CORO_INIT;
 
   for (s8 i = 0; i < HEIGHT; i++) {
-    if (tally[i] == WIDTH) {
+    if (row_filled(i)) {
       deleted[i] = true;
       any_deleted = true;
     }
@@ -497,6 +540,7 @@ bool Board::ongoing_line_clearing() {
         if (source_occupied) {
           if (!occupied(erasing_row, erasing_column)) {
             block_maze_cell(erasing_row, erasing_column);
+            occupy(erasing_row, erasing_column);
           }
           if (erasing_row_source >= 0 &&
               occupied(erasing_row_source, erasing_column)) {
