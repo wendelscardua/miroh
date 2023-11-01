@@ -28,11 +28,40 @@ banked_oam_meta_spr:
   clc
   adc __rc6
   sta OAM_BUF+3,x
+  
+  lda #0
+  sta __rc8
+  
   lda (__rc4),y  ;y offset
+  
+  ; extend signal to 16 bits
+  bpl 3f
+  beq 3f
+  
+  lda #$ff
+  sta __rc8
+  lda (__rc4),y  ;restore y offset
+3:
   iny
   clc
   adc __rc7
   sta OAM_BUF+0,x
+  
+  lda __rc2
+  adc __rc8
+
+  ; high byte zero = on screen (?)
+  beq 4f
+
+  ; not on screen, go to next sprite
+  lda #$ff
+  sta OAM_BUF+0,x
+  iny
+  iny
+  jmp 1b
+
+4:
+  
   lda (__rc4),y  ;tile
   iny
   sta OAM_BUF+1,x
