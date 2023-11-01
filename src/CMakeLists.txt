@@ -117,28 +117,37 @@ set_property(
   assets.s
   PROPERTY
   OBJECT_DEPENDS
+  Title.nam.rle
+  how-to.nam.rle
+  credits.nam.rle
+  SPR.chr.donut
   StarlitStablesBG.pal
   StarlitStablesSPR.pal
   StarlitStablesBG.chr.donut
-  SPR.chr.donut
-  Title.nam.rle
   StarlitStables.nam.rle
   StarlitStablesAlt.nam.rle
-  how-to.nam.rle
-  credits.nam.rle
+  RainbowRetreatSPR.pal
+  FairyForestSPR.pal
+  GlitteryGrottoSPR.pal
+  MarshmallowMountainSPR.pal
 )
+
+add_rle_asset(SOURCE "Title.nam")
+add_rle_asset(SOURCE "how-to.nam")
+add_rle_asset(SOURCE "credits.nam")
+
+add_donut_asset(SOURCE "SPR.chr")
 
 add_raw_asset(SOURCE "StarlitStablesBG.pal")
 add_raw_asset(SOURCE "StarlitStablesSPR.pal")
-
 add_donut_asset(SOURCE "StarlitStablesBG.chr")
-add_donut_asset(SOURCE "SPR.chr")
-
-add_rle_asset(SOURCE "Title.nam")
 add_rle_asset(SOURCE "StarlitStables.nam")
 add_rle_asset(SOURCE "StarlitStablesAlt.nam")
-add_rle_asset(SOURCE "how-to.nam")
-add_rle_asset(SOURCE "credits.nam")
+
+add_raw_asset(SOURCE "RainbowRetreatSPR.pal")
+add_raw_asset(SOURCE "FairyForestSPR.pal")
+add_raw_asset(SOURCE "GlitteryGrottoSPR.pal")
+add_raw_asset(SOURCE "MarshmallowMountainSPR.pal")
 
 set_property(
   SOURCE
