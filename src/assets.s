@@ -3,32 +3,55 @@
     .global level_bg_palettes
 level_bg_palettes:
     .byte StarlitStablesBG_pal@mos16lo
+    .zero 4
     .byte StarlitStablesBG_pal@mos16hi
+    .zero 4
 
     .global level_spr_palettes
 level_spr_palettes:
     .byte StarlitStablesSPR_pal@mos16lo
+    .byte RainbowRetreatSPR_pal@mos16lo
+    .byte FairyForestSPR_pal@mos16lo
+    .byte GlitteryGrottoSPR_pal@mos16lo
+    .byte MarshmallowMountainSPR_pal@mos16lo
     .byte StarlitStablesSPR_pal@mos16hi
-
+    .byte RainbowRetreatSPR_pal@mos16hi
+    .byte FairyForestSPR_pal@mos16hi
+    .byte GlitteryGrottoSPR_pal@mos16hi
+    .byte MarshmallowMountainSPR_pal@mos16hi
     .global level_bg_tiles
 level_bg_tiles:
     .byte StarlitStablesBG_chr@mos16lo
+    .zero 4
     .byte StarlitStablesBG_chr@mos16hi
+    .zero 4
 
     .global level_spr_tiles
 level_spr_tiles:
     .byte SPR_chr@mos16lo
+    .byte SPR_chr@mos16lo
+    .byte SPR_chr@mos16lo
+    .byte SPR_chr@mos16lo
+    .byte SPR_chr@mos16lo
+    .byte SPR_chr@mos16hi
+    .byte SPR_chr@mos16hi
+    .byte SPR_chr@mos16hi
+    .byte SPR_chr@mos16hi
     .byte SPR_chr@mos16hi
 
     .global level_nametables
 level_nametables:
     .byte StarlitStables_nam@mos16lo
+    .zero 4
     .byte StarlitStables_nam@mos16hi
+    .zero 4
 
     .global level_alt_nametables
 level_alt_nametables:
     .byte StarlitStablesAlt_nam@mos16lo
+    .zero 4
     .byte StarlitStablesAlt_nam@mos16hi
+    .zero 4
 
     ; Generic
 SPR_chr: .incbin "SPR.chr.donut"
@@ -39,6 +62,18 @@ StarlitStablesSPR_pal: .incbin "StarlitStablesSPR.pal"
 StarlitStablesBG_chr: .incbin "StarlitStablesBG.chr.donut"
 StarlitStables_nam: .incbin "StarlitStables.nam.rle"
 StarlitStablesAlt_nam: .incbin "StarlitStablesAlt.nam.rle"
+
+    ; Rainbow Retreat
+RainbowRetreatSPR_pal: .incbin "RainbowRetreatSPR.pal"
+
+    ; Fairy Forest
+FairyForestSPR_pal: .incbin "FairyForestSPR.pal"
+
+    ; GlitteryGrotto
+GlitteryGrottoSPR_pal: .incbin "GlitteryGrottoSPR.pal"
+
+    ; Marshmallow Mountain
+MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 
     ; non-level stuff
 .global title_nam
