@@ -162,12 +162,13 @@ void Gameplay::loop() {
       }
     } else {
       // we only spawn when there's no line clearing going on
+      START_MESEN_WATCH(3);
       if (polyomino.state == Polyomino::State::Inactive &&
           !board.ongoing_line_clearing() && --spawn_timer == 0) {
-
         banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
         spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
       }
+      STOP_MESEN_WATCH(3);
 
       banked_lambda(PLAYER_BANK, [this, pressed, held]() {
         player.update(input_mode, pressed, held);

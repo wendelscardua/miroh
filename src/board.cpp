@@ -553,11 +553,7 @@ bool Board::ongoing_line_clearing() {
       erasing_row--;
       erasing_row_source--;
 
-      // as a rule of thumb, we'll avoid updating too much on a single frame
-      extern u8 VRAM_INDEX;
-      if (VRAM_INDEX >= 32) {
-        CORO_YIELD(true);
-      }
+      CORO_YIELD(true);
     }
   }
 

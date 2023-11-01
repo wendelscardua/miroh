@@ -30,8 +30,6 @@ function start_watch(_address, label)
       label = label,
       start = 0,
       cycles = 0,
-      events = 0,
-      frames = 0,
       children = {}
     }
   end
@@ -52,8 +50,10 @@ function stop_watch(_address, label)
     emu.log("Warning: closing label " .. label .. " doesn't match opening label " .. removed_label)
   end
   
-  current_watch.events = current_watch.events + 1
-  current_watch.cycles = current_watch.cycles + emu.getState()['cpu.cycleCount'] - current_watch.start
+  local new_cycles = emu.getState()['cpu.cycleCount'] - current_watch.start
+  if new_cycles > current_watch.cycles then
+    current_watch.cycles = new_cycles
+  end 
 end
 
 display_stack = {}
@@ -61,7 +61,7 @@ display_stack = {}
 function recursive_display(subtable, x, y, width)
   local rect = { x = x, y = y, width = width, height = 2 }
   if subtable.cycles ~= nil then
-    rect.label =  subtable.label .. " " .. string.format("%.2f", subtable.cycles / subtable.events)
+    rect.label =  subtable.label .. " " .. string.format("%.2f", subtable.cycles)
     rect.height = rect.height + 10
   end
   for label, inner in pairs(subtable.children) do
