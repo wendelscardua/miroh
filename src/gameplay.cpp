@@ -100,7 +100,6 @@ void Gameplay::render() {
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (player.state == Player::State::Moving) {
-    START_MESEN_WATCH(12);
     u8 row = (u8)(player.y.round() >> 4) + 1;
     u8 col = (u8)(player.x.round() >> 4);
     if (row < HEIGHT) {
@@ -108,17 +107,12 @@ void Gameplay::render() {
       left_wall = cell.left_wall;
       right_wall = cell.right_wall;
     }
-    STOP_MESEN_WATCH(12);
   }
-  START_MESEN_WATCH(13);
+  START_MESEN_WATCH(10);
   player.render(y_scroll, left_wall, right_wall);
-  STOP_MESEN_WATCH(13);
-  START_MESEN_WATCH(14);
+  STOP_MESEN_WATCH(10);
   fruits.render(y_scroll);
-  STOP_MESEN_WATCH(14);
-  START_MESEN_WATCH(15);
   polyomino.render(y_scroll);
-  STOP_MESEN_WATCH(15);
   oam_hide_rest();
 }
 
@@ -257,9 +251,9 @@ void Gameplay::loop() {
     }
 
     if (no_lag_frame) {
-      START_MESEN_WATCH(7);
+      START_MESEN_WATCH(2);
       render();
-      STOP_MESEN_WATCH(7);
+      STOP_MESEN_WATCH(2);
     } else {
 #ifndef NDEBUG
       putchar('X');

@@ -1,7 +1,6 @@
 #include "polyomino-defs.hpp"
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
-#include "log.hpp"
 #include "metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -27,13 +26,11 @@ void PolyominoDef::render(u8 x, int y) const {
     if (i >= size) {
       continue;
     }
-    START_MESEN_WATCH(25);
 
     auto delta = deltas[i];
     u8 block_x = (u8)(x + (delta.delta_column << 4));
     int block_y = y + (delta.delta_row << 4);
     banked_oam_meta_spr(block_x, block_y, metasprite_block);
-    STOP_MESEN_WATCH(25);
   }
 
   polyomino_start_index += 2;
