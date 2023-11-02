@@ -18,7 +18,6 @@
 #include "gameplay.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
-#include "metasprites.hpp"
 #include "player.hpp"
 
 #pragma clang section text = ".prg_rom_0.text"
@@ -27,7 +26,7 @@
 // TODO: variable current_location
 __attribute__((noinline)) Gameplay::Gameplay()
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
-      pause_option(0), board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
+      board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board, current_level),
       input_mode(InputMode::Player), current_location(Location::StarlitStables),
@@ -114,26 +113,63 @@ void Gameplay::render() {
   oam_hide_rest();
 }
 
-extern volatile char FRAME_CNT1;
-static bool no_lag_frame = true;
+void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
+  static const PauseOption NEXT_OPTION[] = {
+      Gameplay::PauseOption::Resume,
+      Gameplay::PauseOption::Retry,
+      Gameplay::PauseOption::Quit,
+  };
 
-void Gameplay::pause_handler(u8 &pressed) {
+  static const PauseOption PREV_OPTION[] = {
+      Gameplay::PauseOption::Retry,
+      Gameplay::PauseOption::Quit,
+      Gameplay::PauseOption::Resume,
+  };
+
   if (pressed & (PAD_START | PAD_B)) {
     input_mode = InputMode::Player;
-    pressed &= ~(PAD_START | PAD_B);
+    pressed = 0;
     y_scroll = DEFAULT_Y_SCROLL;
     GGSound::resume();
-  } else if (pressed &
-             (PAD_LEFT | PAD_RIGHT | PAD_UP | PAD_DOWN | PAD_SELECT)) {
-    pause_option = 1 - pause_option;
+  } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
+    pause_option = NEXT_OPTION[(u8)pause_option];
+  } else if (pressed & (PAD_LEFT | PAD_UP)) {
+    pause_option = PREV_OPTION[(u8)pause_option];
   } else if (pressed & PAD_A) {
     GGSound::resume();
     input_mode = InputMode::Player;
     y_scroll = DEFAULT_Y_SCROLL;
-    if (pause_option == 1) {
+    switch (pause_option) {
+    case PauseOption::Quit:
       current_mode = GameMode::TitleScreen;
+      break;
+    case PauseOption::Resume:
+      input_mode = InputMode::Player;
+      pressed = 0;
+      y_scroll = DEFAULT_Y_SCROLL;
+      GGSound::resume();
+      break;
+    case PauseOption::Retry:
+      break;
     }
   }
+
+  bool toggle = (get_frame_count() & 0b10000) != 0;
+
+  one_vram_buffer(pause_option == Gameplay::PauseOption::Quit
+                      ? (toggle ? 0x10 : 0x2f)
+                      : 0x30,
+                  NTADR_C(4, 5));
+
+  one_vram_buffer(pause_option == Gameplay::PauseOption::Resume
+                      ? (toggle ? 0x10 : 0x2f)
+                      : 0x30,
+                  NTADR_C(12, 5));
+
+  one_vram_buffer(pause_option == Gameplay::PauseOption::Retry
+                      ? (toggle ? 0x10 : 0x2f)
+                      : 0x30,
+                  NTADR_C(22, 5));
 }
 
 void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
@@ -214,6 +250,10 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
 }
 
 void Gameplay::loop() {
+  static bool no_lag_frame = true;
+  extern volatile char FRAME_CNT1;
+  PauseOption pause_option = PauseOption::Resume;
+
   while (current_mode == GameMode::Gameplay) {
     ppu_wait_nmi();
 
@@ -231,7 +271,7 @@ void Gameplay::loop() {
     u8 held = pad_state(0);
 
     if (input_mode == InputMode::Pause) {
-      Gameplay::pause_handler(pressed);
+      Gameplay::pause_handler(pause_option, pressed);
     } else {
       Gameplay::gameplay_handler(pressed, held);
     }
