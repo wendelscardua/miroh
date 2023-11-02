@@ -62,7 +62,6 @@ __attribute__((noinline)) Gameplay::Gameplay()
 
   scroll(0, (unsigned int)y_scroll);
 
-  player.refresh_energy_hud();
   player.refresh_score_hud();
 
   ppu_on_all();
@@ -111,6 +110,7 @@ void Gameplay::render() {
   player.render(y_scroll, left_wall, right_wall);
   fruits.render(y_scroll);
   polyomino.render(y_scroll);
+  player.refresh_energy_hud(y_scroll);
   oam_hide_rest();
 }
 
