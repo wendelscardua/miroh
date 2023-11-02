@@ -11,6 +11,7 @@
 class Player {
   static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x25);
   static constexpr u8 MAX_ENERGY = 12;
+  static constexpr u8 STARTING_ENERGY = 9;
 
 private:
   Direction facing;
