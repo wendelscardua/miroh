@@ -324,7 +324,40 @@ void render_energy_hud(int y_scroll, u8 value) {
 }
 
 void Player::refresh_energy_hud(int y_scroll) {
-  render_energy_hud(y_scroll, energy);
+  static u8 original_energy = MAX_ENERGY;
+  static u8 animation_frames;
+
+  CORO_INIT;
+
+  if (original_energy == energy) {
+    render_energy_hud(y_scroll, energy);
+    CORO_FINISH();
+    return;
+  }
+
+  for (animation_frames = 0; animation_frames < 4; animation_frames++) {
+    render_energy_hud(y_scroll, energy);
+    CORO_YIELD();
+  }
+
+  for (animation_frames = 0; animation_frames < 4; animation_frames++) {
+    render_energy_hud(y_scroll, original_energy);
+    CORO_YIELD();
+  }
+
+  for (animation_frames = 0; animation_frames < 4; animation_frames++) {
+    render_energy_hud(y_scroll, energy);
+    CORO_YIELD();
+  }
+
+  for (animation_frames = 0; animation_frames < 4; animation_frames++) {
+    render_energy_hud(y_scroll, original_energy);
+    CORO_YIELD();
+  }
+
+  original_energy = energy;
+
+  CORO_FINISH();
 }
 
 __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
