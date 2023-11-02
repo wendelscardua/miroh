@@ -33,7 +33,6 @@ void Player::energy_upkeep(s16 delta) {
       energy--;
     }
   }
-  refresh_energy_hud();
 }
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
@@ -281,26 +280,51 @@ void Player::feed(u8 nutrition) {
   } else {
     energy = MAX_ENERGY;
   }
-
-  refresh_energy_hud();
 }
 
-void Player::refresh_energy_hud() {
-  // refresh hunger hud
-  u8 hunger_bar[4];
-  u8 temp = energy;
-  for (auto &hunger_cell : hunger_bar) {
-    // TODO: use proper energy tiles
-    if (temp >= 8) {
-      hunger_cell = 0x03;
-      temp -= 8;
+void render_energy_hud(int y_scroll, u8 value) {
+  static constexpr u8 ENERGY_HUD_X = 0x30;
+  static constexpr u8 ENERGY_HUD_Y = 0xc7;
+  // TODO: cull sprites if scrolling moves them out of screen
+  if (value == 0) {
+  } else if (value == 1) {
+    oam_spr(ENERGY_HUD_X, (u8)(ENERGY_HUD_Y + y_scroll), 0x31, 0);
+  } else if (value == 2) {
+    oam_spr(ENERGY_HUD_X, (u8)(ENERGY_HUD_Y + y_scroll), 0x32, 0);
+  } else {
+    oam_spr(ENERGY_HUD_X, (u8)(ENERGY_HUD_Y + y_scroll), 0x33, 0);
+
+    if (value == 3) {
+    } else if (value == 4) {
+      oam_spr(ENERGY_HUD_X + 8, (u8)(ENERGY_HUD_Y + y_scroll), 0x31, 0);
+    } else if (value == 5) {
+      oam_spr(ENERGY_HUD_X + 8, (u8)(ENERGY_HUD_Y + y_scroll), 0x32, 0);
     } else {
-      hunger_cell = 0xb4;
-      temp = 0;
+      oam_spr(ENERGY_HUD_X + 8, (u8)(ENERGY_HUD_Y + y_scroll), 0x33, 0);
+
+      if (value == 6) {
+      } else if (value == 7) {
+        oam_spr(ENERGY_HUD_X + 16, (u8)(ENERGY_HUD_Y + y_scroll), 0x31, 0);
+      } else if (value == 8) {
+        oam_spr(ENERGY_HUD_X + 16, (u8)(ENERGY_HUD_Y + y_scroll), 0x32, 0);
+      } else {
+        oam_spr(ENERGY_HUD_X + 16, (u8)(ENERGY_HUD_Y + y_scroll), 0x33, 0);
+
+        if (value == 9) {
+        } else if (value == 10) {
+          oam_spr(ENERGY_HUD_X + 24, (u8)(ENERGY_HUD_Y + y_scroll), 0x31, 0);
+        } else if (value == 11) {
+          oam_spr(ENERGY_HUD_X + 24, (u8)(ENERGY_HUD_Y + y_scroll), 0x32, 0);
+        } else {
+          oam_spr(ENERGY_HUD_X + 24, (u8)(ENERGY_HUD_Y + y_scroll), 0x33, 0);
+        }
+      }
     }
   }
+}
 
-  multi_vram_buffer_horz(hunger_bar, 4, NTADR_A(6, 27));
+void Player::refresh_energy_hud(int y_scroll) {
+  render_energy_hud(y_scroll, energy);
 }
 
 __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],

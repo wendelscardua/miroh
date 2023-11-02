@@ -10,7 +10,7 @@
 
 class Player {
   static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x25);
-  static constexpr u8 MAX_ENERGY = 32;
+  static constexpr u8 MAX_ENERGY = 12;
 
 private:
   Direction facing;
@@ -50,7 +50,7 @@ public:
   void render(int y_scroll, bool left_wall, bool right_wall);
   void feed(u8 nutrition);
   void energy_upkeep(s16 delta);
-  void refresh_energy_hud();
+  void refresh_energy_hud(int y_scroll);
   void refresh_score_hud();
   const fixed_point &move_speed();
 };
