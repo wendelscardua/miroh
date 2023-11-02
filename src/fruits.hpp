@@ -6,11 +6,6 @@
 #include "common.hpp"
 #include "player.hpp"
 
-#define INITIAL_CREDITS 1
-#define SPAWN_DELAY 480
-
-#define FRUIT_NUTRITION 5
-
 struct Fruit {
   enum class Type : u8 {
     Apple,
@@ -66,6 +61,10 @@ class Fruits {
   u8 current_level;
 
 public:
+  static constexpr u8 INITIAL_CREDITS = 1;
+  static constexpr u16 SPAWN_DELAY = 480;
+  static constexpr u8 FRUIT_NUTRITION = 3;
+
   Fruits(Board &board, u8 current_level);
 
   void update(Player &player, bool blocks_placed, u8 lines_filled);

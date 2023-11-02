@@ -26,7 +26,7 @@ private:
   void fix_uni_priority(bool left_wall, bool right_wall);
 
 public:
-  static constexpr u8 ENERGY_TICKS = 90;
+  static constexpr u8 ENERGY_TICKS = 240;
 
   enum class State {
     Idle,
