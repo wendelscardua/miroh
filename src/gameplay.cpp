@@ -127,6 +127,7 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
   };
 
   if (pressed & (PAD_START | PAD_B)) {
+    pause_option = PauseOption::Resume;
     input_mode = InputMode::Player;
     pressed = 0;
     y_scroll = DEFAULT_Y_SCROLL;
@@ -136,9 +137,6 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
   } else if (pressed & (PAD_LEFT | PAD_UP)) {
     pause_option = PREV_OPTION[(u8)pause_option];
   } else if (pressed & PAD_A) {
-    GGSound::resume();
-    input_mode = InputMode::Player;
-    y_scroll = DEFAULT_Y_SCROLL;
     switch (pause_option) {
     case PauseOption::Quit:
       current_mode = GameMode::TitleScreen;
@@ -150,6 +148,8 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
       GGSound::resume();
       break;
     case PauseOption::Retry:
+      input_mode = InputMode::Player;
+      pressed = 0;
       break;
     }
   }
@@ -273,6 +273,10 @@ void Gameplay::loop() {
     if (input_mode == InputMode::Pause) {
       Gameplay::pause_handler(pause_option, pressed);
     } else {
+      if (pause_option == PauseOption::Retry) {
+        break; // from gameplay loop; causing gameplay to restart since we're
+               // still on the same game state
+      }
       Gameplay::gameplay_handler(pressed, held);
     }
 
