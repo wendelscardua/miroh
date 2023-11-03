@@ -8,6 +8,7 @@
 #include "polyomino.hpp"
 
 class Gameplay {
+  enum class PauseOption : u8 { Quit, Resume, Retry };
   // we level up every 50 points
   static constexpr u16 LEVEL_UP_POINTS = 50;
 
@@ -42,7 +43,6 @@ class Gameplay {
   u16 experience;
   u8 current_level;
   u16 spawn_timer;
-  u8 pause_option;
 
 public:
   static constexpr u8 BANK = 0;
@@ -65,5 +65,6 @@ public:
 
 private:
   void render();
-  void paused_render();
+  void pause_handler(PauseOption &pause_option, u8 &pressed);
+  void gameplay_handler(u8 &pressed, u8 &held);
 };
