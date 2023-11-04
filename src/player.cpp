@@ -14,8 +14,9 @@
 
 Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
     : facing(Direction::Right), moving(Direction::Right),
-      energy(STARTING_ENERGY), energy_timer(0), state(State::Idle),
-      board(board), x(starting_x), y(starting_y), score(0), lines(0) {}
+      energy(STARTING_ENERGY), energy_timer(0),
+      original_energy(STARTING_ENERGY), state(State::Idle), board(board),
+      x(starting_x), y(starting_y), score(0), lines(0) {}
 
 const fixed_point &Player::move_speed() { return DEFAULT_MOVE_SPEED; }
 
@@ -328,7 +329,6 @@ void render_energy_hud(int y_scroll, u8 value) {
 }
 
 void Player::refresh_energy_hud(int y_scroll) {
-  static u8 original_energy = STARTING_ENERGY;
   static u8 animation_frames;
 
   CORO_INIT;
