@@ -50,7 +50,7 @@ public:
   static constexpr int DEFAULT_Y_SCROLL = 0x08;
   static constexpr int PAUSE_SCROLL_Y = 0x050;
   static constexpr int INTRO_SCROLL_Y = -0x100 + 0x50;
-  Board board;
+  Board &board;
   Player player;
   Polyomino polyomino;
   Fruits fruits;
@@ -58,7 +58,7 @@ public:
   Location current_location;
   int y_scroll;
 
-  Gameplay();
+  Gameplay(Board &board);
   ~Gameplay();
   void loop();
   void add_experience(u16 exp);

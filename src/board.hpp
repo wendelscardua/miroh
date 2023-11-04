@@ -9,9 +9,6 @@ static constexpr u8 WALL_ATTRIBUTE = 0b00000000;
 
 static constexpr u8 BLOCK_ATTRIBUTE = 0b00000000;
 
-#define BOARD_X_ORIGIN 0x20
-#define BOARD_Y_ORIGIN 0x30
-
 class Cell {
 public:
   union {
@@ -45,16 +42,18 @@ class Board {
   soa::Array<u16, HEIGHT> occupied_bitset;
 
 public:
+  static constexpr u8 origin_x = 0x20;
+  static constexpr u8 origin_y = 0x30;
   static constexpr u8 TILE_BASE = 0x40;
   Cell cell[HEIGHT * WIDTH]; // each of the board's cells
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
-  u8 origin_x; // where to start rendering the board and its contents (x)
-  u8 origin_y; // where to start rendering the board and its contents (y)
 
-  u8 origin_row;    // origin in metatile space (y)
-  u8 origin_column; // origin in metatile space (x)
+  static constexpr u8 origin_row =
+      origin_y >> 4; // origin in metatile space (y)
+  static constexpr u8 origin_column =
+      origin_x >> 4; // origin in metatile space (x)
 
-  Board(u8 origin_x, u8 origin_y);
+  Board();
   ~Board();
 
   // (re)generates the maze

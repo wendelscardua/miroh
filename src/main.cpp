@@ -50,6 +50,8 @@ static void main_init() {
 int main() {
   main_init();
 
+  Board board;
+
   while (true) {
     switch (current_mode) {
     case GameMode::TitleScreen: {
@@ -59,7 +61,7 @@ int main() {
     }; break;
     case GameMode::Gameplay: {
       ScopedBank scopedBank(Gameplay::BANK);
-      Gameplay gameplay;
+      Gameplay gameplay(board);
       gameplay.loop();
     };
     default:

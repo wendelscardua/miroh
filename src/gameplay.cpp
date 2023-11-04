@@ -24,9 +24,9 @@
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
 // TODO: variable current_location
-__attribute__((noinline)) Gameplay::Gameplay()
+__attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
-      board(BOARD_X_ORIGIN, BOARD_Y_ORIGIN),
+      board(board),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board, current_level),
       input_mode(InputMode::Player), current_location(Location::StarlitStables),

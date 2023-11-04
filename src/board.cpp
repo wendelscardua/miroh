@@ -25,16 +25,14 @@ Cell &Board::cell_at(u8 row, u8 column) {
   return this->cell[board_index(row, column)];
 }
 
-Board::Board(u8 origin_x, u8 origin_y)
-    : origin_x(origin_x), origin_y(origin_y), origin_row(origin_y >> 4),
-      origin_column(origin_x >> 4) {
-
+Board::Board() {
+  ScopedBank scopedBank(0);
   generate_maze();
 }
 
 Board::~Board() {}
 
-void Board::generate_maze() {
+__attribute__((noinline, section(".prg_rom_0"))) void Board::generate_maze() {
   // reset walls
   for (u8 i = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
