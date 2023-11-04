@@ -121,14 +121,31 @@ set_property(
   how-to.nam.rle
   credits.nam.rle
   SPR.chr.donut
+  
   StarlitStablesBG.pal
   StarlitStablesSPR.pal
   StarlitStablesBG.chr.donut
   StarlitStables.nam.rle
   StarlitStablesAlt.nam.rle
+
+  RainbowRetreatBG.pal
   RainbowRetreatSPR.pal
+  RainbowRetreatBG.chr.donut
+  RainbowRetreat.nam.rle
+  RainbowRetreatAlt.nam.rle
+
+  FairyForestBG.pal
   FairyForestSPR.pal
+  FairyForestBG.chr.donut
+  FairyForest.nam.rle
+  FairyForestAlt.nam.rle
+
+  GlitteryGrottoBG.pal
   GlitteryGrottoSPR.pal
+  GlitteryGrottoBG.chr.donut
+  GlitteryGrotto.nam.rle
+  GlitteryGrottoAlt.nam.rle
+  
   MarshmallowMountainSPR.pal
 )
 
@@ -144,9 +161,24 @@ add_donut_asset(SOURCE "StarlitStablesBG.chr")
 add_rle_asset(SOURCE "StarlitStables.nam")
 add_rle_asset(SOURCE "StarlitStablesAlt.nam")
 
+add_raw_asset(SOURCE "RainbowRetreatBG.pal")
 add_raw_asset(SOURCE "RainbowRetreatSPR.pal")
+add_donut_asset(SOURCE "RainbowRetreatBG.chr")
+add_rle_asset(SOURCE "RainbowRetreat.nam")
+add_rle_asset(SOURCE "RainbowRetreatAlt.nam")
+
+add_raw_asset(SOURCE "FairyForestBG.pal")
 add_raw_asset(SOURCE "FairyForestSPR.pal")
+add_donut_asset(SOURCE "FairyForestBG.chr")
+add_rle_asset(SOURCE "FairyForest.nam")
+add_rle_asset(SOURCE "FairyForestAlt.nam")
+
+add_raw_asset(SOURCE "GlitteryGrottoBG.pal")
 add_raw_asset(SOURCE "GlitteryGrottoSPR.pal")
+add_donut_asset(SOURCE "GlitteryGrottoBG.chr")
+add_rle_asset(SOURCE "GlitteryGrotto.nam")
+add_rle_asset(SOURCE "GlitteryGrottoAlt.nam")
+
 add_raw_asset(SOURCE "MarshmallowMountainSPR.pal")
 
 set_property(

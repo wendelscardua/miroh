@@ -3,9 +3,15 @@
     .global level_bg_palettes
 level_bg_palettes:
     .byte StarlitStablesBG_pal@mos16lo
-    .zero 4
+    .byte RainbowRetreatBG_pal@mos16lo
+    .byte FairyForestBG_pal@mos16lo
+    .byte GlitteryGrottoBG_pal@mos16lo
+    .zero 1
     .byte StarlitStablesBG_pal@mos16hi
-    .zero 4
+    .byte RainbowRetreatBG_pal@mos16hi
+    .byte FairyForestBG_pal@mos16hi
+    .byte GlitteryGrottoBG_pal@mos16hi
+    .zero 1
 
     .global level_spr_palettes
 level_spr_palettes:
@@ -22,9 +28,15 @@ level_spr_palettes:
     .global level_bg_tiles
 level_bg_tiles:
     .byte StarlitStablesBG_chr@mos16lo
-    .zero 4
+    .byte RainbowRetreatBG_chr@mos16lo
+    .byte FairyForestBG_chr@mos16lo
+    .byte GlitteryGrottoBG_chr@mos16lo
+    .zero 1
     .byte StarlitStablesBG_chr@mos16hi
-    .zero 4
+    .byte RainbowRetreatBG_chr@mos16hi
+    .byte FairyForestBG_chr@mos16hi
+    .byte GlitteryGrottoBG_chr@mos16hi
+    .zero 1
 
     .global level_spr_tiles
 level_spr_tiles:
@@ -42,16 +54,28 @@ level_spr_tiles:
     .global level_nametables
 level_nametables:
     .byte StarlitStables_nam@mos16lo
-    .zero 4
+    .byte RainbowRetreat_nam@mos16lo
+    .byte FairyForest_nam@mos16lo
+    .byte GlitteryGrotto_nam@mos16lo
+    .zero 1
     .byte StarlitStables_nam@mos16hi
-    .zero 4
+    .byte RainbowRetreat_nam@mos16hi
+    .byte FairyForest_nam@mos16hi
+    .byte GlitteryGrotto_nam@mos16hi
+    .zero 1
 
     .global level_alt_nametables
 level_alt_nametables:
     .byte StarlitStablesAlt_nam@mos16lo
-    .zero 4
+    .byte RainbowRetreatAlt_nam@mos16lo
+    .byte FairyForestAlt_nam@mos16lo
+    .byte GlitteryGrottoAlt_nam@mos16lo
+    .zero 1
     .byte StarlitStablesAlt_nam@mos16hi
-    .zero 4
+    .byte RainbowRetreatAlt_nam@mos16hi
+    .byte FairyForestAlt_nam@mos16hi
+    .byte GlitteryGrottoAlt_nam@mos16hi
+    .zero 1
 
     ; Generic
 SPR_chr: .incbin "SPR.chr.donut"
@@ -64,16 +88,32 @@ StarlitStables_nam: .incbin "StarlitStables.nam.rle"
 StarlitStablesAlt_nam: .incbin "StarlitStablesAlt.nam.rle"
 
     ; Rainbow Retreat
+RainbowRetreatBG_pal: .incbin "RainbowRetreatBG.pal"
 RainbowRetreatSPR_pal: .incbin "RainbowRetreatSPR.pal"
+RainbowRetreatBG_chr: .incbin "RainbowRetreatBG.chr.donut"
+RainbowRetreat_nam: .incbin "RainbowRetreat.nam.rle"
+RainbowRetreatAlt_nam: .incbin "RainbowRetreatAlt.nam.rle"
 
     ; Fairy Forest
+FairyForestBG_pal: .incbin "FairyForestBG.pal"
 FairyForestSPR_pal: .incbin "FairyForestSPR.pal"
+FairyForestBG_chr: .incbin "FairyForestBG.chr.donut"
+FairyForest_nam: .incbin "FairyForest.nam.rle"
+FairyForestAlt_nam: .incbin "FairyForestAlt.nam.rle"
 
     ; GlitteryGrotto
+GlitteryGrottoBG_pal: .incbin "GlitteryGrottoBG.pal"
 GlitteryGrottoSPR_pal: .incbin "GlitteryGrottoSPR.pal"
+GlitteryGrottoBG_chr: .incbin "GlitteryGrottoBG.chr.donut"
+GlitteryGrotto_nam: .incbin "GlitteryGrotto.nam.rle"
+GlitteryGrottoAlt_nam: .incbin "GlitteryGrottoAlt.nam.rle"
 
     ; Marshmallow Mountain
+;MarshmallowMountainBG_pal: .incbin "MarshmallowMountainBG.pal"
 MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
+;MarshmallowMountainBG_chr: .incbin "MarshmallowMountainBG.chr.donut"
+;MarshmallowMountain_nam: .incbin "MarshmallowMountain.nam.rle"
+;MarshmallowMountainAlt_nam: .incbin "MarshmallowMountainAlt.nam.rle"
 
     ; non-level stuff
 .global title_nam
