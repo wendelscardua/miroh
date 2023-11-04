@@ -25,10 +25,7 @@ Cell &Board::cell_at(u8 row, u8 column) {
   return this->cell[board_index(row, column)];
 }
 
-Board::Board() {
-  ScopedBank scopedBank(0);
-  generate_maze();
-}
+Board::Board() {}
 
 Board::~Board() {}
 

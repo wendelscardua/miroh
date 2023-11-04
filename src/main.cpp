@@ -56,7 +56,7 @@ int main() {
     switch (current_mode) {
     case GameMode::TitleScreen: {
       ScopedBank scopedBank(TitleScreen::BANK);
-      TitleScreen titleScreen;
+      TitleScreen titleScreen(board);
       titleScreen.loop();
     }; break;
     case GameMode::Gameplay: {

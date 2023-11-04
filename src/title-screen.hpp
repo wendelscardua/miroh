@@ -1,5 +1,6 @@
 #pragma once
 
+#include "board.hpp"
 #include "common.hpp"
 class TitleScreen {
 public:
@@ -29,8 +30,9 @@ public:
   State state;
   MenuOption current_option;
   SettingsOption current_setting;
+  Board &board;
 
-  TitleScreen();
+  TitleScreen(Board &board);
   ~TitleScreen();
   void loop();
 };

@@ -53,6 +53,8 @@ public:
   static constexpr u8 origin_column =
       origin_x >> 4; // origin in metatile space (x)
 
+  static constexpr u8 MAZE_BANK = 0;
+
   Board();
   ~Board();
 
