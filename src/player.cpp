@@ -360,6 +360,7 @@ void Player::refresh_energy_hud(int y_scroll) {
   }
 
   original_energy = energy;
+  render_energy_hud(y_scroll, energy);
 
   CORO_FINISH();
 }
