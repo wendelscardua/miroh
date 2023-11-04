@@ -57,6 +57,9 @@ public:
   Board(u8 origin_x, u8 origin_y);
   ~Board();
 
+  // (re)generates the maze
+  void generate_maze();
+
   // draws board tiles (with rendering disabled)
   void render();
 
