@@ -106,8 +106,9 @@ const TitleScreen::SettingsOption setting_below[] = {
     TitleScreen::SettingsOption::LineGravity,
 };
 
-__attribute__((noinline)) TitleScreen::TitleScreen()
-    : state(State::PressStart), current_option(MenuOption::Start) {
+__attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
+    : state(State::PressStart), current_option(MenuOption::Start),
+      board(board) {
   set_chr_bank(0);
 
   banked_lambda(ASSETS_BANK, []() {
@@ -202,6 +203,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
           state = State::PressStart;
           current_mode = GameMode::Gameplay;
+          banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
           break;
         case MenuOption::Settings:
           banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
