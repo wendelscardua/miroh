@@ -174,13 +174,11 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
 
 void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
   // we only spawn when there's no line clearing going on
-  START_MESEN_WATCH(3);
   if (polyomino.state == Polyomino::State::Inactive &&
       !board.ongoing_line_clearing() && --spawn_timer == 0) {
     banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
-  STOP_MESEN_WATCH(3);
 
   banked_lambda(PLAYER_BANK, [this, pressed, held]() {
     player.update(input_mode, pressed, held);
@@ -199,7 +197,9 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
                        failed_to_place, lines_filled);
     });
 
+    START_MESEN_WATCH(3);
     fruits.update(player, blocks_placed, lines_filled);
+    STOP_MESEN_WATCH(3);
 
     if (lines_filled) {
       u16 points = 10 * (2 * lines_filled - 1);

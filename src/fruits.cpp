@@ -1,6 +1,7 @@
 #include "fruits.hpp"
 #include "bag.hpp"
 #include "banked-asset-helpers.hpp"
+#include "log.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"
 #include <nesdoug.h>
@@ -128,6 +129,7 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
 
   if (fruit_credits > 0 && active_fruits < NUM_FRUITS &&
       ++spawn_timer > SPAWN_DELAY) {
+    START_MESEN_WATCH(4);
     for (auto fruit : fruits) {
       if (!fruit.active) {
         spawn_on_board(fruit);
@@ -139,6 +141,7 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
         break;
       }
     }
+    STOP_MESEN_WATCH(4);
   }
 }
 
