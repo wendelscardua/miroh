@@ -38,7 +38,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   for (u8 tries = 0; tries < 4; tries++) {
     static_assert(sizeof(fruit_rows[0]) == 4);
     s8 candidate_row =
-        fruit_rows[fruit_index][rand8() & 0b11]; // see assert above
+        fruit_rows[fruit_index][RAND_UP_TO_POW2(2)]; // see assert above
     if (!board.row_filled(candidate_row)) {
       fruit.row = candidate_row;
       break;
