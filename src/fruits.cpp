@@ -1,23 +1,12 @@
 #include "fruits.hpp"
-#include "bag.hpp"
 #include "banked-asset-helpers.hpp"
+#include "board.hpp"
 #include "log.hpp"
 #include "metasprites.hpp"
 #include "player.hpp"
+#include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
-
-static Bag<s8, HEIGHT> row_bag([](auto *bag) {
-  for (s8 i = 0; i < HEIGHT; i++) {
-    bag->insert(i);
-  }
-});
-
-static Bag<s8, WIDTH> column_bag([](auto *bag) {
-  for (s8 j = 0; j < WIDTH; j++) {
-    bag->insert(j);
-  }
-});
 
 const Fruit::Type fruit_types_per_level[][4] = {
     // Starlit Stables
@@ -37,18 +26,19 @@ const Fruit::Type fruit_types_per_level[][4] = {
      Fruit::Type::SweetPotato},
 };
 
-void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
+void Fruits::spawn_on_board(u8 fruit_index) {
+  auto fruit = fruits[fruit_index];
   fruit.row = -1;
   fruit.column = -1;
 
-  fruit.type = fruit_types_per_level
-      [current_level]
-      [((u16)rand8() * (u16)(sizeof(fruit_types_per_level[current_level]))) >>
-       8];
+  fruit.type = fruit_types_per_level[current_level][RAND_UP_TO(
+      sizeof(fruit_types_per_level[current_level]))];
 
   // pick a random row
   for (u8 tries = 0; tries < 4; tries++) {
-    s8 candidate_row = row_bag.take();
+    static_assert(sizeof(fruit_rows[0]) == 4);
+    s8 candidate_row =
+        fruit_rows[fruit_index][rand8() & 0b11]; // see assert above
     if (!board.row_filled(candidate_row)) {
       fruit.row = candidate_row;
       break;
@@ -62,7 +52,7 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
 
   // now we do the same for column
   for (u8 tries = 0; tries < 4; tries++) {
-    s8 candidate_column = column_bag.take();
+    s8 candidate_column = (s8)RAND_UP_TO(WIDTH);
     if (!board.occupied(fruit.row, candidate_column)) {
       fruit.column = candidate_column;
       break;
@@ -71,16 +61,6 @@ void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
   if (fruit.column < 0) {
     // no good column? give up for now, we'll try next frame
     return;
-  }
-
-  // avoid placing on other fruits
-  for (auto other : fruits) {
-    if (!other.active)
-      continue;
-
-    if (other.row == fruit.row && other.column == fruit.column) {
-      return;
-    }
   }
 
   fruit.active = true;
@@ -130,10 +110,12 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
   if (fruit_credits > 0 && active_fruits < NUM_FRUITS &&
       ++spawn_timer > SPAWN_DELAY) {
     START_MESEN_WATCH(4);
-    for (auto fruit : fruits) {
-      if (!fruit.active) {
-        spawn_on_board(fruit);
-        if (fruit.active) {
+    for (u8 fruit_index = 0; fruit_index < NUM_FRUITS; fruit_index++) {
+      if (!fruits[fruit_index].active) {
+        START_MESEN_WATCH(5);
+        spawn_on_board(fruit_index);
+        STOP_MESEN_WATCH(5);
+        if (fruits[fruit_index].active) {
           active_fruits++;
           fruit_credits--;
           spawn_timer -= SPAWN_DELAY;

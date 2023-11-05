@@ -53,6 +53,10 @@ struct Fruit {
 class Fruits {
   static constexpr u8 NUM_FRUITS = 2;
   static constexpr u16 EXPIRATION_TIME = 15 * 60;
+  static constexpr s8 fruit_rows[][4] = {{1, 5, 5, 9}, {3, 7, 3, 7}};
+
+  static_assert(sizeof(fruit_rows) == 4 * Fruits::NUM_FRUITS);
+
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;
   Board &board;
@@ -69,7 +73,7 @@ public:
 
   void update(Player &player, bool blocks_placed, u8 lines_filled);
 
-  void spawn_on_board(soa::Ptr<Fruit> fruit);
+  void spawn_on_board(u8 fruit_index);
 
   void render(int y_scroll);
 };
