@@ -118,11 +118,26 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
   }
 }
 
-const u8 *const high_fruits[]{metasprite_AppleHigh, metasprite_CornHigh,
-                              metasprite_PearHigh, metasprite_AvocadoHigh};
+const u8 *const high_fruits[] = {
+    metasprite_AppleHigh,      metasprite_CornHigh,
+    metasprite_PearHigh,       metasprite_AvocadoHigh,
+    metasprite_EggplantHigh,   metasprite_KiwiHigh,
+    metasprite_BroccoliHigh,   metasprite_GreenPeasHigh,
+    metasprite_StrawberryHigh, metasprite_CherriesHigh,
+    metasprite_GrapesHigh,     metasprite_CucumberHigh,
+    metasprite_ClementineHigh, metasprite_HallabongHigh,
+    metasprite_CarrotHigh,     metasprite_BerriesHigh,
+    metasprite_BlueCornHigh,   metasprite_BananasHigh,
+    metasprite_SweetPotatoHigh};
 
-const u8 *const low_fruits[]{metasprite_AppleLow, metasprite_CornLow,
-                             metasprite_PearLow, metasprite_AvocadoLow};
+const u8 *const low_fruits[] = {
+    metasprite_AppleLow,      metasprite_CornLow,      metasprite_PearLow,
+    metasprite_AvocadoLow,    metasprite_EggplantLow,  metasprite_KiwiLow,
+    metasprite_BroccoliLow,   metasprite_GreenPeasLow, metasprite_StrawberryLow,
+    metasprite_CherriesLow,   metasprite_GrapesLow,    metasprite_CucumberLow,
+    metasprite_ClementineLow, metasprite_HallabongLow, metasprite_CarrotLow,
+    metasprite_BerriesLow,    metasprite_BlueCornLow,  metasprite_BananasLow,
+    metasprite_SweetPotatoLow};
 
 void Fruits::render(int y_scroll) {
   bool state = (get_frame_count() & 0b10000);
