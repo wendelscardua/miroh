@@ -39,11 +39,11 @@ class Board {
   s8 erasing_column;
   s8 erasing_row_source;
 
-  soa::Array<u16, HEIGHT> occupied_bitset;
-
 public:
   static constexpr u8 origin_x = 0x20;
   static constexpr u8 origin_y = 0x30;
+
+  soa::Array<u16, HEIGHT> occupied_bitset;
   Cell cell[HEIGHT * WIDTH]; // each of the board's cells
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
 

@@ -35,33 +35,24 @@ void Fruits::spawn_on_board(u8 fruit_index) {
       sizeof(fruit_types_per_level[current_level]))];
 
   // pick a random row
-  for (u8 tries = 0; tries < 4; tries++) {
-    static_assert(sizeof(fruit_rows[0]) == 4);
-    s8 candidate_row =
-        fruit_rows[fruit_index][RAND_UP_TO_POW2(2)]; // see assert above
-    if (!board.row_filled(candidate_row)) {
-      fruit.row = candidate_row;
-      break;
-    }
-  }
-
-  if (fruit.row < 0) {
-    // no good row? give up for now, we'll try next frame
+  static_assert(sizeof(fruit_rows[0]) == 4);
+  fruit.row = fruit_rows[fruit_index][RAND_UP_TO_POW2(2)]; // see assert above
+  if (board.row_filled(fruit.row)) {
+    // if row is bad, give up for now, we try next frame
     return;
   }
 
-  // now we do the same for column
-  for (u8 tries = 0; tries < 4; tries++) {
-    s8 candidate_column = (s8)RAND_UP_TO(WIDTH);
-    if (!board.occupied(fruit.row, candidate_column)) {
-      fruit.column = candidate_column;
-      break;
+  s8 possible_columns[WIDTH];
+  u8 max_possible_columns = 0;
+  u16 bits = board.occupied_bitset[(u8)fruit.row];
+  for (s8 j = 0; j < WIDTH; j++) {
+    if (!(bits & 0b1)) {
+      possible_columns[max_possible_columns++] = j;
     }
+    bits >>= 1;
   }
-  if (fruit.column < 0) {
-    // no good column? give up for now, we'll try next frame
-    return;
-  }
+
+  fruit.column = possible_columns[RAND_UP_TO(max_possible_columns)];
 
   fruit.active = true;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
