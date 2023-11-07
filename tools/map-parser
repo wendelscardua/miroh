@@ -142,7 +142,7 @@ class MapParser < Thor
         size = match['size'].to_i(16)
 
         if (out_name = match['out'])
-          break if out_name == '.debug_line'
+          break if out_name =~ /__stack/
 
           current_vma_area = areas.find { |area| area.range.include? vma }
           next unless current_vma_area
