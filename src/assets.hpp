@@ -5,12 +5,17 @@
 
 constexpr int PPU_PATTERN_TABLE_0 = 0x0000;
 constexpr int PPU_PATTERN_TABLE_1 = 0x1000;
-constexpr int PPU_PATTERN_TABLE_SIZE = 4096;
-constexpr int PPU_PATTERN_ROW_SIZE = (4096 / 16);
+
+// prg bank index where all assets are stored
+constexpr u8 ASSETS_BANK = 1;
+
+// various base tiles
+static constexpr u8 MAZE_BASE_TILE = 0x40;
+static constexpr u8 MARSHMALLOW_BASE_TILE = 0x60;
+static constexpr u8 DIGITS_BASE_TILE = 0x03;
+static constexpr u8 DARK_ZERO_TILE = 0x0d;
 
 constexpr u8 NUM_LEVELS = 5;
-
-constexpr u8 ASSETS_BANK = 1;
 
 enum class Location : u8 {
   StarlitStables,

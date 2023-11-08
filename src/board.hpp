@@ -44,7 +44,6 @@ class Board {
 public:
   static constexpr u8 origin_x = 0x20;
   static constexpr u8 origin_y = 0x30;
-  static constexpr u8 TILE_BASE = 0x40;
   Cell cell[HEIGHT * WIDTH]; // each of the board's cells
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
 
