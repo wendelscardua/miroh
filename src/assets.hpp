@@ -10,10 +10,10 @@ constexpr int PPU_PATTERN_TABLE_1 = 0x1000;
 constexpr u8 ASSETS_BANK = 1;
 
 // various base tiles
-static constexpr u8 MAZE_BASE_TILE = 0x40;
-static constexpr u8 MARSHMALLOW_BASE_TILE = 0x60;
-static constexpr u8 DIGITS_BASE_TILE = 0x03;
-static constexpr u8 DARK_ZERO_TILE = 0x0d;
+static constexpr u8 MAZE_BASE_TILE = 0x20;
+static constexpr u8 MARSHMALLOW_BASE_TILE = 0x40;
+static constexpr u8 DIGITS_BASE_TILE = 0x64;
+static constexpr u8 DARK_ZERO_TILE = 0x6e;
 
 constexpr u8 NUM_LEVELS = 5;
 
