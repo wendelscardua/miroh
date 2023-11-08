@@ -117,10 +117,14 @@ set_property(
   assets.s
   PROPERTY
   OBJECT_DEPENDS
-  Title.nam.rle
   how-to.nam.rle
   credits.nam.rle
+
   SPR.chr.donut
+
+  TitleScreenBG.pal
+  TitleBG.chr.donut
+  Title.nam.rle
   
   StarlitStablesBG.pal
   StarlitStablesSPR.pal
@@ -149,11 +153,14 @@ set_property(
   MarshmallowMountainSPR.pal
 )
 
-add_rle_asset(SOURCE "Title.nam")
 add_rle_asset(SOURCE "how-to.nam")
 add_rle_asset(SOURCE "credits.nam")
 
 add_donut_asset(SOURCE "SPR.chr")
+
+add_raw_asset(SOURCE "TitleScreenBG.pal")
+add_rle_asset(SOURCE "Title.nam")
+add_donut_asset(SOURCE "TitleBG.chr")
 
 add_raw_asset(SOURCE "StarlitStablesBG.pal")
 add_raw_asset(SOURCE "StarlitStablesSPR.pal")

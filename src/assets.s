@@ -115,9 +115,14 @@ MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 ;MarshmallowMountain_nam: .incbin "MarshmallowMountain.nam.rle"
 ;MarshmallowMountainAlt_nam: .incbin "MarshmallowMountainAlt.nam.rle"
 
-    ; non-level stuff
-.global title_nam
-title_nam: .incbin "Title.nam.rle"
+    ; Title Screen
+.global title_nametable, title_bg_palette, title_bg_tiles
+title_nametable: .incbin "Title.nam.rle"
+title_bg_palette: .incbin "TitleScreenBG.pal"
+title_bg_tiles: .incbin "TitleBG.chr.donut"
+
+
+    ; etc
 .global how_to_nam
 how_to_nam: .incbin "how-to.nam.rle"
 .global credits_nam
