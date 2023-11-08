@@ -1,4 +1,5 @@
 #include "player.hpp"
+#include "assets.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "coroutine.hpp"
@@ -367,7 +368,7 @@ void Player::refresh_energy_hud(int y_scroll) {
 
 __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
                                                              u16 value) {
-  score_text[0] = 0x03;
+  score_text[0] = DIGITS_BASE_TILE;
   if (value >= 8000) {
     score_text[0] += 8;
     value -= 8000;
@@ -385,7 +386,7 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 1000;
   }
 
-  score_text[1] = 0x03;
+  score_text[1] = DIGITS_BASE_TILE;
   if (value >= 800) {
     score_text[1] += 8;
     value -= 800;
@@ -403,7 +404,7 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 100;
   }
 
-  score_text[2] = 0x03;
+  score_text[2] = DIGITS_BASE_TILE;
   if (value >= 80) {
     score_text[2] += 8;
     value -= 80;
@@ -421,20 +422,20 @@ __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
     value -= 10;
   }
 
-  score_text[3] = 0x03 + (u8)value;
+  score_text[3] = DIGITS_BASE_TILE + (u8)value;
 
   // leading zeroes are darker
   for (u8 i = 0; i < 3; i++) {
-    if (score_text[i] > 0x03) {
+    if (score_text[i] > DIGITS_BASE_TILE) {
       break;
     }
-    score_text[i] = 0x0d;
+    score_text[i] = DARK_ZERO_TILE;
   }
 }
 
 __attribute__((section(".prg_rom_0.text"))) void u8_to_text(u8 score_text[4],
                                                             u8 value) {
-  score_text[0] = 0x03;
+  score_text[0] = DIGITS_BASE_TILE;
   if (value >= 80) {
     score_text[0] += 8;
     value -= 80;
@@ -452,10 +453,10 @@ __attribute__((section(".prg_rom_0.text"))) void u8_to_text(u8 score_text[4],
     value -= 10;
   }
 
-  score_text[1] = 0x03 + (u8)value;
+  score_text[1] = DIGITS_BASE_TILE + (u8)value;
 
-  if (score_text[0] == 0x03) {
-    score_text[0] = 0x0d;
+  if (score_text[0] == DIGITS_BASE_TILE) {
+    score_text[0] = DARK_ZERO_TILE;
   }
 }
 

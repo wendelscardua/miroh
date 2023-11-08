@@ -1,4 +1,5 @@
 #include "board.hpp"
+#include "assets.hpp"
 #include "attributes.hpp"
 #include "bag.hpp"
 #include "bank-helper.hpp"
@@ -225,80 +226,92 @@ void Board::free(s8 row, s8 column) {
 static const Cell null_cell;
 
 static constexpr u8 upper_left_maze_tile[] = {0x00,
-                                              Board::TILE_BASE + 0x18,
-                                              Board::TILE_BASE + 0x16,
-                                              Board::TILE_BASE + 0x16,
-                                              Board::TILE_BASE + 0x14,
-                                              Board::TILE_BASE + 0x0e,
-                                              Board::TILE_BASE + 0x11,
-                                              Board::TILE_BASE + 0x11,
-                                              Board::TILE_BASE + 0x18,
-                                              Board::TILE_BASE + 0x18,
-                                              Board::TILE_BASE + 0x12,
-                                              Board::TILE_BASE + 0x16,
-                                              Board::TILE_BASE + 0x14,
-                                              Board::TILE_BASE + 0x14,
-                                              Board::TILE_BASE + 0x11,
-                                              Board::TILE_BASE + 0x11};
+                                              MAZE_BASE_TILE + 0x18,
+                                              MAZE_BASE_TILE + 0x16,
+                                              MAZE_BASE_TILE + 0x16,
+                                              MAZE_BASE_TILE + 0x14,
+                                              MAZE_BASE_TILE + 0x0e,
+                                              MAZE_BASE_TILE + 0x11,
+                                              MAZE_BASE_TILE + 0x11,
+                                              MAZE_BASE_TILE + 0x18,
+                                              MAZE_BASE_TILE + 0x18,
+                                              MAZE_BASE_TILE + 0x12,
+                                              MAZE_BASE_TILE + 0x16,
+                                              MAZE_BASE_TILE + 0x14,
+                                              MAZE_BASE_TILE + 0x14,
+                                              MAZE_BASE_TILE + 0x11,
+                                              MAZE_BASE_TILE + 0x11};
 
 static constexpr u8 upper_right_maze_tile[] = {0x00,
-                                               Board::TILE_BASE + 0x15,
-                                               Board::TILE_BASE + 0x15,
-                                               Board::TILE_BASE + 0x15,
-                                               Board::TILE_BASE + 0x10,
-                                               Board::TILE_BASE + 0x0d,
-                                               Board::TILE_BASE + 0x10,
-                                               Board::TILE_BASE + 0x10,
-                                               Board::TILE_BASE + 0x17,
-                                               Board::TILE_BASE + 0x17,
-                                               Board::TILE_BASE + 0x12,
-                                               Board::TILE_BASE + 0x17,
-                                               Board::TILE_BASE + 0x13,
-                                               Board::TILE_BASE + 0x13,
-                                               Board::TILE_BASE + 0x13,
-                                               Board::TILE_BASE + 0x13};
+                                               MAZE_BASE_TILE + 0x15,
+                                               MAZE_BASE_TILE + 0x15,
+                                               MAZE_BASE_TILE + 0x15,
+                                               MAZE_BASE_TILE + 0x10,
+                                               MAZE_BASE_TILE + 0x0d,
+                                               MAZE_BASE_TILE + 0x10,
+                                               MAZE_BASE_TILE + 0x10,
+                                               MAZE_BASE_TILE + 0x17,
+                                               MAZE_BASE_TILE + 0x17,
+                                               MAZE_BASE_TILE + 0x12,
+                                               MAZE_BASE_TILE + 0x17,
+                                               MAZE_BASE_TILE + 0x13,
+                                               MAZE_BASE_TILE + 0x13,
+                                               MAZE_BASE_TILE + 0x13,
+                                               MAZE_BASE_TILE + 0x13};
 
 static constexpr u8 lower_left_maze_tile[] = {0x00,
-                                              Board::TILE_BASE + 0x08,
-                                              Board::TILE_BASE + 0x01,
-                                              Board::TILE_BASE + 0x06,
-                                              Board::TILE_BASE + 0x04,
-                                              Board::TILE_BASE + 0x0e,
-                                              Board::TILE_BASE + 0x01,
-                                              Board::TILE_BASE + 0x06,
-                                              Board::TILE_BASE + 0x04,
-                                              Board::TILE_BASE + 0x08,
-                                              Board::TILE_BASE + 0x02,
-                                              Board::TILE_BASE + 0x06,
-                                              Board::TILE_BASE + 0x04,
-                                              Board::TILE_BASE + 0x08,
-                                              Board::TILE_BASE + 0x01,
-                                              Board::TILE_BASE + 0x06};
+                                              MAZE_BASE_TILE + 0x08,
+                                              MAZE_BASE_TILE + 0x01,
+                                              MAZE_BASE_TILE + 0x06,
+                                              MAZE_BASE_TILE + 0x04,
+                                              MAZE_BASE_TILE + 0x0e,
+                                              MAZE_BASE_TILE + 0x01,
+                                              MAZE_BASE_TILE + 0x06,
+                                              MAZE_BASE_TILE + 0x04,
+                                              MAZE_BASE_TILE + 0x08,
+                                              MAZE_BASE_TILE + 0x02,
+                                              MAZE_BASE_TILE + 0x06,
+                                              MAZE_BASE_TILE + 0x04,
+                                              MAZE_BASE_TILE + 0x08,
+                                              MAZE_BASE_TILE + 0x01,
+                                              MAZE_BASE_TILE + 0x06};
 
 static constexpr u8 lower_right_maze_tile[] = {0x00,
-                                               Board::TILE_BASE + 0x05,
-                                               Board::TILE_BASE + 0x00,
-                                               Board::TILE_BASE + 0x05,
-                                               Board::TILE_BASE + 0x00,
-                                               Board::TILE_BASE + 0x0d,
-                                               Board::TILE_BASE + 0x00,
-                                               Board::TILE_BASE + 0x05,
-                                               Board::TILE_BASE + 0x03,
-                                               Board::TILE_BASE + 0x07,
-                                               Board::TILE_BASE + 0x02,
-                                               Board::TILE_BASE + 0x07,
-                                               Board::TILE_BASE + 0x03,
-                                               Board::TILE_BASE + 0x07,
-                                               Board::TILE_BASE + 0x03,
-                                               Board::TILE_BASE + 0x07};
+                                               MAZE_BASE_TILE + 0x05,
+                                               MAZE_BASE_TILE + 0x00,
+                                               MAZE_BASE_TILE + 0x05,
+                                               MAZE_BASE_TILE + 0x00,
+                                               MAZE_BASE_TILE + 0x0d,
+                                               MAZE_BASE_TILE + 0x00,
+                                               MAZE_BASE_TILE + 0x05,
+                                               MAZE_BASE_TILE + 0x03,
+                                               MAZE_BASE_TILE + 0x07,
+                                               MAZE_BASE_TILE + 0x02,
+                                               MAZE_BASE_TILE + 0x07,
+                                               MAZE_BASE_TILE + 0x03,
+                                               MAZE_BASE_TILE + 0x07,
+                                               MAZE_BASE_TILE + 0x03,
+                                               MAZE_BASE_TILE + 0x07};
 
 static constexpr u8 lower_left_block_tile[] = {
-    0x62, 0x66, 0x68, 0x68, 0x66, 0x64, 0x68, 0x68,
-    0x66, 0x66, 0x6a, 0x68, 0x66, 0x66, 0x68, 0x68};
+    MARSHMALLOW_BASE_TILE + 0x02, MARSHMALLOW_BASE_TILE + 0x06,
+    MARSHMALLOW_BASE_TILE + 0x08, MARSHMALLOW_BASE_TILE + 0x08,
+    MARSHMALLOW_BASE_TILE + 0x06, MARSHMALLOW_BASE_TILE + 0x04,
+    MARSHMALLOW_BASE_TILE + 0x08, MARSHMALLOW_BASE_TILE + 0x08,
+    MARSHMALLOW_BASE_TILE + 0x06, MARSHMALLOW_BASE_TILE + 0x06,
+    MARSHMALLOW_BASE_TILE + 0x0a, MARSHMALLOW_BASE_TILE + 0x08,
+    MARSHMALLOW_BASE_TILE + 0x06, MARSHMALLOW_BASE_TILE + 0x06,
+    MARSHMALLOW_BASE_TILE + 0x08, MARSHMALLOW_BASE_TILE + 0x08};
 
 static constexpr u8 lower_right_block_tile[] = {
-    0x63, 0x67, 0x67, 0x67, 0x67, 0x65, 0x67, 0x67,
-    0x69, 0x69, 0x6b, 0x69, 0x69, 0x69, 0x69, 0x69};
+    MARSHMALLOW_BASE_TILE + 0x03, MARSHMALLOW_BASE_TILE + 0x07,
+    MARSHMALLOW_BASE_TILE + 0x07, MARSHMALLOW_BASE_TILE + 0x07,
+    MARSHMALLOW_BASE_TILE + 0x07, MARSHMALLOW_BASE_TILE + 0x05,
+    MARSHMALLOW_BASE_TILE + 0x07, MARSHMALLOW_BASE_TILE + 0x07,
+    MARSHMALLOW_BASE_TILE + 0x09, MARSHMALLOW_BASE_TILE + 0x09,
+    MARSHMALLOW_BASE_TILE + 0x0b, MARSHMALLOW_BASE_TILE + 0x09,
+    MARSHMALLOW_BASE_TILE + 0x09, MARSHMALLOW_BASE_TILE + 0x09,
+    MARSHMALLOW_BASE_TILE + 0x09, MARSHMALLOW_BASE_TILE + 0x09};
 
 // converts 4 boolean walls into a integer value between 0 and 15
 u8 walls_to_index(bool wall_going_up, bool wall_going_right,
@@ -356,8 +369,8 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
 
-  TOP_0 = 0x60;
-  TOP_1 = 0x61;
+  TOP_0 = MARSHMALLOW_BASE_TILE;
+  TOP_1 = MARSHMALLOW_BASE_TILE + 1;
 
   BOTTOM_0 = lower_left_block_tile[walls_to_index(
       current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
@@ -368,20 +381,20 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
 
   if (row == HEIGHT - 1) {
     if (column > 0 && current_cell->left_wall) {
-      BOTTOM_0 = 0x6a;
+      BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
     }
     if (column < WIDTH - 1 && current_cell->right_wall) {
-      BOTTOM_1 = 0x6b;
+      BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
     }
   }
 
   if (column == 0) {
     if (row < HEIGHT - 1 && current_cell->down_wall) {
-      BOTTOM_0 = 0x6a;
+      BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
     }
   } else if (column == WIDTH - 1) {
     if (row < HEIGHT - 1 && current_cell->down_wall) {
-      BOTTOM_1 = 0x6b;
+      BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
     }
   }
 
@@ -442,31 +455,31 @@ void Board::restore_maze_cell(s8 row, s8 column) {
 
   if (row == 0) {
     if (column > 0 && current_cell->left_wall) {
-      TOP_0 = TILE_BASE + 0x0a;
+      TOP_0 = MAZE_BASE_TILE + 0x0a;
     }
     if (column < WIDTH - 1 && current_cell->right_wall) {
-      TOP_1 = TILE_BASE + 0x09;
+      TOP_1 = MAZE_BASE_TILE + 0x09;
     }
   } else if (row == HEIGHT - 1) {
     if (column > 0 && current_cell->left_wall) {
-      BOTTOM_0 = TILE_BASE + 0x1a;
+      BOTTOM_0 = MAZE_BASE_TILE + 0x1a;
     }
     if (column < WIDTH - 1 && current_cell->right_wall) {
-      BOTTOM_1 = TILE_BASE + 0x19;
+      BOTTOM_1 = MAZE_BASE_TILE + 0x19;
     }
   }
 
   if (column == 0) {
     if (row > 0 && current_cell->up_wall) {
-      TOP_0 = TILE_BASE + 0x1b;
+      TOP_0 = MAZE_BASE_TILE + 0x1b;
     } else if (row < HEIGHT - 1 && current_cell->down_wall) {
-      BOTTOM_0 = TILE_BASE + 0x0b;
+      BOTTOM_0 = MAZE_BASE_TILE + 0x0b;
     }
   } else if (column == WIDTH - 1) {
     if (row > 0 && current_cell->up_wall) {
-      TOP_1 = TILE_BASE + 0x1c;
+      TOP_1 = MAZE_BASE_TILE + 0x1c;
     } else if (row < HEIGHT - 1 && current_cell->down_wall) {
-      BOTTOM_1 = TILE_BASE + 0x0c;
+      BOTTOM_1 = MAZE_BASE_TILE + 0x0c;
     }
   }
 

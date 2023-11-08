@@ -113,7 +113,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    donut_bulk_load(level_bg_tiles[0]);
+    donut_bulk_load((void *)title_bg_tiles);
 
     vram_adr(PPU_PATTERN_TABLE_1);
     donut_bulk_load(level_spr_tiles[0]);
@@ -122,9 +122,9 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     vram_unrle(how_to_nam);
 
     vram_adr(NAMETABLE_A);
-    vram_unrle(title_nam);
+    vram_unrle(title_nametable);
 
-    pal_bg(level_bg_palettes[0]);
+    pal_bg(title_bg_palette);
     pal_spr(level_spr_palettes[0]);
   });
 

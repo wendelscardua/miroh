@@ -131,7 +131,7 @@ class Polyomino < Thor
 
   private
 
-  PREVIEW_BASE_TILE = 0x30
+  PREVIEW_BASE_TILE = 0x70
 
   def preview_byte(block_matrix, row_offset, column_offset)
     block_matrix[row_offset + 1][column_offset + 1] * 1 +
