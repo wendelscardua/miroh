@@ -106,8 +106,9 @@ void Gameplay::render() {
       right_wall = cell.right_wall;
     }
   }
+  fruits.render_below_player(y_scroll, player.y.whole + board.origin_y);
   player.render(y_scroll, left_wall, right_wall);
-  fruits.render(y_scroll);
+  fruits.render_above_player(y_scroll, player.y.whole + board.origin_y);
   polyomino.render(y_scroll);
   player.refresh_energy_hud(y_scroll);
   oam_hide_rest();
@@ -304,9 +305,6 @@ void Gameplay::loop() {
     STOP_MESEN_WATCH(1);
 
     no_lag_frame = frame == FRAME_CNT1;
-#ifndef NDEBUG
-    gray_line();
-#endif
   }
 }
 

@@ -139,10 +139,22 @@ const u8 *const low_fruits[] = {
     metasprite_BerriesLow,    metasprite_BlueCornLow,  metasprite_BananasLow,
     metasprite_SweetPotatoLow};
 
-void Fruits::render(int y_scroll) {
+void Fruits::render_below_player(int y_scroll, int y_player) {
   bool state = (get_frame_count() & 0b10000);
   for (auto fruit : fruits) {
-    if (fruit.active) {
+    if (fruit.active && fruit.y > y_player) {
+      Fruit::Type type = fruit.type;
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
+                          state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
+    };
+    state = !state;
+  }
+}
+
+void Fruits::render_above_player(int y_scroll, int y_player) {
+  bool state = (get_frame_count() & 0b10000);
+  for (auto fruit : fruits) {
+    if (fruit.active && fruit.y <= y_player) {
       Fruit::Type type = fruit.type;
       banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
                           state ? high_fruits[(u8)type] : low_fruits[(u8)type]);

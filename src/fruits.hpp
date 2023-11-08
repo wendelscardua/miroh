@@ -75,5 +75,6 @@ public:
 
   void spawn_on_board(u8 fruit_index);
 
-  void render(int y_scroll);
+  void render_below_player(int y_scroll, int y_player);
+  void render_above_player(int y_scroll, int y_player);
 };

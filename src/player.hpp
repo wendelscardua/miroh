@@ -23,6 +23,7 @@ private:
   };
   s16 energy_timer;
   u8 original_energy;
+  u8 sprite_offset;
 
   // fixes priority flags for bottom sprites
   void fix_uni_priority(bool left_wall, bool right_wall);
