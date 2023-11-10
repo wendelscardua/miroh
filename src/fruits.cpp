@@ -95,6 +95,7 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
     case Fruit::State::Dropping:
       if (fruit.raindrop_y >= fruit.y) {
         fruit.state = Fruit::State::Active;
+        fruit.bobbing_counter = 0;
       } else {
         fruit.dropping_counter++;
         fruit.raindrop_y += fruit.dropping_counter;
@@ -115,6 +116,8 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
       } else if (--fruit.life == 0) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
+      } else {
+        fruit.bobbing_counter++;
       }
       break;
     }
@@ -141,15 +144,27 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
 }
 
 void Fruits::render_fruit(Fruit fruit, int y_scroll) const {
-  bool frame_state = (get_frame_count() & 0b10000);
-  banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
-                      frame_state ? fruit.high_metasprite
-                                  : fruit.low_metasprite);
+  switch (fruit.state) {
+  case Fruit::State::Despawning:
+    if (fruit.bobbing_counter & 0b10000) {
+      break;
+    }
+  case Fruit::State::Active:
+    banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
+                        (fruit.bobbing_counter & 0b10000)
+                            ? fruit.high_metasprite
+                            : fruit.low_metasprite);
+    break;
+  case Fruit::State::Dropping:
+    break;
+  case Fruit::State::Inactive:
+    break;
+  }
 }
 
 void Fruits::render_below_player(int y_scroll, int y_player) {
   for (Fruit fruit : fruits) {
-    if (fruit.state == Fruit::State::Active && fruit.y > y_player) {
+    if (fruit.y > y_player) {
       render_fruit(fruit, y_scroll);
     };
   }
@@ -157,7 +172,7 @@ void Fruits::render_below_player(int y_scroll, int y_player) {
 
 void Fruits::render_above_player(int y_scroll, int y_player) {
   for (Fruit fruit : fruits) {
-    if (fruit.state == Fruit::State::Active && fruit.y <= y_player) {
+    if (fruit.y <= y_player) {
       render_fruit(fruit, y_scroll);
     };
   }

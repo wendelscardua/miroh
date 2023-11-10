@@ -41,7 +41,10 @@ struct Fruit {
   s8 column;
   u8 x;
   u8 y;
-  u8 dropping_counter;
+  union {
+    u8 dropping_counter;
+    u8 bobbing_counter;
+  };
   u8 raindrop_y;
   u16 life;
   const u8 *low_metasprite;
@@ -56,6 +59,7 @@ struct Fruit {
   MEMBER(x)                                                                    \
   MEMBER(y)                                                                    \
   MEMBER(dropping_counter)                                                     \
+  MEMBER(bobbing_counter)                                                      \
   MEMBER(raindrop_y)                                                           \
   MEMBER(life)                                                                 \
   MEMBER(low_metasprite)                                                       \
