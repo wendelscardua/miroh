@@ -2,7 +2,6 @@
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "log.hpp"
-#include "metasprites.hpp"
 #include "player.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
@@ -31,8 +30,11 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   fruit.row = -1;
   fruit.column = -1;
 
-  fruit.type = fruit_types_per_level[current_level][RAND_UP_TO(
+  Fruit::Type type = fruit_types_per_level[current_level][RAND_UP_TO(
       sizeof(fruit_types_per_level[current_level]))];
+
+  fruit.low_metasprite = low_fruits[(u8)type];
+  fruit.high_metasprite = high_fruits[(u8)type];
 
   // pick a random row
   static_assert(sizeof(fruit_rows[0]) == 4);
@@ -54,9 +56,18 @@ void Fruits::spawn_on_board(u8 fruit_index) {
 
   fruit.column = possible_columns[RAND_UP_TO(max_possible_columns)];
 
-  fruit.state = Fruit::State::Active;
+  fruit.state = Fruit::State::Dropping;
+  fruit.dropping_counter = 20;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
+  fruit.raindrop_y =
+      0 +
+      fruit.y; // XXX: avoid raindrop_y pointing to the same thing as fruit.y
+  while (fruit.raindrop_y >= fruit.dropping_counter &&
+         fruit.dropping_counter > 0) {
+    fruit.raindrop_y -= fruit.dropping_counter;
+    fruit.dropping_counter--;
+  }
   fruit.life = EXPIRATION_TIME;
 }
 
@@ -80,7 +91,19 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
   }
 
   for (auto fruit : fruits) {
-    if (fruit.state == Fruit::State::Active) {
+    switch (fruit.state) {
+    case Fruit::State::Inactive:
+      break;
+    case Fruit::State::Dropping:
+      if (fruit.raindrop_y >= fruit.y) {
+        fruit.state = Fruit::State::Active;
+      } else {
+        fruit.dropping_counter++;
+        fruit.raindrop_y += fruit.dropping_counter;
+      }
+      break;
+    case Fruit::State::Active:
+    case Fruit::State::Despawning:
       if (board.occupied(fruit.row, fruit.column)) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
@@ -95,6 +118,7 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
       }
+      break;
     }
   }
 
@@ -106,7 +130,7 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
         START_MESEN_WATCH(5);
         spawn_on_board(fruit_index);
         STOP_MESEN_WATCH(5);
-        if (fruits[fruit_index].state == Fruit::State::Active) {
+        if (fruits[fruit_index].state == Fruit::State::Dropping) {
           active_fruits++;
           fruit_credits--;
           spawn_timer -= SPAWN_DELAY;
@@ -118,47 +142,25 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
   }
 }
 
-const u8 *const high_fruits[] = {
-    metasprite_AppleHigh,      metasprite_CornHigh,
-    metasprite_PearHigh,       metasprite_AvocadoHigh,
-    metasprite_EggplantHigh,   metasprite_KiwiHigh,
-    metasprite_BroccoliHigh,   metasprite_GreenPeasHigh,
-    metasprite_StrawberryHigh, metasprite_CherriesHigh,
-    metasprite_GrapesHigh,     metasprite_CucumberHigh,
-    metasprite_ClementineHigh, metasprite_HallabongHigh,
-    metasprite_CarrotHigh,     metasprite_BerriesHigh,
-    metasprite_BlueCornHigh,   metasprite_BananasHigh,
-    metasprite_SweetPotatoHigh};
-
-const u8 *const low_fruits[] = {
-    metasprite_AppleLow,      metasprite_CornLow,      metasprite_PearLow,
-    metasprite_AvocadoLow,    metasprite_EggplantLow,  metasprite_KiwiLow,
-    metasprite_BroccoliLow,   metasprite_GreenPeasLow, metasprite_StrawberryLow,
-    metasprite_CherriesLow,   metasprite_GrapesLow,    metasprite_CucumberLow,
-    metasprite_ClementineLow, metasprite_HallabongLow, metasprite_CarrotLow,
-    metasprite_BerriesLow,    metasprite_BlueCornLow,  metasprite_BananasLow,
-    metasprite_SweetPotatoLow};
+void Fruits::render_fruit(Fruit fruit, int y_scroll) const {
+  bool frame_state = (get_frame_count() & 0b10000);
+  banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
+                      frame_state ? fruit.high_metasprite
+                                  : fruit.low_metasprite);
+}
 
 void Fruits::render_below_player(int y_scroll, int y_player) {
-  bool state = (get_frame_count() & 0b10000);
-  for (auto fruit : fruits) {
+  for (Fruit fruit : fruits) {
     if (fruit.state == Fruit::State::Active && fruit.y > y_player) {
-      Fruit::Type type = fruit.type;
-      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
-                          state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
+      render_fruit(fruit, y_scroll);
     };
-    state = !state;
   }
 }
 
 void Fruits::render_above_player(int y_scroll, int y_player) {
-  bool state = (get_frame_count() & 0b10000);
-  for (auto fruit : fruits) {
+  for (Fruit fruit : fruits) {
     if (fruit.state == Fruit::State::Active && fruit.y <= y_player) {
-      Fruit::Type type = fruit.type;
-      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
-                          state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
+      render_fruit(fruit, y_scroll);
     };
-    state = !state;
   }
 }
