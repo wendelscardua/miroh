@@ -41,7 +41,6 @@ struct Fruit {
   u8 x;
   u8 y;
   u16 life;
-  bool active;
   Type type;
   State state;
 };
@@ -53,7 +52,6 @@ struct Fruit {
   MEMBER(x)                                                                    \
   MEMBER(y)                                                                    \
   MEMBER(life)                                                                 \
-  MEMBER(active)                                                               \
   MEMBER(type)                                                                 \
   MEMBER(state)
 

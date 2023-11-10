@@ -54,7 +54,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
 
   fruit.column = possible_columns[RAND_UP_TO(max_possible_columns)];
 
-  fruit.active = true;
+  fruit.state = Fruit::State::Active;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
   fruit.life = EXPIRATION_TIME;
@@ -66,7 +66,7 @@ Fruits::Fruits(Board &board, u8 current_level)
   spawn_timer = SPAWN_DELAY /
                 2; // just so player don't wait too much to see the first fruit
   for (auto fruit : fruits) {
-    fruit.active = false;
+    fruit.state = Fruit::State::Inactive;
   }
   active_fruits = 0;
 }
@@ -80,19 +80,19 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
   }
 
   for (auto fruit : fruits) {
-    if (fruit.active) {
+    if (fruit.state == Fruit::State::Active) {
       if (board.occupied(fruit.row, fruit.column)) {
-        fruit.active = false;
+        fruit.state = Fruit::State::Inactive;
         active_fruits--;
       } else if ((player.state == Player::State::Idle ||
                   player.state == Player::State::Moving) &&
                  (player.x.whole + 8) >> 4 == fruit.column &&
                  (player.y.whole + 8) >> 4 == fruit.row) {
-        fruit.active = false;
+        fruit.state = Fruit::State::Inactive;
         active_fruits--;
         player.feed(FRUIT_NUTRITION);
       } else if (--fruit.life == 0) {
-        fruit.active = false;
+        fruit.state = Fruit::State::Inactive;
         active_fruits--;
       }
     }
@@ -102,11 +102,11 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
       ++spawn_timer > SPAWN_DELAY) {
     START_MESEN_WATCH(4);
     for (u8 fruit_index = 0; fruit_index < NUM_FRUITS; fruit_index++) {
-      if (!fruits[fruit_index].active) {
+      if (fruits[fruit_index].state == Fruit::State::Inactive) {
         START_MESEN_WATCH(5);
         spawn_on_board(fruit_index);
         STOP_MESEN_WATCH(5);
-        if (fruits[fruit_index].active) {
+        if (fruits[fruit_index].state == Fruit::State::Active) {
           active_fruits++;
           fruit_credits--;
           spawn_timer -= SPAWN_DELAY;
@@ -142,7 +142,7 @@ const u8 *const low_fruits[] = {
 void Fruits::render_below_player(int y_scroll, int y_player) {
   bool state = (get_frame_count() & 0b10000);
   for (auto fruit : fruits) {
-    if (fruit.active && fruit.y > y_player) {
+    if (fruit.state == Fruit::State::Active && fruit.y > y_player) {
       Fruit::Type type = fruit.type;
       banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
                           state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
@@ -154,7 +154,7 @@ void Fruits::render_below_player(int y_scroll, int y_player) {
 void Fruits::render_above_player(int y_scroll, int y_player) {
   bool state = (get_frame_count() & 0b10000);
   for (auto fruit : fruits) {
-    if (fruit.active && fruit.y <= y_player) {
+    if (fruit.state == Fruit::State::Active && fruit.y <= y_player) {
       Fruit::Type type = fruit.type;
       banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
                           state ? high_fruits[(u8)type] : low_fruits[(u8)type]);
