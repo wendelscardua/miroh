@@ -45,7 +45,10 @@ struct Fruit {
     u8 dropping_counter;
     u8 bobbing_counter;
   };
-  u8 raindrop_y;
+  union {
+    u8 raindrop_y;
+    u8 despawn_counter;
+  };
   u16 life;
   const u8 *low_metasprite;
   const u8 *high_metasprite;
@@ -61,6 +64,7 @@ struct Fruit {
   MEMBER(dropping_counter)                                                     \
   MEMBER(bobbing_counter)                                                      \
   MEMBER(raindrop_y)                                                           \
+  MEMBER(despawn_counter)                                                      \
   MEMBER(life)                                                                 \
   MEMBER(low_metasprite)                                                       \
   MEMBER(high_metasprite)                                                      \
@@ -72,6 +76,7 @@ class Fruits {
   static constexpr u8 NUM_FRUITS = 2;
   static constexpr u16 EXPIRATION_TIME = 15 * 60;
   static constexpr u8 DROP_SPEED = 12;
+  static constexpr u8 DESPAWN_DELAY = 23;
   static constexpr s8 fruit_rows[][4] = {{1, 5, 5, 9}, {3, 7, 3, 7}};
   static constexpr const u8 *splash_metasprite[] = {
       metasprite_Splash1,  metasprite_Splash1,  metasprite_Splash1,

@@ -114,7 +114,11 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
         player.feed(FRUIT_NUTRITION);
-      } else if (--fruit.life == 0) {
+      } else if (fruit.state == Fruit::State::Active && --fruit.life == 0) {
+        fruit.state = Fruit::State::Despawning;
+        fruit.despawn_counter = DESPAWN_DELAY;
+      } else if (fruit.state == Fruit::State::Despawning &&
+                 --fruit.despawn_counter == 0) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
       } else {
@@ -147,7 +151,7 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
 void Fruits::render_fruit(Fruit fruit, int y_scroll) const {
   switch (fruit.state) {
   case Fruit::State::Despawning:
-    if (fruit.bobbing_counter & 0b10000) {
+    if ((fruit.despawn_counter & 0b111) == 0b100) {
       break;
     }
   case Fruit::State::Active:
