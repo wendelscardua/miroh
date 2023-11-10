@@ -2,6 +2,7 @@
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "log.hpp"
+#include "metasprites.hpp"
 #include "player.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
@@ -57,14 +58,12 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   fruit.column = possible_columns[RAND_UP_TO(max_possible_columns)];
 
   fruit.state = Fruit::State::Dropping;
-  fruit.dropping_counter = 20;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
+  fruit.dropping_counter = 0;
   fruit.raindrop_y = fruit.y.get();
-  while (fruit.raindrop_y >= fruit.dropping_counter &&
-         fruit.dropping_counter > 0) {
-    fruit.raindrop_y -= fruit.dropping_counter;
-    fruit.dropping_counter--;
+  while (fruit.raindrop_y >= DROP_SPEED) {
+    fruit.raindrop_y -= DROP_SPEED;
   }
   fruit.life = EXPIRATION_TIME;
 }
@@ -93,12 +92,14 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
     case Fruit::State::Inactive:
       break;
     case Fruit::State::Dropping:
-      if (fruit.raindrop_y >= fruit.y) {
-        fruit.state = Fruit::State::Active;
-        fruit.bobbing_counter = 0;
-      } else {
+      if (fruit.raindrop_y == fruit.y) {
         fruit.dropping_counter++;
-        fruit.raindrop_y += fruit.dropping_counter;
+        if (fruit.dropping_counter == SPLASH_FRAMES) {
+          fruit.state = Fruit::State::Active;
+          fruit.bobbing_counter = 0;
+        }
+      } else {
+        fruit.raindrop_y += DROP_SPEED;
       }
       break;
     case Fruit::State::Active:
@@ -156,6 +157,34 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) const {
                             : fruit.low_metasprite);
     break;
   case Fruit::State::Dropping:
+    if (fruit.y == fruit.raindrop_y) {
+      // splash anim
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
+                          splash_metasprite[fruit.dropping_counter]);
+      if (splash_metasprite[fruit.dropping_counter] == metasprite_Splash14 ||
+          splash_metasprite[fruit.dropping_counter] == metasprite_Splash15) {
+        banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.high_metasprite);
+      } else if (splash_metasprite[fruit.dropping_counter] ==
+                     metasprite_Splash16 ||
+                 splash_metasprite[fruit.dropping_counter] ==
+                     metasprite_Splash17) {
+        banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
+      }
+    } else if (fruit.y - fruit.raindrop_y <= 48) {
+      // reaching target position
+      if (fruit.raindrop_y - y_scroll > 0 &&
+          fruit.raindrop_y - y_scroll < 0xe0) {
+        oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), 0xb2, 0);
+      }
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite_RainShadowB);
+    } else {
+      // far from target
+      if (fruit.raindrop_y - y_scroll > 0 &&
+          fruit.raindrop_y - y_scroll < 0xe0) {
+        oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), 0xb1, 0);
+      }
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite_RainShadowB);
+    }
     break;
   case Fruit::State::Inactive:
     break;

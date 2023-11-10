@@ -71,7 +71,30 @@ struct Fruit {
 class Fruits {
   static constexpr u8 NUM_FRUITS = 2;
   static constexpr u16 EXPIRATION_TIME = 15 * 60;
+  static constexpr u8 DROP_SPEED = 12;
   static constexpr s8 fruit_rows[][4] = {{1, 5, 5, 9}, {3, 7, 3, 7}};
+  static constexpr const u8 *splash_metasprite[] = {
+      metasprite_Splash1,  metasprite_Splash1,  metasprite_Splash1,
+      metasprite_Splash2,  metasprite_Splash2,  metasprite_Splash2,
+      metasprite_Splash3,  metasprite_Splash3,  metasprite_Splash3,
+      metasprite_Splash4,  metasprite_Splash4,  metasprite_Splash4,
+      metasprite_Splash5,  metasprite_Splash5,  metasprite_Splash5,
+      metasprite_Splash6,  metasprite_Splash6,  metasprite_Splash6,
+      metasprite_Splash7,  metasprite_Splash7,  metasprite_Splash7,
+      metasprite_Splash8,  metasprite_Splash8,  metasprite_Splash8,
+      metasprite_Splash9,  metasprite_Splash9,  metasprite_Splash9,
+      metasprite_Splash10, metasprite_Splash10, metasprite_Splash10,
+      metasprite_Splash11, metasprite_Splash11, metasprite_Splash11,
+      metasprite_Splash12, metasprite_Splash12, metasprite_Splash12,
+      metasprite_Splash13, metasprite_Splash13, metasprite_Splash13,
+      metasprite_Splash14, metasprite_Splash14, metasprite_Splash14,
+      metasprite_Splash15, metasprite_Splash15, metasprite_Splash15,
+      metasprite_Splash16, metasprite_Splash16, metasprite_Splash16,
+      metasprite_Splash17, metasprite_Splash17, metasprite_Splash17,
+  };
+  static constexpr u8 SPLASH_FRAMES = 51;
+  static_assert(sizeof(splash_metasprite) ==
+                SPLASH_FRAMES * sizeof(splash_metasprite[0]));
 
   static constexpr const u8 *high_fruits[] = {
       metasprite_AppleHigh,      metasprite_CornHigh,
