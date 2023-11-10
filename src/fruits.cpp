@@ -70,7 +70,6 @@ void Fruits::spawn_on_board(u8 fruit_index) {
 
 Fruits::Fruits(Board &board, u8 current_level)
     : board(board), current_level(current_level) {
-  fruit_credits = INITIAL_CREDITS;
   spawn_timer = SPAWN_DELAY /
                 2; // just so player don't wait too much to see the first fruit
   for (auto fruit : fruits) {
@@ -79,14 +78,7 @@ Fruits::Fruits(Board &board, u8 current_level)
   active_fruits = 0;
 }
 
-void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
-  if (lines_filled) {
-    spawn_timer += SPAWN_DELAY / 2 * lines_filled;
-    fruit_credits += lines_filled;
-  } else if (blocks_placed) {
-    fruit_credits++;
-  }
-
+void Fruits::update(Player &player) {
   for (auto fruit : fruits) {
     switch (fruit.state) {
     case Fruit::State::Inactive:
@@ -128,8 +120,7 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
     }
   }
 
-  if (fruit_credits > 0 && active_fruits < NUM_FRUITS &&
-      ++spawn_timer > SPAWN_DELAY) {
+  if (spawn_timer >= SPAWN_DELAY) {
     START_MESEN_WATCH(4);
     for (u8 fruit_index = 0; fruit_index < NUM_FRUITS; fruit_index++) {
       if (fruits[fruit_index].state == Fruit::State::Inactive) {
@@ -138,13 +129,14 @@ void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
         STOP_MESEN_WATCH(5);
         if (fruits[fruit_index].state == Fruit::State::Dropping) {
           active_fruits++;
-          fruit_credits--;
           spawn_timer -= SPAWN_DELAY;
         }
         break;
       }
     }
     STOP_MESEN_WATCH(4);
+  } else if (active_fruits < NUM_FRUITS) {
+    spawn_timer++;
   }
 }
 

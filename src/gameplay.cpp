@@ -199,7 +199,7 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
     });
 
     START_MESEN_WATCH(3);
-    fruits.update(player, blocks_placed, lines_filled);
+    fruits.update(player);
     STOP_MESEN_WATCH(3);
 
     if (lines_filled) {
