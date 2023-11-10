@@ -60,9 +60,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   fruit.dropping_counter = 20;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
-  fruit.raindrop_y =
-      0 +
-      fruit.y; // XXX: avoid raindrop_y pointing to the same thing as fruit.y
+  fruit.raindrop_y = fruit.y.get();
   while (fruit.raindrop_y >= fruit.dropping_counter &&
          fruit.dropping_counter > 0) {
     fruit.raindrop_y -= fruit.dropping_counter;
