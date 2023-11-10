@@ -29,6 +29,13 @@ struct Fruit {
     SweetPotato
   };
 
+  enum class State {
+    Inactive,
+    Dropping,
+    Active,
+    Despawning,
+  };
+
   s8 row;
   s8 column;
   u8 x;
@@ -36,6 +43,7 @@ struct Fruit {
   u16 life;
   bool active;
   Type type;
+  State state;
 };
 
 #define SOA_STRUCT Fruit
@@ -46,7 +54,8 @@ struct Fruit {
   MEMBER(y)                                                                    \
   MEMBER(life)                                                                 \
   MEMBER(active)                                                               \
-  MEMBER(type)
+  MEMBER(type)                                                                 \
+  MEMBER(state)
 
 #include <soa-struct.inc>
 
