@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "utils.hpp"
 #include <array>
 #include <cstddef>
 #include <neslib.h>
@@ -15,7 +16,7 @@ public:
   Bag(void (*refill)(Bag *bag)) : index(0), end(0), refill(refill){};
 
   void insert(T value) {
-    u8 random_point = index + (((u16)rand8() * (u16)(size() + 1)) >> 8);
+    u8 random_point = index + RAND_UP_TO(size() + 1);
     if (random_point >= N) {
       random_point -= N;
     }

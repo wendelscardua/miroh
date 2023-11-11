@@ -106,8 +106,9 @@ void Gameplay::render() {
       right_wall = cell.right_wall;
     }
   }
+  fruits.render_below_player(y_scroll, player.y.whole + board.origin_y);
   player.render(y_scroll, left_wall, right_wall);
-  fruits.render(y_scroll);
+  fruits.render_above_player(y_scroll, player.y.whole + board.origin_y);
   polyomino.render(y_scroll);
   player.refresh_energy_hud(y_scroll);
   oam_hide_rest();
@@ -174,13 +175,11 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
 
 void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
   // we only spawn when there's no line clearing going on
-  START_MESEN_WATCH(3);
   if (polyomino.state == Polyomino::State::Inactive &&
       !board.ongoing_line_clearing() && --spawn_timer == 0) {
     banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
-  STOP_MESEN_WATCH(3);
 
   banked_lambda(PLAYER_BANK, [this, pressed, held]() {
     player.update(input_mode, pressed, held);
@@ -199,7 +198,9 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
                        failed_to_place, lines_filled);
     });
 
-    fruits.update(player, blocks_placed, lines_filled);
+    START_MESEN_WATCH(3);
+    fruits.update(player);
+    STOP_MESEN_WATCH(3);
 
     if (lines_filled) {
       u16 points = 10 * (2 * lines_filled - 1);
@@ -304,9 +305,6 @@ void Gameplay::loop() {
     STOP_MESEN_WATCH(1);
 
     no_lag_frame = frame == FRAME_CNT1;
-#ifndef NDEBUG
-    gray_line();
-#endif
   }
 }
 
