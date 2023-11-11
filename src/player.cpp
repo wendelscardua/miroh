@@ -175,6 +175,7 @@ Player::update(InputMode input_mode, u8 pressed, u8 held) {
 }
 
 extern "C" char OAM_BUF[256];
+extern "C" char SPRID;
 
 void Player::fix_uni_priority(bool left_wall, bool right_wall) {
   if (state != State::Moving) {
@@ -188,10 +189,10 @@ void Player::fix_uni_priority(bool left_wall, bool right_wall) {
   // XXX: assume player is first sprite, so we know the right indices to mess
   // with here
   if (!left_wall) {
-    OAM_BUF[2] ^= OAM_BEHIND;
+    OAM_BUF[sprite_offset + 2] ^= OAM_BEHIND;
   }
   if (!right_wall) {
-    OAM_BUF[6] ^= OAM_BEHIND;
+    OAM_BUF[sprite_offset + 6] ^= OAM_BEHIND;
   }
 }
 
@@ -234,6 +235,7 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
     break;
   case State::Moving:
     for (animation_frame = 0; animation_frame < 5; animation_frame++) {
+      sprite_offset = SPRID;
       banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightWalk1
                                                      : metasprite_UniLeftWalk1);
@@ -241,6 +243,7 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 9; animation_frame++) {
+      sprite_offset = SPRID;
       banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightWalk2
                                                      : metasprite_UniLeftWalk2);
@@ -248,6 +251,7 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 5; animation_frame++) {
+      sprite_offset = SPRID;
       banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightWalk3
                                                      : metasprite_UniLeftWalk3);
@@ -255,6 +259,7 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
       CORO_YIELD();
     }
     for (animation_frame = 0; animation_frame < 9; animation_frame++) {
+      sprite_offset = SPRID;
       banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
                           facing == Direction::Right ? metasprite_UniRightWalk4
                                                      : metasprite_UniLeftWalk4);

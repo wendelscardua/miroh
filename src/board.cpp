@@ -7,6 +7,7 @@
 #include "coroutine.hpp"
 #include "maze-defs.hpp"
 #include "union-find.hpp"
+#include "utils.hpp"
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
@@ -39,7 +40,7 @@ __attribute__((noinline, section(".prg_rom_0"))) void Board::generate_maze() {
   }
 
 #define NEED_WALL(direction)                                                   \
-  (template_cell.maybe_##direction##_wall && ((rand8() & 0b11) == 0))
+  (template_cell.maybe_##direction##_wall && (RAND_UP_TO_POW2(2) == 0))
 
   {
     ScopedBank scopedBank(GET_BANK(mazes));
@@ -65,7 +66,7 @@ __attribute__((noinline, section(".prg_rom_0"))) void Board::generate_maze() {
         if (template_cell.value == 0xff) {
           // use the old berzerk algorithm
           // assumes the cell is on the valid range
-          switch (rand8() & 0b11) {
+          switch (RAND_UP_TO_POW2(2)) {
           case 0:
             cell_at(i, j).right_wall = true;
             cell_at(i, j + 1).left_wall = true;
