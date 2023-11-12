@@ -1,6 +1,7 @@
 #include "assets.hpp"
 #include "board.hpp"
 #include "log.hpp"
+#include "soundtrack.hpp"
 #ifndef NDEBUG
 #include <cstdio>
 #endif
@@ -96,7 +97,14 @@ const unsigned char empty_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-// TODO: variable current_stage
+const Song song_per_stage[] = {
+    Song::Starlit_stables,      // StarlitStables
+    Song::Rainbow_retreat,      // RainbowRetreat
+    Song::Fairy_flight,         // FairyForest
+    Song::Glitter_grotto,       // GlitteryGrotto
+    Song::Marshmallow_mountain, // MarshmallowMountain
+};
+
 __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       board(board),
@@ -139,8 +147,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   ppu_on_all();
 
-  // TODO: pick based on stage
-  banked_play_song(Song::Starlit_stables);
+  banked_play_song(song_per_stage[(u8)current_stage]);
 
   pal_fade_to(0, 4);
 
