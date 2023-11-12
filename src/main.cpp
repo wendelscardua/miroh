@@ -12,6 +12,11 @@
 
 GameState current_game_state;
 GameState previous_game_state;
+
+GameMode current_game_mode;
+ControllerScheme current_controller_scheme;
+Stage current_stage;
+
 u16 high_score[NUM_MAZES];
 Maze maze;
 
