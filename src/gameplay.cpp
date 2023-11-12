@@ -23,12 +23,12 @@
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
-const unsigned char pause_menu_text_1[] = {
+const unsigned char pause_menu_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x12, 0x04, 0x17, 0x15, 0x08, 0x07, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char pause_menu_text_2[] = {
+const unsigned char pause_menu_options_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x16, 0x14, 0x1b, 0x02,
     0x02, 0x02, 0x14, 0x08, 0x15, 0x17, 0x0f, 0x08, 0x02, 0x02, 0x02,
     0x02, 0x08, 0x1a, 0x0c, 0x16, 0x02, 0x02, 0x02, 0x02, 0x02};
@@ -188,7 +188,7 @@ void Gameplay::render() {
   oam_hide_rest();
 }
 
-void Gameplay::pause_handler(PauseOption &pause_option) {
+void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
   static const PauseOption NEXT_OPTION[] = {
@@ -215,7 +215,14 @@ void Gameplay::pause_handler(PauseOption &pause_option) {
   } else if (pressed & PAD_A) {
     switch (pause_option) {
     case PauseOption::Exit:
-      current_game_state = GameState::TitleScreen;
+      gameplay_state = GameplayState::ConfirmExit;
+      multi_vram_buffer_horz(exit_confirmation_text,
+                             sizeof(exit_confirmation_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(yes_no_text, sizeof(yes_no_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      yes_no_option = false;
+      return;
       break;
     case PauseOption::Resume:
       gameplay_state = GameplayState::Playing;
@@ -249,6 +256,38 @@ void Gameplay::pause_handler(PauseOption &pause_option) {
           ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
           : GAMEPLAY_CURSOR_CLEAR_TILE,
       NTADR_C(22, 5));
+}
+
+void Gameplay::confirm_exit_handler(bool &yes_no_option) {
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  bool toggle = (get_frame_count() & 0b10000) != 0;
+
+  if (pressed & (PAD_START | PAD_B)) {
+    pause_game();
+    return;
+  } else if (pressed &
+             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+    yes_no_option = !yes_no_option;
+  } else if (pressed & PAD_A) {
+    if (yes_no_option) {
+      current_game_state = GameState::TitleScreen;
+      // TODO: go to world map instead
+    } else {
+      pause_game();
+      return;
+    }
+  }
+
+  one_vram_buffer(
+      yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+                    : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(8, 5));
+
+  one_vram_buffer(!yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE
+                                           : GAMEPLAY_CURSOR_ALT_TILE)
+                                 : GAMEPLAY_CURSOR_CLEAR_TILE,
+                  NTADR_C(19, 5));
 }
 
 void Gameplay::gameplay_handler() {
@@ -309,9 +348,7 @@ void Gameplay::gameplay_handler() {
     }
 
     if (any_pressed & PAD_START) {
-      gameplay_state = GameplayState::Paused;
-      y_scroll = PAUSE_SCROLL_Y;
-      GGSound::pause();
+      pause_game();
     } else if (p1_pressed & PAD_SELECT) {
       if (input_mode == InputMode::Player) {
         input_mode = InputMode::Polyomino;
@@ -324,10 +361,22 @@ void Gameplay::gameplay_handler() {
   }
 }
 
+void Gameplay::pause_game() {
+  gameplay_state = GameplayState::Paused;
+  y_scroll = PAUSE_SCROLL_Y;
+  GGSound::pause();
+  multi_vram_buffer_horz(pause_menu_text, sizeof(pause_menu_text),
+                         PAUSE_MENU_POSITION);
+  multi_vram_buffer_horz(pause_menu_options_text,
+                         sizeof(pause_menu_options_text),
+                         PAUSE_MENU_OPTIONS_POSITION);
+}
+
 void Gameplay::loop() {
   static bool no_lag_frame = true;
   extern volatile char FRAME_CNT1;
   PauseOption pause_option = PauseOption::Resume;
+  bool yes_no_option = false;
 
   while (current_game_state == GameState::Gameplay) {
     ppu_wait_nmi();
@@ -344,7 +393,6 @@ void Gameplay::loop() {
     pad_poll(1);
 
     switch (gameplay_state) {
-
     case GameplayState::Playing:
       if (pause_option == PauseOption::Retry) {
         return; // escapes from gameplay loop; causing gameplay to restart since
@@ -353,9 +401,11 @@ void Gameplay::loop() {
       Gameplay::gameplay_handler();
       break;
     case GameplayState::Paused:
-      Gameplay::pause_handler(pause_option);
+      Gameplay::pause_handler(pause_option, yes_no_option);
       break;
     case GameplayState::ConfirmExit:
+      Gameplay::confirm_exit_handler(yes_no_option);
+      break;
     case GameplayState::ConfirmRetry:
     case GameplayState::ConfirmContinue:
       break;

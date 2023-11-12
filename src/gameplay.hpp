@@ -53,11 +53,13 @@ class Gameplay {
   u16 spawn_timer;
 
 public:
-  static constexpr u8 BANK = 0;
-  static constexpr u16 INTRO_DELAY = 900;
-  static constexpr int DEFAULT_Y_SCROLL = 0x08;
-  static constexpr int PAUSE_SCROLL_Y = 0x050;
-  static constexpr int INTRO_SCROLL_Y = -0x100 + 0x50;
+  static const u8 BANK = 0;
+  static const u16 INTRO_DELAY = 900;
+  static const int DEFAULT_Y_SCROLL = 0x08;
+  static const int PAUSE_SCROLL_Y = 0x050;
+  static const int INTRO_SCROLL_Y = -0x100 + 0x50;
+  static const int PAUSE_MENU_POSITION = NTADR_C(0, 3);
+  static const int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
   Board &board;
   Player player;
   Polyomino polyomino;
@@ -73,6 +75,8 @@ public:
 
 private:
   void render();
-  void pause_handler(PauseOption &pause_option);
+  void pause_game();
+  void pause_handler(PauseOption &pause_option, bool &yes_no_option);
   void gameplay_handler();
+  void confirm_exit_handler(bool &yes_no_option);
 };
