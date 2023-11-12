@@ -1,3 +1,3 @@
 #pragma once
 
-enum class InputMode { Player, Polyomino, Pause };
+enum class InputMode { Player, Polyomino };

@@ -23,36 +23,108 @@
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
-// TODO: variable current_location
+const unsigned char pause_menu_text[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x02, 0x12, 0x04, 0x17, 0x15, 0x08, 0x07, 0x02, 0x02, 0x02,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char pause_menu_options_text[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x16, 0x14, 0x1b, 0x02,
+    0x02, 0x02, 0x14, 0x08, 0x15, 0x17, 0x0f, 0x08, 0x02, 0x02, 0x02,
+    0x02, 0x08, 0x1a, 0x0c, 0x16, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char exit_confirmation_text[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x16, 0x17, 0x14,
+    0x10, 0x02, 0x16, 0x11, 0x02, 0x19, 0x11, 0x14, 0x0e, 0x07, 0x02,
+    0x0f, 0x04, 0x12, 0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char yes_no_text[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x1b, 0x08,
+    0x15, 0x2f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x10, 0x11,
+    0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char story_mode_failure_text_1[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x02, 0x17, 0x0b, 0x1c, 0x11, 0x0b, 0x2f, 0x02, 0x02, 0x02,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char story_mode_failure_text_2[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x16, 0x14, 0x1b, 0x02,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x08, 0x1a, 0x0c, 0x16, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char non_story_mode_match_ending_text[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x0a, 0x11, 0x11, 0x07, 0x02, 0x16, 0x14, 0x1b, 0x2f, 0x02,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char story_mode_victory[][32 * 1] = {
+    // Starlit Stables
+    {0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x6f, 0x12,
+     0x04, 0x14, 0x0d, 0x0e, 0x08, 0x16, 0x04, 0x15, 0x16, 0x0c, 0x06,
+     0x2f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02},
+    // Rainbow Retreat
+    {0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+     0x6f, 0x08, 0x0f, 0x04, 0x14, 0x0d, 0x04, 0x05, 0x0e, 0x08, 0x2f,
+     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02},
+    // Fairy Forest
+    {0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+     0x02, 0x6f, 0x04, 0x05, 0x17, 0x0e, 0x11, 0x17, 0x15, 0x2f, 0x02,
+     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02},
+    // Glittery Grotto
+    {0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x6f,
+     0x0e, 0x0c, 0x16, 0x16, 0x08, 0x14, 0x0c, 0x09, 0x0c, 0x06, 0x2f,
+     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02},
+    // Marshmallow Mountain
+    {0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+     0x6f, 0x04, 0x14, 0x18, 0x08, 0x0e, 0x11, 0x17, 0x15, 0x2f, 0x02,
+     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02},
+};
+
+const unsigned char continue_text[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x06, 0x11, 0x10, 0x16, 0x0c, 0x10, 0x17, 0x08, 0x02, 0x02,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char retry_confirmation_text[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x15, 0x16,
+    0x04, 0x14, 0x16, 0x02, 0x16, 0x0b, 0x0c, 0x15, 0x02, 0x15, 0x16,
+    0x04, 0x0a, 0x08, 0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+const unsigned char empty_text[] = {
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+
+// TODO: variable current_stage
 __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       board(board),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
-      polyomino(board), fruits(board, current_level),
-      input_mode(InputMode::Player), current_location(Location::StarlitStables),
-      y_scroll(INTRO_SCROLL_Y) {
+      polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
+      input_mode(InputMode::Player), y_scroll(INTRO_SCROLL_Y) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
 
-  banked_lambda(ASSETS_BANK, [this]() {
+  banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    donut_bulk_load(level_bg_tiles[(u8)current_location]);
+    donut_bulk_load(level_bg_tiles[(u8)current_stage]);
 
     vram_adr(PPU_PATTERN_TABLE_1);
     donut_bulk_load((void *)spr_tiles);
 
     vram_adr(NAMETABLE_A);
-    vram_unrle(level_nametables[(u8)current_location]);
+    vram_unrle(level_nametables[(u8)current_stage]);
 
     vram_adr(NAMETABLE_C);
-    vram_unrle(level_alt_nametables[(u8)current_location]);
+    vram_unrle(level_alt_nametables[(u8)current_stage]);
 
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);
 
-    pal_bg(level_bg_palettes[(u8)current_location]);
-    pal_spr(level_spr_palettes[(u8)current_location]);
+    pal_bg(level_bg_palettes[(u8)current_stage]);
+    pal_spr(level_spr_palettes[(u8)current_stage]);
   });
 
   board.render();
@@ -116,23 +188,24 @@ void Gameplay::render() {
   oam_hide_rest();
 }
 
-void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
+void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
   static const PauseOption NEXT_OPTION[] = {
       Gameplay::PauseOption::Resume,
+      Gameplay::PauseOption::Exit,
       Gameplay::PauseOption::Retry,
-      Gameplay::PauseOption::Quit,
   };
 
   static const PauseOption PREV_OPTION[] = {
+      Gameplay::PauseOption::Exit,
       Gameplay::PauseOption::Retry,
-      Gameplay::PauseOption::Quit,
       Gameplay::PauseOption::Resume,
   };
 
   if (pressed & (PAD_START | PAD_B)) {
     pause_option = PauseOption::Resume;
-    input_mode = InputMode::Player;
-    pressed = 0;
+    gameplay_state = GameplayState::Playing;
     y_scroll = DEFAULT_Y_SCROLL;
     GGSound::resume();
   } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
@@ -141,41 +214,118 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
     pause_option = PREV_OPTION[(u8)pause_option];
   } else if (pressed & PAD_A) {
     switch (pause_option) {
-    case PauseOption::Quit:
-      current_mode = GameMode::TitleScreen;
+    case PauseOption::Exit:
+      gameplay_state = GameplayState::ConfirmExit;
+      multi_vram_buffer_horz(exit_confirmation_text,
+                             sizeof(exit_confirmation_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(yes_no_text, sizeof(yes_no_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      yes_no_option = false;
+      return;
       break;
     case PauseOption::Resume:
-      input_mode = InputMode::Player;
-      pressed = 0;
+      gameplay_state = GameplayState::Playing;
       y_scroll = DEFAULT_Y_SCROLL;
       GGSound::resume();
       break;
     case PauseOption::Retry:
-      input_mode = InputMode::Player;
-      pressed = 0;
+      gameplay_state = GameplayState::ConfirmRetry;
+      multi_vram_buffer_horz(retry_confirmation_text,
+                             sizeof(retry_confirmation_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(yes_no_text, sizeof(yes_no_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      yes_no_option = false;
+      return;
       break;
     }
   }
 
   bool toggle = (get_frame_count() & 0b10000) != 0;
 
-  one_vram_buffer(pause_option == Gameplay::PauseOption::Quit
-                      ? (toggle ? 0x10 : 0x2f)
-                      : 0x30,
-                  NTADR_C(4, 5));
+  one_vram_buffer(
+      pause_option == Gameplay::PauseOption::Retry
+          ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+          : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(4, 5));
 
-  one_vram_buffer(pause_option == Gameplay::PauseOption::Resume
-                      ? (toggle ? 0x10 : 0x2f)
-                      : 0x30,
-                  NTADR_C(12, 5));
+  one_vram_buffer(
+      pause_option == Gameplay::PauseOption::Resume
+          ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+          : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(12, 5));
 
-  one_vram_buffer(pause_option == Gameplay::PauseOption::Retry
-                      ? (toggle ? 0x10 : 0x2f)
-                      : 0x30,
-                  NTADR_C(22, 5));
+  one_vram_buffer(
+      pause_option == Gameplay::PauseOption::Exit
+          ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+          : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(22, 5));
 }
 
-void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
+void Gameplay::yes_no_cursor(bool yes_no_option) {
+  bool toggle = (get_frame_count() & 0b10000) != 0;
+
+  one_vram_buffer(
+      yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+                    : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(8, 5));
+
+  one_vram_buffer(!yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE
+                                           : GAMEPLAY_CURSOR_ALT_TILE)
+                                 : GAMEPLAY_CURSOR_CLEAR_TILE,
+                  NTADR_C(19, 5));
+}
+
+void Gameplay::confirm_exit_handler(bool &yes_no_option) {
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  if (pressed & (PAD_START | PAD_B)) {
+    pause_game();
+    return;
+  } else if (pressed &
+             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+    yes_no_option = !yes_no_option;
+  } else if (pressed & (PAD_A | PAD_START)) {
+    if (yes_no_option) {
+      current_game_state = GameState::TitleScreen;
+      // TODO: go to world map instead
+    } else {
+      pause_game();
+    }
+    return;
+  }
+
+  yes_no_cursor(yes_no_option);
+}
+
+void Gameplay::confirm_retry_handler(bool &yes_no_option) {
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  if (pressed & (PAD_START | PAD_B)) {
+    pause_game();
+    return;
+  } else if (pressed &
+             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+    yes_no_option = !yes_no_option;
+  } else if (pressed & (PAD_A | PAD_START)) {
+    if (yes_no_option) {
+      gameplay_state = GameplayState::Playing;
+      // On gameplay loop, being on the Retry option will cause the gameplay to
+      // restart under the same options and maze
+    } else {
+      pause_game();
+    }
+    return;
+  }
+
+  yes_no_cursor(yes_no_option);
+}
+
+void Gameplay::gameplay_handler() {
+  auto p1_pressed = get_pad_new(0);
+  auto any_pressed = p1_pressed | get_pad_new(1);
+
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
       !board.ongoing_line_clearing() && --spawn_timer == 0) {
@@ -183,9 +333,7 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
 
-  banked_lambda(PLAYER_BANK, [this, pressed, held]() {
-    player.update(input_mode, pressed, held);
-  });
+  banked_lambda(PLAYER_BANK, [this]() { player.update(input_mode); });
 
   if (player.state != Player::State::Dying &&
       player.state != Player::State::Dead) {
@@ -193,9 +341,9 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
     bool failed_to_place = false;
     u8 lines_filled = 0;
 
-    banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed,
-                                         &failed_to_place, &lines_filled]() {
-      polyomino.handle_input(input_mode, pressed, held);
+    banked_lambda(GET_BANK(polyominos), [this, &blocks_placed, &failed_to_place,
+                                         &lines_filled]() {
+      polyomino.handle_input(input_mode);
       polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
                        failed_to_place, lines_filled);
     });
@@ -203,6 +351,13 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
     START_MESEN_WATCH(3);
     fruits.update(player);
     STOP_MESEN_WATCH(3);
+
+    if (current_controller_scheme == ControllerScheme::OnePlayer &&
+        polyomino.state != Polyomino::State::Active) {
+      if (input_mode == InputMode::Polyomino) {
+        input_mode = InputMode::Player;
+      }
+    }
 
     if (lines_filled) {
       u16 points = 10 * (2 * lines_filled - 1);
@@ -224,40 +379,38 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
       player.energy_upkeep(3 * Player::ENERGY_TICKS);
     }
 
-    switch (input_mode) {
-    case InputMode::Player:
-      if (pressed & (PAD_SELECT | PAD_A | PAD_B)) {
+    if (any_pressed & PAD_START) {
+      pause_game();
+    } else if (p1_pressed & PAD_SELECT) {
+      if (input_mode == InputMode::Player) {
         input_mode = InputMode::Polyomino;
-        pressed &= ~(PAD_SELECT | PAD_A | PAD_B);
-      } else if (pressed & PAD_START) {
-        input_mode = InputMode::Pause;
-        y_scroll = PAUSE_SCROLL_Y;
-        GGSound::pause();
-      }
-      break;
-    case InputMode::Polyomino:
-      if (pressed & (PAD_SELECT)) {
+      } else {
         input_mode = InputMode::Player;
-        pressed &= ~(PAD_SELECT);
-      } else if (pressed & PAD_START) {
-        input_mode = InputMode::Pause;
-        y_scroll = PAUSE_SCROLL_Y;
-        GGSound::pause();
       }
-      break;
-    default:
     }
-  } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
-    current_mode = GameMode::TitleScreen;
+  } else if (player.state == Player::State::Dead && (any_pressed & PAD_START)) {
+    current_game_state = GameState::TitleScreen;
   }
+}
+
+void Gameplay::pause_game() {
+  gameplay_state = GameplayState::Paused;
+  y_scroll = PAUSE_SCROLL_Y;
+  GGSound::pause();
+  multi_vram_buffer_horz(pause_menu_text, sizeof(pause_menu_text),
+                         PAUSE_MENU_POSITION);
+  multi_vram_buffer_horz(pause_menu_options_text,
+                         sizeof(pause_menu_options_text),
+                         PAUSE_MENU_OPTIONS_POSITION);
 }
 
 void Gameplay::loop() {
   static bool no_lag_frame = true;
   extern volatile char FRAME_CNT1;
   PauseOption pause_option = PauseOption::Resume;
+  bool yes_no_option = false;
 
-  while (current_mode == GameMode::Gameplay) {
+  while (current_game_state == GameState::Gameplay) {
     ppu_wait_nmi();
 
     START_MESEN_WATCH(1);
@@ -269,18 +422,26 @@ void Gameplay::loop() {
     InputMode old_mode = input_mode;
 
     pad_poll(0);
+    pad_poll(1);
 
-    u8 pressed = get_pad_new(0);
-    u8 held = pad_state(0);
-
-    if (input_mode == InputMode::Pause) {
-      Gameplay::pause_handler(pause_option, pressed);
-    } else {
+    switch (gameplay_state) {
+    case GameplayState::Playing:
       if (pause_option == PauseOption::Retry) {
-        break; // from gameplay loop; causing gameplay to restart since we're
-               // still on the same game state
+        return; // escapes from gameplay loop; causing gameplay to restart since
+                // we're still on the same game state
       }
-      Gameplay::gameplay_handler(pressed, held);
+      Gameplay::gameplay_handler();
+      break;
+    case GameplayState::Paused:
+      Gameplay::pause_handler(pause_option, yes_no_option);
+      break;
+    case GameplayState::ConfirmExit:
+      Gameplay::confirm_exit_handler(yes_no_option);
+      break;
+    case GameplayState::ConfirmRetry:
+      Gameplay::confirm_retry_handler(yes_no_option);
+    case GameplayState::ConfirmContinue:
+      break;
     }
 
     if (input_mode != old_mode) {

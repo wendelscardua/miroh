@@ -1,6 +1,5 @@
 #pragma once
 
-#include "assets.hpp"
 #include "board.hpp"
 #include "fruits.hpp"
 #include "input-mode.hpp"
@@ -8,7 +7,16 @@
 #include "polyomino.hpp"
 
 class Gameplay {
-  enum class PauseOption : u8 { Quit, Resume, Retry };
+  enum class PauseOption : u8 { Retry, Resume, Exit };
+
+  enum class GameplayState : u8 {
+    Playing,
+    Paused,
+    ConfirmExit,
+    ConfirmRetry,
+    ConfirmContinue,
+  };
+
   // we level up every 50 points
   static constexpr u16 LEVEL_UP_POINTS = 50;
 
@@ -45,17 +53,19 @@ class Gameplay {
   u16 spawn_timer;
 
 public:
-  static constexpr u8 BANK = 0;
-  static constexpr u16 INTRO_DELAY = 900;
-  static constexpr int DEFAULT_Y_SCROLL = 0x08;
-  static constexpr int PAUSE_SCROLL_Y = 0x050;
-  static constexpr int INTRO_SCROLL_Y = -0x100 + 0x50;
+  static const u8 BANK = 0;
+  static const u16 INTRO_DELAY = 900;
+  static const int DEFAULT_Y_SCROLL = 0x08;
+  static const int PAUSE_SCROLL_Y = 0x050;
+  static const int INTRO_SCROLL_Y = -0x100 + 0x50;
+  static const int PAUSE_MENU_POSITION = NTADR_C(0, 3);
+  static const int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
   Board &board;
   Player player;
   Polyomino polyomino;
   Fruits fruits;
+  GameplayState gameplay_state;
   InputMode input_mode;
-  Location current_location;
   int y_scroll;
 
   Gameplay(Board &board);
@@ -65,6 +75,10 @@ public:
 
 private:
   void render();
-  void pause_handler(PauseOption &pause_option, u8 &pressed);
-  void gameplay_handler(u8 &pressed, u8 &held);
+  void pause_game();
+  void yes_no_cursor(bool yes_no_cursor);
+  void pause_handler(PauseOption &pause_option, bool &yes_no_option);
+  void gameplay_handler();
+  void confirm_exit_handler(bool &yes_no_option);
+  void confirm_retry_handler(bool &yes_no_option);
 };

@@ -10,14 +10,22 @@
 
 #include "soundtrack-ptr.hpp"
 
-GameMode current_mode;
-GameMode previous_mode;
+GameState current_game_state;
+GameState previous_game_state;
+
+GameMode current_game_mode;
+ControllerScheme current_controller_scheme;
+Stage current_stage;
+
 u16 high_score[NUM_MAZES];
 Maze maze;
 
 static void main_init() {
-  previous_mode = GameMode::None;
-  current_mode = GameMode::TitleScreen;
+  previous_game_state = GameState::None;
+  current_game_state = GameState::TitleScreen;
+  current_game_mode = GameMode::Story;
+  current_controller_scheme = ControllerScheme::OnePlayer;
+
   for (u8 i = 0; i < NUM_MAZES; i++) {
     high_score[i] = 0;
   }
@@ -49,13 +57,13 @@ int main() {
   Board board;
 
   while (true) {
-    switch (current_mode) {
-    case GameMode::TitleScreen: {
+    switch (current_game_state) {
+    case GameState::TitleScreen: {
       ScopedBank scopedBank(TitleScreen::BANK);
       TitleScreen titleScreen(board);
       titleScreen.loop();
     }; break;
-    case GameMode::Gameplay: {
+    case GameState::Gameplay: {
       ScopedBank scopedBank(Gameplay::BANK);
       Gameplay gameplay(board);
       gameplay.loop();

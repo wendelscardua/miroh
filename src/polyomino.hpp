@@ -43,7 +43,7 @@ public:
 
   void spawn();
 
-  void handle_input(InputMode &input_mode, u8 pressed, u8 held);
+  void handle_input(InputMode input_mode);
 
   void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
               u8 &lines_filled);
