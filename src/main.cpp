@@ -26,8 +26,6 @@ static void main_init() {
 
   ppu_off();
 
-  set_mirroring(MIRROR_HORIZONTAL);
-
   // set 8x8 sprite mode
   oam_size(0);
 

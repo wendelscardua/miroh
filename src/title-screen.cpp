@@ -1,3 +1,4 @@
+#include <mapper.h>
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -34,8 +35,10 @@ const u8 menu_y_position[] = {
 
 __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
-      board(board) {
+      board(board), x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
+
+  set_mirroring(MIRROR_VERTICAL);
 
   banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
@@ -44,10 +47,10 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     vram_adr(PPU_PATTERN_TABLE_1);
     donut_bulk_load((void *)spr_tiles);
 
-    vram_adr(NAMETABLE_D);
+    vram_adr(NAMETABLE_A);
     vram_unrle(title_alt_nametable);
 
-    vram_adr(NAMETABLE_A);
+    vram_adr(NAMETABLE_B);
     vram_unrle(title_nametable);
 
     pal_bg(title_bg_palette);
@@ -58,7 +61,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   oam_clear();
 
-  scroll(0, 0);
+  scroll((u16)x_scroll, 0);
 
   ppu_on_all();
 
@@ -111,6 +114,9 @@ __attribute__((noinline)) void TitleScreen::loop() {
     case State::HowToPlay:
       break;
     }
+
+    banked_oam_meta_spr_horizontal(JR_X_POSITION - x_scroll, JR_Y_POSITION,
+                                   metasprite_TitleJR);
 
     oam_hide_rest();
   }
