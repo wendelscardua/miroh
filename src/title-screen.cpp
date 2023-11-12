@@ -139,7 +139,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
         banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-        one_vram_buffer(0x04 + (u8)current_track, NTADR_A(28, 26));
+        one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
       } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_A)) {
         if ((u8)current_track == NUM_SONGS - 1) {
           current_track = (Song)0;
@@ -149,7 +149,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
         banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-        one_vram_buffer(0x04 + (u8)current_track, NTADR_A(28, 26));
+        one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
       }
       if (x_scroll != HOW_TO_SCROLL) {
         // TODO: easing

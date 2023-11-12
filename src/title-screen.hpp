@@ -3,6 +3,8 @@
 #include "board.hpp"
 #include "common.hpp"
 #include "soundtrack.hpp"
+#include <neslib.h>
+
 class TitleScreen {
 public:
   static const u8 BANK = 0;
@@ -17,6 +19,7 @@ public:
   static const s16 HOW_TO_RIGHT_X_POSITION = 0xb8;
   static const u8 HOW_TO_RIGHT_Y_POSITION = 0x50;
   static const u8 NEXT_TRACK_DELAY = 30;
+  static const u16 TRACK_ID_POSITION = NTADR_A(28, 26);
 
   enum class State : u8 {
     MainMenu,
