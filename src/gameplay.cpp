@@ -86,7 +86,7 @@ const unsigned char continue_text[] = {
     0x02, 0x06, 0x11, 0x10, 0x16, 0x0c, 0x10, 0x17, 0x08, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char confirm_retry_text[] = {
+const unsigned char retry_confirmation_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x15, 0x16,
     0x04, 0x14, 0x16, 0x02, 0x16, 0x0b, 0x0c, 0x15, 0x02, 0x15, 0x16,
     0x04, 0x0a, 0x08, 0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
@@ -230,9 +230,14 @@ void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
       GGSound::resume();
       break;
     case PauseOption::Retry:
-      // with the pause option being "Retry", this will restart the gameplay
-      // loop still inside the gameplay state
-      gameplay_state = GameplayState::Playing;
+      gameplay_state = GameplayState::ConfirmRetry;
+      multi_vram_buffer_horz(retry_confirmation_text,
+                             sizeof(retry_confirmation_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(yes_no_text, sizeof(yes_no_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      yes_no_option = false;
+      return;
       break;
     }
   }
@@ -258,26 +263,8 @@ void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
       NTADR_C(22, 5));
 }
 
-void Gameplay::confirm_exit_handler(bool &yes_no_option) {
-  auto pressed = get_pad_new(0) | get_pad_new(1);
-
+void Gameplay::yes_no_cursor(bool yes_no_option) {
   bool toggle = (get_frame_count() & 0b10000) != 0;
-
-  if (pressed & (PAD_START | PAD_B)) {
-    pause_game();
-    return;
-  } else if (pressed &
-             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
-    yes_no_option = !yes_no_option;
-  } else if (pressed & PAD_A) {
-    if (yes_no_option) {
-      current_game_state = GameState::TitleScreen;
-      // TODO: go to world map instead
-    } else {
-      pause_game();
-      return;
-    }
-  }
 
   one_vram_buffer(
       yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
@@ -288,6 +275,51 @@ void Gameplay::confirm_exit_handler(bool &yes_no_option) {
                                            : GAMEPLAY_CURSOR_ALT_TILE)
                                  : GAMEPLAY_CURSOR_CLEAR_TILE,
                   NTADR_C(19, 5));
+}
+
+void Gameplay::confirm_exit_handler(bool &yes_no_option) {
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  if (pressed & (PAD_START | PAD_B)) {
+    pause_game();
+    return;
+  } else if (pressed &
+             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+    yes_no_option = !yes_no_option;
+  } else if (pressed & (PAD_A | PAD_START)) {
+    if (yes_no_option) {
+      current_game_state = GameState::TitleScreen;
+      // TODO: go to world map instead
+    } else {
+      pause_game();
+    }
+    return;
+  }
+
+  yes_no_cursor(yes_no_option);
+}
+
+void Gameplay::confirm_retry_handler(bool &yes_no_option) {
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  if (pressed & (PAD_START | PAD_B)) {
+    pause_game();
+    return;
+  } else if (pressed &
+             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+    yes_no_option = !yes_no_option;
+  } else if (pressed & (PAD_A | PAD_START)) {
+    if (yes_no_option) {
+      gameplay_state = GameplayState::Playing;
+      // On gameplay loop, being on the Retry option will cause the gameplay to
+      // restart under the same options and maze
+    } else {
+      pause_game();
+    }
+    return;
+  }
+
+  yes_no_cursor(yes_no_option);
 }
 
 void Gameplay::gameplay_handler() {
@@ -407,6 +439,7 @@ void Gameplay::loop() {
       Gameplay::confirm_exit_handler(yes_no_option);
       break;
     case GameplayState::ConfirmRetry:
+      Gameplay::confirm_retry_handler(yes_no_option);
     case GameplayState::ConfirmContinue:
       break;
     }

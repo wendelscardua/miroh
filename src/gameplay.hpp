@@ -76,7 +76,9 @@ public:
 private:
   void render();
   void pause_game();
+  void yes_no_cursor(bool yes_no_cursor);
   void pause_handler(PauseOption &pause_option, bool &yes_no_option);
   void gameplay_handler();
   void confirm_exit_handler(bool &yes_no_option);
+  void confirm_retry_handler(bool &yes_no_option);
 };
