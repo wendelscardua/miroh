@@ -18,6 +18,9 @@ Maze maze;
 static void main_init() {
   previous_game_state = GameState::None;
   current_game_state = GameState::TitleScreen;
+  current_game_mode = GameMode::Story;
+  current_controller_scheme = ControllerScheme::OnePlayer;
+
   for (u8 i = 0; i < NUM_MAZES; i++) {
     high_score[i] = 0;
   }
