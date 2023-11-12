@@ -1,4 +1,4 @@
-    .section .prg_rom_1,"a"
+    .section .prg_rom_1,"aR",@progbits
 
     .global level_bg_palettes
 level_bg_palettes:

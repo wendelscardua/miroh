@@ -5,8 +5,8 @@
 #include "fixed-point.hpp"
 #include "input-mode.hpp"
 
-#define PLAYER_BANK 1
-#define PLAYER_TEXT_SECTION ".prg_rom_1.text.player"
+#define PLAYER_BANK 0
+#define PLAYER_TEXT_SECTION ".prg_rom_0.text.player"
 
 class Player {
   static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x25);
