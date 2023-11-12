@@ -223,7 +223,9 @@ void Gameplay::pause_handler(PauseOption &pause_option) {
       GGSound::resume();
       break;
     case PauseOption::Retry:
-      input_mode = InputMode::Player;
+      // with the pause option being "Retry", this will restart the gameplay
+      // loop still inside the gameplay state
+      gameplay_state = GameplayState::Playing;
       break;
     }
   }
@@ -345,8 +347,8 @@ void Gameplay::loop() {
 
     case GameplayState::Playing:
       if (pause_option == PauseOption::Retry) {
-        break; // from gameplay loop; causing gameplay to restart since we're
-               // still on the same game state
+        return; // escapes from gameplay loop; causing gameplay to restart since
+                // we're still on the same game state
       }
       Gameplay::gameplay_handler();
       break;
