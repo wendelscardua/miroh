@@ -1,14 +1,11 @@
 #include "fruits.hpp"
 #include "banked-asset-helpers.hpp"
-#include "board.hpp"
 #include "log.hpp"
-#include "metasprites.hpp"
-#include "player.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
-const Fruit::Type fruit_types_per_level[][4] = {
+const Fruit::Type fruit_types_per_stage[][4] = {
     // Starlit Stables
     {Fruit::Type::Apple, Fruit::Type::Corn, Fruit::Type::Pear,
      Fruit::Type::Avocado},
@@ -31,8 +28,8 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   fruit.row = -1;
   fruit.column = -1;
 
-  Fruit::Type type = fruit_types_per_level[current_level][RAND_UP_TO(
-      sizeof(fruit_types_per_level[current_level]))];
+  Fruit::Type type = fruit_types_per_stage[(u8)current_stage][RAND_UP_TO(
+      sizeof(fruit_types_per_stage[(u8)current_stage]))];
 
   fruit.low_metasprite = low_fruits[(u8)type];
   fruit.high_metasprite = high_fruits[(u8)type];
@@ -68,8 +65,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   fruit.life = EXPIRATION_TIME;
 }
 
-Fruits::Fruits(Board &board, u8 current_level)
-    : board(board), current_level(current_level) {
+Fruits::Fruits(Board &board) : board(board) {
   spawn_timer = SPAWN_DELAY /
                 2; // just so player don't wait too much to see the first fruit
   for (auto fruit : fruits) {

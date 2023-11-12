@@ -131,13 +131,12 @@ class Fruits {
   u8 active_fruits;
   Board &board;
   u16 spawn_timer;
-  u8 current_level;
 
 public:
   static constexpr u16 SPAWN_DELAY = 5 * 60;
   static constexpr u8 FRUIT_NUTRITION = 3;
 
-  Fruits(Board &board, u8 current_level);
+  Fruits(Board &board);
 
   void update(Player &player);
 

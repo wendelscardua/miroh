@@ -101,9 +101,8 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       board(board),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
-      polyomino(board), fruits(board, current_level),
-      gameplay_state(GameplayState::Playing), input_mode(InputMode::Player),
-      y_scroll(INTRO_SCROLL_Y) {
+      polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
+      input_mode(InputMode::Player), y_scroll(INTRO_SCROLL_Y) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);

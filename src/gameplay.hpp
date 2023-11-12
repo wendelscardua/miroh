@@ -1,6 +1,5 @@
 #pragma once
 
-#include "assets.hpp"
 #include "board.hpp"
 #include "fruits.hpp"
 #include "input-mode.hpp"
