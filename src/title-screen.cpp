@@ -79,7 +79,7 @@ __attribute__((noinline)) TitleScreen::~TitleScreen() {
 }
 
 __attribute__((noinline)) void TitleScreen::loop() {
-  while (current_mode == GameMode::TitleScreen) {
+  while (current_game_state == GameState::TitleScreen) {
     ppu_wait_nmi();
 
     pad_poll(0);
@@ -117,7 +117,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         case MenuOption::OnePlayer:
         case MenuOption::TwoPlayers:
           // TODO: pick between 1p and 2p modes
-          current_mode = GameMode::Gameplay;
+          current_game_state = GameState::Gameplay;
           banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
           break;
         case MenuOption::HowToPlay:

@@ -220,7 +220,7 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
   } else if (pressed & PAD_A) {
     switch (pause_option) {
     case PauseOption::Quit:
-      current_mode = GameMode::TitleScreen;
+      current_game_state = GameState::TitleScreen;
       break;
     case PauseOption::Resume:
       input_mode = InputMode::Player;
@@ -326,7 +326,7 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
     default:
     }
   } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
-    current_mode = GameMode::TitleScreen;
+    current_game_state = GameState::TitleScreen;
   }
 }
 
@@ -335,7 +335,7 @@ void Gameplay::loop() {
   extern volatile char FRAME_CNT1;
   PauseOption pause_option = PauseOption::Resume;
 
-  while (current_mode == GameMode::Gameplay) {
+  while (current_game_state == GameState::Gameplay) {
     ppu_wait_nmi();
 
     START_MESEN_WATCH(1);
