@@ -33,12 +33,12 @@ const unsigned char pause_menu_text_2[] = {
     0x02, 0x02, 0x14, 0x08, 0x15, 0x17, 0x0f, 0x08, 0x02, 0x02, 0x02,
     0x02, 0x08, 0x1a, 0x0c, 0x16, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char exit_confirmation_text_1[] = {
+const unsigned char exit_confirmation_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x16, 0x17, 0x14,
     0x10, 0x02, 0x16, 0x11, 0x02, 0x19, 0x11, 0x14, 0x0e, 0x07, 0x02,
     0x0f, 0x04, 0x12, 0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char exit_confirmation_text_2[] = {
+const unsigned char yes_no_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x1b, 0x08,
     0x15, 0x2f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x10, 0x11,
     0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
@@ -86,51 +86,46 @@ const unsigned char continue_text[] = {
     0x02, 0x06, 0x11, 0x10, 0x16, 0x0c, 0x10, 0x17, 0x08, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char confirm_retry_text_1[] = {
+const unsigned char confirm_retry_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x15, 0x16,
     0x04, 0x14, 0x16, 0x02, 0x16, 0x0b, 0x0c, 0x15, 0x02, 0x15, 0x16,
     0x04, 0x0a, 0x08, 0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
-
-const unsigned char confirm_retry_text_2[] = {
-    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x1b, 0x08,
-    0x15, 0x2f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x10, 0x11,
-    0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
 const unsigned char empty_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-// TODO: variable current_location
+// TODO: variable current_stage
 __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       board(board),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board, current_level),
-      input_mode(InputMode::Player), current_location(Stage::StarlitStables),
+      gameplay_state(GameplayState::Playing), input_mode(InputMode::Player),
       y_scroll(INTRO_SCROLL_Y) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
 
-  banked_lambda(ASSETS_BANK, [this]() {
+  banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    donut_bulk_load(level_bg_tiles[(u8)current_location]);
+    donut_bulk_load(level_bg_tiles[(u8)current_stage]);
 
     vram_adr(PPU_PATTERN_TABLE_1);
     donut_bulk_load((void *)spr_tiles);
 
     vram_adr(NAMETABLE_A);
-    vram_unrle(level_nametables[(u8)current_location]);
+    vram_unrle(level_nametables[(u8)current_stage]);
 
     vram_adr(NAMETABLE_C);
-    vram_unrle(level_alt_nametables[(u8)current_location]);
+    vram_unrle(level_alt_nametables[(u8)current_stage]);
 
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);
 
-    pal_bg(level_bg_palettes[(u8)current_location]);
-    pal_spr(level_spr_palettes[(u8)current_location]);
+    pal_bg(level_bg_palettes[(u8)current_stage]);
+    pal_spr(level_spr_palettes[(u8)current_stage]);
   });
 
   board.render();
@@ -199,19 +194,19 @@ void Gameplay::pause_handler(PauseOption &pause_option) {
 
   static const PauseOption NEXT_OPTION[] = {
       Gameplay::PauseOption::Resume,
+      Gameplay::PauseOption::Exit,
       Gameplay::PauseOption::Retry,
-      Gameplay::PauseOption::Quit,
   };
 
   static const PauseOption PREV_OPTION[] = {
+      Gameplay::PauseOption::Exit,
       Gameplay::PauseOption::Retry,
-      Gameplay::PauseOption::Quit,
       Gameplay::PauseOption::Resume,
   };
 
   if (pressed & (PAD_START | PAD_B)) {
     pause_option = PauseOption::Resume;
-    input_mode = InputMode::Player;
+    gameplay_state = GameplayState::Playing;
     y_scroll = DEFAULT_Y_SCROLL;
     GGSound::resume();
   } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
@@ -220,11 +215,11 @@ void Gameplay::pause_handler(PauseOption &pause_option) {
     pause_option = PREV_OPTION[(u8)pause_option];
   } else if (pressed & PAD_A) {
     switch (pause_option) {
-    case PauseOption::Quit:
+    case PauseOption::Exit:
       current_game_state = GameState::TitleScreen;
       break;
     case PauseOption::Resume:
-      input_mode = InputMode::Player;
+      gameplay_state = GameplayState::Playing;
       y_scroll = DEFAULT_Y_SCROLL;
       GGSound::resume();
       break;
@@ -236,20 +231,23 @@ void Gameplay::pause_handler(PauseOption &pause_option) {
 
   bool toggle = (get_frame_count() & 0b10000) != 0;
 
-  one_vram_buffer(pause_option == Gameplay::PauseOption::Quit
-                      ? (toggle ? 0x10 : 0x2f)
-                      : 0x30,
-                  NTADR_C(4, 5));
+  one_vram_buffer(
+      pause_option == Gameplay::PauseOption::Retry
+          ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+          : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(4, 5));
 
-  one_vram_buffer(pause_option == Gameplay::PauseOption::Resume
-                      ? (toggle ? 0x10 : 0x2f)
-                      : 0x30,
-                  NTADR_C(12, 5));
+  one_vram_buffer(
+      pause_option == Gameplay::PauseOption::Resume
+          ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+          : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(12, 5));
 
-  one_vram_buffer(pause_option == Gameplay::PauseOption::Retry
-                      ? (toggle ? 0x10 : 0x2f)
-                      : 0x30,
-                  NTADR_C(22, 5));
+  one_vram_buffer(
+      pause_option == Gameplay::PauseOption::Exit
+          ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+          : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(22, 5));
 }
 
 void Gameplay::gameplay_handler() {
@@ -310,7 +308,7 @@ void Gameplay::gameplay_handler() {
     }
 
     if (any_pressed & PAD_START) {
-      input_mode = InputMode::Pause;
+      gameplay_state = GameplayState::Paused;
       y_scroll = PAUSE_SCROLL_Y;
       GGSound::pause();
     } else if (p1_pressed & PAD_SELECT) {
@@ -344,14 +342,22 @@ void Gameplay::loop() {
     pad_poll(0);
     pad_poll(1);
 
-    if (input_mode == InputMode::Pause) {
-      Gameplay::pause_handler(pause_option);
-    } else {
+    switch (gameplay_state) {
+
+    case GameplayState::Playing:
       if (pause_option == PauseOption::Retry) {
         break; // from gameplay loop; causing gameplay to restart since we're
                // still on the same game state
       }
       Gameplay::gameplay_handler();
+      break;
+    case GameplayState::Paused:
+      Gameplay::pause_handler(pause_option);
+      break;
+    case GameplayState::ConfirmExit:
+    case GameplayState::ConfirmRetry:
+    case GameplayState::ConfirmContinue:
+      break;
     }
 
     if (input_mode != old_mode) {

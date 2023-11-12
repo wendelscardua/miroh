@@ -8,7 +8,16 @@
 #include "polyomino.hpp"
 
 class Gameplay {
-  enum class PauseOption : u8 { Quit, Resume, Retry };
+  enum class PauseOption : u8 { Retry, Resume, Exit };
+
+  enum class GameplayState : u8 {
+    Playing,
+    Paused,
+    ConfirmExit,
+    ConfirmRetry,
+    ConfirmContinue,
+  };
+
   // we level up every 50 points
   static constexpr u16 LEVEL_UP_POINTS = 50;
 
@@ -54,8 +63,8 @@ public:
   Player player;
   Polyomino polyomino;
   Fruits fruits;
+  GameplayState gameplay_state;
   InputMode input_mode;
-  Stage current_location;
   int y_scroll;
 
   Gameplay(Board &board);
