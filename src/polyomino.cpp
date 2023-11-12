@@ -88,14 +88,23 @@ Polyomino::able_to_kick(auto kick_deltas) {
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
-  if (state != Polyomino::State::Active) {
+Polyomino::handle_input(InputMode input_mode) {
+  u8 pressed, held;
+
+  switch (current_controller_scheme) {
+  case ControllerScheme::OnePlayer:
     if (input_mode == InputMode::Polyomino) {
-      input_mode = InputMode::Player;
+      pressed = get_pad_new(0);
+      held = pad_state(0);
+    } else {
+      pressed = 0;
+      held = 0;
     }
-  }
-  if (input_mode != InputMode::Polyomino) {
-    return;
+    break;
+  case ControllerScheme::TwoPlayers:
+    pressed = get_pad_new(0);
+    held = pad_state(0);
+    break;
   }
 
   if (pressed & PAD_UP) {

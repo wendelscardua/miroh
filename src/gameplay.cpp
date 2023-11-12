@@ -194,7 +194,9 @@ void Gameplay::render() {
   oam_hide_rest();
 }
 
-void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
+void Gameplay::pause_handler(PauseOption &pause_option) {
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
   static const PauseOption NEXT_OPTION[] = {
       Gameplay::PauseOption::Resume,
       Gameplay::PauseOption::Retry,
@@ -210,7 +212,6 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
   if (pressed & (PAD_START | PAD_B)) {
     pause_option = PauseOption::Resume;
     input_mode = InputMode::Player;
-    pressed = 0;
     y_scroll = DEFAULT_Y_SCROLL;
     GGSound::resume();
   } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
@@ -224,13 +225,11 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
       break;
     case PauseOption::Resume:
       input_mode = InputMode::Player;
-      pressed = 0;
       y_scroll = DEFAULT_Y_SCROLL;
       GGSound::resume();
       break;
     case PauseOption::Retry:
       input_mode = InputMode::Player;
-      pressed = 0;
       break;
     }
   }
@@ -253,7 +252,10 @@ void Gameplay::pause_handler(PauseOption &pause_option, u8 &pressed) {
                   NTADR_C(22, 5));
 }
 
-void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
+void Gameplay::gameplay_handler() {
+  auto p1_pressed = get_pad_new(0);
+  auto any_pressed = p1_pressed | get_pad_new(1);
+
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
       !board.ongoing_line_clearing() && --spawn_timer == 0) {
@@ -261,9 +263,7 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
 
-  banked_lambda(PLAYER_BANK, [this, pressed, held]() {
-    player.update(input_mode, pressed, held);
-  });
+  banked_lambda(PLAYER_BANK, [this]() { player.update(input_mode); });
 
   if (player.state != Player::State::Dying &&
       player.state != Player::State::Dead) {
@@ -271,9 +271,9 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
     bool failed_to_place = false;
     u8 lines_filled = 0;
 
-    banked_lambda(GET_BANK(polyominos), [pressed, this, held, &blocks_placed,
-                                         &failed_to_place, &lines_filled]() {
-      polyomino.handle_input(input_mode, pressed, held);
+    banked_lambda(GET_BANK(polyominos), [this, &blocks_placed, &failed_to_place,
+                                         &lines_filled]() {
+      polyomino.handle_input(input_mode);
       polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
                        failed_to_place, lines_filled);
     });
@@ -281,6 +281,13 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
     START_MESEN_WATCH(3);
     fruits.update(player);
     STOP_MESEN_WATCH(3);
+
+    if (current_controller_scheme == ControllerScheme::OnePlayer &&
+        polyomino.state != Polyomino::State::Active) {
+      if (input_mode == InputMode::Polyomino) {
+        input_mode = InputMode::Player;
+      }
+    }
 
     if (lines_filled) {
       u16 points = 10 * (2 * lines_filled - 1);
@@ -302,30 +309,18 @@ void Gameplay::gameplay_handler(u8 &pressed, u8 &held) {
       player.energy_upkeep(3 * Player::ENERGY_TICKS);
     }
 
-    switch (input_mode) {
-    case InputMode::Player:
-      if (pressed & (PAD_SELECT | PAD_A | PAD_B)) {
+    if (any_pressed & PAD_START) {
+      input_mode = InputMode::Pause;
+      y_scroll = PAUSE_SCROLL_Y;
+      GGSound::pause();
+    } else if (p1_pressed & PAD_SELECT) {
+      if (input_mode == InputMode::Player) {
         input_mode = InputMode::Polyomino;
-        pressed &= ~(PAD_SELECT | PAD_A | PAD_B);
-      } else if (pressed & PAD_START) {
-        input_mode = InputMode::Pause;
-        y_scroll = PAUSE_SCROLL_Y;
-        GGSound::pause();
-      }
-      break;
-    case InputMode::Polyomino:
-      if (pressed & (PAD_SELECT)) {
+      } else {
         input_mode = InputMode::Player;
-        pressed &= ~(PAD_SELECT);
-      } else if (pressed & PAD_START) {
-        input_mode = InputMode::Pause;
-        y_scroll = PAUSE_SCROLL_Y;
-        GGSound::pause();
       }
-      break;
-    default:
     }
-  } else if (player.state == Player::State::Dead && (pressed & PAD_START)) {
+  } else if (player.state == Player::State::Dead && (any_pressed & PAD_START)) {
     current_game_state = GameState::TitleScreen;
   }
 }
@@ -347,18 +342,16 @@ void Gameplay::loop() {
     InputMode old_mode = input_mode;
 
     pad_poll(0);
-
-    u8 pressed = get_pad_new(0);
-    u8 held = pad_state(0);
+    pad_poll(1);
 
     if (input_mode == InputMode::Pause) {
-      Gameplay::pause_handler(pause_option, pressed);
+      Gameplay::pause_handler(pause_option);
     } else {
       if (pause_option == PauseOption::Retry) {
         break; // from gameplay loop; causing gameplay to restart since we're
                // still on the same game state
       }
-      Gameplay::gameplay_handler(pressed, held);
+      Gameplay::gameplay_handler();
     }
 
     if (input_mode != old_mode) {

@@ -65,6 +65,6 @@ public:
 
 private:
   void render();
-  void pause_handler(PauseOption &pause_option, u8 &pressed);
-  void gameplay_handler(u8 &pressed, u8 &held);
+  void pause_handler(PauseOption &pause_option);
+  void gameplay_handler();
 };

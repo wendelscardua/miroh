@@ -2,10 +2,12 @@
 #include "assets.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "common.hpp"
 #include "coroutine.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
+#include "input-mode.hpp"
 #include "maze-defs.hpp"
 #include "metasprites.hpp"
 #include <nesdoug.h>
@@ -38,10 +40,30 @@ void Player::energy_upkeep(s16 delta) {
 }
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
-Player::update(InputMode input_mode, u8 pressed, u8 held) {
+Player::update(InputMode input_mode) {
   if (state != State::Dying && state != State::Dead) {
     energy_upkeep(1);
   }
+
+  u8 pressed, held;
+
+  switch (current_controller_scheme) {
+  case ControllerScheme::OnePlayer:
+    if (input_mode == InputMode::Player) {
+      pressed = get_pad_new(0);
+      held = pad_state(0);
+      // TODO: think about allowing a second player to enter during a 1p game
+    } else {
+      pressed = 0;
+      held = 0;
+    }
+    break;
+  case ControllerScheme::TwoPlayers:
+    pressed = get_pad_new(1);
+    held = pad_state(1);
+    break;
+  }
+
   switch (state) {
   case State::Idle: {
   check_idle:
