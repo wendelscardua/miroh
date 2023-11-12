@@ -81,10 +81,11 @@ __attribute__((noinline)) void TitleScreen::loop() {
     ppu_wait_nmi();
 
     pad_poll(0);
+    pad_poll(1);
 
     rand16();
 
-    u8 pressed = get_pad_new(0);
+    u8 pressed = get_pad_new(0) | get_pad_new(1);
     bool bobbing_flag = get_frame_count() & 0b10000;
 
     switch (state) {
