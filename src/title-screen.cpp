@@ -89,6 +89,15 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
     switch (state) {
     case State::MainMenu:
+      if (x_scroll != TITLE_SCROLL) {
+        // TODO: easing
+        x_scroll += 16;
+        set_scroll_x((u16)x_scroll);
+        if (x_scroll == PALETTE_SWAP_POINT) {
+          pal_col(0x11, 0x15);
+          pal_col(0x13, 0x35);
+        }
+      }
       if (pressed & (PAD_UP | PAD_LEFT)) {
         current_option = previous_option[(u8)current_option];
       } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
@@ -107,17 +116,36 @@ __attribute__((noinline)) void TitleScreen::loop() {
           break;
         }
       }
-      banked_oam_meta_spr(0x48, menu_y_position[(u8)current_option],
-                          bobbing_flag ? metasprite_AvocadoHigh
-                                       : metasprite_AvocadoLow);
       break;
     case State::HowToPlay:
+      if (pressed) {
+        state = State::MainMenu;
+      }
+      if (x_scroll != HOW_TO_SCROLL) {
+        // TODO: easing
+        x_scroll -= 16;
+        set_scroll_x((u16)x_scroll);
+        if (x_scroll == PALETTE_SWAP_POINT) {
+          pal_col(0x11, 0x13);
+          pal_col(0x13, 0x20);
+        }
+      }
       break;
     }
+
+    banked_oam_meta_spr_horizontal(
+        CURSOR_X_POSITION - x_scroll, menu_y_position[(u8)current_option],
+        bobbing_flag ? metasprite_AvocadoHigh : metasprite_AvocadoLow);
 
     banked_oam_meta_spr_horizontal(JR_X_POSITION - x_scroll, JR_Y_POSITION,
                                    metasprite_TitleJR);
 
+    banked_oam_meta_spr_horizontal(HOW_TO_LEFT_X_POSITION - x_scroll,
+                                   HOW_TO_LEFT_Y_POSITION,
+                                   metasprite_HowtoLeft);
+    banked_oam_meta_spr_horizontal(HOW_TO_RIGHT_X_POSITION - x_scroll,
+                                   HOW_TO_RIGHT_Y_POSITION,
+                                   metasprite_HowtoRight);
     oam_hide_rest();
   }
 }
