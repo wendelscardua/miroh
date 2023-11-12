@@ -116,16 +116,16 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     donut_bulk_load((void *)title_bg_tiles);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    donut_bulk_load(level_spr_tiles[0]);
+    donut_bulk_load((void *)spr_tiles);
 
     vram_adr(NAMETABLE_D);
-    vram_unrle(how_to_nam);
+    vram_unrle(title_alt_nametable);
 
     vram_adr(NAMETABLE_A);
     vram_unrle(title_nametable);
 
     pal_bg(title_bg_palette);
-    pal_spr(level_spr_palettes[0]);
+    pal_spr(title_spr_palette);
   });
 
   pal_bright(0);
@@ -180,23 +180,6 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
           state = State::HowToPlay;
           scroll(0, 240);
-          break;
-        case MenuOption::Credits:
-          banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-
-          state = State::Credits;
-          pal_fade_to(4, 0);
-          ppu_off();
-
-          banked_lambda(GET_BANK(credits_nam), []() {
-            vram_adr(NAMETABLE_D);
-            vram_unrle(credits_nam);
-          });
-
-          scroll(0, 240);
-
-          ppu_on_all();
-          pal_fade_to(0, 4);
           break;
         case MenuOption::Start:
           banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
@@ -255,24 +238,6 @@ __attribute__((noinline)) void TitleScreen::loop() {
         scroll(0, 0);
         state = State::Options;
         break;
-      }
-      break;
-    case State::Credits:
-      if (pressed & (PAD_START | PAD_A)) {
-        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-
-        state = State::Options;
-        pal_fade_to(4, 0);
-        ppu_off();
-
-        banked_lambda(GET_BANK(credits_nam), []() {
-          vram_adr(NAMETABLE_D);
-          vram_unrle(how_to_nam);
-        });
-        scroll(0, 0);
-
-        ppu_on_all();
-        pal_fade_to(0, 4);
       }
       break;
     case State::Settings:

@@ -38,19 +38,6 @@ level_bg_tiles:
     .byte GlitteryGrottoBG_chr@mos16hi
     .zero 1
 
-    .global level_spr_tiles
-level_spr_tiles:
-    .byte SPR_chr@mos16lo
-    .byte SPR_chr@mos16lo
-    .byte SPR_chr@mos16lo
-    .byte SPR_chr@mos16lo
-    .byte SPR_chr@mos16lo
-    .byte SPR_chr@mos16hi
-    .byte SPR_chr@mos16hi
-    .byte SPR_chr@mos16hi
-    .byte SPR_chr@mos16hi
-    .byte SPR_chr@mos16hi
-
     .global level_nametables
 level_nametables:
     .byte StarlitStables_nam@mos16lo
@@ -76,9 +63,6 @@ level_alt_nametables:
     .byte FairyForestAlt_nam@mos16hi
     .byte GlitteryGrottoAlt_nam@mos16hi
     .zero 1
-
-    ; Generic
-SPR_chr: .incbin "SPR.chr.donut"
  
     ; Starlit Stables
 StarlitStablesBG_pal: .incbin "StarlitStablesBG.pal"
@@ -116,14 +100,14 @@ MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 ;MarshmallowMountainAlt_nam: .incbin "MarshmallowMountainAlt.nam.rle"
 
     ; Title Screen
-.global title_nametable, title_bg_palette, title_bg_tiles
-title_nametable: .incbin "Title.nam.rle"
-title_bg_palette: .incbin "TitleScreenBG.pal"
+.global title_bg_palette, title_spr_palette, title_bg_tiles, title_nametable, title_alt_nametable
+
+title_bg_palette: .incbin "TitleBG.pal"
+title_spr_palette: .incbin "TitleSPR.pal"
 title_bg_tiles: .incbin "TitleBG.chr.donut"
+title_nametable: .incbin "Title.nam.rle"
+title_alt_nametable: .incbin "TitleAlt.nam.rle"
 
-
-    ; etc
-.global how_to_nam
-how_to_nam: .incbin "how-to.nam.rle"
-.global credits_nam
-credits_nam: .incbin "credits.nam.rle"
+    ; Generic
+.global spr_tiles
+spr_tiles: .incbin "SPR.chr.donut"
