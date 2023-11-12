@@ -8,6 +8,7 @@
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "donut.hpp"
+#include "ggsound.hpp"
 #include "metasprites.hpp"
 #include "soundtrack.hpp"
 #include "title-screen.hpp"
@@ -35,7 +36,8 @@ const u8 menu_y_position[] = {
 
 __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
-      board(board), x_scroll(TITLE_SCROLL) {
+      current_track(Song::Baby_bullhead), next_track_delay(0), board(board),
+      x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_VERTICAL);
@@ -66,7 +68,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
   ppu_on_all();
 
   // TODO: pick title song
-  banked_play_song(Song::Baby_bullhead);
+  banked_play_song(current_track);
 
   pal_fade_to(0, 4);
 }
@@ -87,6 +89,13 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
     u8 pressed = get_pad_new(0) | get_pad_new(1);
     bool bobbing_flag = get_frame_count() & 0b10000;
+
+    if (next_track_delay > 0) {
+      next_track_delay--;
+      if (next_track_delay == 0) {
+        banked_play_song(current_track);
+      }
+    }
 
     switch (state) {
     case State::MainMenu:
@@ -119,8 +128,28 @@ __attribute__((noinline)) void TitleScreen::loop() {
       }
       break;
     case State::HowToPlay:
-      if (pressed) {
+      if (pressed & (PAD_B)) {
         state = State::MainMenu;
+      } else if (pressed & (PAD_LEFT | PAD_UP)) {
+        if ((u8)current_track == 0) {
+          current_track = (Song)(NUM_SONGS - 1);
+        } else {
+          current_track = (Song)((u8)current_track - 1);
+        }
+        next_track_delay = NEXT_TRACK_DELAY;
+        GGSound::stop();
+        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
+        one_vram_buffer(0x04 + (u8)current_track, NTADR_A(28, 26));
+      } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_A)) {
+        if ((u8)current_track == NUM_SONGS - 1) {
+          current_track = (Song)0;
+        } else {
+          current_track = (Song)((u8)current_track + 1);
+        }
+        next_track_delay = NEXT_TRACK_DELAY;
+        GGSound::stop();
+        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
+        one_vram_buffer(0x04 + (u8)current_track, NTADR_A(28, 26));
       }
       if (x_scroll != HOW_TO_SCROLL) {
         // TODO: easing

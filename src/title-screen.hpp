@@ -2,6 +2,7 @@
 
 #include "board.hpp"
 #include "common.hpp"
+#include "soundtrack.hpp"
 class TitleScreen {
 public:
   static const u8 BANK = 0;
@@ -15,6 +16,7 @@ public:
   static const u8 HOW_TO_LEFT_Y_POSITION = 0x50;
   static const s16 HOW_TO_RIGHT_X_POSITION = 0xb8;
   static const u8 HOW_TO_RIGHT_Y_POSITION = 0x50;
+  static const u8 NEXT_TRACK_DELAY = 30;
 
   enum class State : u8 {
     MainMenu,
@@ -29,6 +31,8 @@ public:
 
   State state;
   MenuOption current_option;
+  Song current_track;
+  u8 next_track_delay;
   Board &board;
   s16 x_scroll;
 
