@@ -55,7 +55,7 @@ public:
   Polyomino polyomino;
   Fruits fruits;
   InputMode input_mode;
-  Location current_location;
+  Stage current_location;
   int y_scroll;
 
   Gameplay(Board &board);

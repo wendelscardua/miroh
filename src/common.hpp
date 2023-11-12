@@ -22,6 +22,17 @@ enum class ControllerScheme : u8 {
   TwoPlayers,
 };
 
+constexpr u8 NUM_STAGES = 5;
+
+enum class Stage : u8 {
+  StarlitStables,
+  RainbowRetreat,
+  FairyForest,
+  GlitteryGrotto,
+  MarshmallowMountain
+};
+
 extern GameState current_game_state;
 extern GameMode current_game_mode;
 extern ControllerScheme current_controller_scheme;
+extern Stage current_stage;

@@ -107,7 +107,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
       board(board),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board, current_level),
-      input_mode(InputMode::Player), current_location(Location::StarlitStables),
+      input_mode(InputMode::Player), current_location(Stage::StarlitStables),
       y_scroll(INTRO_SCROLL_Y) {
   set_chr_bank(0);
 

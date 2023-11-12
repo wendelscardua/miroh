@@ -122,6 +122,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
                                           : ControllerScheme::TwoPlayers;
           current_game_mode = GameMode::Story;
           current_game_state = GameState::Gameplay;
+          current_stage = Stage::StarlitStables;
           banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
           break;
         case MenuOption::HowToPlay:

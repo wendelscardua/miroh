@@ -15,21 +15,11 @@ static constexpr u8 MARSHMALLOW_BASE_TILE = 0x40;
 static constexpr u8 DIGITS_BASE_TILE = 0x64;
 static constexpr u8 DARK_ZERO_TILE = 0x6e;
 
-constexpr u8 NUM_LEVELS = 5;
-
-enum class Location : u8 {
-  StarlitStables,
-  RainbowRetreat,
-  FairyForest,
-  GlitteryGrotto,
-  MarshmallowMountain
-};
-
-extern "C" const soa::Array<char *, NUM_LEVELS> level_bg_palettes;
-extern "C" const soa::Array<char *, NUM_LEVELS> level_spr_palettes;
-extern "C" const soa::Array<char *, NUM_LEVELS> level_bg_tiles;
-extern "C" const soa::Array<char *, NUM_LEVELS> level_nametables;
-extern "C" const soa::Array<char *, NUM_LEVELS> level_alt_nametables;
+extern "C" const soa::Array<char *, NUM_STAGES> level_bg_palettes;
+extern "C" const soa::Array<char *, NUM_STAGES> level_spr_palettes;
+extern "C" const soa::Array<char *, NUM_STAGES> level_bg_tiles;
+extern "C" const soa::Array<char *, NUM_STAGES> level_nametables;
+extern "C" const soa::Array<char *, NUM_STAGES> level_alt_nametables;
 
 extern "C" const char title_bg_palette[];
 extern "C" const char title_spr_palette[];
