@@ -7,8 +7,6 @@
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "donut.hpp"
-#include "ggsound.hpp"
-#include "maze-defs.hpp"
 #include "metasprites.hpp"
 #include "soundtrack.hpp"
 #include "title-screen.hpp"
@@ -16,98 +14,26 @@
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
 
-const unsigned char menu_text[24 * 3] = {
-    0x00, 0x00, 0x00, 0x00, 0x30, 0x4c, 0x41, 0x59, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x2f, 0x50, 0x54, 0x49, 0x4f, 0x4e, 0x53, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x28, 0x45, 0x4c, 0x50, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x23, 0x52, 0x45, 0x44, 0x49, 0x54, 0x53, 0x00, 0x00, 0x00, 0x00};
-
-const unsigned char settings_text[24 * 3] = {
-    0x00, 0x00, 0x00, 0x2c, 0x49, 0x4e, 0x45, 0x00, 0x47, 0x52, 0x41, 0x56,
-    0x49, 0x54, 0x59, 0x1a, 0x1c, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x2d, 0x41, 0x5a, 0x45, 0x1a, 0x00, 0x1c, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x32, 0x45, 0x54, 0x55, 0x52, 0x4e, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-const TitleScreen::MenuOption left_of[] = {
-    TitleScreen::MenuOption::Start,    // Start
-    TitleScreen::MenuOption::Controls, // Controls
-    TitleScreen::MenuOption::Start,    // Settings
-    TitleScreen::MenuOption::Controls, // Credits
+const TitleScreen::MenuOption previous_option[] = {
+    TitleScreen::MenuOption::HowToPlay,  // OnePlayer
+    TitleScreen::MenuOption::OnePlayer,  // TwoPlayers
+    TitleScreen::MenuOption::TwoPlayers, // HowToPlay
 };
 
-const TitleScreen::MenuOption right_of[] = {
-    TitleScreen::MenuOption::Settings, // Start
-    TitleScreen::MenuOption::Credits,  // Controls
-    TitleScreen::MenuOption::Settings, // Settings
-    TitleScreen::MenuOption::Credits,  // Credits
+const TitleScreen::MenuOption next_option[] = {
+    TitleScreen::MenuOption::TwoPlayers, // OnePlayer
+    TitleScreen::MenuOption::HowToPlay,  // TwoPlayers
+    TitleScreen::MenuOption::OnePlayer,  // HowToPlay
 };
 
-const TitleScreen::MenuOption above_of[] = {
-    TitleScreen::MenuOption::Start,    // Start
-    TitleScreen::MenuOption::Start,    // Controls
-    TitleScreen::MenuOption::Settings, // Settings
-    TitleScreen::MenuOption::Settings, // Credits
-};
-
-const TitleScreen::MenuOption below_of[] = {
-    TitleScreen::MenuOption::Controls, // Start
-    TitleScreen::MenuOption::Controls, // Controls
-    TitleScreen::MenuOption::Credits,  // Settings
-    TitleScreen::MenuOption::Credits,  // Credits
-};
-
-const TitleScreen::MenuOption next[] = {
-    TitleScreen::MenuOption::Controls, // Start
-    TitleScreen::MenuOption::Settings, // Controls
-    TitleScreen::MenuOption::Credits,  // Settings
-    TitleScreen::MenuOption::Start,    // Credits
-};
-
-const u8 option_mino_x[] = {
-    0x30, // Start
-    0x30, // Controls
-    0x78, // Settings
-    0x78, // Credits
-};
-
-const u8 option_mino_y[] = {
-    0x70, // Start
-    0x80, // Controls
-    0x70, // Settings
-    0x80, // Credits
-};
-
-const u8 option_mino_frame_mod[] = {
-    0x08, // Start
-    0x10, // Controls
-    0x20, // Settings
-    0x10, // Credits
-};
-
-const u8 setting_mino_y[] = {
-    0x70, // Line gravity
-    0x78, // Maze
-    0x80, // Return
-};
-
-const TitleScreen::SettingsOption setting_above[] = {
-    TitleScreen::SettingsOption::Return,
-    TitleScreen::SettingsOption::LineGravity,
-    TitleScreen::SettingsOption::Maze,
-};
-
-const TitleScreen::SettingsOption setting_below[] = {
-    TitleScreen::SettingsOption::Maze,
-    TitleScreen::SettingsOption::Return,
-    TitleScreen::SettingsOption::LineGravity,
+const u8 menu_y_position[] = {
+    0x96, // OnePlayer
+    0xa6, // TwoPlayers
+    0xb6, // HowToPlay
 };
 
 __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
-    : state(State::PressStart), current_option(MenuOption::Start),
+    : state(State::MainMenu), current_option(MenuOption::OnePlayer),
       board(board) {
   set_chr_bank(0);
 
@@ -151,169 +77,41 @@ __attribute__((noinline)) void TitleScreen::loop() {
   while (current_mode == GameMode::TitleScreen) {
     ppu_wait_nmi();
 
-    oam_clear();
-
     pad_poll(0);
 
     rand16();
 
     u8 pressed = get_pad_new(0);
+    bool bobbing_flag = get_frame_count() & 0b10000;
 
     switch (state) {
-    case State::PressStart:
-      if (pressed & (PAD_START | PAD_A)) {
-        multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
-        multi_vram_buffer_horz(menu_text + 24, 24, NTADR_A(4, 16));
-        multi_vram_buffer_horz(menu_text + 48, 24, NTADR_A(4, 17));
-
-        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-
-        state = State::Options;
-        current_option = MenuOption::Start;
-      }
-      break;
-    case State::Options:
-      if (pressed & (PAD_START | PAD_A)) {
+    case State::MainMenu:
+      if (pressed & (PAD_UP | PAD_LEFT)) {
+        current_option = previous_option[(u8)current_option];
+      } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
+        current_option = next_option[(u8)current_option];
+      } else if (pressed & (PAD_START | PAD_A)) {
         switch (current_option) {
-        case MenuOption::Controls:
-          banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-
-          state = State::HowToPlay;
-          scroll(0, 240);
-          break;
-        case MenuOption::Start:
-          banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-
-          state = State::PressStart;
+        case MenuOption::OnePlayer:
+        case MenuOption::TwoPlayers:
+          // TODO: pick between 1p and 2p modes
           current_mode = GameMode::Gameplay;
           banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
           break;
-        case MenuOption::Settings:
-          banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-
-          state = State::Settings;
-          current_setting = SettingsOption::LineGravity;
-          multi_vram_buffer_horz(settings_text, 24, NTADR_A(4, 15));
-          multi_vram_buffer_horz(settings_text + 24, 24, NTADR_A(4, 16));
-          multi_vram_buffer_horz(settings_text + 48, 24, NTADR_A(4, 17));
+        case MenuOption::HowToPlay:
+          // TODO: scroll to how to play
+          state = State::HowToPlay;
           break;
         }
-        break;
-      } else if (pressed & PAD_UP) {
-        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-
-        current_option = above_of[(u8)current_option];
-      } else if (pressed & PAD_DOWN) {
-        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-
-        current_option = below_of[(u8)current_option];
-      } else if (pressed & PAD_LEFT) {
-        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-
-        current_option = left_of[(u8)current_option];
-      } else if (pressed & PAD_RIGHT) {
-        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-
-        current_option = right_of[(u8)current_option];
-      } else if (pressed & (PAD_SELECT | PAD_B)) {
-        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-
-        current_option = next[(u8)current_option];
       }
-
-      if (get_frame_count() & option_mino_frame_mod[(u8)current_option]) {
-        banked_oam_meta_spr(option_mino_x[(u8)current_option],
-                            option_mino_y[(u8)current_option],
-                            metasprite_UniRightWalk1);
-      } else {
-        banked_oam_meta_spr(option_mino_x[(u8)current_option],
-                            option_mino_y[(u8)current_option],
-                            metasprite_UniRightWalk2);
-      }
+      banked_oam_meta_spr(0x48, menu_y_position[(u8)current_option],
+                          bobbing_flag ? metasprite_AvocadoHigh
+                                       : metasprite_AvocadoLow);
       break;
     case State::HowToPlay:
-      if (pressed & (PAD_START | PAD_A)) {
-        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
-
-        scroll(0, 0);
-        state = State::Options;
-        break;
-      }
-      break;
-    case State::Settings:
-      if (pressed & PAD_UP) {
-        current_setting = setting_above[(u8)current_setting];
-      } else if (pressed & (PAD_DOWN | PAD_SELECT)) {
-        banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-        current_setting = setting_below[(u8)current_setting];
-      } else if (pressed & PAD_LEFT) {
-        switch (current_setting) {
-        case SettingsOption::LineGravity:
-          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-          line_gravity_enabled = !line_gravity_enabled;
-          break;
-        case SettingsOption::Maze:
-          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-          if (maze > 0) {
-            maze--;
-          }
-          break;
-        case SettingsOption::Return:
-          break;
-        }
-      } else if (pressed & PAD_RIGHT) {
-        switch (current_setting) {
-        case SettingsOption::LineGravity:
-          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-          line_gravity_enabled = !line_gravity_enabled;
-          break;
-        case SettingsOption::Maze:
-          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-          if (maze < NUM_MAZES - 1) {
-            maze++;
-          }
-          break;
-        case SettingsOption::Return:
-          break;
-        }
-      } else if (pressed & (PAD_A | PAD_START)) {
-        switch (current_setting) {
-        case SettingsOption::LineGravity:
-          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-          line_gravity_enabled = !line_gravity_enabled;
-          break;
-        case SettingsOption::Maze:
-          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-          if (maze < NUM_MAZES - 1) {
-            maze++;
-          }
-          break;
-        case SettingsOption::Return:
-          banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
-          state = State::Options;
-          multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
-          multi_vram_buffer_horz(menu_text + 24, 24, NTADR_A(4, 16));
-          multi_vram_buffer_horz(menu_text + 48, 24, NTADR_A(4, 17));
-          break;
-        }
-      } else {
-        if (line_gravity_enabled) {
-          multi_vram_buffer_horz((const u8[]){0x2f, 0x4e, 0x00}, 3,
-                                 NTADR_A(21, 15));
-        } else {
-          multi_vram_buffer_horz((const u8[]){0x2f, 0x46, 0x46}, 3,
-                                 NTADR_A(21, 15));
-        }
-        multi_vram_buffer_horz(maze_names[(u8)maze], 10, NTADR_A(14, 16));
-
-        u8 setting_y = setting_mino_y[(u8)current_setting];
-        if (get_frame_count() & 0b1000) {
-          banked_oam_meta_spr(0x24, setting_y, metasprite_UniRightWalk1);
-        } else {
-          banked_oam_meta_spr(0x24, setting_y, metasprite_UniRightWalk2);
-        }
-      }
       break;
     }
+
+    oam_hide_rest();
   }
 }
