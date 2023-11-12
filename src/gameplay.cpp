@@ -33,12 +33,14 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
       y_scroll(INTRO_SCROLL_Y) {
   set_chr_bank(0);
 
+  set_mirroring(MIRROR_HORIZONTAL);
+
   banked_lambda(ASSETS_BANK, [this]() {
     vram_adr(PPU_PATTERN_TABLE_0);
     donut_bulk_load(level_bg_tiles[(u8)current_location]);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    donut_bulk_load(level_spr_tiles[(u8)current_location]);
+    donut_bulk_load((void *)spr_tiles);
 
     vram_adr(NAMETABLE_A);
     vram_unrle(level_nametables[(u8)current_location]);

@@ -12,5 +12,3 @@ typedef int32_t s32;
 enum class GameMode : u8 { TitleScreen, Gameplay, None = 0xff };
 
 extern GameMode current_mode;
-
-extern bool line_gravity_enabled;

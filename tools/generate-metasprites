@@ -30,7 +30,7 @@ class GenerateMetasprites < Thor
 
     File.open(s_file, 'w') do |f|
       f.puts <<~PREAMBLE
-        .section #{bank}
+        .section #{bank},"aR",@progbits
         .global #{label_prefix}_list
         #{label_prefix}_list:
       PREAMBLE

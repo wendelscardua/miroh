@@ -13,7 +13,6 @@
 GameMode current_mode;
 GameMode previous_mode;
 u16 high_score[NUM_MAZES];
-bool line_gravity_enabled;
 Maze maze;
 
 static void main_init() {
@@ -23,12 +22,9 @@ static void main_init() {
     high_score[i] = 0;
   }
 
-  line_gravity_enabled = true;
   maze = 0;
 
   ppu_off();
-
-  set_mirroring(MIRROR_HORIZONTAL);
 
   // set 8x8 sprite mode
   oam_size(0);
