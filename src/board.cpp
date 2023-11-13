@@ -511,7 +511,7 @@ bool Board::row_filled(s8 row) {
   return occupied_bitset[(u8)row] == FULL_ROW_BITMASK;
 }
 
-bool Board::ongoing_line_clearing() {
+bool Board::ongoing_line_clearing(bool jiggling) {
   bool any_deleted = false;
 
   CORO_INIT;
@@ -525,6 +525,10 @@ bool Board::ongoing_line_clearing() {
 
   if (!any_deleted) {
     CORO_FINISH(false);
+  }
+
+  while (jiggling) {
+    CORO_YIELD(true);
   }
 
   for (erasing_row = HEIGHT - 1; erasing_row >= 0; erasing_row--) {

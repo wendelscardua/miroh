@@ -1,6 +1,8 @@
 #include "assets.hpp"
 #include "board.hpp"
 #include "log.hpp"
+#include "polyomino.hpp"
+#include "soundtrack.hpp"
 #ifndef NDEBUG
 #include <cstdio>
 #endif
@@ -43,12 +45,12 @@ const unsigned char yes_no_text[] = {
     0x15, 0x2f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x10, 0x11,
     0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char story_mode_failure_text_1[] = {
+const unsigned char story_mode_failure_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x17, 0x0b, 0x1c, 0x11, 0x0b, 0x2f, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char story_mode_failure_text_2[] = {
+const unsigned char retry_exit_confirmation_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x16, 0x14, 0x1b, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x08, 0x1a, 0x0c, 0x16, 0x02, 0x02, 0x02, 0x02, 0x02};
@@ -58,7 +60,7 @@ const unsigned char non_story_mode_match_ending_text[] = {
     0x02, 0x0a, 0x11, 0x11, 0x07, 0x02, 0x16, 0x14, 0x1b, 0x2f, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char story_mode_victory[][32 * 1] = {
+const unsigned char story_mode_victory_text_per_stage[][32 * 1] = {
     // Starlit Stables
     {0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x6f, 0x12,
      0x04, 0x14, 0x0d, 0x0e, 0x08, 0x16, 0x04, 0x15, 0x16, 0x0c, 0x06,
@@ -91,18 +93,22 @@ const unsigned char retry_confirmation_text[] = {
     0x04, 0x14, 0x16, 0x02, 0x16, 0x0b, 0x0c, 0x15, 0x02, 0x15, 0x16,
     0x04, 0x0a, 0x08, 0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char empty_text[] = {
-    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
-    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
-    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
+const Song song_per_stage[] = {
+    Song::Starlit_stables,      // StarlitStables
+    Song::Rainbow_retreat,      // RainbowRetreat
+    Song::Fairy_flight,         // FairyForest
+    Song::Glitter_grotto,       // GlitteryGrotto
+    Song::Marshmallow_mountain, // MarshmallowMountain
+};
 
-// TODO: variable current_stage
 __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       board(board),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
-      input_mode(InputMode::Player), y_scroll(INTRO_SCROLL_Y) {
+      input_mode(InputMode::Player), yes_no_option(false),
+      pause_option(PauseOption::Resume), y_scroll(INTRO_SCROLL_Y),
+      goal_counter(0) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
@@ -137,10 +143,11 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   player.refresh_score_hud();
 
+  initialize_goal();
+
   ppu_on_all();
 
-  // TODO: pick based on stage
-  banked_play_song(Song::Starlit_stables);
+  banked_play_song(song_per_stage[(u8)current_stage]);
 
   pal_fade_to(0, 4);
 
@@ -188,7 +195,46 @@ void Gameplay::render() {
   oam_hide_rest();
 }
 
-void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
+void Gameplay::initialize_goal() {
+  /*
+   * Story mode goals:
+   *  - Starlit Stables: clear 12 lines
+   *  - Rainbow Retreat: eat 24 snacks
+   *  - Fairy Forest: place 60 blocks
+   *  - Glittery Grotto: score 200 points
+   *  - Marshmallow Mountain: defeat Miroh Jr.
+   */
+
+  switch (current_game_mode) {
+  case GameMode::Story:
+    switch (current_stage) {
+    case Stage::StarlitStables:
+      lines_left = LINES_GOAL;
+      break;
+    case Stage::RainbowRetreat:
+      snacks_left = SNACKS_GOAL;
+      break;
+    case Stage::FairyForest:
+      blocks_left = BLOCKS_GOAL;
+      break;
+    case Stage::GlitteryGrotto:
+      points_left = SCORE_GOAL;
+    case Stage::MarshmallowMountain:
+      // TODO
+      break;
+    }
+  case GameMode::Endless:
+    break;
+  case GameMode::TimeTrial:
+    time_trial_frames = 0;
+    time_trial_seconds = TIME_TRIAL_DURATION;
+    break;
+  }
+}
+
+void Gameplay::pause_handler() {
+  y_scroll = PAUSE_SCROLL_Y;
+
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
   static const PauseOption NEXT_OPTION[] = {
@@ -206,7 +252,6 @@ void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
   if (pressed & (PAD_START | PAD_B)) {
     pause_option = PauseOption::Resume;
     gameplay_state = GameplayState::Playing;
-    y_scroll = DEFAULT_Y_SCROLL;
     GGSound::resume();
   } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
     pause_option = NEXT_OPTION[(u8)pause_option];
@@ -226,7 +271,6 @@ void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
       break;
     case PauseOption::Resume:
       gameplay_state = GameplayState::Playing;
-      y_scroll = DEFAULT_Y_SCROLL;
       GGSound::resume();
       break;
     case PauseOption::Retry:
@@ -263,7 +307,7 @@ void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
       NTADR_C(22, 5));
 }
 
-void Gameplay::yes_no_cursor(bool yes_no_option) {
+void Gameplay::yes_no_cursor() {
   bool toggle = (get_frame_count() & 0b10000) != 0;
 
   one_vram_buffer(
@@ -277,7 +321,9 @@ void Gameplay::yes_no_cursor(bool yes_no_option) {
                   NTADR_C(19, 5));
 }
 
-void Gameplay::confirm_exit_handler(bool &yes_no_option) {
+void Gameplay::confirm_exit_handler() {
+  y_scroll = PAUSE_SCROLL_Y;
+
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
   if (pressed & (PAD_START | PAD_B)) {
@@ -296,10 +342,10 @@ void Gameplay::confirm_exit_handler(bool &yes_no_option) {
     return;
   }
 
-  yes_no_cursor(yes_no_option);
+  yes_no_cursor();
 }
 
-void Gameplay::confirm_retry_handler(bool &yes_no_option) {
+void Gameplay::confirm_retry_handler() {
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
   if (pressed & (PAD_START | PAD_B)) {
@@ -310,92 +356,239 @@ void Gameplay::confirm_retry_handler(bool &yes_no_option) {
     yes_no_option = !yes_no_option;
   } else if (pressed & (PAD_A | PAD_START)) {
     if (yes_no_option) {
-      gameplay_state = GameplayState::Playing;
-      // On gameplay loop, being on the Retry option will cause the gameplay to
-      // restart under the same options and maze
+      gameplay_state = GameplayState::Retrying;
     } else {
       pause_game();
     }
     return;
   }
 
-  yes_no_cursor(yes_no_option);
+  yes_no_cursor();
+}
+
+void Gameplay::confirm_continue_handler() {
+  y_scroll = PAUSE_SCROLL_Y;
+
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  if (pressed & (PAD_A | PAD_START)) {
+    // TODO: world map
+    current_game_state = GameState::TitleScreen;
+    return;
+  }
+
+  bool toggle = (get_frame_count() & 0b10000) != 0;
+
+  one_vram_buffer((toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE),
+                  NTADR_C(11, 5));
+}
+
+void Gameplay::retry_exit_handler() {
+  y_scroll = PAUSE_SCROLL_Y;
+
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  if (pressed & (PAD_START | PAD_B)) {
+    pause_game();
+    return;
+  } else if (pressed &
+             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+    yes_no_option = !yes_no_option;
+  } else if (pressed & (PAD_A | PAD_START)) {
+    if (yes_no_option) {
+      gameplay_state = GameplayState::Retrying;
+    } else {
+      // TODO: world map instead
+      current_game_state = GameState::TitleScreen;
+    }
+    return;
+  }
+
+  bool toggle = (get_frame_count() & 0b10000) != 0;
+
+  one_vram_buffer(
+      yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+                    : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(4, 5));
+
+  one_vram_buffer(!yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE
+                                           : GAMEPLAY_CURSOR_ALT_TILE)
+                                 : GAMEPLAY_CURSOR_CLEAR_TILE,
+                  NTADR_C(22, 5));
 }
 
 void Gameplay::gameplay_handler() {
+  y_scroll = DEFAULT_Y_SCROLL;
+
+  blocks_were_placed = false;
+  failed_to_place = false;
+  lines_cleared = 0;
+  snack_was_eaten = false;
+
   auto p1_pressed = get_pad_new(0);
   auto any_pressed = p1_pressed | get_pad_new(1);
 
+  bool line_clearing_in_progress = board.ongoing_line_clearing(
+      polyomino.state == Polyomino::State::Settling);
+
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
-      !board.ongoing_line_clearing() && --spawn_timer == 0) {
+      !line_clearing_in_progress && --spawn_timer == 0) {
     banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
 
   banked_lambda(PLAYER_BANK, [this]() { player.update(input_mode); });
 
-  if (player.state != Player::State::Dying &&
-      player.state != Player::State::Dead) {
-    bool blocks_placed = false;
-    bool failed_to_place = false;
-    u8 lines_filled = 0;
+  banked_lambda(GET_BANK(polyominos), [this]() {
+    polyomino.handle_input(input_mode);
+    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
+                     failed_to_place, lines_cleared);
+  });
 
-    banked_lambda(GET_BANK(polyominos), [this, &blocks_placed, &failed_to_place,
-                                         &lines_filled]() {
-      polyomino.handle_input(input_mode);
-      polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
-                       failed_to_place, lines_filled);
-    });
+  START_MESEN_WATCH(3);
+  fruits.update(player, snack_was_eaten);
+  STOP_MESEN_WATCH(3);
 
-    START_MESEN_WATCH(3);
-    fruits.update(player);
-    STOP_MESEN_WATCH(3);
-
-    if (current_controller_scheme == ControllerScheme::OnePlayer &&
-        polyomino.state != Polyomino::State::Active) {
-      if (input_mode == InputMode::Polyomino) {
-        input_mode = InputMode::Player;
-      }
+  if (current_controller_scheme == ControllerScheme::OnePlayer &&
+      polyomino.state != Polyomino::State::Active) {
+    if (input_mode == InputMode::Polyomino) {
+      input_mode = InputMode::Player;
     }
-
-    if (lines_filled) {
-      u16 points = 10 * (2 * lines_filled - 1);
-      player.score += points;
-      if (player.score > 9999) {
-        player.score = 9999;
-      }
-      player.lines += lines_filled;
-      if (player.lines > 99) {
-        player.lines = 99;
-      }
-      add_experience(points);
-    } else if (blocks_placed) {
-      player.score += 1;
-      add_experience(1);
-    }
-
-    if (failed_to_place) {
-      player.energy_upkeep(3 * Player::ENERGY_TICKS);
-    }
-
-    if (any_pressed & PAD_START) {
-      pause_game();
-    } else if (p1_pressed & PAD_SELECT) {
-      if (input_mode == InputMode::Player) {
-        input_mode = InputMode::Polyomino;
-      } else {
-        input_mode = InputMode::Player;
-      }
-    }
-  } else if (player.state == Player::State::Dead && (any_pressed & PAD_START)) {
-    current_game_state = GameState::TitleScreen;
   }
+
+  if (lines_cleared) {
+    u16 points = 10 * (2 * lines_cleared - 1);
+    player.score += points;
+    if (player.score > 9999) {
+      player.score = 9999;
+    }
+    player.lines += lines_cleared;
+    if (player.lines > 99) {
+      player.lines = 99;
+    }
+    add_experience(points);
+  } else if (blocks_were_placed) {
+    player.score += 1;
+    add_experience(1);
+  }
+
+  if (any_pressed & PAD_START) {
+    pause_game();
+  } else if (p1_pressed & PAD_SELECT) {
+    if (input_mode == InputMode::Player) {
+      input_mode = InputMode::Polyomino;
+    } else {
+      input_mode = InputMode::Player;
+    }
+  }
+
+  if (gameplay_state == GameplayState::Playing) {
+    game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
+                     polyomino.state != Polyomino::State::Inactive);
+  }
+}
+
+void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
+  switch (current_game_mode) {
+  case GameMode::Story:
+    /*
+     * Story mode goals:
+     *  - Starlit Stables: clear 12 lines
+     *  - Rainbow Retreat: eat 24 snacks
+     *  - Fairy Forest: place 60 blocks
+     *  - Glittery Grotto: score 200 points
+     *  - Marshmallow Mountain: defeat Miroh Jr.
+     */
+    switch (current_stage) {
+    case Stage::StarlitStables:
+      if (lines_cleared > lines_left) {
+        lines_left = 0;
+      } else {
+        lines_left -= lines_cleared;
+      }
+      break;
+    case Stage::RainbowRetreat:
+      if (snack_was_eaten && snacks_left > 0) {
+        snacks_left--;
+      }
+      break;
+    case Stage::FairyForest:
+      if (blocks_were_placed && blocks_left > 0) {
+        blocks_left--;
+      }
+      break;
+    case Stage::GlitteryGrotto:
+      if (player.score > SCORE_GOAL) {
+        points_left = 0;
+      } else {
+        points_left = SCORE_GOAL - player.score;
+      }
+    case Stage::MarshmallowMountain:
+      // TODO: track Miroh Jr's defeat
+      break;
+    }
+    if (!stuff_in_progress && goal_counter == 0) {
+      putchar('*');
+      putchar('\n');
+      multi_vram_buffer_horz(
+          story_mode_victory_text_per_stage[(u8)current_stage],
+          sizeof(story_mode_victory_text_per_stage[0]), PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(continue_text, sizeof(continue_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      gameplay_state = GameplayState::ConfirmContinue;
+      break;
+    }
+    if (failed_to_place) {
+      multi_vram_buffer_horz(story_mode_failure_text,
+                             sizeof(story_mode_failure_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(retry_exit_confirmation_text,
+                             sizeof(retry_exit_confirmation_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      gameplay_state = GameplayState::RetryOrExit;
+      yes_no_option = true;
+    }
+    break;
+  case GameMode::Endless:
+    if (failed_to_place) {
+      multi_vram_buffer_horz(non_story_mode_match_ending_text,
+                             sizeof(non_story_mode_match_ending_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(continue_text, sizeof(continue_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      gameplay_state = GameplayState::ConfirmContinue;
+    }
+    break;
+  case GameMode::TimeTrial:
+    time_trial_frames++;
+    if (time_trial_frames == 60) {
+      time_trial_frames = 0;
+      time_trial_seconds--;
+      // TODO: display seconds
+      if (time_trial_seconds == 0) {
+        end_game();
+        break;
+      }
+    }
+    if (failed_to_place) {
+      end_game();
+    }
+    break;
+  }
+}
+
+void Gameplay::end_game() {
+  multi_vram_buffer_horz(non_story_mode_match_ending_text,
+                         sizeof(non_story_mode_match_ending_text),
+                         PAUSE_MENU_POSITION);
+  multi_vram_buffer_horz(continue_text, sizeof(continue_text),
+                         PAUSE_MENU_OPTIONS_POSITION);
+  gameplay_state = GameplayState::ConfirmContinue;
 }
 
 void Gameplay::pause_game() {
   gameplay_state = GameplayState::Paused;
-  y_scroll = PAUSE_SCROLL_Y;
   GGSound::pause();
   multi_vram_buffer_horz(pause_menu_text, sizeof(pause_menu_text),
                          PAUSE_MENU_POSITION);
@@ -407,8 +600,6 @@ void Gameplay::pause_game() {
 void Gameplay::loop() {
   static bool no_lag_frame = true;
   extern volatile char FRAME_CNT1;
-  PauseOption pause_option = PauseOption::Resume;
-  bool yes_no_option = false;
 
   while (current_game_state == GameState::Gameplay) {
     ppu_wait_nmi();
@@ -426,22 +617,26 @@ void Gameplay::loop() {
 
     switch (gameplay_state) {
     case GameplayState::Playing:
-      if (pause_option == PauseOption::Retry) {
-        return; // escapes from gameplay loop; causing gameplay to restart since
-                // we're still on the same game state
-      }
       Gameplay::gameplay_handler();
       break;
     case GameplayState::Paused:
-      Gameplay::pause_handler(pause_option, yes_no_option);
+      Gameplay::pause_handler();
       break;
     case GameplayState::ConfirmExit:
-      Gameplay::confirm_exit_handler(yes_no_option);
+      Gameplay::confirm_exit_handler();
       break;
     case GameplayState::ConfirmRetry:
-      Gameplay::confirm_retry_handler(yes_no_option);
+      Gameplay::confirm_retry_handler();
     case GameplayState::ConfirmContinue:
+      Gameplay::confirm_continue_handler();
       break;
+    case GameplayState::RetryOrExit:
+      Gameplay::retry_exit_handler();
+      break;
+    case GameplayState::Retrying:
+      // leaves the gameplay loop; since we're still on the gameplay game
+      // state this is equivalent to retrying under the same conditions
+      return;
     }
 
     if (input_mode != old_mode) {

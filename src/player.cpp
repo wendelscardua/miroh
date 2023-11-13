@@ -28,10 +28,6 @@ void Player::energy_upkeep(s16 delta) {
   while (energy_timer >= ENERGY_TICKS) {
     energy_timer -= ENERGY_TICKS;
     if (energy == 0) {
-      // TODO: don't die during co-op mode
-      banked_play_song(Song::Glitter_grotto);
-      state = State::Dying;
-      ghost_height = 0;
       break;
     } else {
       energy--;
@@ -41,9 +37,7 @@ void Player::energy_upkeep(s16 delta) {
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
 Player::update(InputMode input_mode) {
-  if (state != State::Dying && state != State::Dead) {
-    energy_upkeep(1);
-  }
+  energy_upkeep(1);
 
   u8 pressed, held;
 
@@ -182,17 +176,6 @@ Player::update(InputMode input_mode) {
       break;
     }
     break;
-  case State::Dying: {
-    if (get_frame_count() & 0b100) {
-      ghost_height++;
-    }
-    if (ghost_height > 0x40) {
-      ghost_height = 0;
-      state = State::Dead;
-    }
-  } break;
-  case State::Dead: {
-  } break;
   }
 }
 
@@ -221,7 +204,7 @@ void Player::fix_uni_priority(bool left_wall, bool right_wall) {
 void Player::render(int y_scroll, bool left_wall, bool right_wall) {
   int reference_y = board.origin_y - y_scroll;
   static u8 animation_frame;
-  static State current_state = State::Dead;
+  static State current_state = State::Moving;
   CORO_RESET_WHEN(current_state != state);
 
   current_state = state;
@@ -290,10 +273,6 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
         CORO_YIELD();
       }
     }
-    break;
-  case State::Dead:
-  case State::Dying:
-    // TODO
     break;
   }
 

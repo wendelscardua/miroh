@@ -74,7 +74,7 @@ Fruits::Fruits(Board &board) : board(board) {
   active_fruits = 0;
 }
 
-void Fruits::update(Player &player) {
+void Fruits::update(Player &player, bool &snack_was_eaten) {
   for (auto fruit : fruits) {
     switch (fruit.state) {
     case Fruit::State::Inactive:
@@ -102,6 +102,7 @@ void Fruits::update(Player &player) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
         player.feed(FRUIT_NUTRITION);
+        snack_was_eaten = true;
       } else if (fruit.state == Fruit::State::Active && --fruit.life == 0) {
         fruit.state = Fruit::State::Despawning;
         fruit.despawn_counter = DESPAWN_DELAY;

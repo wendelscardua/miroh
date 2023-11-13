@@ -15,6 +15,8 @@ class Gameplay {
     ConfirmExit,
     ConfirmRetry,
     ConfirmContinue,
+    RetryOrExit,
+    Retrying
   };
 
   // we level up every 50 points
@@ -60,13 +62,35 @@ public:
   static const int INTRO_SCROLL_Y = -0x100 + 0x50;
   static const int PAUSE_MENU_POSITION = NTADR_C(0, 3);
   static const int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
+  static const u8 TIME_TRIAL_DURATION = 90;
+  static const u8 LINES_GOAL = 12;
+  static const u8 SNACKS_GOAL = 24;
+  static const u8 BLOCKS_GOAL = 60;
+  static const u16 SCORE_GOAL = 200;
   Board &board;
   Player player;
   Polyomino polyomino;
   Fruits fruits;
   GameplayState gameplay_state;
   InputMode input_mode;
+  bool yes_no_option;
+  PauseOption pause_option;
   int y_scroll;
+  union {
+    u16 goal_counter;
+    struct {
+      u8 time_trial_seconds;
+      u8 time_trial_frames;
+    };
+    u8 lines_left;
+    u8 snacks_left;
+    u8 blocks_left;
+    u16 points_left;
+  };
+  bool blocks_were_placed;
+  bool failed_to_place;
+  u8 lines_cleared;
+  bool snack_was_eaten;
 
   Gameplay(Board &board);
   ~Gameplay();
@@ -76,9 +100,14 @@ public:
 private:
   void render();
   void pause_game();
-  void yes_no_cursor(bool yes_no_cursor);
-  void pause_handler(PauseOption &pause_option, bool &yes_no_option);
+  void end_game();
+  void yes_no_cursor();
+  void pause_handler();
   void gameplay_handler();
-  void confirm_exit_handler(bool &yes_no_option);
-  void confirm_retry_handler(bool &yes_no_option);
+  void confirm_exit_handler();
+  void confirm_retry_handler();
+  void retry_exit_handler();
+  void confirm_continue_handler();
+  void initialize_goal();
+  void game_mode_upkeep(bool stuff_in_progress);
 };
