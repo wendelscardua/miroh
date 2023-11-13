@@ -28,6 +28,7 @@ void Player::energy_upkeep(s16 delta) {
   while (energy_timer >= ENERGY_TICKS) {
     energy_timer -= ENERGY_TICKS;
     if (energy == 0) {
+      banked_play_sfx(SFX::Outofenergy, GGSound::SFXPriority::One);
       break;
     } else {
       energy--;
