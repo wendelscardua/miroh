@@ -174,7 +174,7 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::jiggling() {
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
-                  u8 &lines_filled) {
+                  u8 &lines_cleared) {
   if (state == State::Settling) {
     jiggling();
     return;
@@ -190,7 +190,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
         drop_timer = 0;
         movement_direction = Direction::None;
         if (can_be_frozen()) {
-          lines_filled = freeze_blocks();
+          lines_cleared = freeze_blocks();
           blocks_placed = true;
           return;
         } else {
@@ -224,7 +224,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
   case Direction::Down:
     if (definition->collide(board, row + 1, column)) {
       if (can_be_frozen()) {
-        lines_filled = freeze_blocks();
+        lines_cleared = freeze_blocks();
         blocks_placed = true;
       } else {
         failed_to_place = true;
@@ -272,9 +272,11 @@ Polyomino::freeze_blocks() {
   jiggling_timer = 0;
   u8 filled_lines = 0;
   definition->board_render(board, row, column, true);
-  for (u8 i = 0; i < definition->size; i++) {
-    auto delta = definition->deltas[i];
-    s8 block_row = row + delta.delta_row;
+
+  // XXX: checking the range of possible rows that could have been filled by a
+  // polyomino
+  for (s8 delta_row = -1; delta_row <= 2; delta_row++) {
+    s8 block_row = row + delta_row;
     if (board.row_filled(block_row)) {
       filled_lines++;
     }
