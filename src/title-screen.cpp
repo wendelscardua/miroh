@@ -49,8 +49,8 @@ const unsigned char time_trial_label[12 * 1] = {
 
 __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
-      current_track(Song::Baby_bullhead), next_track_delay(0), board(board),
-      x_scroll(TITLE_SCROLL) {
+      current_track(Song::Baby_bullhead_title), next_track_delay(0),
+      board(board), x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_VERTICAL);
@@ -167,7 +167,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         }
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
-        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
       } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_A)) {
         if ((u8)current_track == NUM_SONGS - 1) {
@@ -177,7 +177,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         }
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
-        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
       }
       if (x_scroll != HOW_TO_SCROLL) {

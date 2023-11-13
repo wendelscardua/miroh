@@ -280,7 +280,7 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
 }
 
 void Player::feed(u8 nutrition) {
-  banked_play_sfx(SFX::Number1, GGSound::SFXPriority::One);
+  banked_play_sfx(SFX::Eat, GGSound::SFXPriority::One);
 
   energy_timer = 0;
   if (energy < MAX_ENERGY - nutrition) {

@@ -638,7 +638,9 @@ void Gameplay::loop() {
     }
 
     if (input_mode != old_mode) {
-      banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
+      banked_play_sfx(input_mode == InputMode::Player ? SFX::Unicornon
+                                                      : SFX::Unicornoff,
+                      GGSound::SFXPriority::One);
     }
     Attributes::flush_vram_update();
 

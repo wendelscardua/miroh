@@ -142,7 +142,7 @@ Polyomino::handle_input(InputMode input_mode) {
     definition = definition->right_rotation;
 
     if (able_to_kick(definition->right_kick->deltas)) {
-      banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
+      banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
     } else {
       definition = definition->left_rotation; // undo rotation
     }
@@ -150,7 +150,7 @@ Polyomino::handle_input(InputMode input_mode) {
     definition = definition->left_rotation;
 
     if (able_to_kick(definition->left_kick->deltas)) {
-      banked_play_sfx(SFX::Number3, GGSound::SFXPriority::One);
+      banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
     } else {
       definition = definition->right_rotation; // undo rotation
     }
@@ -266,7 +266,7 @@ Polyomino::can_be_frozen() {
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) u8
 Polyomino::freeze_blocks() {
-  banked_play_sfx(SFX::Number4, GGSound::SFXPriority::Two);
+  banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::Two);
 
   state = State::Settling;
   jiggling_timer = 0;
