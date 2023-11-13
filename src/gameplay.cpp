@@ -535,6 +535,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       multi_vram_buffer_horz(continue_text, sizeof(continue_text),
                              PAUSE_MENU_OPTIONS_POSITION);
       gameplay_state = GameplayState::ConfirmContinue;
+      banked_play_song(Song::Victory);
       break;
     }
     if (failed_to_place) {
@@ -546,6 +547,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
                              PAUSE_MENU_OPTIONS_POSITION);
       gameplay_state = GameplayState::RetryOrExit;
       yes_no_option = true;
+      banked_play_song(Song::Failure);
     }
     break;
   case GameMode::Endless:
