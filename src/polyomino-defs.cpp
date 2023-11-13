@@ -1,6 +1,7 @@
 #include "polyomino-defs.hpp"
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
+#include "common.hpp"
 #include "metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -30,7 +31,10 @@ void PolyominoDef::render(u8 x, int y) const {
     auto delta = deltas[i];
     u8 block_x = (u8)(x + (delta.delta_column << 4));
     int block_y = y + (delta.delta_row << 4);
-    banked_oam_meta_spr(block_x, block_y, metasprite_block);
+    banked_oam_meta_spr(block_x, block_y,
+                        current_stage == Stage::StarlitStables
+                            ? metasprite_block
+                            : metasprite_BlockB);
   }
 
   polyomino_start_index += 2;
