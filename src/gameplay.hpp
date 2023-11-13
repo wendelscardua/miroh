@@ -62,6 +62,7 @@ public:
   static const int INTRO_SCROLL_Y = -0x100 + 0x50;
   static const int PAUSE_MENU_POSITION = NTADR_C(0, 3);
   static const int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
+  static const u8 TIME_TRIAL_DURATION = 90;
   Board &board;
   Player player;
   Polyomino polyomino;
@@ -71,6 +72,8 @@ public:
   bool yes_no_option;
   PauseOption pause_option;
   int y_scroll;
+  u8 time_trial_seconds;
+  u8 time_trial_frames;
 
   Gameplay(Board &board);
   ~Gameplay();
@@ -80,6 +83,7 @@ public:
 private:
   void render();
   void pause_game();
+  void end_game();
   void yes_no_cursor();
   void pause_handler();
   void gameplay_handler();

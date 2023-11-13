@@ -111,7 +111,8 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
       input_mode(InputMode::Player), yes_no_option(false),
-      pause_option(PauseOption::Resume), y_scroll(INTRO_SCROLL_Y) {
+      pause_option(PauseOption::Resume), y_scroll(INTRO_SCROLL_Y),
+      time_trial_seconds(TIME_TRIAL_DURATION), time_trial_frames(0) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
@@ -473,16 +474,30 @@ void Gameplay::game_mode_upkeep(u8 lines_cleared, bool failed_to_place) {
     }
     break;
   case GameMode::TimeTrial:
+    time_trial_frames++;
+    if (time_trial_frames == 60) {
+      time_trial_frames = 0;
+      time_trial_seconds--;
+      // TODO: display seconds
+      if (time_trial_seconds == 0) {
+        end_game();
+        break;
+      }
+    }
     if (failed_to_place) {
-      multi_vram_buffer_horz(non_story_mode_match_ending_text,
-                             sizeof(non_story_mode_match_ending_text),
-                             PAUSE_MENU_POSITION);
-      multi_vram_buffer_horz(continue_text, sizeof(continue_text),
-                             PAUSE_MENU_OPTIONS_POSITION);
-      gameplay_state = GameplayState::ConfirmContinue;
+      end_game();
     }
     break;
   }
+}
+
+void Gameplay::end_game() {
+  multi_vram_buffer_horz(non_story_mode_match_ending_text,
+                         sizeof(non_story_mode_match_ending_text),
+                         PAUSE_MENU_POSITION);
+  multi_vram_buffer_horz(continue_text, sizeof(continue_text),
+                         PAUSE_MENU_OPTIONS_POSITION);
+  gameplay_state = GameplayState::ConfirmContinue;
 }
 
 void Gameplay::pause_game() {
@@ -532,8 +547,8 @@ void Gameplay::loop() {
       Gameplay::retry_exit_handler();
       break;
     case GameplayState::Retrying:
-      // leaves the gameplay loop; since we're still on the gameplay game state
-      // this is equivalent to retrying under the same conditions
+      // leaves the gameplay loop; since we're still on the gameplay game
+      // state this is equivalent to retrying under the same conditions
       return;
     }
 
