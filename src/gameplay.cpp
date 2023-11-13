@@ -529,8 +529,6 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       break;
     }
     if (!stuff_in_progress && goal_counter == 0) {
-      putchar('*');
-      putchar('\n');
       multi_vram_buffer_horz(
           story_mode_victory_text_per_stage[(u8)current_stage],
           sizeof(story_mode_victory_text_per_stage[0]), PAUSE_MENU_POSITION);
