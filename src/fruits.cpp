@@ -82,6 +82,11 @@ void Fruits::update(Player &player, bool &snack_was_eaten) {
     case Fruit::State::Dropping:
       if (fruit.raindrop_y == fruit.y) {
         fruit.dropping_counter++;
+        if (fruit.dropping_counter == 39) {
+          // near splash 14
+          // TODO: check if this is ok
+          banked_play_sfx(SFX::Snackspawn, GGSound::SFXPriority::Two);
+        }
         if (fruit.dropping_counter == SPLASH_FRAMES) {
           fruit.state = Fruit::State::Active;
           fruit.bobbing_counter = 0;
@@ -154,13 +159,11 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) const {
       // splash anim
       banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
                           splash_metasprite[fruit.dropping_counter]);
-      if (splash_metasprite[fruit.dropping_counter] == metasprite_Splash14 ||
-          splash_metasprite[fruit.dropping_counter] == metasprite_Splash15) {
+      if (fruit.dropping_counter >= 39 && fruit.dropping_counter <= 44) {
+        // splash anim 14 & 15
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.high_metasprite);
-      } else if (splash_metasprite[fruit.dropping_counter] ==
-                     metasprite_Splash16 ||
-                 splash_metasprite[fruit.dropping_counter] ==
-                     metasprite_Splash17) {
+      } else if (fruit.dropping_counter >= 45 && fruit.dropping_counter <= 50) {
+        // splash anim 16 & 17
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
       }
     } else if (fruit.y - fruit.raindrop_y <= 48) {
