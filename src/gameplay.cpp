@@ -115,10 +115,10 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    donut_bulk_load(level_bg_tiles[(u8)current_stage]);
+    Donut::decompress_to_ppu(level_bg_tiles[(u8)current_stage], 4096 / 64);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    donut_bulk_load((void *)spr_tiles);
+    Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
     vram_adr(NAMETABLE_A);
     vram_unrle(level_nametables[(u8)current_stage]);
@@ -529,8 +529,6 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       break;
     }
     if (!stuff_in_progress && goal_counter == 0) {
-      putchar('*');
-      putchar('\n');
       multi_vram_buffer_horz(
           story_mode_victory_text_per_stage[(u8)current_stage],
           sizeof(story_mode_victory_text_per_stage[0]), PAUSE_MENU_POSITION);

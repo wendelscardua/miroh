@@ -1,188 +1,98 @@
-/*  donut-nes - v2023-10-23 - public domain (details at end of file)
-    codec for texture/character data of the Nintendo Entertainment System
+#include <stdio.h>   /* I/O */
+#include <errno.h>   /* errno */
+#include <stdlib.h>  /* exit(), strtol() */
+#include <stdbool.h> /* bool */
+#include <stddef.h>  /* null */
+#include <stdint.h>  /* uint8_t */
+#include <string.h>  /* memcpy() */
+#include <getopt.h>  /* getopt_long() */
 
-    By Johnathan Roatch - https://jroatch.nfshost.com/donut-nes/
+const char *VERSION_TEXT = "Donut 1.7\n";
+const char *HELP_TEXT =
+	"Donut NES CHR Codec\n"
+	"\n"
+	"Usage:\n"
+	"  donut [-d] [options] INPUT [-o] OUTPUT\n"
+	"  donut -h | --help\n"
+	"  donut --version\n"
+	"\n"
+	"Options:\n"
+	"  -h --help              show this help message and exit\n"
+	"  --version              show program's version number and exit\n"
+	"  -z, --compress         compress input file [default action]\n"
+	"  -d, --decompress       decompress input file\n"
+	"  -o FILE, --output=FILE\n"
+	"                         output to FILE instead of second positional argument\n"
+	"  -c --stdout            use standard input/output when filenames are absent\n"
+	"  -f, --force            overwrite output without prompting\n"
+	"  -q, --quiet            suppress error messages\n"
+	"  -v, --verbose          show completion stats\n"
+	"  --no-bit-flip          don't encode bit rotated blocks\n"
+	"  --cycle-limit INT      limits the 6502 decoding time for each encoded block,\n"
+	"                         must be at least 1268\n"
+;
 
-    Compile with any standard C99 compiler:
-    gcc -O2 -std=c99 -DUSE_MAIN_CLI_APP -o donut-nes donut-nes.c
-
-    or to use as a single header styled library, rename this to
-    "jrr-donut-nes.h", and then #define JRR_DONUT_NES_IMPLEMENTATION
-    in *one* C/C++ file before the #include. For example:
-
-    #define JRR_DONUT_NES_IMPLEMENTATION
-    #include "jrr-donut-nes.h"
-
-    This compression codec is designed for the native texture data of a
-    Nintendo Entertainment System (NES) which can be briefly described as
-    8x8 2bpp planer formated tiles. Each NES tile uses 16 bytes of data
-    (8 bytes of a "lower bitplane" followed by 8 bytes of a "higher bitplane")
-    and are often arranged together with similar characteristics such as
-    sharing a particular color. A fixed decoded block size of 64 bytes
-    was chosen for several reasons:
-    - It fits 4 tiles NES tiles which is often put together in a "metatile"
-    - It's the size of 2 rows of tilemap indexes, and the attribute table
-    - less then 256 bytes, beyond which would complicate 6502 addressing modes
-    - It's 8^3 bits, or 8 planes of 8x8 1bpp tiles
-
-    The compressed block is a variable sized block with most of the key
-    processing info in the first 1 or 2 bytes:
-    bit 76543210
-        |||||||+-- Rotate plane bits (135° reflection)
-        ||||000--- All planes: 0x00
-        ||||010--- L: 0x00, H:  pb8
-        ||||100--- L:  pb8, H: 0x00
-        ||||110--- All planes: pb8
-        ||||001--- In another header byte, For each bit starting from MSB
-        ||||         0: 0x00 plane
-        ||||         1: pb8 plane
-        ||||011--- In another header byte, Decode only 1 pb8 plane and
-        ||||       duplicate it for each bit starting from MSB
-        ||||         0: 0x00 plane
-        ||||         1: duplicated plane
-        ||||       If extra header byte = 0x00, no pb8 plane is decoded.
-        ||||1x1x-- Reserved for Uncompressed block bit pattern
-        |||+------ H predict from 0xff
-        ||+------- L predict from 0xff
-        |+-------- H = H XOR L
-        +--------- L = H XOR L
-        00101010-- Uncompressed block of 64 bytes (bit pattern is ascii '*' )
-        11-------- Avaliable for future extensions
-
-    "L" are the odd 8 byte bitplanes, and "H" the even 8 byte bitplanes.
-    "0x00 planes" can be 8 bytes of 0x00 or 0xff depending on the predict bit.
-    "pb8 plane" consists of a 8-bit header where each bit indicates
-    duplicating the previous byte or reading a literal byte. The variant
-    used here unpacks backwards.
-*/
-#ifndef INCLUDE_JRR_DONUT_NES_H
-#define INCLUDE_JRR_DONUT_NES_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stddef.h>       // size_t
-#include <stdint.h>       // uint8_t, ect
-#include <stdbool.h>      // bool
-
-
-/*  Decompress a series of blocks from the buffer 'src' with the size 'src_length'
-    into an already allocated buffer 'dst' of size 'dst_capacity'.
-    Returns: the number of bytes written to 'dst'.
-    src_bytes_read: if not NULL, it's written with the total number of bytes read. */
-size_t donut_decompress(uint8_t* dst, size_t dst_capacity, const uint8_t* src, size_t src_length, size_t* src_bytes_read);
-
-/*  Like donut_decompress(), in reverse. */
-size_t donut_compress(uint8_t* dst, size_t dst_capacity, const uint8_t* src, size_t src_length, size_t* src_bytes_read);
-
-/*  When compressing, the source can expand to a maximum ratio of 65:64.
-    use this to figure how large you should make the 'dst' buffer. */
-#define donut_compress_bound(x) ((((x) + 63) / 64) * 65)
-
-/*  Reads 64 bytes from 'src' and writes 1~65 bytes to 'dst'
-    'cpu_limit': limits the amount of time the 6502 decoder should
-      take for the block, 0 means unlimited.
-    'mask': is a optinal bitmap the same size as src where for each bit;
-    - 0 means leave the bit in src alone,
-    - 1 means fill in the bit in a attempt to optimize compression.
-    Returns: the number of bytes written to 'dst'.*/
-int donut_pack_block(uint8_t* dst, const uint8_t* src, int cpu_limit, const uint8_t* mask);
-
-/*  Reads 1~74 bytes from 'src' to then decompress
-    a fixed size 64 byte block to 'dst'
-    Returns: the number of bytes written to 'dst', 0 for none. */
-int donut_unpack_block(uint8_t* dst, const uint8_t* src);
-
-/*  parse how much cpu time the 6502 decoder would take for a given coded block */
-int donut_block_runtime_cost(const uint8_t* buf, int len);
-
-/*  reads 8 bytes from 'src' to pack 1~9 bytes into 'dst'
-    'top_value' is the predicted byte before the first
-    This pb8 variant is ordered from last to first byte.
-    and bits 0 and 1 bits means duplicate and literal respectively
-    Returns: the number of bytes written to 'dst'. */
-int donut_pack_pb8(uint8_t* dst, uint64_t src, uint8_t top_value);
-
-/*  reads 1~9 bytes from 'src' to unpack 8 bytes into 'dst'
-    'top_value' is the predicted byte before the first
-    Returns: the number of bytes written to 'dst'. */
-int donut_unpack_pb8(uint64_t* dst, const uint8_t* src, uint8_t top_value);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // INCLUDE_JRR_DONUT_NES_H
-
-
-#ifdef USE_MAIN_CLI_APP
-#define JRR_DONUT_NES_IMPLEMENTATION
-#endif
-
-#ifdef JRR_DONUT_NES_IMPLEMENTATION
-
-#include <string.h>       // memcpy
-
-// word read/write macros from https://justine.lol/endian.html
-#define READ64LE(S)                                                    \
-  ((uint64_t)(255 & (S)[7]) << 070 | (uint64_t)(255 & (S)[6]) << 060 | \
-   (uint64_t)(255 & (S)[5]) << 050 | (uint64_t)(255 & (S)[4]) << 040 | \
-   (uint64_t)(255 & (S)[3]) << 030 | (uint64_t)(255 & (S)[2]) << 020 | \
-   (uint64_t)(255 & (S)[1]) << 010 | (uint64_t)(255 & (S)[0]) << 000)
-
-#define WRITE64LE(P, V)                        \
-  ((P)[0] = (0x00000000000000FF & (V)) >> 000, \
-   (P)[1] = (0x000000000000FF00 & (V)) >> 010, \
-   (P)[2] = (0x0000000000FF0000 & (V)) >> 020, \
-   (P)[3] = (0x00000000FF000000 & (V)) >> 030, \
-   (P)[4] = (0x000000FF00000000 & (V)) >> 040, \
-   (P)[5] = (0x0000FF0000000000 & (V)) >> 050, \
-   (P)[6] = (0x00FF000000000000 & (V)) >> 060, \
-   (P)[7] = (0xFF00000000000000 & (V)) >> 070, (P) + 8)
-
-int donut_unpack_pb8(uint64_t* dst, const uint8_t* src, uint8_t pb8_byte)
+static int verbosity_level = 0;
+static void fatal_error(const char *msg)
 {
-	int y = 0;
-	uint8_t pb8_flags = src[y];
-	++y;
-	uint64_t val = 0;
-	for (int i = 0; i < 8; ++i) {
-		if (pb8_flags & 0x80) {
-			pb8_byte = src[y];
-			++y;
-		}
-		pb8_flags <<= 1;
-		val <<= 8;
-		val |= pb8_byte;
-	}
-	*dst = val;
-	return y;
+	if (verbosity_level >= 0)
+		fputs(msg, stderr);
+	exit(EXIT_FAILURE);
 }
 
-int donut_pack_pb8(uint8_t* dst, uint64_t src, uint8_t pb8_byte)
+static void fatal_perror(const char *filename)
 {
-	uint8_t pb8_flags = 0;
-	int y = 1;
-	for (int i = 0; i < 8; ++i) {
-		uint8_t c = src >> (8*(7-i));
-		if (c == pb8_byte) continue;
-		dst[y] = c;
-		++y;
-		pb8_byte = c;
-		pb8_flags |= 0x80>>i;
-	}
-	dst[0] = pb8_flags;
-	return y;
+	if (verbosity_level >= 0)
+		perror(filename);
+	exit(EXIT_FAILURE);
 }
 
-static uint64_t donut_flip_plane(uint64_t plane)
+/* According to a strace of cat on my system, and a quick dd of dev/zero:
+   131072 is the optimal block size,
+   but that's 2 times the size of the entire 6502 address space!
+   The usual data input is going to be 512 tiles of NES gfx data. */
+#define BUF_IO_SIZE 8192
+#define BUF_GAP_SIZE 512
+#define BUF_TOTAL_SIZE ((BUF_IO_SIZE+BUF_GAP_SIZE)*2)
+
+static uint8_t byte_buffer[BUF_TOTAL_SIZE];
+
+#define OUTPUT_BEGIN (byte_buffer)
+#define INPUT_BEGIN (byte_buffer + BUF_TOTAL_SIZE - BUF_IO_SIZE)
+
+int popcount8(uint8_t x)
+{
+	/* would be nice if I could get this to compile to 1 CPU instruction. */
+	x = (x & 0x55 ) + ((x >>  1) & 0x55 );
+	x = (x & 0x33 ) + ((x >>  2) & 0x33 );
+	x = (x & 0x0f ) + ((x >>  4) & 0x0f );
+	return (int)x;
+}
+
+typedef struct buffer_pointers {
+	uint8_t *dest_begin; /* first valid byte */
+	uint8_t *dest_end;   /* one past the last valid byte */
+	                     /* length is infered as end - begin. */
+	uint8_t *src_begin;
+	uint8_t *src_end;
+} buffer_pointers;
+
+enum {
+	DESTINATION_FULL,
+	SOURCE_EMPTY,
+	SOURCE_IS_PARTIAL,
+	ENCOUNTERED_UNDEFINED_BLOCK
+};
+
+uint64_t flip_plane_bits_135(uint64_t plane)
 {
 	uint64_t result = 0;
 	uint64_t t;
 	int i;
-	if (plane == 0xffffffffffffffff) return plane;
-	if (plane == 0x0000000000000000) return plane;
+	if (plane == 0xffffffffffffffff)
+		return plane;
+	if (plane == 0x0000000000000000)
+		return plane;
 	for (i = 0; i < 8; ++i) {
 		t = plane >> i;
 		t &= 0x0101010101010101;
@@ -194,104 +104,373 @@ static uint64_t donut_flip_plane(uint64_t plane)
 	return result;
 }
 
-// kind of a transcription of the 6502 assembly decoder.
-int donut_unpack_block(uint8_t* dst, const uint8_t* src)
+int pack_pb8(uint8_t *buffer_ptr, uint64_t plane, uint8_t top_value)
 {
-	int y = 0;
-	int x = 0;
-	uint8_t block_header = src[y];
-	if (block_header >= 0xc0) return 0;  // Return to caller to let it do the processing of headers >= 0xc0.
-	++y;
-	if ((block_header & 0x3e) == 0x00) {
-		// if b2 and b3 == 0, then no mater the combination of
-		// b0 (rotation), b6 (XOR), or b7 (XOR) the result will
-		// always be 64 bytes of \x00
-		memset(&dst[x], 0x00, 64);
-		return 1;
-	}
-	if (block_header == 0x2a) {
-		memcpy(&dst[x], &src[y], 64);
-		return 65;
-	}
-	uint8_t plane_def = 0xffaa5500 >> ((block_header & 0x0c) << 1);
-	bool single_plane_mode = false;
-	if (block_header & 0x02) {
-		single_plane_mode = (block_header & 0x04);
-		plane_def = src[y];
-		++y;
-	}
-	uint64_t prev_plane = 0x0000000000000000;
-	for (int i = 0; i < 8; ++i) {
-		uint64_t plane = 0x0000000000000000;
-		if (!(i & 1) && (block_header & 0x20)) plane = 0xffffffffffffffff;
-		if ((i & 1) && (block_header & 0x10)) plane = 0xffffffffffffffff;
-		if (plane_def & 0x80) {
-			if (single_plane_mode) y = 2;
-			y += donut_unpack_pb8(&plane, &src[y], (uint8_t)plane);
-			if (block_header & 0x01) plane = donut_flip_plane(plane);
+	uint8_t pb8_ctrl;
+	uint8_t pb8_byte;
+	uint8_t c;
+	uint8_t *p;
+	int i;
+	p = buffer_ptr;
+	++p;
+	pb8_ctrl = 0;
+	pb8_byte = top_value;
+	for (i = 0; i < 8; ++i) {
+		c = plane >> (8*(7-i));
+		if (c != pb8_byte) {
+			*p = c;
+			++p;
+			pb8_byte = c;
+			pb8_ctrl |= 0x80>>i;
 		}
-		plane_def <<= 1;
-		if (i & 1) {
-			if (block_header & 0x80) prev_plane ^= plane;
-			if (block_header & 0x40) plane ^= prev_plane;
-			(void)WRITE64LE(&dst[x], prev_plane);
-			x += 8;
-			(void)WRITE64LE(&dst[x], plane);
-			x += 8;
-		}
-		prev_plane = plane;
 	}
-	return y;
+	*buffer_ptr = pb8_ctrl;
+	return p - buffer_ptr;
 }
 
-static uint8_t donut_popcount(uint8_t x)
+uint64_t read_plane(uint8_t *p)
 {
-	x = (x & 0x55) + ((x >> 1) & 0x55);
-	x = (x & 0x33) + ((x >> 2) & 0x33);
-	x = (x & 0x0f) + ((x >> 4) & 0x0f);
-	return (int)x;
+	return (
+		((uint64_t)*(p+0) << (8*0)) |
+		((uint64_t)*(p+1) << (8*1)) |
+		((uint64_t)*(p+2) << (8*2)) |
+		((uint64_t)*(p+3) << (8*3)) |
+		((uint64_t)*(p+4) << (8*4)) |
+		((uint64_t)*(p+5) << (8*5)) |
+		((uint64_t)*(p+6) << (8*6)) |
+		((uint64_t)*(p+7) << (8*7))
+	);
 }
 
-// TODO: numbers are from the old 2019-10-23 nes runtime, update to 2023-10-08
-int donut_block_runtime_cost(const uint8_t* buf, int len)
+void write_plane(uint8_t *p, uint64_t plane)
 {
-	if (len <= 0) return 0;
-	uint8_t block_header = buf[0];
-	--len;
-	if (block_header >= 0xc0) return 0;
-	if (block_header == 0x2a) return 1268;
-	int cycles = 1298;
-	if (block_header & 0xc0) cycles += 640;
-	if (block_header & 0x20) cycles += 4;
-	if (block_header & 0x10) cycles += 4;
-	uint8_t plane_def = 0xffaa5500 >> ((block_header & 0x0c) << 1);
-	uint8_t pb8_count = 0x08040400 >> ((block_header & 0x0c) << 1);
-	bool single_plane_mode = false;
+	*(p+0) = (plane >> (8*0)) & 0xff;
+	*(p+1) = (plane >> (8*1)) & 0xff;
+	*(p+2) = (plane >> (8*2)) & 0xff;
+	*(p+3) = (plane >> (8*3)) & 0xff;
+	*(p+4) = (plane >> (8*4)) & 0xff;
+	*(p+5) = (plane >> (8*5)) & 0xff;
+	*(p+6) = (plane >> (8*6)) & 0xff;
+	*(p+7) = (plane >> (8*7)) & 0xff;
+}
+
+int cblock_cost(uint8_t *p, int l)
+{
+	int cycles;
+	uint8_t block_header;
+	uint8_t plane_def;
+	int pb8_count;
+	bool decode_only_1_pb8_plane;
+	uint8_t short_defs[4] = {0x00, 0x55, 0xaa, 0xff};
+	if (l < 1)
+		return 0;
+	block_header = *p;
+	--l;
+	if (block_header >= 0xc0)
+		return 0;
+	if (block_header == 0x2a)
+		return 1268;
+	cycles = 1298;
+	if (block_header & 0xc0)
+		cycles += 640;
+	if (block_header & 0x20)
+		cycles += 4;
+	if (block_header & 0x10)
+		cycles += 4;
 	if (block_header & 0x02) {
-		if (len <= 0) return 0;
+		if (l < 1)
+			return 0;
+		plane_def = *(p+1);
+		--l;
 		cycles += 5;
-		plane_def = buf[1];
-		--len;
-		pb8_count = donut_popcount(plane_def);
-		single_plane_mode = ((block_header & 0x04) && (plane_def != 0x00));
+		decode_only_1_pb8_plane = ((block_header & 0x04) && (plane_def != 0x00));
+	} else {
+		plane_def = short_defs[(block_header & 0x0c) >> 2];
+		decode_only_1_pb8_plane = false;
 	}
+	pb8_count = popcount8(plane_def);
 	cycles += (block_header & 0x01) ? (pb8_count * 614) : (pb8_count * 75);
-	if (single_plane_mode) {
-		len *= pb8_count;
-		cycles += pb8_count;
+	if (!decode_only_1_pb8_plane) {
+		l -= pb8_count;
+		cycles += l * 6;
+	} else {
+		--l;
+		cycles += 1 * pb8_count;
+		cycles += (l * 6 * pb8_count);
 	}
-	len -= pb8_count;
-	cycles += len * 6;
 	return cycles;
 }
 
-// TODO: Clean up fill_dont_care_bits stuff?
-static uint64_t donut_nes_fill_dont_care_bits_helper(uint64_t plane, uint64_t dont_care_mask, uint64_t xor_bg, uint8_t top_value) {
+bool all_pb8_planes_match(uint8_t *p, int pb8_length, int number_of_pb8_planes)
+{
+	int i, c, l;
+	if (number_of_pb8_planes <= 1) {
+		return false;
+		/* a block of 0 dupplicate pb8 planes is 1 byte more then normal,
+		   and a normal block of 1 plane is 5 cycles less to decode */
+	}
+	l = number_of_pb8_planes*pb8_length;
+	for (c = 0, i = pb8_length; i < l; ++i, ++c) {
+		if (c >= pb8_length) {
+			c = 0;
+		}
+		if (*(p + c) != *(p + i)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+int decompress_blocks(buffer_pointers *result_p, bool allow_partial)
+{
+	buffer_pointers p;
+	uint64_t plane;
+	uint64_t prev_plane = 0;
+	int i, j, l;
+	uint8_t block_header;
+	uint8_t plane_def;
+	uint8_t pb8_flags;
+	uint8_t pb8_byte;
+	uint8_t short_defs[4] = {0x00, 0x55, 0xaa, 0xff};
+	bool less_then_74_bytes_left;
+	bool decode_only_1_pb8_plane;
+	uint8_t *single_pb8_plane_ptr;
+	p = *(result_p);
+	while (p.src_begin - p.dest_end >= 64) {
+		less_then_74_bytes_left = (p.src_end - p.src_begin < 74);
+		if (less_then_74_bytes_left && (p.src_end - p.src_begin < 1)) {
+			return SOURCE_EMPTY;
+		}
+		block_header = *(p.src_begin);
+		++(p.src_begin);
+		if (block_header >= 0xc0) {
+			return ENCOUNTERED_UNDEFINED_BLOCK;
+		}
+		if (block_header == 0x2a) {
+			l = p.src_end - p.src_begin;
+			if (less_then_74_bytes_left && (l < 64)) {
+				if (!allow_partial)
+					return SOURCE_IS_PARTIAL;
+				memset(p.dest_end, 0x00, 64);
+			} else {
+				l = 64;
+			}
+			memmove(p.dest_end, p.src_begin, l);
+			p.src_begin += l;
+			p.dest_end += 64;
+		} else {
+			single_pb8_plane_ptr = NULL;
+			if (block_header & 0x02) {
+				if (less_then_74_bytes_left && (p.src_end - p.src_begin < 1)) {
+					if (!allow_partial)
+						return SOURCE_IS_PARTIAL;
+					plane_def = 0x00;
+				} else {
+					plane_def = *(p.src_begin);
+					++(p.src_begin);
+				}
+				decode_only_1_pb8_plane = ((block_header & 0x04) && (plane_def != 0x00));
+				single_pb8_plane_ptr = p.src_begin;
+			} else {
+				plane_def = short_defs[(block_header & 0x0c) >> 2];
+				decode_only_1_pb8_plane = false;
+			}
+			for (i = 0; i < 8; ++i) {
+				if ((((i & 1) == 0) && (block_header & 0x20)) || ((i & 1) && (block_header & 0x10))) {
+					plane = 0xffffffffffffffff;
+				} else {
+					plane = 0x0000000000000000;
+				}
+				if (plane_def & 0x80) {
+					if (decode_only_1_pb8_plane) {
+						p.src_begin = single_pb8_plane_ptr;
+					}
+					if (less_then_74_bytes_left && (p.src_end - p.src_begin < 1)) {
+						if (!allow_partial)
+							return SOURCE_IS_PARTIAL;
+						pb8_flags = 0x00;
+						plane_def = 0x00;
+					} else {
+						pb8_flags = *(p.src_begin);
+						++p.src_begin;
+					}
+					pb8_byte = (uint8_t)plane;
+					for (j = 0; j < 8; ++j) {
+						if (pb8_flags & 0x80) {
+							if (less_then_74_bytes_left && (p.src_end - p.src_begin < 1)) {
+								if (!allow_partial)
+									return SOURCE_IS_PARTIAL;
+								pb8_flags = 0x00;
+								plane_def = 0x00;
+							} else {
+								pb8_byte = *(p.src_begin);
+								++p.src_begin;
+							}
+						}
+						pb8_flags <<= 1;
+						plane <<= 8;
+						plane |= pb8_byte;
+					}
+					if (block_header & 0x01) {
+						plane = flip_plane_bits_135(plane);
+					}
+				}
+				plane_def <<= 1;
+				if (i & 1) {
+					if (block_header & 0x80) {
+						prev_plane ^= plane;
+					}
+					if (block_header & 0x40) {
+						plane ^= prev_plane;
+					}
+					write_plane(p.dest_end, prev_plane);
+					p.dest_end += 8;
+					write_plane(p.dest_end, plane);
+					p.dest_end += 8;
+				} else {
+					prev_plane = plane;
+				}
+			}
+		}
+		*(result_p) = p;
+	}
+	return DESTINATION_FULL;
+}
+
+int compress_blocks(buffer_pointers *result_p, bool allow_partial, bool use_bit_flip, int cycle_limit)
+{
+	buffer_pointers p;
+	uint64_t block[8];
+	uint64_t plane;
+	uint64_t plane_predict;
+	int shortest_length;
+	int least_cost;
+	int a, i, r, l;
+	uint8_t temp_cblock[74];
+	uint8_t *temp_p;
+	uint8_t plane_def;
+	uint8_t short_defs[4] = {0x00, 0x55, 0xaa, 0xff};
+	bool planes_match;
+	uint64_t first_non_zero_plane;
+	uint64_t first_non_zero_plane_predict;
+	int number_of_pb8_planes;
+	int first_pb8_length;
+	p = *(result_p);
+	while (p.src_begin - p.dest_end >= 65) {
+		l = p.src_end - p.src_begin;
+		if (l <= 0) {
+			return SOURCE_EMPTY;
+		} else if (l < 64) {
+			if (!allow_partial)
+				return SOURCE_IS_PARTIAL;
+			memset(p.dest_end + 1, 0x00, 64);
+		} else {
+			l = 64;
+		}
+		*(p.dest_end) = 0x2a;
+		memmove(p.dest_end + 1, p.src_begin, l);
+		p.src_begin += l;
+		shortest_length = 65;
+		least_cost = 1268;
+		for (i = 0; i < 8; ++i) {
+			block[i] = read_plane((p.dest_end + 1) + (i*8));
+		}
+		for (r = 0; r < 2; ++r) {
+			if (r == 1) {
+				if (use_bit_flip) {
+					for (i = 0; i < 8; ++i) {
+						block[i] = flip_plane_bits_135(block[i]);
+					}
+				} else {
+					break;
+				}
+			}
+			for (a = 0; a < 0xc; ++a) {
+				temp_p = temp_cblock + 2;
+				plane_def = 0x00;
+				number_of_pb8_planes = 0;
+				planes_match = true;
+				first_pb8_length = 0;
+				first_non_zero_plane = 0;
+				first_non_zero_plane_predict = 0;
+				for (i = 0; i < 8; ++i) {
+					plane = block[i];
+					if (i & 1) {
+						plane_predict = (a & 0x1) ? 0xffffffffffffffff : 0x0000000000000000;
+						if (a & 0x4) {
+							plane ^= block[i-1];
+						}
+					} else {
+						plane_predict = (a & 0x2) ? 0xffffffffffffffff : 0x0000000000000000;
+						if (a & 0x8) {
+							plane ^= block[i+1];
+						}
+					}
+					plane_def <<= 1;
+					if (plane != plane_predict) {
+						l = pack_pb8(temp_p, plane, (uint8_t)plane_predict);
+						temp_p += l;
+						plane_def |= 1;
+						if (number_of_pb8_planes == 0) {
+							first_non_zero_plane_predict = plane_predict;
+							first_non_zero_plane = plane;
+							first_pb8_length = l;
+						} else if (first_non_zero_plane != plane) {
+							planes_match = false;
+						} else if (first_non_zero_plane_predict != plane_predict) {
+							planes_match = false;
+						}
+						++number_of_pb8_planes;
+					}
+				}
+				if (number_of_pb8_planes <= 1) {
+					planes_match = false;
+					/* a normal block of 1 plane is cheaper to decode,
+					   and may even be smaller. */
+				}
+				temp_cblock[0] = r | (a<<4) | 0x02;
+				temp_cblock[1] = plane_def;
+				l = temp_p - temp_cblock;
+				temp_p = temp_cblock;
+				if (all_pb8_planes_match(temp_p+2, first_pb8_length, number_of_pb8_planes)) {
+					*(temp_p + 0) = r | (a<<4) | 0x06;
+					l = 2 + first_pb8_length;
+				} else if (planes_match) {
+					*(temp_p + 0) = r | (a<<4) | 0x06;
+					l = 2 + pack_pb8(temp_p+2, first_non_zero_plane, ~(uint8_t)first_non_zero_plane);
+				} else {
+					for (i = 0; i < 4; ++i) {
+						if (plane_def == short_defs[i]) {
+							++temp_p;
+							*(temp_p + 0) = r | (a<<4) | (i << 2);
+							--l;
+							break;
+						}
+					}
+				}
+				if (l <= shortest_length) {
+					i = cblock_cost(temp_p, l);
+					if ((i <= cycle_limit) && ((l < shortest_length) || (i < least_cost))) {
+						memmove(p.dest_end, temp_p, l);
+						shortest_length = l;
+						least_cost = i;
+					}
+				}
+			}
+		}
+		p.dest_end += shortest_length;
+		*(result_p) = p;
+	}
+	return DESTINATION_FULL;
+}
+
+uint64_t fill_dont_care_bits(uint64_t plane, uint64_t dont_care_mask, uint64_t xor_bg, uint8_t top_value) {
 	uint64_t result_plane = 0;
 	uint64_t backwards_smudge_plane = 0;
 	uint64_t current_byte, mask, inv_mask;
 	int i;
-	if (dont_care_mask == 0x0000000000000000) return plane;
+	if (dont_care_mask == 0x0000000000000000)
+		return plane;
 
 	current_byte = top_value;
 	for (i = 0; i < 8; ++i) {
@@ -319,610 +498,448 @@ static uint64_t donut_nes_fill_dont_care_bits_helper(uint64_t plane, uint64_t do
 	return result_plane;
 }
 
-static void donut_nes_fill_dont_care_bits(uint64_t* planes, const uint64_t* masks, uint8_t mode)
+/*  most of this copied pasted from compress_blocks,
+    but with fill_dont_care_bits sprinkled throughout */
+int compress_blocks_with_dcb(buffer_pointers *result_p, bool allow_partial, bool use_bit_flip, int cycle_limit)
 {
+	buffer_pointers p;
+	uint64_t original_block[8];
+	uint64_t block[8];
+	uint64_t mask[8];
+	uint64_t plane;
+	uint64_t plane_predict;
 	uint64_t plane_predict_l;
 	uint64_t plane_predict_m;
-	for (int i = 0; i < 8; i += 2) {
-		plane_predict_l = (mode & 0x20) ? 0xffffffffffffffff : 0x0000000000000000;
-		planes[i+0] = donut_nes_fill_dont_care_bits_helper(planes[i+0], masks[i+0], 0, plane_predict_l);
-		plane_predict_m = (mode & 0x10) ? 0xffffffffffffffff : 0x0000000000000000;
-		planes[i+1] = donut_nes_fill_dont_care_bits_helper(planes[i+1], masks[i+1], 0, plane_predict_m);
-
-		if (mode & 0x80) planes[i+0] = donut_nes_fill_dont_care_bits_helper(planes[i+0], masks[i+0], planes[i+1], plane_predict_l);
-		if (mode & 0x40) planes[i+1] = donut_nes_fill_dont_care_bits_helper(planes[i+1], masks[i+1], planes[i+0], plane_predict_m);
-	}
-	return;
-}
-
-static bool donut_nes_all_pb8_planes_match(const uint8_t* buf, int len, int pb8_count)
-{
-	// a block of 0 dupplicate pb8 planes is 1 byte more then normal,
-	// and a normal block of 1 pb8 plane is 5 cycles less to decode
-	if (pb8_count <= 1) return false;
-	len -= 2;
-	if (len % pb8_count) return false; 	// planes don't divide evenly
-	int pb8_length = len/pb8_count;
-	int i, c;
-	for (c = 0, i = pb8_length; i < len; ++i, ++c) {
-		if (c >= pb8_length) c = 0;
-		if (buf[c+2] != buf[i+2]) return false;  // a plane didn't match
-	}
-	return true;
-}
-
-int donut_pack_block(uint8_t* dst, const uint8_t* src, int cpu_limit, const uint8_t* mask)
-{
-	uint64_t planes[(mask) ? 16 : 8];
-	uint8_t cblock[76];
-	// 2+9*8 == 74 for max encoded block
-	// 65+11 == 76 for uncompressed block with a optimized block test
-	int i;
-
-	if (!cpu_limit) cpu_limit = 16384; 	// basically unlimited.
-
-	// first load the fallback uncompressed block.
-	dst[0] = 0x2a;
-	memcpy(dst + 1, src, 64);
-	int shortest_len = 65;
-	int least_cost = 1268;
-	// if cpu_limit constrains too much, uncompressed block is all that can happen.
-	if (cpu_limit < 1298) return shortest_len;
-	for (i = 0; i < 8; ++i) {
-		planes[i] = READ64LE(&src[i*8]);
-	}
-	if (mask) {
-		for (i = 0; i < 8; ++i) {
-			planes[i+8] = READ64LE(&mask[i*8]);
-		}
-	}
-
-	// Try to compress with all 48 different block modes.
-	// The rotate bit (0x01) will toggle last so that flip_plane
-	// is only called once instead of 24 times.
-	uint8_t a = 0x00;
-	while (1) {
-		if (a >= 0xc0) {
-			if (a & 0x01) break;
-			for (i = 0; i < ((mask) ? 16 : 8); ++i) {
-				planes[i] = donut_flip_plane(planes[i]);
-			}
-			a = 0x01;
-		}
-		if (mask) donut_nes_fill_dont_care_bits(planes, &planes[8], a);
-		// With the block mode in mind, pack the 64 bytes of data into 8 pb8 planes.
-		uint8_t plane_def = 0x00;
-		int len = 2;
-		int pb8_count = 0;
-		uint64_t first_non_zero_plane = 0;
-		bool planes_match = true;
-		for (i = 0; i < 8; ++i) {
-			uint64_t plane_predict = 0x0000000000000000;
-			uint64_t plane = planes[i];
-			if (i & 1) {
-				if (a & 0x10) plane_predict = 0xffffffffffffffff;
-				if (a & 0x40) plane ^= planes[i-1];
-			} else {
-				if (a & 0x20) plane_predict = 0xffffffffffffffff;
-				if (a & 0x80) plane ^= planes[i+1];
-			}
-			plane_def <<= 1;
-			if (plane != plane_predict) {
-				len += donut_pack_pb8(&cblock[len], plane, (uint8_t)plane_predict);
-				plane_def |= 1;
-				++pb8_count;
-				if (pb8_count == 1) {
-					first_non_zero_plane = plane;
-				} else if (plane != first_non_zero_plane) {
-					planes_match = false;
-				}
-			}
-		}
-		cblock[0] = a | 0x02;
-		cblock[1] = plane_def;
-		// now that we have the basic block form, try to find optimizations
-		// temp_p is needed because a optimization removes a byte from the start
-		int cycles = donut_block_runtime_cost(cblock, len);
-		uint8_t* temp_p = cblock;
-		if (donut_nes_all_pb8_planes_match(temp_p, len, pb8_count) && ((cycles + pb8_count) <= cpu_limit)) {
-			temp_p[0] = a | 0x06;
-			len = ((len - 2) / pb8_count) + 2;
-			cycles += pb8_count;
-			planes_match = false; // disable that optimization
+	int shortest_length;
+	int least_cost;
+	int a, i, r, l;
+	uint8_t temp_cblock[74];
+	uint8_t *temp_p;
+	uint8_t plane_def;
+	uint8_t short_defs[4] = {0x00, 0x55, 0xaa, 0xff};
+	bool planes_match;
+	uint64_t first_non_zero_plane;
+	uint64_t first_non_zero_plane_predict;
+	int number_of_pb8_planes;
+	int first_pb8_length;
+	p = *(result_p);
+	while (p.src_begin - p.dest_end >= 65) {
+		l = p.src_end - p.src_begin;
+		if (l <= 0) {
+			return SOURCE_EMPTY;
+		} else if (l < 128) {
+			if (!allow_partial)
+				return SOURCE_IS_PARTIAL;
+			memset(p.dest_end + 1, 0x00, 64);
 		} else {
-			for (i = 0; i < 4*8; i += 8) {
-				if (plane_def != ((0xffaa5500 >> i) & 0xff)) continue;
-				++temp_p;
-				temp_p[0] = a | (i >> 1);
-				--len;
-				cycles -= 5;
-				planes_match = false; // disable that optimization
-				break;
+			l = 64;
+		}
+		*(p.dest_end) = 0x2a;
+		memmove(p.dest_end + 1, p.src_begin, l);
+		p.src_begin += l;
+		shortest_length = 65;
+		least_cost = 1268;
+		for (i = 0; i < 8; ++i) {
+			original_block[i] = read_plane((p.dest_end + 1) + (i*8));
+		}
+		if (p.src_end - p.src_begin > 0){
+			for (i = 0; i < 8; ++i) {
+				mask[i] = read_plane((p.src_begin) + (i*8));
+			}
+			p.src_begin += 64;
+		} else {
+			for (i = 0; i < 8; ++i) {
+				mask[i] = 0;
 			}
 		}
-
-		// compare size and cpu cost to choose the block of this mode
-		// or to keep the old one.
-		if ((len <= shortest_len) && ((cycles < least_cost) || (len < shortest_len)) && (cycles <= cpu_limit)) {
-			memcpy(dst, temp_p, len);
-			shortest_len = len;
-			least_cost = cycles;
-		}
-
-		// if possible also try this optimization where a single plane mode
-		// block has a pb8 plane with a leading 0x00/0xff byte
-		if ((pb8_count > 1) && planes_match) {
-			temp_p = cblock;
-			temp_p[0] = a | 0x06;
-			temp_p[1] = plane_def;
-			len = 2 + donut_pack_pb8(&temp_p[2], first_non_zero_plane, ~(first_non_zero_plane >> (7*8)));
-			cycles = donut_block_runtime_cost(temp_p, len);
-			if ((len <= shortest_len) && ((cycles < least_cost) || (len < shortest_len)) && (cycles <= cpu_limit)) {
-				memcpy(dst, temp_p, len);
-				shortest_len = len;
-				least_cost = cycles;
-			}
-		}
-
-		a += 0x10;  // onto the next block mode.
-	}
-
-	return shortest_len;
-}
-
-size_t donut_decompress(uint8_t* dst, size_t dst_capacity, const uint8_t* src, size_t src_length, size_t* src_bytes_read)
-{
-	uint8_t scratch_space[64+74];
-	int dst_length = 0;
-	int bytes_read = 0;
-	int l;
-	while (1) {
-		int src_bytes_remain = src_length - bytes_read;
-		int dst_bytes_remain = dst_capacity - dst_length;
-		if (src_bytes_remain <= 0) break;
-		if (dst_bytes_remain < 64) break;
-		if (src_bytes_remain < 74) {
-			memset(scratch_space, 0x00, 64+74);
-			memcpy(&scratch_space[64], &src[bytes_read], src_bytes_remain);
-			l = donut_unpack_block(scratch_space, &scratch_space[64]);
-			if ((!l) || (l > src_bytes_remain)) break;
-			memcpy(&dst[dst_length], scratch_space, 64);
-			bytes_read += l;
-			dst_length += 64;
-			continue;
-		}
-		l = donut_unpack_block(&dst[dst_length], &src[bytes_read]);
-		// TODO: process special codes >=0xc0
-		if (!l) break;
-		bytes_read += l;
-		dst_length += 64;
-	}
-	
-	if (src_bytes_read) *src_bytes_read = bytes_read;
-	return dst_length;
-}
-
-size_t donut_compress(uint8_t* dst, size_t dst_capacity, const uint8_t* src, size_t src_length, size_t* src_bytes_read)
-{
-	uint8_t scratch_space[64+65];
-	int dst_length = 0;
-	int bytes_read = 0;
-	int l;
-	while (1) {
-		int src_bytes_remain = src_length - bytes_read;
-		int dst_bytes_remain = dst_capacity - dst_length;
-		if (src_bytes_remain < 64) break;
-		if (dst_bytes_remain <= 0) break;
-		if (dst_bytes_remain < 65) {
-			memset(scratch_space, 0x00, 64+65);
-			memcpy(scratch_space, &src[bytes_read], 64);
-			l = donut_pack_block(&scratch_space[64], scratch_space, 0, NULL);
-			if ((!l) || (l > dst_bytes_remain)) break;
-			memcpy(&dst[dst_length], &scratch_space[64], l);
-			bytes_read += 64;
-			dst_length += l;
-			continue;
-		}
-		l = donut_pack_block(&dst[dst_length], &src[bytes_read], 0, NULL);
-		if (!l) break;
-		bytes_read += 64;
-		dst_length += l;
-	}
-	
-	if (src_bytes_read) *src_bytes_read = bytes_read;
-	return dst_length;
-}
-
-#endif // JRR_DONUT_NES_IMPLEMENTATION
-
-
-#ifdef USE_MAIN_CLI_APP
-
-// Standard headers that do not require the C runtime
-#include <stddef.h>
-#include <limits.h>
-#include <float.h>
-#include <stdarg.h>
-#include <stdint.h>       // C99
-#include <stdbool.h>      // C99
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-const char *PROGRAM_NAME = "donut-nes";
-const char *USAGE_TEXT =
-	"donut-nes - A NES CHR Codec\n"
-	"\n"
-	"Usage:\n"
-	"  donut-nes [-d] [options] [--] INPUT OUTPUT [MASK]\n"
-//	"  donut-nes -d [options] [--] INPUT OUTPUT [OFFSETS]\n"
-	"\n"
-	"Options:\n"
-	"  -h, --help             show this help message and exit\n"
-	"  -z                     compress input file [default action]\n"
-	"  -d                     decompress input file\n"
-	"  -f                     overwrite output without prompting\n"
-	"  -q                     suppress error messages\n"
-	"  -v                     show completion stats\n"
-//  "  -p                     The unencoded file is a PNG image\n"
-//	"  -l INT                 limits the 6502 decoding time for each encoded block\n"
-//	"  -a, --adv-format       (WIP) encode Donut 2.0\n"
-	"Notes:\n"
-	"  filenames can be - for stdin or stdout unless options ended with --\n"
-	"  the optional MASK file is a bitmap of \"don't care bits\" for the INPUT\n"
-    "  if INPUT and MASK are the same file, they are interleaved by 64 bytes\n"
-	"  *for this Oct 23 beta MASK is defunct*\n"
-;
-
-// set_fd_binary() Sets stdin/stdout to binary mode under Windows
-// Thanks to Pino
-#if defined (_WIN32)
-#include <io.h>
-#include <fcntl.h>
-#define fd_isatty _isatty
-#endif
-static inline void set_fd_binary(unsigned int fd) {
-#ifdef _WIN32
-  _setmode(fd, _O_BINARY);
-#else
-  (void) fd;
-#endif
-}
-
-// Reads files without fseek and ftell capabilities (stdin, named pipes)
-// this does so by using realloc a bunch of times.
-// returns 0 and sets data_ptr to NULL if error or zero sized file.
-static size_t read_whole_file_without_fseek(uint8_t** data_ptr, FILE* f)
-{
-	uint8_t* data = NULL;
-	size_t length = 0;
-	uint8_t* realloc_data = NULL;
-	// I want a slower exponential growth then something like a simple
-	// "capacity *= 2", so I choose the fibonacci sequence (growth rate of about 1.6).
-	// 4KiB (common memory page size) times the 6th fibonacci number is 32kiB.
-	size_t capacity = 32768;
-	size_t previous_capacity = 20480;
-
-	assert(data_ptr && f);
-	*data_ptr = NULL;
-
-	data = malloc(capacity);
-	if (!data) return 0;
-
-	while (!feof(f)) {
-		length += fread(data + length, sizeof(uint8_t), capacity - length, f);
-		if (ferror(f)) goto free_and_return_empty;
-
-		if (length == capacity) {
-			size_t n = capacity;
-			capacity = capacity + previous_capacity;
-			previous_capacity = n;
-			realloc_data = realloc(data, capacity);
-			if (!realloc_data) goto free_and_return_empty;
-			data = realloc_data;
-		}
-	}
-	if (!length) goto free_and_return_empty;
-	// shrink buffer to fit the final size
-	realloc_data = realloc(data, length);
-	if (!realloc_data) goto free_and_return_empty;
-	data = realloc_data;
-
-	*data_ptr = data;
-	return length;
-free_and_return_empty:
-	free(data);
-	return 0;
-}
-
-// returns 0 and sets data_ptr to NULL if error or zero sized file.
-static size_t read_whole_file(uint8_t** data_ptr, FILE* f)
-{
-	assert(data_ptr && f);
-	*data_ptr = NULL;
-
-	if (fseek(f, 0, SEEK_END) != 0) {
-		// If fseek fails the file cursor is still at the beginning
-		// so no need for rewind(f)
-		return read_whole_file_without_fseek(data_ptr, f);
-	}
-
-	// fseek works, so now do it the simple way
-	size_t length = ftell(f);
-	if (length <= 0) return 0;
-	uint8_t* data = malloc(length);
-	if (!data) return 0;
-	rewind(f);
-	size_t read_length = fread(data, sizeof(uint8_t), length, f);
-	if (read_length != length) {
-		free(data);
-		return 0;
-	}
-
-	*data_ptr = data;
-	return length;
-}
-
-int main (int argc, char* argv[])
-{
-	// Yes, I'm rolling my own argument parsing here
-	// because some compiler didn't have <getopt.h> :(
-	bool print_help_and_exit = false;
-	bool arg_decompress = false;
-	bool arg_force_overwrite = false;
-	int arg_number_of_filenames = 0;
-	char arg_last_unknown_option = '\0';
-	int arg_verbosity = 0;
-//	int arg_cycle_limit = 10000;
-	char *input_filename = NULL;
-	char *output_filename = NULL;
-	char *mask_filename = NULL;
-//	char *cycle_limit_str = NULL;
-	char *stdio_filename_placeholder = "<stdio>";
-	bool input_mask_interleave = false;
-
-	if (argc <= 1) print_help_and_exit = true;
-	bool parse_options = true;
-	for (int optind = 1; optind < argc; ++optind) {
-		if (!parse_options || argv[optind][0] != '-') {
-			if (!input_filename) {
-				input_filename = argv[optind];
-			} else if (!output_filename) {
-				output_filename = argv[optind];
-			} else if (!mask_filename) {
-				mask_filename = argv[optind];
-			}
-			++arg_number_of_filenames;
-			continue;
-		}
-		if (argv[optind][0] == '-' && argv[optind][1] == '\0') {
-			if (!input_filename) {
-				input_filename = stdio_filename_placeholder;
-			} else if (!output_filename) {
-				output_filename = stdio_filename_placeholder;
-			} else if (!mask_filename) {
-				mask_filename = stdio_filename_placeholder;
-			}
-			++arg_number_of_filenames;
-			continue;
-		}
-		for (int optpos = 1; argv[optind][optpos] != '\0'; ++optpos) {
-			switch (argv[optind][optpos]) {
-			case 'h': print_help_and_exit = true; break;
-			case '?': print_help_and_exit = true; break;
-			case 'z': arg_decompress = false; break;
-			case 'd': arg_decompress = true; break;
-			case 'f': arg_force_overwrite = true; break;
-			case 'v': if (arg_verbosity >= 0) ++arg_verbosity; break;
-			case 'q': arg_verbosity = -1; break;
-/*			case 'l':
-				// defer the intiger parseing for later?
-				if (argv[optind][optpos+1] == '\0') {
-					grab_next_optind_for_option_argument = 3;
-				} else {
-					(void);
-				}
-			break;*/
-			case '-':
-				if (optpos == 1) {
-					if (argv[optind][optpos+1] == '\0') {
-						// "--" ends option parsing
-						parse_options = false;
-					} else {
-						// The only long option is "help"
-						// so have all long options be just that
-						while (argv[optind][optpos+1] != '\0') ++optpos;
-						print_help_and_exit = true;
+		for (r = 0; r < 2; ++r) {
+			if (r == 1) {
+				if (use_bit_flip) {
+					for (i = 0; i < 8; ++i) {
+						original_block[i] = flip_plane_bits_135(original_block[i]);
+					}
+					for (i = 0; i < 8; ++i) {
+						mask[i] = flip_plane_bits_135(mask[i]);
 					}
 				} else {
-					arg_last_unknown_option = argv[optind][optpos];
+					break;
 				}
-			break;
-			default: arg_last_unknown_option = argv[optind][optpos]; break;
 			}
-		}
-	}
+			for (a = 0; a < 0xc; ++a) {
+				for (i = 0; i < 8; i += 2) {
+					plane_predict_l = (a & 0x2) ? 0xffffffffffffffff : 0x0000000000000000;
+					block[i+0] = fill_dont_care_bits(original_block[i+0], mask[i+0], 0, plane_predict_l);
+					plane_predict_m = (a & 0x1) ? 0xffffffffffffffff : 0x0000000000000000;
+					block[i+1] = fill_dont_care_bits(original_block[i+1], mask[i+1], 0, plane_predict_m);
 
-	if (print_help_and_exit) {
-		fputs(USAGE_TEXT, stdout);
-		return 0;
-	}
-
-	if (input_filename && mask_filename) {
-		if (input_filename == stdio_filename_placeholder && mask_filename == stdio_filename_placeholder) {
-			input_mask_interleave = true;
-		}
-		if (input_filename != stdio_filename_placeholder && mask_filename != stdio_filename_placeholder &&
-			strcmp(input_filename, mask_filename) == 0) {
-			input_mask_interleave = true;
-		}
-	}
-
-	if (arg_last_unknown_option || !input_filename || !output_filename || (arg_decompress && arg_number_of_filenames > 2) || arg_number_of_filenames > 3) {
-		if (arg_verbosity >= 0) {
-			if (arg_last_unknown_option) {
-				fprintf(stderr, "%s: Unknown option '%c', Try --help for usage info.\n", argv[0], arg_last_unknown_option);
-			} else if (!input_filename) {
-				fprintf(stderr, "%s: Input and Output filenames required, Try --help for usage info.\n", argv[0]);
-			} else if (!output_filename) {
-				fprintf(stderr, "%s: Output filename required, Try --help for usage info.\n", argv[0]);
-			} else if (arg_decompress && arg_number_of_filenames > 2) {
-				fprintf(stderr, "%s: Too many filenames, Try --help for usage info.\n", argv[0]);
-			} else if (arg_number_of_filenames > 3) {
-				fprintf(stderr, "%s: Too many filenames, Try --help for usage info.\n", argv[0]);
-			}
-		}
-		return 1;
-	}
-
-	FILE *input_file = NULL;
-	FILE *output_file = NULL;
-	FILE *mask_file = NULL;
-
-	if (output_filename != stdio_filename_placeholder) {
-		if (!arg_force_overwrite) {
-			// open output for read to check for file existence.
-			// if so do interactive question about overwriting the file
-			output_file = fopen(output_filename, "rb");
-			if (output_file && arg_verbosity >= 0) {
-				if (input_filename == stdio_filename_placeholder) {
-					fprintf(stderr, "%s already exists; not overwriting\n", output_filename);
-					return 1;
+					if (a & 0x8)
+						block[i+0] = fill_dont_care_bits(block[i+0], mask[i+0], block[i+1], plane_predict_l);
+					if (a & 0x4)
+						block[i+1] = fill_dont_care_bits(block[i+1], mask[i+1], block[i+0], plane_predict_m);
 				}
-				fprintf(stderr, "%s already exists; do you wish to overwrite (y/N) ? ", output_filename);
-				int c = fgetc(stdin);
-				while (fgetc(stdin) != '\n') {;} // read until the newline
-				if (c == 'y' || c == 'Y') {
-					// close file reading to make avaliable for writing.
-					fclose(output_file);
-					output_file = NULL;
+				temp_p = temp_cblock + 2;
+				plane_def = 0x00;
+				number_of_pb8_planes = 0;
+				planes_match = true;
+				first_pb8_length = 0;
+				first_non_zero_plane = 0;
+				first_non_zero_plane_predict = 0;
+				for (i = 0; i < 8; ++i) {
+					plane = block[i];
+					if (i & 1) {
+						plane_predict = (a & 0x1) ? 0xffffffffffffffff : 0x0000000000000000;
+						if (a & 0x4) {
+							plane ^= block[i-1];
+						}
+					} else {
+						plane_predict = (a & 0x2) ? 0xffffffffffffffff : 0x0000000000000000;
+						if (a & 0x8) {
+							plane ^= block[i+1];
+						}
+					}
+					plane_def <<= 1;
+					if (plane != plane_predict) {
+						l = pack_pb8(temp_p, plane, (uint8_t)plane_predict);
+						temp_p += l;
+						plane_def |= 1;
+						if (number_of_pb8_planes == 0) {
+							first_non_zero_plane_predict = plane_predict;
+							first_non_zero_plane = plane;
+							first_pb8_length = l;
+						} else if (first_non_zero_plane != plane) {
+							planes_match = false;
+						} else if (first_non_zero_plane_predict != plane_predict) {
+							planes_match = false;
+						}
+						++number_of_pb8_planes;
+					}
+				}
+				if (number_of_pb8_planes <= 1) {
+					planes_match = false;
+					/* a normal block of 1 plane is cheaper to decode,
+					   and may even be smaller. */
+				}
+				temp_cblock[0] = r | (a<<4) | 0x02;
+				temp_cblock[1] = plane_def;
+				l = temp_p - temp_cblock;
+				temp_p = temp_cblock;
+				if (all_pb8_planes_match(temp_p+2, first_pb8_length, number_of_pb8_planes)) {
+					*(temp_p + 0) = r | (a<<4) | 0x06;
+					l = 2 + first_pb8_length;
+				} else if (planes_match) {
+					*(temp_p + 0) = r | (a<<4) | 0x06;
+					l = 2 + pack_pb8(temp_p+2, first_non_zero_plane, ~(uint8_t)first_non_zero_plane);
 				} else {
-					fprintf(stderr, "    not overwritten\n");
+					for (i = 0; i < 4; ++i) {
+						if (plane_def == short_defs[i]) {
+							++temp_p;
+							*(temp_p + 0) = r | (a<<4) | (i << 2);
+							--l;
+							break;
+						}
+					}
+				}
+				if (l <= shortest_length) {
+					i = cblock_cost(temp_p, l);
+					if ((i <= cycle_limit) && ((l < shortest_length) || (i < least_cost))) {
+						memmove(p.dest_end, temp_p, l);
+						shortest_length = l;
+						least_cost = i;
+					}
 				}
 			}
-			// output file being open for reading means it's not useable for writing.
-			if (output_file) return 1;
 		}
-		output_file = fopen(output_filename, "wb");
-		if (!output_file) {
-			if (arg_verbosity >= 0) perror(output_filename);
-			return 1;
-		}
-	} else {
-		output_file = stdout;
-		set_fd_binary(1);
+		p.dest_end += shortest_length;
+		*(result_p) = p;
 	}
-
-	if (input_filename != stdio_filename_placeholder) {
-		input_file = fopen(input_filename, "rb");
-		if (!input_file) {
-			if (arg_verbosity >= 0) perror(input_filename);
-			return 1;
-		}
-	} else {
-		input_file = stdin;
-		set_fd_binary(0);
-	}
-
-	uint8_t *input_data = NULL;
-	size_t input_data_size = 0;
-	input_data_size = read_whole_file(&input_data, input_file);
-	fclose(input_file);
-
-	uint8_t *mask_data = NULL;
-	size_t mask_data_size = 0;
-	if (!arg_decompress && mask_filename && !input_mask_interleave) {
-		if (mask_filename != stdio_filename_placeholder) {
-			mask_file = fopen(mask_filename, "rb");
-			if (!mask_file) {
-				if (arg_verbosity >= 0) perror(mask_filename);
-				return 1;
-			}
-		} else {
-			mask_file = stdin;
-			set_fd_binary(0);
-		}
-		mask_data_size = read_whole_file(&mask_data, mask_file);
-		fclose(mask_file);
-	}
-
-// everything beyond this point was hastely written, may change later
-
-	uint8_t *output_data = NULL;
-	size_t output_data_size = 0;
-	size_t output_data_capacity = 0;
-
-	if (arg_decompress) {
-		output_data_capacity = input_data_size * 64;
-	} else {
-		output_data_capacity = ((input_data_size + 63)/64) * 74;
-	}
-	output_data = malloc(output_data_capacity);
-
-	size_t i;
-	if (arg_decompress) {
-		output_data_size = donut_decompress(output_data, output_data_capacity, input_data, input_data_size, &i);
-	} else {
-		// TODO: reintroduce mask files
-		output_data_size = donut_compress(output_data, output_data_capacity, input_data, input_data_size, &i);
-	}
-	fwrite(output_data, sizeof(uint8_t), output_data_size, output_file);
-	if (ferror(output_file)) {
-		if (arg_verbosity >= 0) perror(output_filename);
-		return 1;
-	}
-
-	if ((arg_verbosity >= 0) && (i < input_data_size)) {
-		fprintf (stderr, "%s : %ld bytes was not processed!\n", input_filename, input_data_size - i);
-	}
-
-	if (arg_verbosity >= 1) {
-		float total_bytes_ratio = 0.0;
-		if (arg_decompress) {
-			if (output_data_size != 0) {
-				total_bytes_ratio = (1.0 - ((float)i / (float)output_data_size))*100.0;
-			}
-		} else {
-			if (output_data_size != 0) {
-				total_bytes_ratio = (1.0 - ((float)output_data_size / (float)i))*100.0;
-			}
-		}
-		fprintf (stderr, "%s :%#5.1f%% (%ld => %ld bytes)\n", output_filename, total_bytes_ratio, i, output_data_size);
-	}
-
-	free(input_data);
-	free(output_data);
-	free(mask_data);
-	return 0;
+	return DESTINATION_FULL;
 }
 
-#endif // USE_MAIN_CLI_APP
+int main (int argc, char **argv)
+{
+	int c;
+	char *input_filename = NULL;
+	char *output_filename = NULL;
+	FILE *input_file = NULL;
+	FILE *output_file = NULL;
+	bool decompress = false;
+	bool force_overwrite = false;
+	bool use_stdio_for_data = false;
+	bool no_bit_flip_blocks = false;
+	bool interleaved_dont_care_bits = false;
 
-/*
-This is free and unencumbered software released into the public domain.
+	int total_bytes_in = 0;
+	int total_bytes_out = 0;
+	float total_bytes_ratio = 0.0;
 
-Anyone is free to copy, modify, publish, use, compile, sell, or
-distribute this software, either in source code form or as a compiled
-binary, for any purpose, commercial or non-commercial, and by any
-means.
+	buffer_pointers p = {NULL};
+	size_t l;
 
-In jurisdictions that recognize copyright laws, the author or authors
-of this software dedicate any and all copyright interest in the
-software to the public domain. We make this dedication for the benefit
-of the public at large and to the detriment of our heirs and
-successors. We intend this dedication to be an overt act of
-relinquishment in perpetuity of all present and future rights to this
-software under copyright law.
+	int cycle_limit = 10000;
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+	int status;
 
-For more information, please refer to <http://unlicense.org>
-*/
+	setvbuf(stdin, NULL, _IONBF, 0);
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+	while (1) {
+		static struct option long_options[] =
+		{
+			{"help",        no_argument,       NULL, 'h'},
+			{"version",     no_argument,       NULL, 'V'},
+			{"compress",    no_argument,       NULL, 'z'},
+			{"decompress",  no_argument,       NULL, 'd'},
+			{"output",      required_argument, NULL, 'o'},
+			{"stdout",      no_argument,       NULL, 'c'},
+			{"force",       no_argument,       NULL, 'f'},
+			{"verbose",     no_argument,       NULL, 'v'}, /* to be used */
+			{"quiet",       no_argument,       NULL, 'q'},
+			{"no-bit-flip", no_argument,       NULL, 'b'+256},
+			{"cycle-limit", required_argument, NULL, 'y'+256},
+			{"interleaved-dont-care-bits", no_argument, NULL, 'd'+256},
+			{NULL, 0, NULL, 0}
+		};
+		/* getopt_long stores the option index here. */
+		int option_index = 0;
+
+		c = getopt_long(argc, argv, "hVzdo:cfvq",
+						long_options, &option_index);
+
+		/* Detect the end of the options. */
+		if (c == -1)
+			break;
+
+		switch (c) {
+		case 'h':
+			fputs(HELP_TEXT, stdout);
+			exit(EXIT_SUCCESS);
+
+		break; case 'V':
+			fputs(VERSION_TEXT, stdout);
+			exit(EXIT_SUCCESS);
+
+		break; case 'z':
+			decompress = false;
+
+		break; case 'd':
+			decompress = true;
+
+		break; case 'o':
+			output_filename = optarg;
+
+		break; case 'c':
+			use_stdio_for_data = true;
+
+		break; case 'f':
+			force_overwrite = true;
+
+		break; case 'v':
+			if (verbosity_level >= 0)
+				++verbosity_level;
+
+		break; case 'q':
+			verbosity_level = -1;
+			opterr = 0;
+
+		break; case 'b'+256:
+			no_bit_flip_blocks = true;
+
+		break; case 'y'+256:
+			cycle_limit = strtol(optarg, NULL, 0);
+
+		break; case 'd'+256:
+			interleaved_dont_care_bits = true;
+
+		break; case '?':
+			/* getopt_long already printed an error message. */
+			exit(EXIT_FAILURE);
+
+		break; default:
+		break;
+		}
+	}
+
+	if (verbosity_level < 0) {
+		fclose(stderr);
+	}
+
+	if (cycle_limit < 1268) {
+		fatal_error("Invalid parameter for --cycle-limit. Must be a integer >= 1268.\n");
+	}
+
+	if ((input_filename == NULL) && (optind < argc)) {
+		input_filename = argv[optind];
+		++optind;
+	}
+
+	if ((output_filename == NULL) && (optind < argc)) {
+		output_filename = argv[optind];
+		++optind;
+	}
+
+	if ((input_filename == NULL) && (output_filename == NULL) && (!use_stdio_for_data)) {
+		fatal_error("Input and output filenames required. Try --help for more info.\n");
+	}
+
+	if (input_filename == NULL) {
+		if (use_stdio_for_data) {
+			input_file = stdin;
+		} else {
+			fatal_error("input filename required. Try --help for more info.\n");
+		}
+	}
+
+	if (output_filename == NULL) {
+		if (use_stdio_for_data) {
+			output_file = stdout;
+		} else {
+			fatal_error("output filename required. Try --help for more info.\n");
+		}
+	}
+
+	if (output_filename != NULL) {
+		fclose(stdout);
+		if (!force_overwrite) {
+			/* open output for read to check for file existence. */
+			output_file = fopen(output_filename, "rb");
+			if (output_file != NULL) {
+				fclose(output_file);
+				output_file = NULL;
+				if (verbosity_level >= 0) {
+					fputs(output_filename, stderr);
+					fputs(" already exists;", stderr);
+					if (!use_stdio_for_data) {
+						fputs(" do you wish to overwrite (y/N) ? ", stderr);
+						c = fgetc(stdin);
+						if (c != '\n') {
+							while (true) {
+								if (fgetc(stdin) == '\n')
+									break; /* read until the newline */
+							}
+						}
+						if (c == 'y' || c == 'Y') {
+							force_overwrite = true;
+						} else {
+							fputs("    not overwritten\n", stderr);
+						}
+					} else {
+						fputs(" not overwritten\n", stderr);
+					}
+				}
+			}
+		}
+		if ((errno == ENOENT) || (force_overwrite)) {
+			/* "No such file or directory" means the name is usable */
+			errno = 0;
+			output_file = fopen(output_filename, "wb");
+			if (output_file == NULL) {
+				fatal_perror(output_filename);
+			}
+			setvbuf(output_file, NULL, _IONBF, 0);
+		} else {
+			/* error message printed above */
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		output_filename = "<stdout>";
+	}
+
+	if (input_filename != NULL) {
+		fclose(stdin);
+		input_file = fopen(input_filename, "rb");
+		if (input_file == NULL) {
+			fatal_perror(input_filename);
+		}
+		setvbuf(input_file, NULL, _IONBF, 0);
+	} else {
+		input_filename = "<stdin>";
+	}
+
+	p.src_begin = INPUT_BEGIN;
+	p.src_end = INPUT_BEGIN;
+	p.dest_begin = OUTPUT_BEGIN;
+	p.dest_end = OUTPUT_BEGIN;
+	status = SOURCE_EMPTY;
+	while(true) {
+		l = (size_t)(p.src_end - p.src_begin);
+		if ((l <= BUF_GAP_SIZE) && !feof(input_file)) {
+			if (l > 0) {
+				memmove(INPUT_BEGIN - l, p.src_begin, l);
+			}
+			p.src_begin = INPUT_BEGIN - l;
+			p.src_end = INPUT_BEGIN;
+
+			l = fread(INPUT_BEGIN, sizeof(uint8_t), (size_t)BUF_IO_SIZE, input_file);
+			if (ferror(input_file)) {
+				fatal_perror(input_filename);
+			}
+			p.src_end += l;
+			total_bytes_in += l;
+		}
+
+		if (decompress) {
+			status = decompress_blocks(&p, feof(input_file));
+		} else if (interleaved_dont_care_bits) {
+			status = compress_blocks_with_dcb(&p, feof(input_file), !no_bit_flip_blocks, cycle_limit);
+		} else {
+			status = compress_blocks(&p, feof(input_file), !no_bit_flip_blocks, cycle_limit);
+		}
+
+		l = (size_t)(p.dest_end - p.dest_begin);
+		if (l >= BUF_IO_SIZE) {
+			l = fwrite(p.dest_begin, sizeof(uint8_t), (size_t)BUF_IO_SIZE, output_file);
+			if (ferror(output_file)) {
+				fatal_perror(output_filename);
+			}
+			p.dest_begin += l;
+			total_bytes_out += l;
+
+			l = (size_t)(p.dest_end - p.dest_begin);
+			if (l > 0) {
+				memmove(OUTPUT_BEGIN, p.dest_begin, l);
+			}
+			p.dest_begin = OUTPUT_BEGIN;
+			p.dest_end = OUTPUT_BEGIN + l;
+		}
+
+		if ((feof(input_file) && (status == SOURCE_EMPTY)) || (status == ENCOUNTERED_UNDEFINED_BLOCK)) {
+			l = (size_t)(p.dest_end - p.dest_begin);
+			if (l > 0) {
+				l = fwrite(p.dest_begin, sizeof(uint8_t), (size_t)l, output_file);
+				if (ferror(output_file)) {
+					fatal_error(output_filename);
+				}
+				p.dest_begin += l;
+				total_bytes_out += l;
+			}
+			if (status == ENCOUNTERED_UNDEFINED_BLOCK) {
+				fatal_error("Error: Unhandled block header >= 0xc0.\n");
+			}
+			break;
+		}
+	}
+
+	if (input_file != NULL) {
+		fclose(input_file);
+	}
+
+	if (output_file != NULL) {
+		fclose(output_file);
+	}
+
+	if (verbosity_level >= 1) {
+		/* I was hoping I would avoid printf for this, because printf is stupid */
+		if (decompress) {
+			if (total_bytes_out != 0) {
+				total_bytes_ratio = (1.0 - ((float)total_bytes_in / (float)total_bytes_out))*100.0;
+			}
+		} else {
+			if (total_bytes_in != 0) {
+				total_bytes_ratio = (1.0 - ((float)total_bytes_out / (float)total_bytes_in))*100.0;
+			}
+		}
+		fprintf (stderr, "%s :%#5.1f%% (%d => %d bytes)\n", output_filename, total_bytes_ratio, total_bytes_in, total_bytes_out);
+	}
+
+	exit(EXIT_SUCCESS);
+}
