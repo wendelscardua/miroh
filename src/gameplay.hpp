@@ -15,6 +15,8 @@ class Gameplay {
     ConfirmExit,
     ConfirmRetry,
     ConfirmContinue,
+    RetryOrExit,
+    Retrying
   };
 
   // we level up every 50 points
@@ -66,6 +68,8 @@ public:
   Fruits fruits;
   GameplayState gameplay_state;
   InputMode input_mode;
+  bool yes_no_option;
+  PauseOption pause_option;
   int y_scroll;
 
   Gameplay(Board &board);
@@ -76,9 +80,12 @@ public:
 private:
   void render();
   void pause_game();
-  void yes_no_cursor(bool yes_no_cursor);
-  void pause_handler(PauseOption &pause_option, bool &yes_no_option);
+  void yes_no_cursor();
+  void pause_handler();
   void gameplay_handler();
-  void confirm_exit_handler(bool &yes_no_option);
-  void confirm_retry_handler(bool &yes_no_option);
+  void confirm_exit_handler();
+  void confirm_retry_handler();
+  void retry_exit_handler();
+  void confirm_continue_handler();
+  void game_mode_upkeep(u8 lines_cleared, bool failed_to_place);
 };

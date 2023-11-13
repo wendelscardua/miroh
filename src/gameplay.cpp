@@ -44,12 +44,12 @@ const unsigned char yes_no_text[] = {
     0x15, 0x2f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x10, 0x11,
     0x3f, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char story_mode_failure_text_1[] = {
+const unsigned char story_mode_failure_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x17, 0x0b, 0x1c, 0x11, 0x0b, 0x2f, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char story_mode_failure_text_2[] = {
+const unsigned char retry_exit_confirmation_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x14, 0x08, 0x16, 0x14, 0x1b, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x08, 0x1a, 0x0c, 0x16, 0x02, 0x02, 0x02, 0x02, 0x02};
@@ -110,7 +110,8 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
       board(board),
       player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
-      input_mode(InputMode::Player), y_scroll(INTRO_SCROLL_Y) {
+      input_mode(InputMode::Player), yes_no_option(false),
+      pause_option(PauseOption::Resume), y_scroll(INTRO_SCROLL_Y) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
@@ -195,7 +196,9 @@ void Gameplay::render() {
   oam_hide_rest();
 }
 
-void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
+void Gameplay::pause_handler() {
+  y_scroll = PAUSE_SCROLL_Y;
+
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
   static const PauseOption NEXT_OPTION[] = {
@@ -213,7 +216,6 @@ void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
   if (pressed & (PAD_START | PAD_B)) {
     pause_option = PauseOption::Resume;
     gameplay_state = GameplayState::Playing;
-    y_scroll = DEFAULT_Y_SCROLL;
     GGSound::resume();
   } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
     pause_option = NEXT_OPTION[(u8)pause_option];
@@ -233,7 +235,6 @@ void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
       break;
     case PauseOption::Resume:
       gameplay_state = GameplayState::Playing;
-      y_scroll = DEFAULT_Y_SCROLL;
       GGSound::resume();
       break;
     case PauseOption::Retry:
@@ -270,7 +271,7 @@ void Gameplay::pause_handler(PauseOption &pause_option, bool &yes_no_option) {
       NTADR_C(22, 5));
 }
 
-void Gameplay::yes_no_cursor(bool yes_no_option) {
+void Gameplay::yes_no_cursor() {
   bool toggle = (get_frame_count() & 0b10000) != 0;
 
   one_vram_buffer(
@@ -284,7 +285,9 @@ void Gameplay::yes_no_cursor(bool yes_no_option) {
                   NTADR_C(19, 5));
 }
 
-void Gameplay::confirm_exit_handler(bool &yes_no_option) {
+void Gameplay::confirm_exit_handler() {
+  y_scroll = PAUSE_SCROLL_Y;
+
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
   if (pressed & (PAD_START | PAD_B)) {
@@ -303,10 +306,10 @@ void Gameplay::confirm_exit_handler(bool &yes_no_option) {
     return;
   }
 
-  yes_no_cursor(yes_no_option);
+  yes_no_cursor();
 }
 
-void Gameplay::confirm_retry_handler(bool &yes_no_option) {
+void Gameplay::confirm_retry_handler() {
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
   if (pressed & (PAD_START | PAD_B)) {
@@ -317,19 +320,69 @@ void Gameplay::confirm_retry_handler(bool &yes_no_option) {
     yes_no_option = !yes_no_option;
   } else if (pressed & (PAD_A | PAD_START)) {
     if (yes_no_option) {
-      gameplay_state = GameplayState::Playing;
-      // On gameplay loop, being on the Retry option will cause the gameplay to
-      // restart under the same options and maze
+      gameplay_state = GameplayState::Retrying;
     } else {
       pause_game();
     }
     return;
   }
 
-  yes_no_cursor(yes_no_option);
+  yes_no_cursor();
+}
+
+void Gameplay::confirm_continue_handler() {
+  y_scroll = PAUSE_SCROLL_Y;
+
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  if (pressed & (PAD_A | PAD_START)) {
+    gameplay_state = GameplayState::Retrying;
+    return;
+  }
+
+  bool toggle = (get_frame_count() & 0b10000) != 0;
+
+  one_vram_buffer((toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE),
+                  NTADR_C(11, 5));
+}
+
+void Gameplay::retry_exit_handler() {
+  y_scroll = PAUSE_SCROLL_Y;
+
+  auto pressed = get_pad_new(0) | get_pad_new(1);
+
+  if (pressed & (PAD_START | PAD_B)) {
+    pause_game();
+    return;
+  } else if (pressed &
+             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+    yes_no_option = !yes_no_option;
+  } else if (pressed & (PAD_A | PAD_START)) {
+    if (yes_no_option) {
+      gameplay_state = GameplayState::Retrying;
+    } else {
+      // TODO: world map instead
+      current_game_state = GameState::TitleScreen;
+    }
+    return;
+  }
+
+  bool toggle = (get_frame_count() & 0b10000) != 0;
+
+  one_vram_buffer(
+      yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE : GAMEPLAY_CURSOR_ALT_TILE)
+                    : GAMEPLAY_CURSOR_CLEAR_TILE,
+      NTADR_C(4, 5));
+
+  one_vram_buffer(!yes_no_option ? (toggle ? GAMEPLAY_CURSOR_TILE
+                                           : GAMEPLAY_CURSOR_ALT_TILE)
+                                 : GAMEPLAY_CURSOR_CLEAR_TILE,
+                  NTADR_C(22, 5));
 }
 
 void Gameplay::gameplay_handler() {
+  y_scroll = DEFAULT_Y_SCROLL;
+
   auto p1_pressed = get_pad_new(0);
   auto any_pressed = p1_pressed | get_pad_new(1);
 
@@ -380,10 +433,6 @@ void Gameplay::gameplay_handler() {
     add_experience(1);
   }
 
-  if (failed_to_place) {
-    // TODO: end game
-  }
-
   if (any_pressed & PAD_START) {
     pause_game();
   } else if (p1_pressed & PAD_SELECT) {
@@ -393,11 +442,51 @@ void Gameplay::gameplay_handler() {
       input_mode = InputMode::Player;
     }
   }
+
+  if (gameplay_state == GameplayState::Playing) {
+    game_mode_upkeep(lines_filled, failed_to_place);
+  }
+}
+
+void Gameplay::game_mode_upkeep(u8 lines_cleared, bool failed_to_place) {
+  switch (current_game_mode) {
+  case GameMode::Story:
+    if (failed_to_place) {
+      multi_vram_buffer_horz(story_mode_failure_text,
+                             sizeof(story_mode_failure_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(retry_exit_confirmation_text,
+                             sizeof(retry_exit_confirmation_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      gameplay_state = GameplayState::RetryOrExit;
+      yes_no_option = true;
+    }
+    break;
+  case GameMode::Endless:
+    if (failed_to_place) {
+      multi_vram_buffer_horz(non_story_mode_match_ending_text,
+                             sizeof(non_story_mode_match_ending_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(continue_text, sizeof(continue_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      gameplay_state = GameplayState::ConfirmContinue;
+    }
+    break;
+  case GameMode::TimeTrial:
+    if (failed_to_place) {
+      multi_vram_buffer_horz(non_story_mode_match_ending_text,
+                             sizeof(non_story_mode_match_ending_text),
+                             PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(continue_text, sizeof(continue_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      gameplay_state = GameplayState::ConfirmContinue;
+    }
+    break;
+  }
 }
 
 void Gameplay::pause_game() {
   gameplay_state = GameplayState::Paused;
-  y_scroll = PAUSE_SCROLL_Y;
   GGSound::pause();
   multi_vram_buffer_horz(pause_menu_text, sizeof(pause_menu_text),
                          PAUSE_MENU_POSITION);
@@ -409,8 +498,6 @@ void Gameplay::pause_game() {
 void Gameplay::loop() {
   static bool no_lag_frame = true;
   extern volatile char FRAME_CNT1;
-  PauseOption pause_option = PauseOption::Resume;
-  bool yes_no_option = false;
 
   while (current_game_state == GameState::Gameplay) {
     ppu_wait_nmi();
@@ -428,22 +515,26 @@ void Gameplay::loop() {
 
     switch (gameplay_state) {
     case GameplayState::Playing:
-      if (pause_option == PauseOption::Retry) {
-        return; // escapes from gameplay loop; causing gameplay to restart since
-                // we're still on the same game state
-      }
       Gameplay::gameplay_handler();
       break;
     case GameplayState::Paused:
-      Gameplay::pause_handler(pause_option, yes_no_option);
+      Gameplay::pause_handler();
       break;
     case GameplayState::ConfirmExit:
-      Gameplay::confirm_exit_handler(yes_no_option);
+      Gameplay::confirm_exit_handler();
       break;
     case GameplayState::ConfirmRetry:
-      Gameplay::confirm_retry_handler(yes_no_option);
+      Gameplay::confirm_retry_handler();
     case GameplayState::ConfirmContinue:
+      Gameplay::confirm_continue_handler();
       break;
+    case GameplayState::RetryOrExit:
+      Gameplay::retry_exit_handler();
+      break;
+    case GameplayState::Retrying:
+      // leaves the gameplay loop; since we're still on the gameplay game state
+      // this is equivalent to retrying under the same conditions
+      return;
     }
 
     if (input_mode != old_mode) {
