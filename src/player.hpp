@@ -17,10 +17,7 @@ private:
   Direction facing;
   Direction moving;
   fixed_point target_x, target_y;
-  union {
-    u8 energy;
-    u8 ghost_height;
-  };
+  u8 energy;
   s16 energy_timer;
   u8 original_energy;
   u8 sprite_offset;
@@ -34,8 +31,6 @@ public:
   enum class State {
     Idle,
     Moving,
-    Dying,
-    Dead,
   };
 
   State state;

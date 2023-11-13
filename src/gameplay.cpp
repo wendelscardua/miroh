@@ -342,61 +342,56 @@ void Gameplay::gameplay_handler() {
 
   banked_lambda(PLAYER_BANK, [this]() { player.update(input_mode); });
 
-  if (player.state != Player::State::Dying &&
-      player.state != Player::State::Dead) {
-    bool blocks_placed = false;
-    bool failed_to_place = false;
-    u8 lines_filled = 0;
+  bool blocks_placed = false;
+  bool failed_to_place = false;
+  u8 lines_filled = 0;
 
-    banked_lambda(GET_BANK(polyominos), [this, &blocks_placed, &failed_to_place,
-                                         &lines_filled]() {
-      polyomino.handle_input(input_mode);
-      polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
-                       failed_to_place, lines_filled);
-    });
+  banked_lambda(GET_BANK(polyominos), [this, &blocks_placed, &failed_to_place,
+                                       &lines_filled]() {
+    polyomino.handle_input(input_mode);
+    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
+                     failed_to_place, lines_filled);
+  });
 
-    START_MESEN_WATCH(3);
-    fruits.update(player);
-    STOP_MESEN_WATCH(3);
+  START_MESEN_WATCH(3);
+  fruits.update(player);
+  STOP_MESEN_WATCH(3);
 
-    if (current_controller_scheme == ControllerScheme::OnePlayer &&
-        polyomino.state != Polyomino::State::Active) {
-      if (input_mode == InputMode::Polyomino) {
-        input_mode = InputMode::Player;
-      }
+  if (current_controller_scheme == ControllerScheme::OnePlayer &&
+      polyomino.state != Polyomino::State::Active) {
+    if (input_mode == InputMode::Polyomino) {
+      input_mode = InputMode::Player;
     }
+  }
 
-    if (lines_filled) {
-      u16 points = 10 * (2 * lines_filled - 1);
-      player.score += points;
-      if (player.score > 9999) {
-        player.score = 9999;
-      }
-      player.lines += lines_filled;
-      if (player.lines > 99) {
-        player.lines = 99;
-      }
-      add_experience(points);
-    } else if (blocks_placed) {
-      player.score += 1;
-      add_experience(1);
+  if (lines_filled) {
+    u16 points = 10 * (2 * lines_filled - 1);
+    player.score += points;
+    if (player.score > 9999) {
+      player.score = 9999;
     }
+    player.lines += lines_filled;
+    if (player.lines > 99) {
+      player.lines = 99;
+    }
+    add_experience(points);
+  } else if (blocks_placed) {
+    player.score += 1;
+    add_experience(1);
+  }
 
-    if (failed_to_place) {
-      player.energy_upkeep(3 * Player::ENERGY_TICKS);
-    }
+  if (failed_to_place) {
+    // TODO: end game
+  }
 
-    if (any_pressed & PAD_START) {
-      pause_game();
-    } else if (p1_pressed & PAD_SELECT) {
-      if (input_mode == InputMode::Player) {
-        input_mode = InputMode::Polyomino;
-      } else {
-        input_mode = InputMode::Player;
-      }
+  if (any_pressed & PAD_START) {
+    pause_game();
+  } else if (p1_pressed & PAD_SELECT) {
+    if (input_mode == InputMode::Player) {
+      input_mode = InputMode::Polyomino;
+    } else {
+      input_mode = InputMode::Player;
     }
-  } else if (player.state == Player::State::Dead && (any_pressed & PAD_START)) {
-    current_game_state = GameState::TitleScreen;
   }
 }
 
