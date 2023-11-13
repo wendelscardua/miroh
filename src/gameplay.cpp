@@ -574,6 +574,10 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       time_trial_frames = 0;
       time_trial_seconds--;
       // TODO: display seconds
+      if (time_trial_seconds == 10 || time_trial_seconds == 5 ||
+          time_trial_seconds == 0) {
+        banked_play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
+      }
       if (time_trial_seconds == 0) {
         end_game();
         break;
