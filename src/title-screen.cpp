@@ -57,10 +57,10 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    donut_bulk_load((void *)title_bg_tiles);
+    Donut::decompress_to_ppu((void *)title_bg_tiles, 4096 / 64);
 
     vram_adr(PPU_PATTERN_TABLE_1);
-    donut_bulk_load((void *)spr_tiles);
+    Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
     vram_adr(NAMETABLE_A);
     vram_unrle(title_alt_nametable);
