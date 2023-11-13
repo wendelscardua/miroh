@@ -1,6 +1,7 @@
 #include "assets.hpp"
 #include "board.hpp"
 #include "log.hpp"
+#include "polyomino.hpp"
 #include "soundtrack.hpp"
 #ifndef NDEBUG
 #include <cstdio>
@@ -432,7 +433,8 @@ void Gameplay::gameplay_handler() {
   auto p1_pressed = get_pad_new(0);
   auto any_pressed = p1_pressed | get_pad_new(1);
 
-  bool line_clearing_in_progress = board.ongoing_line_clearing();
+  bool line_clearing_in_progress = board.ongoing_line_clearing(
+      polyomino.state == Polyomino::State::Settling);
 
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
@@ -487,7 +489,8 @@ void Gameplay::gameplay_handler() {
   }
 
   if (gameplay_state == GameplayState::Playing) {
-    game_mode_upkeep(line_clearing_in_progress || blocks_were_placed);
+    game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
+                     polyomino.state != Polyomino::State::Inactive);
   }
 }
 
@@ -531,6 +534,8 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       break;
     }
     if (!stuff_in_progress && goal_counter == 0) {
+      putchar('*');
+      putchar('\n');
       multi_vram_buffer_horz(
           story_mode_victory_text_per_stage[(u8)current_stage],
           sizeof(story_mode_victory_text_per_stage[0]), PAUSE_MENU_POSITION);

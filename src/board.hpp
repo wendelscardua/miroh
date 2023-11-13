@@ -84,7 +84,7 @@ public:
 
   // advances the process of clearing a filled line
   // returns true if such process is still ongoing
-  bool ongoing_line_clearing();
+  bool ongoing_line_clearing(bool jiggling);
 
   Cell &cell_at(u8 row, u8 column);
 };
