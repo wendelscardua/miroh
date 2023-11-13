@@ -34,6 +34,19 @@ const u8 menu_y_position[] = {
     0xb6, // HowToPlay
 };
 
+const GameMode previous_mode[] = {GameMode::TimeTrial, GameMode::Story,
+                                  GameMode::Endless};
+
+const GameMode next_mode[] = {GameMode::Endless, GameMode::TimeTrial,
+                              GameMode::Story};
+
+const unsigned char story_label[12 * 1] = {0x02, 0x02, 0x15, 0x16, 0x11, 0x14,
+                                           0x1b, 0x00, 0x00, 0x00, 0x00, 0x00};
+const unsigned char endless_label[12 * 1] = {
+    0x00, 0x02, 0x08, 0x10, 0x07, 0x0e, 0x08, 0x15, 0x15, 0x00, 0x00, 0x00};
+const unsigned char time_trial_label[12 * 1] = {
+    0x00, 0x00, 0x16, 0x0c, 0x0f, 0x08, 0x00, 0x16, 0x14, 0x0c, 0x04, 0x0e};
+
 __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
       current_track(Song::Baby_bullhead), next_track_delay(0), board(board),
@@ -116,20 +129,31 @@ __attribute__((noinline)) void TitleScreen::loop() {
         switch (current_option) {
         case MenuOption::OnePlayer:
         case MenuOption::TwoPlayers:
-          // TODO: add game mode menu here
           current_controller_scheme = current_option == MenuOption::OnePlayer
                                           ? ControllerScheme::OnePlayer
                                           : ControllerScheme::TwoPlayers;
           current_game_mode = GameMode::Story;
-          current_game_state = GameState::Gameplay;
-          current_stage = Stage::StarlitStables;
-          banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
+          state = State::ModeMenu;
+          multi_vram_buffer_horz(story_label, 12, NTADR_B(11, 19));
+          multi_vram_buffer_horz(endless_label, 12, NTADR_B(11, 21));
+          multi_vram_buffer_horz(time_trial_label, 12, NTADR_B(11, 23));
           break;
         case MenuOption::HowToPlay:
-          // TODO: scroll to how to play
           state = State::HowToPlay;
           break;
         }
+      }
+      break;
+    case State::ModeMenu:
+      if (pressed & (PAD_UP | PAD_LEFT)) {
+        current_game_mode = previous_mode[(u8)current_game_mode];
+      } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
+        current_game_mode = next_mode[(u8)current_game_mode];
+      } else if (pressed & (PAD_START | PAD_A)) {
+        current_game_state = GameState::Gameplay;
+        // TODO: select stage on world map
+        current_stage = Stage::StarlitStables;
+        banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
       }
       break;
     case State::HowToPlay:
@@ -168,9 +192,18 @@ __attribute__((noinline)) void TitleScreen::loop() {
       break;
     }
 
-    banked_oam_meta_spr_horizontal(
-        CURSOR_X_POSITION - x_scroll, menu_y_position[(u8)current_option],
-        bobbing_flag ? metasprite_AvocadoHigh : metasprite_AvocadoLow);
+    s16 cursor_x;
+    u8 cursor_y;
+    if (state == State::ModeMenu) {
+      cursor_x = MODE_MENU_CURSOR_X_POSITION;
+      cursor_y = menu_y_position[(u8)current_game_mode];
+    } else {
+      cursor_x = MAIN_MENU_CURSOR_X_POSITION;
+      cursor_y = menu_y_position[(u8)current_option];
+    }
+    banked_oam_meta_spr_horizontal(cursor_x - x_scroll, cursor_y,
+                                   bobbing_flag ? metasprite_AvocadoHigh
+                                                : metasprite_AvocadoLow);
 
     banked_oam_meta_spr_horizontal(JR_X_POSITION - x_scroll, JR_Y_POSITION,
                                    metasprite_TitleJR);
