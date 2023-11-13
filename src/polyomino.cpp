@@ -195,6 +195,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
           return;
         } else {
           failed_to_place = true;
+          banked_play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::One);
           return;
         }
       } else {
