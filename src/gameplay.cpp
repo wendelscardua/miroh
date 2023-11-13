@@ -682,7 +682,7 @@ void Gameplay::add_experience(u16 exp) {
     while (experience >= LEVEL_UP_POINTS && current_level < MAX_LEVEL) {
       experience -= LEVEL_UP_POINTS;
       current_level++;
-      // TODO: level up fanfare ?
+      banked_play_sfx(SFX::Levelup, GGSound::SFXPriority::Two);
     }
   }
 }
