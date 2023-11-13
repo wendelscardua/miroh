@@ -138,7 +138,7 @@ public:
 
   Fruits(Board &board);
 
-  void update(Player &player);
+  void update(Player &player, bool &snack_was_eaten);
 
   void spawn_on_board(u8 fruit_index);
 

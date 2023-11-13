@@ -59,7 +59,7 @@ const unsigned char non_story_mode_match_ending_text[] = {
     0x02, 0x0a, 0x11, 0x11, 0x07, 0x02, 0x16, 0x14, 0x1b, 0x2f, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02};
 
-const unsigned char story_mode_victory[][32 * 1] = {
+const unsigned char story_mode_victory_text_per_stage[][32 * 1] = {
     // Starlit Stables
     {0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x6f, 0x12,
      0x04, 0x14, 0x0d, 0x0e, 0x08, 0x16, 0x04, 0x15, 0x16, 0x0c, 0x06,
@@ -112,7 +112,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
       input_mode(InputMode::Player), yes_no_option(false),
       pause_option(PauseOption::Resume), y_scroll(INTRO_SCROLL_Y),
-      time_trial_seconds(TIME_TRIAL_DURATION), time_trial_frames(0) {
+      goal_counter(0) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
@@ -146,6 +146,8 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
   scroll(0, (unsigned int)y_scroll);
 
   player.refresh_score_hud();
+
+  initialize_goal();
 
   ppu_on_all();
 
@@ -195,6 +197,43 @@ void Gameplay::render() {
   polyomino.render(y_scroll);
   player.refresh_energy_hud(y_scroll);
   oam_hide_rest();
+}
+
+void Gameplay::initialize_goal() {
+  /*
+   * Story mode goals:
+   *  - Starlit Stables: clear 12 lines
+   *  - Rainbow Retreat: eat 24 snacks
+   *  - Fairy Forest: place 60 blocks
+   *  - Glittery Grotto: score 200 points
+   *  - Marshmallow Mountain: defeat Miroh Jr.
+   */
+
+  switch (current_game_mode) {
+  case GameMode::Story:
+    switch (current_stage) {
+    case Stage::StarlitStables:
+      lines_left = LINES_GOAL;
+      break;
+    case Stage::RainbowRetreat:
+      snacks_left = SNACKS_GOAL;
+      break;
+    case Stage::FairyForest:
+      blocks_left = BLOCKS_GOAL;
+      break;
+    case Stage::GlitteryGrotto:
+      points_left = SCORE_GOAL;
+    case Stage::MarshmallowMountain:
+      // TODO
+      break;
+    }
+  case GameMode::Endless:
+    break;
+  case GameMode::TimeTrial:
+    time_trial_frames = 0;
+    time_trial_seconds = TIME_TRIAL_DURATION;
+    break;
+  }
 }
 
 void Gameplay::pause_handler() {
@@ -337,7 +376,8 @@ void Gameplay::confirm_continue_handler() {
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
   if (pressed & (PAD_A | PAD_START)) {
-    gameplay_state = GameplayState::Retrying;
+    // TODO: world map
+    current_game_state = GameState::TitleScreen;
     return;
   }
 
@@ -384,31 +424,33 @@ void Gameplay::retry_exit_handler() {
 void Gameplay::gameplay_handler() {
   y_scroll = DEFAULT_Y_SCROLL;
 
+  blocks_were_placed = false;
+  failed_to_place = false;
+  lines_cleared = 0;
+  snack_was_eaten = false;
+
   auto p1_pressed = get_pad_new(0);
   auto any_pressed = p1_pressed | get_pad_new(1);
 
+  bool line_clearing_in_progress = board.ongoing_line_clearing();
+
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
-      !board.ongoing_line_clearing() && --spawn_timer == 0) {
+      !line_clearing_in_progress && --spawn_timer == 0) {
     banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
 
   banked_lambda(PLAYER_BANK, [this]() { player.update(input_mode); });
 
-  bool blocks_placed = false;
-  bool failed_to_place = false;
-  u8 lines_filled = 0;
-
-  banked_lambda(GET_BANK(polyominos), [this, &blocks_placed, &failed_to_place,
-                                       &lines_filled]() {
+  banked_lambda(GET_BANK(polyominos), [this]() {
     polyomino.handle_input(input_mode);
-    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_placed,
-                     failed_to_place, lines_filled);
+    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
+                     failed_to_place, lines_cleared);
   });
 
   START_MESEN_WATCH(3);
-  fruits.update(player);
+  fruits.update(player, snack_was_eaten);
   STOP_MESEN_WATCH(3);
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
@@ -418,18 +460,18 @@ void Gameplay::gameplay_handler() {
     }
   }
 
-  if (lines_filled) {
-    u16 points = 10 * (2 * lines_filled - 1);
+  if (lines_cleared) {
+    u16 points = 10 * (2 * lines_cleared - 1);
     player.score += points;
     if (player.score > 9999) {
       player.score = 9999;
     }
-    player.lines += lines_filled;
+    player.lines += lines_cleared;
     if (player.lines > 99) {
       player.lines = 99;
     }
     add_experience(points);
-  } else if (blocks_placed) {
+  } else if (blocks_were_placed) {
     player.score += 1;
     add_experience(1);
   }
@@ -445,13 +487,58 @@ void Gameplay::gameplay_handler() {
   }
 
   if (gameplay_state == GameplayState::Playing) {
-    game_mode_upkeep(lines_filled, failed_to_place);
+    game_mode_upkeep(line_clearing_in_progress || blocks_were_placed);
   }
 }
 
-void Gameplay::game_mode_upkeep(u8 lines_cleared, bool failed_to_place) {
+void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   switch (current_game_mode) {
   case GameMode::Story:
+    /*
+     * Story mode goals:
+     *  - Starlit Stables: clear 12 lines
+     *  - Rainbow Retreat: eat 24 snacks
+     *  - Fairy Forest: place 60 blocks
+     *  - Glittery Grotto: score 200 points
+     *  - Marshmallow Mountain: defeat Miroh Jr.
+     */
+    switch (current_stage) {
+    case Stage::StarlitStables:
+      if (lines_cleared > lines_left) {
+        lines_left = 0;
+      } else {
+        lines_left -= lines_cleared;
+      }
+      break;
+    case Stage::RainbowRetreat:
+      if (snack_was_eaten && snacks_left > 0) {
+        snacks_left--;
+      }
+      break;
+    case Stage::FairyForest:
+      if (blocks_were_placed && blocks_left > 0) {
+        blocks_left--;
+      }
+      break;
+    case Stage::GlitteryGrotto:
+      if (player.score > SCORE_GOAL) {
+        points_left = 0;
+      } else {
+        points_left = SCORE_GOAL - player.score;
+      }
+    case Stage::MarshmallowMountain:
+      // TODO: track Miroh Jr's defeat
+      break;
+    }
+    if (!stuff_in_progress && goal_counter == 0) {
+      multi_vram_buffer_horz(
+          story_mode_victory_text_per_stage[(u8)current_stage],
+          sizeof(story_mode_victory_text_per_stage[0]), PAUSE_MENU_POSITION);
+      multi_vram_buffer_horz(continue_text, sizeof(continue_text),
+                             PAUSE_MENU_OPTIONS_POSITION);
+      gameplay_state = GameplayState::ConfirmContinue;
+      break;
+    }
     if (failed_to_place) {
       multi_vram_buffer_horz(story_mode_failure_text,
                              sizeof(story_mode_failure_text),
