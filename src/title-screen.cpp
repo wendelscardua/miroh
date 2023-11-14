@@ -94,6 +94,8 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   scroll((u16)x_scroll, 0);
 
+  one_vram_buffer(bgm_test_labels[0], TRACK_ID_POSITION);
+
   ppu_on_all();
 
   // TODO: pick title song
