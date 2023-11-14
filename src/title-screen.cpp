@@ -50,21 +50,23 @@ const unsigned char time_trial_label[12 * 1] = {
 const unsigned char bgm_test_labels[11 * 1] = {
     0x15, 0x12, 0x04, 0x06, 0x08, 0x09, 0x0e, 0x0c, 0x0a, 0x0b, 0x16};
 
-const Song bgm_test_songs[] = {Song::Marshmallow_mountain,
-                               Song::Sting_plus_drums,
-                               Song::Intro_music,
-                               Song::Starlit_stables,
-                               Song::Rainbow_retreat,
-                               Song::Fairy_flight,
-                               Song::Glitter_grotto,
-                               Song::Baby_bullhead_title,
-                               Song::Ending,
-                               Song::Failure,
-                               Song::Victory};
+constexpr Song bgm_test_songs[] = {Song::Marshmallow_mountain,
+                                   Song::Sting_plus_drums,
+                                   Song::Intro_music,
+                                   Song::Starlit_stables,
+                                   Song::Rainbow_retreat,
+                                   Song::Fairy_flight,
+                                   Song::Glitter_grotto,
+                                   Song::Baby_bullhead_title,
+                                   Song::Ending,
+                                   Song::Failure,
+                                   Song::Victory};
+
+static_assert(bgm_test_songs[0] == Song::Marshmallow_mountain);
 
 __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
-      current_track(Song::Baby_bullhead_title), next_track_delay(0),
+      current_track(Song::Marshmallow_mountain), next_track_delay(0),
       board(board), x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
 
@@ -98,7 +100,6 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   ppu_on_all();
 
-  // TODO: pick title song
   banked_play_song(current_track);
 
   pal_fade_to(0, 4);
