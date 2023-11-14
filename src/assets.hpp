@@ -23,11 +23,16 @@ extern "C" const soa::Array<char *, NUM_STAGES> level_spr_palettes;
 extern "C" const soa::Array<char *, NUM_STAGES> level_bg_tiles;
 extern "C" const soa::Array<char *, NUM_STAGES> level_nametables;
 extern "C" const soa::Array<char *, NUM_STAGES> level_alt_nametables;
+extern "C" const u8 level_bg_tile_blocks[NUM_STAGES];
 
 extern "C" const char title_bg_palette[];
 extern "C" const char title_spr_palette[];
 extern "C" const char title_bg_tiles[];
 extern "C" const char title_nametable[];
 extern "C" const char title_alt_nametable[];
+
+// base tiles, other tiles are replacement suffixes of this one
+// except for Fairy Forest, which is actually the same one
+extern "C" const char base_bg_tiles[];
 
 extern "C" const char spr_tiles[];
