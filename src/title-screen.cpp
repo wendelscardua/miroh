@@ -93,6 +93,9 @@ __attribute__((noinline)) TitleScreen::~TitleScreen() {
 }
 
 __attribute__((noinline)) void TitleScreen::loop() {
+  bool how_to_players_switched = false;
+  u8 how_to_select_timer = 0;
+
   while (current_game_state == GameState::TitleScreen) {
     ppu_wait_nmi();
 
@@ -187,6 +190,25 @@ __attribute__((noinline)) void TitleScreen::loop() {
         GGSound::stop();
         banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
+      }
+      how_to_select_timer++;
+      if (how_to_select_timer == 90) {
+        how_to_players_switched = !how_to_players_switched;
+        const u8 pressed_button[] = {SELECT_BUTTON_BASE_TILE + 2,
+                                     SELECT_BUTTON_BASE_TILE + 3};
+        multi_vram_buffer_horz(pressed_button, 2, NTADR_A(15, 5));
+        if (how_to_players_switched) {
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_A(10, 6));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE, NTADR_A(28, 6));
+        } else {
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE, NTADR_A(10, 6));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_A(28, 6));
+        }
+      } else if (how_to_select_timer == 100) {
+        how_to_select_timer = 0;
+        const u8 released_button[] = {SELECT_BUTTON_BASE_TILE,
+                                      SELECT_BUTTON_BASE_TILE + 1};
+        multi_vram_buffer_horz(released_button, 2, NTADR_A(15, 5));
       }
       if (x_scroll != HOW_TO_SCROLL) {
         // TODO: easing

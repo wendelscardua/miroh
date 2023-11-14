@@ -17,6 +17,8 @@ static const u8 DARK_ZERO_TILE = 0x6e;
 static const u8 GAMEPLAY_CURSOR_TILE = 0x3d;
 static const u8 GAMEPLAY_CURSOR_ALT_TILE = 0x3e;
 static const u8 GAMEPLAY_CURSOR_CLEAR_TILE = 0x02;
+static const u8 SELECT_BUTTON_BASE_TILE = 0xb3;
+static const u8 HOW_TO_PLAYER_LABELS_BASE_TILE = 0xa9;
 
 extern "C" const soa::Array<char *, NUM_STAGES> level_bg_palettes;
 extern "C" const soa::Array<char *, NUM_STAGES> level_spr_palettes;
