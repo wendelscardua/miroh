@@ -25,6 +25,7 @@ level_spr_palettes:
     .byte FairyForestSPR_pal@mos16hi
     .byte GlitteryGrottoSPR_pal@mos16hi
     .byte MarshmallowMountainSPR_pal@mos16hi
+
     .global level_bg_tiles
 level_bg_tiles:
     .byte StarlitStablesBG_chr@mos16lo
@@ -37,6 +38,14 @@ level_bg_tiles:
     .byte FairyForestBG_chr@mos16hi
     .byte GlitteryGrottoBG_chr@mos16hi
     .zero 1
+
+    .global level_bg_tile_blocks
+level_bg_tile_blocks:
+    .byte 41
+    .byte 41
+    .byte 0
+    .byte 37
+    .byte 0 ; TODO
 
     .global level_nametables
 level_nametables:
@@ -67,14 +76,14 @@ level_alt_nametables:
     ; Starlit Stables
 StarlitStablesBG_pal: .incbin "StarlitStablesBG.pal"
 StarlitStablesSPR_pal: .incbin "StarlitStablesSPR.pal"
-StarlitStablesBG_chr: .incbin "StarlitStablesBG.chr.donut"
+StarlitStablesBG_chr: .incbin "StarlitStablesBG.suffix.chr.donut"
 StarlitStables_nam: .incbin "StarlitStables.nam.rle"
 StarlitStablesAlt_nam: .incbin "StarlitStablesAlt.nam.rle"
 
     ; Rainbow Retreat
 RainbowRetreatBG_pal: .incbin "RainbowRetreatBG.pal"
 RainbowRetreatSPR_pal: .incbin "RainbowRetreatSPR.pal"
-RainbowRetreatBG_chr: .incbin "RainbowRetreatBG.chr.donut"
+RainbowRetreatBG_chr: .incbin "RainbowRetreatBG.suffix.chr.donut"
 RainbowRetreat_nam: .incbin "RainbowRetreat.nam.rle"
 RainbowRetreatAlt_nam: .incbin "RainbowRetreatAlt.nam.rle"
 
@@ -88,14 +97,14 @@ FairyForestAlt_nam: .incbin "FairyForestAlt.nam.rle"
     ; GlitteryGrotto
 GlitteryGrottoBG_pal: .incbin "GlitteryGrottoBG.pal"
 GlitteryGrottoSPR_pal: .incbin "GlitteryGrottoSPR.pal"
-GlitteryGrottoBG_chr: .incbin "GlitteryGrottoBG.chr.donut"
+GlitteryGrottoBG_chr: .incbin "GlitteryGrottoBG.suffix.chr.donut"
 GlitteryGrotto_nam: .incbin "GlitteryGrotto.nam.rle"
 GlitteryGrottoAlt_nam: .incbin "GlitteryGrottoAlt.nam.rle"
 
     ; Marshmallow Mountain
 ;MarshmallowMountainBG_pal: .incbin "MarshmallowMountainBG.pal"
 MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
-;MarshmallowMountainBG_chr: .incbin "MarshmallowMountainBG.chr.donut"
+;MarshmallowMountainBG_chr: .incbin "MarshmallowMountainBG.suffix.chr.donut"
 ;MarshmallowMountain_nam: .incbin "MarshmallowMountain.nam.rle"
 ;MarshmallowMountainAlt_nam: .incbin "MarshmallowMountainAlt.nam.rle"
 
@@ -104,10 +113,13 @@ MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 
 title_bg_palette: .incbin "TitleBG.pal"
 title_spr_palette: .incbin "TitleSPR.pal"
-title_bg_tiles: .incbin "TitleBG.chr.donut"
+title_bg_tiles: .incbin "TitleBG.suffix.chr.donut"
 title_nametable: .incbin "Title.nam.rle"
 title_alt_nametable: .incbin "TitleAlt.nam.rle"
 
     ; Generic
+.global base_bg_tiles
+base_bg_tiles = FairyForestBG_chr
+
 .global spr_tiles
 spr_tiles: .incbin "SPR.chr.donut"

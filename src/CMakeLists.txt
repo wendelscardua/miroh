@@ -123,19 +123,19 @@ set_property(
 
   TitleBG.pal
   TitleSPR.pal
-  TitleBG.chr.donut
+  TitleBG.suffix.chr.donut
   Title.nam.rle
   TitleAlt.nam.rle
   
   StarlitStablesBG.pal
   StarlitStablesSPR.pal
-  StarlitStablesBG.chr.donut
+  StarlitStablesBG.suffix.chr.donut
   StarlitStables.nam.rle
   StarlitStablesAlt.nam.rle
 
   RainbowRetreatBG.pal
   RainbowRetreatSPR.pal
-  RainbowRetreatBG.chr.donut
+  RainbowRetreatBG.suffix.chr.donut
   RainbowRetreat.nam.rle
   RainbowRetreatAlt.nam.rle
 
@@ -147,7 +147,7 @@ set_property(
 
   GlitteryGrottoBG.pal
   GlitteryGrottoSPR.pal
-  GlitteryGrottoBG.chr.donut
+  GlitteryGrottoBG.suffix.chr.donut
   GlitteryGrotto.nam.rle
   GlitteryGrottoAlt.nam.rle
   
@@ -158,19 +158,19 @@ add_donut_asset(SOURCE "SPR.chr")
 
 add_raw_asset(SOURCE "TitleBG.pal")
 add_raw_asset(SOURCE "TitleSPR.pal")
-add_donut_asset(SOURCE "TitleBG.chr")
+add_donut_asset(SOURCE "TitleBG.suffix.chr")
 add_rle_asset(SOURCE "Title.nam")
 add_rle_asset(SOURCE "TitleAlt.nam")
 
 add_raw_asset(SOURCE "StarlitStablesBG.pal")
 add_raw_asset(SOURCE "StarlitStablesSPR.pal")
-add_donut_asset(SOURCE "StarlitStablesBG.chr")
+add_donut_asset(SOURCE "StarlitStablesBG.suffix.chr")
 add_rle_asset(SOURCE "StarlitStables.nam")
 add_rle_asset(SOURCE "StarlitStablesAlt.nam")
 
 add_raw_asset(SOURCE "RainbowRetreatBG.pal")
 add_raw_asset(SOURCE "RainbowRetreatSPR.pal")
-add_donut_asset(SOURCE "RainbowRetreatBG.chr")
+add_donut_asset(SOURCE "RainbowRetreatBG.suffix.chr")
 add_rle_asset(SOURCE "RainbowRetreat.nam")
 add_rle_asset(SOURCE "RainbowRetreatAlt.nam")
 
@@ -182,7 +182,7 @@ add_rle_asset(SOURCE "FairyForestAlt.nam")
 
 add_raw_asset(SOURCE "GlitteryGrottoBG.pal")
 add_raw_asset(SOURCE "GlitteryGrottoSPR.pal")
-add_donut_asset(SOURCE "GlitteryGrottoBG.chr")
+add_donut_asset(SOURCE "GlitteryGrottoBG.suffix.chr")
 add_rle_asset(SOURCE "GlitteryGrotto.nam")
 add_rle_asset(SOURCE "GlitteryGrottoAlt.nam")
 

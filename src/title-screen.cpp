@@ -57,7 +57,8 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu((void *)title_bg_tiles, 4096 / 64);
+    Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64 - 56);
+    Donut::decompress_to_ppu((void *)title_bg_tiles, 56);
 
     vram_adr(PPU_PATTERN_TABLE_1);
     Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);

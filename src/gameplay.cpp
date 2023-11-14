@@ -115,8 +115,11 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   banked_lambda(ASSETS_BANK, []() {
     vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu(level_bg_tiles[(u8)current_stage], 4096 / 64);
-
+    u8 bg_blocks = level_bg_tile_blocks[(u8)current_stage];
+    Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64 - bg_blocks);
+    if (bg_blocks > 0) {
+      Donut::decompress_to_ppu(level_bg_tiles[(u8)current_stage], bg_blocks);
+    }
     vram_adr(PPU_PATTERN_TABLE_1);
     Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
