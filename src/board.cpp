@@ -545,7 +545,7 @@ bool Board::ongoing_line_clearing(bool jiggling) {
   }
 
   banked_play_sfx(sfx_per_lines_cleared[lines_cleared_for_sfx],
-                  GGSound::SFXPriority::One);
+                  GGSound::SFXPriority::Two);
 
   for (erasing_row = HEIGHT - 1; erasing_row >= 0; erasing_row--) {
     if (deleted[erasing_row]) {

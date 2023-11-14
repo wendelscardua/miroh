@@ -85,7 +85,7 @@ void Fruits::update(Player &player, bool &snack_was_eaten) {
         if (fruit.dropping_counter == 39) {
           // near splash 14
           // TODO: check if this is ok
-          banked_play_sfx(SFX::Snackspawn, GGSound::SFXPriority::Two);
+          banked_play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
         }
         if (fruit.dropping_counter == SPLASH_FRAMES) {
           fruit.state = Fruit::State::Active;

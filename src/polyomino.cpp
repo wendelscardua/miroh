@@ -267,7 +267,7 @@ Polyomino::can_be_frozen() {
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) u8
 Polyomino::freeze_blocks() {
-  banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::Two);
+  banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
 
   state = State::Settling;
   jiggling_timer = 0;
