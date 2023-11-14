@@ -47,9 +47,26 @@ const unsigned char endless_label[12 * 1] = {
 const unsigned char time_trial_label[12 * 1] = {
     0x00, 0x00, 0x16, 0x0c, 0x0f, 0x08, 0x00, 0x16, 0x14, 0x0c, 0x04, 0x0e};
 
+const unsigned char bgm_test_labels[11 * 1] = {
+    0x15, 0x12, 0x04, 0x06, 0x08, 0x09, 0x0e, 0x0c, 0x0a, 0x0b, 0x16};
+
+constexpr Song bgm_test_songs[] = {Song::Marshmallow_mountain,
+                                   Song::Sting_plus_drums,
+                                   Song::Intro_music,
+                                   Song::Starlit_stables,
+                                   Song::Rainbow_retreat,
+                                   Song::Fairy_flight,
+                                   Song::Glitter_grotto,
+                                   Song::Baby_bullhead_title,
+                                   Song::Ending,
+                                   Song::Failure,
+                                   Song::Victory};
+
+static_assert(bgm_test_songs[0] == Song::Marshmallow_mountain);
+
 __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
-      current_track(Song::Baby_bullhead_title), next_track_delay(0),
+      current_track(Song::Marshmallow_mountain), next_track_delay(0),
       board(board), x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
 
@@ -79,9 +96,10 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   scroll((u16)x_scroll, 0);
 
+  one_vram_buffer(bgm_test_labels[0], TRACK_ID_POSITION);
+
   ppu_on_all();
 
-  // TODO: pick title song
   banked_play_song(current_track);
 
   pal_fade_to(0, 4);
@@ -95,6 +113,7 @@ __attribute__((noinline)) TitleScreen::~TitleScreen() {
 __attribute__((noinline)) void TitleScreen::loop() {
   bool how_to_players_switched = false;
   u8 how_to_select_timer = 0;
+  u8 bgm_test_index = 0;
 
   while (current_game_state == GameState::TitleScreen) {
     ppu_wait_nmi();
@@ -171,25 +190,27 @@ __attribute__((noinline)) void TitleScreen::loop() {
         state = State::MainMenu;
         banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_LEFT | PAD_UP)) {
-        if ((u8)current_track == 0) {
-          current_track = (Song)(NUM_SONGS - 1);
+        if ((u8)bgm_test_index == 0) {
+          bgm_test_index = sizeof(bgm_test_songs) - 1;
         } else {
-          current_track = (Song)((u8)current_track - 1);
+          bgm_test_index--;
         }
+        current_track = bgm_test_songs[bgm_test_index];
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
         banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
-        one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
+        one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
       } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_A)) {
-        if ((u8)current_track == NUM_SONGS - 1) {
-          current_track = (Song)0;
+        if ((u8)bgm_test_index == sizeof(bgm_test_songs) - 1) {
+          bgm_test_index = 0;
         } else {
-          current_track = (Song)((u8)current_track + 1);
+          bgm_test_index++;
         }
+        current_track = bgm_test_songs[bgm_test_index];
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
         banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
-        one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
+        one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
       }
       how_to_select_timer++;
       if (how_to_select_timer == 90) {
