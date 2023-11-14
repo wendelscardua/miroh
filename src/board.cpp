@@ -3,9 +3,11 @@
 #include "attributes.hpp"
 #include "bag.hpp"
 #include "bank-helper.hpp"
+#include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
 #include "maze-defs.hpp"
+#include "soundtrack.hpp"
 #include "union-find.hpp"
 #include "utils.hpp"
 #include <cstdio>
@@ -511,8 +513,12 @@ bool Board::row_filled(s8 row) {
   return occupied_bitset[(u8)row] == FULL_ROW_BITMASK;
 }
 
+const SFX sfx_per_lines_cleared[] = {SFX::Lineclear1, SFX::Lineclear2,
+                                     SFX::Lineclear3, SFX::Lineclear4};
+
 bool Board::ongoing_line_clearing(bool jiggling) {
   bool any_deleted = false;
+  u8 lines_cleared_for_sfx;
 
   CORO_INIT;
 
@@ -530,6 +536,16 @@ bool Board::ongoing_line_clearing(bool jiggling) {
   while (jiggling) {
     CORO_YIELD(true);
   }
+
+  lines_cleared_for_sfx = 0xff;
+  for (u8 i = 0; i < HEIGHT; i++) {
+    if (deleted[i]) {
+      lines_cleared_for_sfx++;
+    }
+  }
+
+  banked_play_sfx(sfx_per_lines_cleared[lines_cleared_for_sfx],
+                  GGSound::SFXPriority::One);
 
   for (erasing_row = HEIGHT - 1; erasing_row >= 0; erasing_row--) {
     if (deleted[erasing_row]) {

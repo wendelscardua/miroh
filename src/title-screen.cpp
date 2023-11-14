@@ -49,8 +49,8 @@ const unsigned char time_trial_label[12 * 1] = {
 
 __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
-      current_track(Song::Baby_bullhead), next_track_delay(0), board(board),
-      x_scroll(TITLE_SCROLL) {
+      current_track(Song::Baby_bullhead_title), next_track_delay(0),
+      board(board), x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_VERTICAL);
@@ -123,9 +123,12 @@ __attribute__((noinline)) void TitleScreen::loop() {
       }
       if (pressed & (PAD_UP | PAD_LEFT)) {
         current_option = previous_option[(u8)current_option];
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
         current_option = next_option[(u8)current_option];
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_START | PAD_A)) {
+        banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
         switch (current_option) {
         case MenuOption::OnePlayer:
         case MenuOption::TwoPlayers:
@@ -147,9 +150,12 @@ __attribute__((noinline)) void TitleScreen::loop() {
     case State::ModeMenu:
       if (pressed & (PAD_UP | PAD_LEFT)) {
         current_game_mode = previous_mode[(u8)current_game_mode];
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
         current_game_mode = next_mode[(u8)current_game_mode];
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_START | PAD_A)) {
+        banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
         current_game_state = GameState::Gameplay;
         // TODO: select stage on world map
         current_stage = Stage::StarlitStables;
@@ -159,6 +165,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
     case State::HowToPlay:
       if (pressed & (PAD_B)) {
         state = State::MainMenu;
+        banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_LEFT | PAD_UP)) {
         if ((u8)current_track == 0) {
           current_track = (Song)(NUM_SONGS - 1);
@@ -167,7 +174,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         }
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
-        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
       } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_A)) {
         if ((u8)current_track == NUM_SONGS - 1) {
@@ -177,7 +184,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         }
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
-        banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(0x04 + (u8)current_track, TRACK_ID_POSITION);
       }
       if (x_scroll != HOW_TO_SCROLL) {

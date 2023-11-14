@@ -253,11 +253,15 @@ void Gameplay::pause_handler() {
     pause_option = PauseOption::Resume;
     gameplay_state = GameplayState::Playing;
     GGSound::resume();
+    banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
   } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
     pause_option = NEXT_OPTION[(u8)pause_option];
+    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (pressed & (PAD_LEFT | PAD_UP)) {
     pause_option = PREV_OPTION[(u8)pause_option];
+    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (pressed & PAD_A) {
+    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     switch (pause_option) {
     case PauseOption::Exit:
       gameplay_state = GameplayState::ConfirmExit;
@@ -326,13 +330,16 @@ void Gameplay::confirm_exit_handler() {
 
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
-  if (pressed & (PAD_START | PAD_B)) {
+  if (pressed & PAD_B) {
+    banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
     pause_game();
     return;
   } else if (pressed &
              (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     yes_no_option = !yes_no_option;
+    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (pressed & (PAD_A | PAD_START)) {
+    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       current_game_state = GameState::TitleScreen;
       // TODO: go to world map instead
@@ -348,13 +355,15 @@ void Gameplay::confirm_exit_handler() {
 void Gameplay::confirm_retry_handler() {
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
-  if (pressed & (PAD_START | PAD_B)) {
+  if (pressed & PAD_B) {
     pause_game();
     return;
   } else if (pressed &
              (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     yes_no_option = !yes_no_option;
+    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (pressed & (PAD_A | PAD_START)) {
+    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
     } else {
@@ -373,6 +382,7 @@ void Gameplay::confirm_continue_handler() {
 
   if (pressed & (PAD_A | PAD_START)) {
     // TODO: world map
+    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     current_game_state = GameState::TitleScreen;
     return;
   }
@@ -388,13 +398,11 @@ void Gameplay::retry_exit_handler() {
 
   auto pressed = get_pad_new(0) | get_pad_new(1);
 
-  if (pressed & (PAD_START | PAD_B)) {
-    pause_game();
-    return;
-  } else if (pressed &
-             (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+  if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
     yes_no_option = !yes_no_option;
   } else if (pressed & (PAD_A | PAD_START)) {
+    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
     } else {
@@ -535,6 +543,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       multi_vram_buffer_horz(continue_text, sizeof(continue_text),
                              PAUSE_MENU_OPTIONS_POSITION);
       gameplay_state = GameplayState::ConfirmContinue;
+      banked_play_song(Song::Victory);
       break;
     }
     if (failed_to_place) {
@@ -546,6 +555,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
                              PAUSE_MENU_OPTIONS_POSITION);
       gameplay_state = GameplayState::RetryOrExit;
       yes_no_option = true;
+      banked_play_song(Song::Failure);
     }
     break;
   case GameMode::Endless:
@@ -564,6 +574,10 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       time_trial_frames = 0;
       time_trial_seconds--;
       // TODO: display seconds
+      if (time_trial_seconds == 10 || time_trial_seconds == 5 ||
+          time_trial_seconds == 0) {
+        banked_play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
+      }
       if (time_trial_seconds == 0) {
         end_game();
         break;
@@ -638,7 +652,9 @@ void Gameplay::loop() {
     }
 
     if (input_mode != old_mode) {
-      banked_play_sfx(SFX::Number2, GGSound::SFXPriority::One);
+      banked_play_sfx(input_mode == InputMode::Player ? SFX::Unicornon
+                                                      : SFX::Unicornoff,
+                      GGSound::SFXPriority::One);
     }
     Attributes::flush_vram_update();
 
@@ -670,7 +686,7 @@ void Gameplay::add_experience(u16 exp) {
     while (experience >= LEVEL_UP_POINTS && current_level < MAX_LEVEL) {
       experience -= LEVEL_UP_POINTS;
       current_level++;
-      // TODO: level up fanfare ?
+      banked_play_sfx(SFX::Levelup, GGSound::SFXPriority::Two);
     }
   }
 }

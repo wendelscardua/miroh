@@ -28,6 +28,7 @@ void Player::energy_upkeep(s16 delta) {
   while (energy_timer >= ENERGY_TICKS) {
     energy_timer -= ENERGY_TICKS;
     if (energy == 0) {
+      banked_play_sfx(SFX::Outofenergy, GGSound::SFXPriority::One);
       break;
     } else {
       energy--;
@@ -280,7 +281,7 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
 }
 
 void Player::feed(u8 nutrition) {
-  banked_play_sfx(SFX::Number1, GGSound::SFXPriority::One);
+  banked_play_sfx(SFX::Eat, GGSound::SFXPriority::One);
 
   energy_timer = 0;
   if (energy < MAX_ENERGY - nutrition) {
