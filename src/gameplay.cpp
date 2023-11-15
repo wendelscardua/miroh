@@ -21,7 +21,7 @@
 #include "gameplay.hpp"
 #include "ggsound.hpp"
 #include "input-mode.hpp"
-#include "player.hpp"
+#include "unicorn.hpp"
 
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
@@ -105,9 +105,9 @@ const Song song_per_stage[] = {
 __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       board(board),
-      player(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
+      unicorn(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
-      input_mode(InputMode::Player), yes_no_option(false),
+      input_mode(InputMode::Unicorn), yes_no_option(false),
       pause_option(PauseOption::Resume), y_scroll(INTRO_SCROLL_Y),
       goal_counter(0) {
   set_chr_bank(0);
@@ -158,7 +158,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   scroll(0, (unsigned int)y_scroll);
 
-  player.refresh_score_hud();
+  unicorn.refresh_score_hud();
 
   initialize_goal();
 
@@ -195,20 +195,20 @@ __attribute__((noinline)) Gameplay::~Gameplay() {
 void Gameplay::render() {
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
-  if (player.state == Player::State::Moving) {
-    u8 row = (u8)(player.y.round() >> 4) + 1;
-    u8 col = (u8)(player.x.round() >> 4);
+  if (unicorn.state == Unicorn::State::Moving) {
+    u8 row = (u8)(unicorn.y.round() >> 4) + 1;
+    u8 col = (u8)(unicorn.x.round() >> 4);
     if (row < HEIGHT) {
       auto cell = board.cell_at(row, col);
       left_wall = cell.left_wall;
       right_wall = cell.right_wall;
     }
   }
-  fruits.render_below_player(y_scroll, player.y.whole + board.origin_y);
-  player.render(y_scroll, left_wall, right_wall);
-  fruits.render_above_player(y_scroll, player.y.whole + board.origin_y);
+  fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
+  unicorn.render(y_scroll, left_wall, right_wall);
+  fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
   polyomino.render(y_scroll);
-  player.refresh_energy_hud(y_scroll);
+  unicorn.refresh_energy_hud(y_scroll);
   oam_hide_rest();
 }
 
@@ -463,7 +463,7 @@ void Gameplay::gameplay_handler() {
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
 
-  banked_lambda(PLAYER_BANK, [this]() { player.update(input_mode); });
+  banked_lambda(PLAYER_BANK, [this]() { unicorn.update(input_mode); });
 
   banked_lambda(GET_BANK(polyominos), [this]() {
     polyomino.handle_input(input_mode);
@@ -472,39 +472,39 @@ void Gameplay::gameplay_handler() {
   });
 
   START_MESEN_WATCH(3);
-  fruits.update(player, snack_was_eaten);
+  fruits.update(unicorn, snack_was_eaten);
   STOP_MESEN_WATCH(3);
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       polyomino.state != Polyomino::State::Active) {
     if (input_mode == InputMode::Polyomino) {
-      input_mode = InputMode::Player;
+      input_mode = InputMode::Unicorn;
     }
   }
 
   if (lines_cleared) {
     u16 points = 10 * (2 * lines_cleared - 1);
-    player.score += points;
-    if (player.score > 9999) {
-      player.score = 9999;
+    unicorn.score += points;
+    if (unicorn.score > 9999) {
+      unicorn.score = 9999;
     }
-    player.lines += lines_cleared;
-    if (player.lines > 99) {
-      player.lines = 99;
+    unicorn.lines += lines_cleared;
+    if (unicorn.lines > 99) {
+      unicorn.lines = 99;
     }
     add_experience(points);
   } else if (blocks_were_placed) {
-    player.score += 1;
+    unicorn.score += 1;
     add_experience(1);
   }
 
   if (any_pressed & PAD_START) {
     pause_game();
   } else if (p1_pressed & PAD_SELECT) {
-    if (input_mode == InputMode::Player) {
+    if (input_mode == InputMode::Unicorn) {
       input_mode = InputMode::Polyomino;
     } else {
-      input_mode = InputMode::Player;
+      input_mode = InputMode::Unicorn;
     }
   }
 
@@ -544,10 +544,10 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       }
       break;
     case Stage::GlitteryGrotto:
-      if (player.score > SCORE_GOAL) {
+      if (unicorn.score > SCORE_GOAL) {
         points_left = 0;
       } else {
-        points_left = SCORE_GOAL - player.score;
+        points_left = SCORE_GOAL - unicorn.score;
       }
     case Stage::MarshmallowMountain:
       // TODO: track Miroh Jr's defeat
@@ -670,15 +670,15 @@ void Gameplay::loop() {
     }
 
     if (input_mode != old_mode) {
-      banked_play_sfx(input_mode == InputMode::Player ? SFX::Unicornon
-                                                      : SFX::Unicornoff,
+      banked_play_sfx(input_mode == InputMode::Unicorn ? SFX::Unicornon
+                                                       : SFX::Unicornoff,
                       GGSound::SFXPriority::One);
     }
     Attributes::flush_vram_update();
 
     extern u8 VRAM_INDEX;
     if (VRAM_INDEX + 16 < 64) {
-      player.refresh_score_hud();
+      unicorn.refresh_score_hud();
     }
 
     if (no_lag_frame) {

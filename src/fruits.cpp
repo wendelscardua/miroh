@@ -74,7 +74,7 @@ Fruits::Fruits(Board &board) : board(board) {
   active_fruits = 0;
 }
 
-void Fruits::update(Player &player, bool &snack_was_eaten) {
+void Fruits::update(Unicorn &player, bool &snack_was_eaten) {
   for (auto fruit : fruits) {
     switch (fruit.state) {
     case Fruit::State::Inactive:
@@ -100,8 +100,8 @@ void Fruits::update(Player &player, bool &snack_was_eaten) {
       if (board.occupied(fruit.row, fruit.column)) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
-      } else if ((player.state == Player::State::Idle ||
-                  player.state == Player::State::Moving) &&
+      } else if ((player.state == Unicorn::State::Idle ||
+                  player.state == Unicorn::State::Moving) &&
                  (player.x.whole + 8) >> 4 == fruit.column &&
                  (player.y.whole + 8) >> 4 == fruit.row) {
         fruit.state = Fruit::State::Inactive;

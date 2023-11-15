@@ -3,8 +3,8 @@
 #include "board.hpp"
 #include "fruits.hpp"
 #include "input-mode.hpp"
-#include "player.hpp"
 #include "polyomino.hpp"
+#include "unicorn.hpp"
 
 class Gameplay {
   enum class PauseOption : u8 { Retry, Resume, Exit };
@@ -68,7 +68,7 @@ public:
   static const u8 BLOCKS_GOAL = 60;
   static const u16 SCORE_GOAL = 200;
   Board &board;
-  Player player;
+  Unicorn unicorn;
   Polyomino polyomino;
   Fruits fruits;
 

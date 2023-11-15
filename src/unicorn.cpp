@@ -1,4 +1,4 @@
-#include "player.hpp"
+#include "unicorn.hpp"
 #include "animation.hpp"
 #include "assets.hpp"
 #include "bank-helper.hpp"
@@ -15,13 +15,13 @@
 
 #define GRID_SIZE fixed_point(0x10, 0)
 
-Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
+Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : facing(Direction::Right), moving(Direction::Right),
       energy(STARTING_ENERGY), energy_timer(0),
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
       x(starting_x), y(starting_y), score(0), lines(0) {}
 
-const fixed_point &Player::move_speed() {
+const fixed_point &Unicorn::move_speed() {
   if (energy > 0) {
     return DEFAULT_MOVE_SPEED;
   } else {
@@ -29,7 +29,7 @@ const fixed_point &Player::move_speed() {
   }
 }
 
-void Player::energy_upkeep(s16 delta) {
+void Unicorn::energy_upkeep(s16 delta) {
   energy_timer += delta;
   while (energy_timer >= ENERGY_TICKS) {
     energy_timer -= ENERGY_TICKS;
@@ -43,14 +43,14 @@ void Player::energy_upkeep(s16 delta) {
 }
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
-Player::update(InputMode input_mode) {
+Unicorn::update(InputMode input_mode) {
   energy_upkeep(1);
 
   u8 pressed, held;
 
   switch (current_controller_scheme) {
   case ControllerScheme::OnePlayer:
-    if (input_mode == InputMode::Player) {
+    if (input_mode == InputMode::Unicorn) {
       pressed = get_pad_new(0);
       held = pad_state(0);
       // TODO: think about allowing a second player to enter during a 1p game
@@ -76,7 +76,7 @@ Player::update(InputMode input_mode) {
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell_at((u8)current_row, (u8)current_column);
 
-    if (input_mode != InputMode::Player)
+    if (input_mode != InputMode::Unicorn)
       break;
 #define PRESS_HELD(button)                                                     \
   ((pressed & (button)) ||                                                     \
@@ -189,7 +189,7 @@ Player::update(InputMode input_mode) {
 extern "C" char OAM_BUF[256];
 extern "C" char SPRID;
 
-void Player::fix_uni_priority(bool left_wall, bool right_wall) {
+void Unicorn::fix_uni_priority(bool left_wall, bool right_wall) {
   if (state != State::Moving) {
     return;
   }
@@ -208,7 +208,7 @@ void Player::fix_uni_priority(bool left_wall, bool right_wall) {
   }
 }
 
-void Player::render(int y_scroll, bool left_wall, bool right_wall) {
+void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
   int reference_y = board.origin_y - y_scroll;
 
   switch (state) {
@@ -255,7 +255,7 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
   }
 }
 
-void Player::feed(u8 nutrition) {
+void Unicorn::feed(u8 nutrition) {
   banked_play_sfx(SFX::Eat, GGSound::SFXPriority::One);
 
   energy_timer = 0;
@@ -311,7 +311,7 @@ void render_energy_hud(int y_scroll, u8 value) {
   }
 }
 
-void Player::refresh_energy_hud(int y_scroll) {
+void Unicorn::refresh_energy_hud(int y_scroll) {
   static u8 animation_frames;
 
   CORO_INIT;
@@ -444,7 +444,7 @@ __attribute__((section(".prg_rom_0.text"))) void u8_to_text(u8 score_text[4],
 
 extern u16 high_score[];
 
-void Player::refresh_score_hud() {
+void Unicorn::refresh_score_hud() {
   // refresh hunger hud
   ScopedBank scopedBank(0); // int_to_text's bank
   u8 score_text[4];
