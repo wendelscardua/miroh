@@ -1,0 +1,20 @@
+idle_right:
+  - [UniRightIdle, 162]
+  - [UniRightBlink, 12]
+  - [UniRightIdle, 8]
+  - [UniRightBlink, 12]
+idle_left:
+  - [UniLeftIdle, 162]
+  - [UniLeftBlink, 12]
+  - [UniLeftIdle, 8]
+  - [UniLeftBlink, 12]
+moving_right:
+  - [UniRightWalk1, 5]
+  - [UniRightWalk2, 9]
+  - [UniRightWalk3, 5]
+  - [UniRightWalk4, 9]
+moving_left:
+  - [UniLeftWalk1, 5]
+  - [UniLeftWalk2, 9]
+  - [UniLeftWalk3, 5]
+  - [UniLeftWalk4, 9]

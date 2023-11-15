@@ -1,11 +1,11 @@
 #pragma once
 
+#include "animation-defs.hpp"
 #include "animation.hpp"
 #include "board.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "input-mode.hpp"
-#include "metasprites.hpp"
 
 #define PLAYER_BANK 0
 #define PLAYER_TEXT_SECTION ".prg_rom_0.text.player"
@@ -24,36 +24,13 @@ private:
   u8 original_energy;
   u8 sprite_offset;
 
-  const soa::Array<AnimCell, 4> idleRightCells{
-      {(void *)metasprite_UniRightIdle, 162},
-      {(void *)metasprite_UniRightBlink, 12},
-      {(void *)metasprite_UniRightIdle, 8},
-      {(void *)metasprite_UniRightBlink, 12}};
+  Animation<4> idleRightAnimation{&idle_right_cells};
 
-  const soa::Array<AnimCell, 4> idleLeftCells{
-      {(void *)metasprite_UniLeftIdle, 162},
-      {(void *)metasprite_UniLeftBlink, 12},
-      {(void *)metasprite_UniLeftIdle, 8},
-      {(void *)metasprite_UniLeftBlink, 12}};
+  Animation<4> idleLeftAnimation{&idle_left_cells};
 
-  const soa::Array<AnimCell, 4> movingRightCells{
-      {(void *)metasprite_UniRightWalk1, 5},
-      {(void *)metasprite_UniRightWalk2, 9},
-      {(void *)metasprite_UniRightWalk3, 5},
-      {(void *)metasprite_UniRightWalk4, 9}};
+  Animation<4> movingRightAnimation{&moving_right_cells};
 
-  const soa::Array<AnimCell, 4> movingLeftCells{
-      {(void *)metasprite_UniLeftWalk1, 5},
-      {(void *)metasprite_UniLeftWalk2, 9},
-      {(void *)metasprite_UniLeftWalk3, 5},
-      {(void *)metasprite_UniLeftWalk4, 9}};
-  Animation<4> idleRightAnimation{&idleRightCells};
-
-  Animation<4> idleLeftAnimation{&idleLeftCells};
-
-  Animation<4> movingRightAnimation{&movingRightCells};
-
-  Animation<4> movingLeftAnimation{&movingLeftCells};
+  Animation<4> movingLeftAnimation{&moving_left_cells};
   // fixes priority flags for bottom sprites
   void fix_uni_priority(bool left_wall, bool right_wall);
 

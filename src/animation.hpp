@@ -6,7 +6,7 @@
 #include <soa.h>
 
 struct AnimCell {
-  void *metasprite;
+  const unsigned char *metasprite;
   u8 duration;
 };
 
