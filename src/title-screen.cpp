@@ -12,6 +12,7 @@
 #include "metasprites.hpp"
 #include "soundtrack.hpp"
 #include "title-screen.hpp"
+#include "zx02.hpp"
 
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
@@ -80,12 +81,23 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
     vram_adr(PPU_PATTERN_TABLE_1);
     Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
-    vram_adr(NAMETABLE_A);
-    vram_unrle(title_alt_nametable);
+    set_chr_bank(1);
+    vram_adr(0);
+    zx02_decompress_to_chr_ram((void *)title_nametable, 0);
 
-    vram_adr(NAMETABLE_B);
-    vram_unrle(title_nametable);
-
+    for (u16 i = 0; i < 1024; i += 64) {
+      vram_adr(i);
+      vram_read(donut_block_buffer, 64);
+      vram_adr(NAMETABLE_B + i);
+      vram_write(donut_block_buffer, 64);
+    }
+    for (u16 i = 0; i < 1024; i += 64) {
+      vram_adr(1024 + i);
+      vram_read(donut_block_buffer, 64);
+      vram_adr(NAMETABLE_A + i);
+      vram_write(donut_block_buffer, 64);
+    }
+    set_chr_bank(0);
     pal_bg(title_bg_palette);
     pal_spr(title_spr_palette);
   });

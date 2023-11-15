@@ -3,6 +3,7 @@
 #include "log.hpp"
 #include "polyomino.hpp"
 #include "soundtrack.hpp"
+#include "zx02.hpp"
 #ifndef NDEBUG
 #include <cstdio>
 #endif
@@ -123,11 +124,24 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     vram_adr(PPU_PATTERN_TABLE_1);
     Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
-    vram_adr(NAMETABLE_A);
-    vram_unrle(level_nametables[(u8)current_stage]);
+    set_chr_bank(1);
+    vram_adr(0);
+    zx02_decompress_to_chr_ram(level_nametables[(u8)current_stage], 0);
 
-    vram_adr(NAMETABLE_C);
-    vram_unrle(level_alt_nametables[(u8)current_stage]);
+    for (u16 i = 0; i < 1024; i += 64) {
+      vram_adr(i);
+      vram_read(donut_block_buffer, 64);
+      vram_adr(NAMETABLE_A + i);
+      vram_write(donut_block_buffer, 64);
+    }
+    for (u16 i = 0; i < 1024; i += 64) {
+      vram_adr(1024 + i);
+      vram_read(donut_block_buffer, 64);
+      vram_adr(NAMETABLE_C + i);
+      vram_write(donut_block_buffer, 64);
+    }
+
+    set_chr_bank(0);
 
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);

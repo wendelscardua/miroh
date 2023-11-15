@@ -32,6 +32,10 @@ class MapParser < Thor
                 default: 0,
                 required: false,
                 desc: 'Show also top N largest uses of memory per area'
+  method_option :verbose,
+                type: :boolean,
+                default: false,
+                required: false
   def usage(map_file)
     layout = case options[:mapper]
              when 'action53'
@@ -71,6 +75,17 @@ class MapParser < Thor
                in_section: in_section.name,
                usage:,
                out_section: out_section.name
+        if options[:verbose]
+          if in_section.symbols.any? && in_section.symbols.all? { |symbol| symbol.usage.zero? }
+             # infer symbol usage comparing consective symbols
+             in_section.symbols.sort_by! { |symbol| symbol.used_range.begin }
+             in_section.symbols.each_cons(2) {|left, right| left.used_range = left.used_range.begin...right.used_range.begin }
+             in_section.symbols.last.used_range = in_section.symbols.last.used_range.begin...in_section.used_range.end
+          end
+          in_section.symbols.sort_by(&:usage).reverse.each do |symbol|
+            printf "                 %<usage>8x: %<name>s\n", usage: symbol.usage, name: symbol.name
+          end
+        end
       end
     end
   end
@@ -219,7 +234,7 @@ class MapParser < Thor
     end
 
     class Symbol
-      attr_reader :name, :used_range
+      attr_accessor :name, :used_range
 
       def initialize(name:, used_range:)
         @name = name

@@ -40,15 +40,6 @@ class Mazer < Thor
         f.puts ".byte #{label}@mos16hi"
       end
 
-      f.puts <<~ASM
-        .global maze_names
-         maze_names:
-      ASM
-      maze_data.mazes.each do |maze|
-        f.puts ".byte #{maze.name_bytes.map { |byte| format('$%02x', byte) }.join(', ')}"
-      end
-
-
       maze_data.mazes.each do |maze|
         f.puts "#{maze.label}:"
         maze.array.each do |row|
@@ -82,10 +73,6 @@ class Mazer < Thor
     def initialize(name, array)
       @name = name
       @array = array
-    end
-
-    def name_bytes
-      format("%-#{NAME_WIDTH}s", @name).bytes.map { |b| b - 0x20 }
     end
 
     def label
