@@ -656,6 +656,7 @@ void Gameplay::loop() {
       break;
     case GameplayState::ConfirmRetry:
       Gameplay::confirm_retry_handler();
+      break;
     case GameplayState::ConfirmContinue:
       Gameplay::confirm_continue_handler();
       break;
