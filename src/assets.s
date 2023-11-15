@@ -85,10 +85,10 @@ GlitteryGrottoBG_chr: .incbin "GlitteryGrottoBG.suffix.chr.donut"
 GlitteryGrotto_nam: .incbin "GlitteryGrotto.nam.zx02"
 
     ; Marshmallow Mountain
-MarshmallowMountainBG_pal: .incbin "MarshmallowMountainBG.pal"
-MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
-MarshmallowMountainBG_chr: .incbin "MarshmallowMountainBG.suffix.chr.donut"
-MarshmallowMountain_nam: .incbin "MarshmallowMountain.nam.zx02"
+MarshmallowMountainBG_pal: ;.incbin "MarshmallowMountainBG.pal"
+MarshmallowMountainSPR_pal: ;.incbin "MarshmallowMountainSPR.pal"
+MarshmallowMountainBG_chr: ;.incbin "MarshmallowMountainBG.suffix.chr.donut"
+MarshmallowMountain_nam: ;.incbin "MarshmallowMountain.nam.zx02"
 
     ; Title Screen
 .global title_bg_palette, title_spr_palette, title_bg_tiles, title_nametable
