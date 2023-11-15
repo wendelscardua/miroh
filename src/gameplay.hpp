@@ -71,10 +71,20 @@ public:
   Player player;
   Polyomino polyomino;
   Fruits fruits;
+
+  // sub-state for the gameplay state
   GameplayState gameplay_state;
+
+  // it's actually the input mode for player 1; whatever
+  // p1 controls, p2 controls the other
   InputMode input_mode;
+
+  // Track current answer for a yes-or-no prompt
   bool yes_no_option;
+
+  // Track current pause option
   PauseOption pause_option;
+
   int y_scroll;
   union {
     u16 goal_counter;
