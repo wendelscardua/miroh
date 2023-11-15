@@ -21,7 +21,13 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
       x(starting_x), y(starting_y), score(0), lines(0) {}
 
-const fixed_point &Player::move_speed() { return DEFAULT_MOVE_SPEED; }
+const fixed_point &Player::move_speed() {
+  if (energy > 0) {
+    return DEFAULT_MOVE_SPEED;
+  } else {
+    return TIRED_MOVE_SPEED;
+  }
+}
 
 void Player::energy_upkeep(s16 delta) {
   energy_timer += delta;
@@ -228,11 +234,21 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
   case State::Moving:
     sprite_offset = SPRID;
     if (facing == Direction::Right) {
-      moving_right_animation.update(board.origin_x + x.whole,
-                                    reference_y + y.whole);
+      if (energy > 0) {
+        moving_right_animation.update(board.origin_x + x.whole,
+                                      reference_y + y.whole);
+      } else {
+        trudging_right_animation.update(board.origin_x + x.whole,
+                                        reference_y + y.whole);
+      }
     } else {
-      moving_left_animation.update(board.origin_x + x.whole,
-                                   reference_y + y.whole);
+      if (energy > 0) {
+        moving_left_animation.update(board.origin_x + x.whole,
+                                     reference_y + y.whole);
+      } else {
+        trudging_left_animation.update(board.origin_x + x.whole,
+                                       reference_y + y.whole);
+      }
     }
     fix_uni_priority(left_wall, right_wall);
     break;
