@@ -156,8 +156,6 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
     break;
   case Fruit::State::Dropping:
     if (fruit.y == fruit.raindrop_y) {
-      // splash anim
-      splash_animation.update(fruit.x, fruit.y - y_scroll);
       if (splash_animation.current_cell == 13 ||
           splash_animation.current_cell == 14) {
         // splash anim 14 & 15
@@ -166,6 +164,7 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
         // splash anim 16 & 17
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
       }
+      splash_animation.update(fruit.x, fruit.y - y_scroll);
     } else if (fruit.y - fruit.raindrop_y <= 48) {
       // reaching target position
       if (fruit.raindrop_y - y_scroll > 0 &&
