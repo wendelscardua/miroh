@@ -104,6 +104,7 @@ add_library(SourceObj
   polyomino-defs.cpp
 
   assets.s
+  animation-defs.s
   soundtrack.s
   polyominos.s
   maze-defs.s
@@ -187,6 +188,22 @@ add_rle_asset(SOURCE "GlitteryGrotto.nam")
 add_rle_asset(SOURCE "GlitteryGrottoAlt.nam")
 
 add_raw_asset(SOURCE "MarshmallowMountainSPR.pal")
+
+
+find_program(
+  ANIMATOR_TOOL
+  animator
+  PATHS "${CMAKE_SOURCE_DIR}/tools"
+)
+if (NOT ANIMATOR_TOOL)
+  message(FATAL_ERROR "The animator tool is required!")
+endif()
+
+add_custom_command(
+    OUTPUT "${CMAKE_BINARY_DIR}/src/animation-defs.s" "${CMAKE_BINARY_DIR}/src/animation-defs.hpp"
+    COMMAND ${ANIMATOR_TOOL} animate "${CMAKE_SOURCE_DIR}/assets/animations.yaml" --asm-output "${CMAKE_BINARY_DIR}/src/animation-defs.s" --hpp-output "${CMAKE_BINARY_DIR}/src/animation-defs.hpp" --section ".prg_rom_last" 
+    DEPENDS ${ANIMATOR_TOOL} "${CMAKE_SOURCE_DIR}/assets/animations.yaml"
+)
 
 set_property(
   SOURCE

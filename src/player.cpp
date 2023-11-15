@@ -1,4 +1,5 @@
 #include "player.hpp"
+#include "animation.hpp"
 #include "assets.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
@@ -9,7 +10,6 @@
 #include "ggsound.hpp"
 #include "input-mode.hpp"
 #include "maze-defs.hpp"
-#include "metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -21,7 +21,13 @@ Player::Player(Board &board, fixed_point starting_x, fixed_point starting_y)
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
       x(starting_x), y(starting_y), score(0), lines(0) {}
 
-const fixed_point &Player::move_speed() { return DEFAULT_MOVE_SPEED; }
+const fixed_point &Player::move_speed() {
+  if (energy > 0) {
+    return DEFAULT_MOVE_SPEED;
+  } else {
+    return TIRED_MOVE_SPEED;
+  }
+}
 
 void Player::energy_upkeep(s16 delta) {
   energy_timer += delta;
@@ -204,80 +210,49 @@ void Player::fix_uni_priority(bool left_wall, bool right_wall) {
 
 void Player::render(int y_scroll, bool left_wall, bool right_wall) {
   int reference_y = board.origin_y - y_scroll;
-  static u8 animation_frame;
-  static State current_state = State::Moving;
-  CORO_RESET_WHEN(current_state != state);
-
-  current_state = state;
 
   switch (state) {
   case State::Idle:
-    for (animation_frame = 0; animation_frame < 162; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                          facing == Direction::Right ? metasprite_UniRightIdle
-                                                     : metasprite_UniLeftIdle);
-      CORO_YIELD();
-    }
-    for (animation_frame = 0; animation_frame < 12; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                          facing == Direction::Right ? metasprite_UniRightBlink
-                                                     : metasprite_UniLeftBlink);
-      CORO_YIELD();
-    }
-    for (animation_frame = 0; animation_frame < 8; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                          facing == Direction::Right ? metasprite_UniRightIdle
-                                                     : metasprite_UniLeftIdle);
-      CORO_YIELD();
-    }
-    for (animation_frame = 0; animation_frame < 12; animation_frame++) {
-      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                          facing == Direction::Right ? metasprite_UniRightBlink
-                                                     : metasprite_UniLeftBlink);
-      if (animation_frame != 11) {
-        CORO_YIELD();
+    if (facing == Direction::Right) {
+      if (energy > 0) {
+        idle_right_animation.update(board.origin_x + x.whole,
+                                    reference_y + y.whole);
+      } else {
+        tired_right_animation.update(board.origin_x + x.whole,
+                                     reference_y + y.whole);
+      }
+    } else {
+      if (energy > 0) {
+        idle_left_animation.update(board.origin_x + x.whole,
+                                   reference_y + y.whole);
+      } else {
+        tired_left_animation.update(board.origin_x + x.whole,
+                                    reference_y + y.whole);
       }
     }
     break;
   case State::Moving:
-    for (animation_frame = 0; animation_frame < 5; animation_frame++) {
-      sprite_offset = SPRID;
-      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                          facing == Direction::Right ? metasprite_UniRightWalk1
-                                                     : metasprite_UniLeftWalk1);
-      fix_uni_priority(left_wall, right_wall);
-      CORO_YIELD();
-    }
-    for (animation_frame = 0; animation_frame < 9; animation_frame++) {
-      sprite_offset = SPRID;
-      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                          facing == Direction::Right ? metasprite_UniRightWalk2
-                                                     : metasprite_UniLeftWalk2);
-      fix_uni_priority(left_wall, right_wall);
-      CORO_YIELD();
-    }
-    for (animation_frame = 0; animation_frame < 5; animation_frame++) {
-      sprite_offset = SPRID;
-      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                          facing == Direction::Right ? metasprite_UniRightWalk3
-                                                     : metasprite_UniLeftWalk3);
-      fix_uni_priority(left_wall, right_wall);
-      CORO_YIELD();
-    }
-    for (animation_frame = 0; animation_frame < 9; animation_frame++) {
-      sprite_offset = SPRID;
-      banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                          facing == Direction::Right ? metasprite_UniRightWalk4
-                                                     : metasprite_UniLeftWalk4);
-      fix_uni_priority(left_wall, right_wall);
-      if (animation_frame != 8) {
-        CORO_YIELD();
+    sprite_offset = SPRID;
+    if (facing == Direction::Right) {
+      if (energy > 0) {
+        moving_right_animation.update(board.origin_x + x.whole,
+                                      reference_y + y.whole);
+      } else {
+        trudging_right_animation.update(board.origin_x + x.whole,
+                                        reference_y + y.whole);
+      }
+    } else {
+      if (energy > 0) {
+        moving_left_animation.update(board.origin_x + x.whole,
+                                     reference_y + y.whole);
+      } else {
+        trudging_left_animation.update(board.origin_x + x.whole,
+                                       reference_y + y.whole);
       }
     }
+    fix_uni_priority(left_wall, right_wall);
     break;
   }
-
-  CORO_FINISH();
 }
 
 void Player::feed(u8 nutrition) {

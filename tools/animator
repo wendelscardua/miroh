@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+
+  gem 'thor'
+end
+
+require 'thor'
+require 'yaml'
+
+class Animator < Thor
+  def self.exit_on_failure?
+    true
+  end
+
+  desc 'animate ANIMATIONS_FILE', 'Generate animation data from definitions'
+  method_option :asm_output, type: :string, required: true, desc: 'Output assembly file'
+  method_option :hpp_output, type: :string, required: true, desc: 'Output header file'
+  method_option :section, type: :string, required: true, desc: 'Assembly section'
+  def animate(animations_file)
+    animations = YAML.load_file(animations_file)
+
+    File.open(options[:asm_output], 'w') do |f|
+      f.puts ".section #{options[:section]},\"axR\",@progbits"
+      animations.each do |label, cells|
+        f.puts ".global #{label}_cells"
+        f.puts "#{label}_cells:"
+        cells.map {|metasprite, duration| ["metasprite_#{metasprite}@mos16lo", "metasprite_#{metasprite}@mos16hi", duration] }
+             .transpose
+             .each do |values|
+               f.puts ".byte #{values.join(', ')}"
+             end
+      end
+    end
+
+    File.open(options[:hpp_output], 'w') do |f|
+      f.puts '#include <soa.h>'
+      f.puts '#include "animation.hpp"'
+      animations.each do |label, cells|
+        f.puts "extern \"C\" const soa::Array<AnimCell, #{cells.size}> #{label}_cells;"
+      end
+    end
+  end
+end
+
+Animator.start
