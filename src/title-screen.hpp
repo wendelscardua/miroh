@@ -43,5 +43,6 @@ public:
 
   TitleScreen(Board &board);
   ~TitleScreen();
+  void render_sprites();
   void loop();
 };

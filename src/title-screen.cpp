@@ -106,6 +106,8 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   oam_clear();
 
+  render_sprites();
+
   scroll((u16)x_scroll, 0);
 
   one_vram_buffer(bgm_test_labels[0], TRACK_ID_POSITION);
@@ -122,6 +124,33 @@ __attribute__((noinline)) TitleScreen::~TitleScreen() {
   ppu_off();
 }
 
+void TitleScreen::render_sprites() {
+  bool bobbing_flag = get_frame_count() & 0b10000;
+
+  s16 cursor_x;
+  u8 cursor_y;
+  if (state == State::ModeMenu) {
+    cursor_x = MODE_MENU_CURSOR_X_POSITION;
+    cursor_y = menu_y_position[(u8)current_game_mode];
+  } else {
+    cursor_x = MAIN_MENU_CURSOR_X_POSITION;
+    cursor_y = menu_y_position[(u8)current_option];
+  }
+  banked_oam_meta_spr_horizontal(cursor_x - x_scroll, cursor_y,
+                                 bobbing_flag ? metasprite_AvocadoHigh
+                                              : metasprite_AvocadoLow);
+
+  banked_oam_meta_spr_horizontal(JR_X_POSITION - x_scroll, JR_Y_POSITION,
+                                 metasprite_TitleJR);
+
+  banked_oam_meta_spr_horizontal(HOW_TO_LEFT_X_POSITION - x_scroll,
+                                 HOW_TO_LEFT_Y_POSITION, metasprite_HowtoLeft);
+  banked_oam_meta_spr_horizontal(HOW_TO_RIGHT_X_POSITION - x_scroll,
+                                 HOW_TO_RIGHT_Y_POSITION,
+                                 metasprite_HowtoRight);
+  oam_hide_rest();
+}
+
 __attribute__((noinline)) void TitleScreen::loop() {
   bool how_to_players_switched = false;
   u8 how_to_select_timer = 0;
@@ -136,7 +165,6 @@ __attribute__((noinline)) void TitleScreen::loop() {
     rand16();
 
     u8 pressed = get_pad_new(0) | get_pad_new(1);
-    bool bobbing_flag = get_frame_count() & 0b10000;
 
     if (next_track_delay > 0) {
       next_track_delay--;
@@ -255,28 +283,6 @@ __attribute__((noinline)) void TitleScreen::loop() {
       break;
     }
 
-    s16 cursor_x;
-    u8 cursor_y;
-    if (state == State::ModeMenu) {
-      cursor_x = MODE_MENU_CURSOR_X_POSITION;
-      cursor_y = menu_y_position[(u8)current_game_mode];
-    } else {
-      cursor_x = MAIN_MENU_CURSOR_X_POSITION;
-      cursor_y = menu_y_position[(u8)current_option];
-    }
-    banked_oam_meta_spr_horizontal(cursor_x - x_scroll, cursor_y,
-                                   bobbing_flag ? metasprite_AvocadoHigh
-                                                : metasprite_AvocadoLow);
-
-    banked_oam_meta_spr_horizontal(JR_X_POSITION - x_scroll, JR_Y_POSITION,
-                                   metasprite_TitleJR);
-
-    banked_oam_meta_spr_horizontal(HOW_TO_LEFT_X_POSITION - x_scroll,
-                                   HOW_TO_LEFT_Y_POSITION,
-                                   metasprite_HowtoLeft);
-    banked_oam_meta_spr_horizontal(HOW_TO_RIGHT_X_POSITION - x_scroll,
-                                   HOW_TO_RIGHT_Y_POSITION,
-                                   metasprite_HowtoRight);
-    oam_hide_rest();
+    render_sprites();
   }
 }
