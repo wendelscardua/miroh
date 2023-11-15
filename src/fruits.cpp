@@ -87,7 +87,7 @@ void Fruits::update(Player &player, bool &snack_was_eaten) {
           // TODO: check if this is ok
           banked_play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
         }
-        if (fruit.dropping_counter == SPLASH_FRAMES) {
+        if (fruit.dropping_counter == 51) {
           fruit.state = Fruit::State::Active;
           fruit.bobbing_counter = 0;
         }
@@ -142,7 +142,7 @@ void Fruits::update(Player &player, bool &snack_was_eaten) {
   }
 }
 
-void Fruits::render_fruit(Fruit fruit, int y_scroll) const {
+void Fruits::render_fruit(Fruit fruit, int y_scroll) {
   switch (fruit.state) {
   case Fruit::State::Despawning:
     if ((fruit.despawn_counter & 0b111) == 0b100) {
@@ -157,8 +157,7 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) const {
   case Fruit::State::Dropping:
     if (fruit.y == fruit.raindrop_y) {
       // splash anim
-      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
-                          splash_metasprite[fruit.dropping_counter]);
+      splash_animation.update(fruit.x, fruit.y - y_scroll);
       if (fruit.dropping_counter >= 39 && fruit.dropping_counter <= 44) {
         // splash anim 14 & 15
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.high_metasprite);
