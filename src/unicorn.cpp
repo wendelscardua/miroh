@@ -8,7 +8,6 @@
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
-#include "input-mode.hpp"
 #include "maze-defs.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -43,27 +42,8 @@ void Unicorn::energy_upkeep(s16 delta) {
 }
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
-Unicorn::update(InputMode input_mode) {
+Unicorn::update(u8 pressed, u8 held) {
   energy_upkeep(1);
-
-  u8 pressed, held;
-
-  switch (current_controller_scheme) {
-  case ControllerScheme::OnePlayer:
-    if (input_mode == InputMode::Unicorn) {
-      pressed = get_pad_new(0);
-      held = pad_state(0);
-      // TODO: think about allowing a second player to enter during a 1p game
-    } else {
-      pressed = 0;
-      held = 0;
-    }
-    break;
-  case ControllerScheme::TwoPlayers:
-    pressed = get_pad_new(1);
-    held = pad_state(1);
-    break;
-  }
 
   switch (state) {
   case State::Idle: {
@@ -76,8 +56,6 @@ Unicorn::update(InputMode input_mode) {
     auto current_column = x.whole >> 4;
     auto current_cell = board.cell_at((u8)current_row, (u8)current_column);
 
-    if (input_mode != InputMode::Unicorn)
-      break;
 #define PRESS_HELD(button)                                                     \
   ((pressed & (button)) ||                                                     \
    (!pressed && moving != Direction::None && (held & (button))))

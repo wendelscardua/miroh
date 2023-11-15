@@ -2,7 +2,6 @@
 
 #include "board.hpp"
 #include "fruits.hpp"
-#include "input-mode.hpp"
 #include "polyomino.hpp"
 #include "unicorn.hpp"
 
@@ -18,6 +17,10 @@ class Gameplay {
     RetryOrExit,
     Retrying
   };
+
+  // the semantic applies to player 1 (whichever it controls, p2 will control
+  // the other)
+  enum class InputMode { Unicorn, Polyomino };
 
   // we level up every 50 points
   static constexpr u16 LEVEL_UP_POINTS = 50;
@@ -78,6 +81,19 @@ public:
   // it's actually the input mode for player 1; whatever
   // p1 controls, p2 controls the other
   InputMode input_mode;
+
+  // buttons pressed by whoever controls the unicorn
+  u8 unicorn_pressed;
+  // buttons held by whoever controls the unicorn
+  u8 unicorn_held;
+  // buttons pressed by whoever controls the polyomino
+  u8 polyomino_pressed;
+  // buttons held by whoever controls the polyomino
+  u8 polyomino_held;
+  // buttons pressed by anyone
+  u8 any_pressed;
+  // buttons held by anyone
+  u8 any_held;
 
   // Track current answer for a yes-or-no prompt
   bool yes_no_option;

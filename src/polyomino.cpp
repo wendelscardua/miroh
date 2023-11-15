@@ -2,10 +2,10 @@
 #include "bag.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "common.hpp"
 #include "coroutine.hpp"
 #include "direction.hpp"
 #include "ggsound.hpp"
-#include "input-mode.hpp"
 #include "polyomino-defs.hpp"
 #include <cstdio>
 #include <nesdoug.h>
@@ -88,25 +88,7 @@ Polyomino::able_to_kick(auto kick_deltas) {
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::handle_input(InputMode input_mode) {
-  u8 pressed, held;
-
-  switch (current_controller_scheme) {
-  case ControllerScheme::OnePlayer:
-    if (input_mode == InputMode::Polyomino) {
-      pressed = get_pad_new(0);
-      held = pad_state(0);
-    } else {
-      pressed = 0;
-      held = 0;
-    }
-    break;
-  case ControllerScheme::TwoPlayers:
-    pressed = get_pad_new(0);
-    held = pad_state(0);
-    break;
-  }
-
+Polyomino::handle_input(u8 pressed, u8 held) {
   if (pressed & PAD_UP) {
     // just some high enough value for the drop to proceed until the end
     drop_timer = HEIGHT * 60;

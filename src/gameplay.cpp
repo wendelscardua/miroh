@@ -20,7 +20,6 @@
 #include "fruits.hpp"
 #include "gameplay.hpp"
 #include "ggsound.hpp"
-#include "input-mode.hpp"
 #include "unicorn.hpp"
 
 #pragma clang section text = ".prg_rom_0.text"
@@ -107,9 +106,11 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
       board(board),
       unicorn(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
-      input_mode(InputMode::Unicorn), yes_no_option(false),
-      pause_option(PauseOption::Resume), y_scroll(INTRO_SCROLL_Y),
-      goal_counter(0) {
+      input_mode(current_controller_scheme == ControllerScheme::OnePlayer
+                     ? InputMode::Unicorn
+                     : InputMode::Polyomino),
+      yes_no_option(false), pause_option(PauseOption::Resume),
+      y_scroll(INTRO_SCROLL_Y), goal_counter(0) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
@@ -252,8 +253,6 @@ void Gameplay::initialize_goal() {
 void Gameplay::pause_handler() {
   y_scroll = PAUSE_SCROLL_Y;
 
-  auto pressed = get_pad_new(0) | get_pad_new(1);
-
   static const PauseOption NEXT_OPTION[] = {
       Gameplay::PauseOption::Resume,
       Gameplay::PauseOption::Exit,
@@ -266,18 +265,18 @@ void Gameplay::pause_handler() {
       Gameplay::PauseOption::Resume,
   };
 
-  if (pressed & (PAD_START | PAD_B)) {
+  if (any_pressed & (PAD_START | PAD_B)) {
     pause_option = PauseOption::Resume;
     gameplay_state = GameplayState::Playing;
     GGSound::resume();
     banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
-  } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
+  } else if (any_pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
     pause_option = NEXT_OPTION[(u8)pause_option];
     banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
-  } else if (pressed & (PAD_LEFT | PAD_UP)) {
+  } else if (any_pressed & (PAD_LEFT | PAD_UP)) {
     pause_option = PREV_OPTION[(u8)pause_option];
     banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
-  } else if (pressed & PAD_A) {
+  } else if (any_pressed & PAD_A) {
     banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     switch (pause_option) {
     case PauseOption::Exit:
@@ -345,17 +344,15 @@ void Gameplay::yes_no_cursor() {
 void Gameplay::confirm_exit_handler() {
   y_scroll = PAUSE_SCROLL_Y;
 
-  auto pressed = get_pad_new(0) | get_pad_new(1);
-
-  if (pressed & PAD_B) {
+  if (any_pressed & PAD_B) {
     banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
     pause_game();
     return;
-  } else if (pressed &
+  } else if (any_pressed &
              (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     yes_no_option = !yes_no_option;
     banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
-  } else if (pressed & (PAD_A | PAD_START)) {
+  } else if (any_pressed & (PAD_A | PAD_START)) {
     banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       current_game_state = GameState::TitleScreen;
@@ -370,16 +367,14 @@ void Gameplay::confirm_exit_handler() {
 }
 
 void Gameplay::confirm_retry_handler() {
-  auto pressed = get_pad_new(0) | get_pad_new(1);
-
-  if (pressed & PAD_B) {
+  if (any_pressed & PAD_B) {
     pause_game();
     return;
-  } else if (pressed &
+  } else if (any_pressed &
              (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     yes_no_option = !yes_no_option;
     banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
-  } else if (pressed & (PAD_A | PAD_START)) {
+  } else if (any_pressed & (PAD_A | PAD_START)) {
     banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
@@ -395,9 +390,7 @@ void Gameplay::confirm_retry_handler() {
 void Gameplay::confirm_continue_handler() {
   y_scroll = PAUSE_SCROLL_Y;
 
-  auto pressed = get_pad_new(0) | get_pad_new(1);
-
-  if (pressed & (PAD_A | PAD_START)) {
+  if (any_pressed & (PAD_A | PAD_START)) {
     // TODO: world map
     banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     current_game_state = GameState::TitleScreen;
@@ -413,12 +406,10 @@ void Gameplay::confirm_continue_handler() {
 void Gameplay::retry_exit_handler() {
   y_scroll = PAUSE_SCROLL_Y;
 
-  auto pressed = get_pad_new(0) | get_pad_new(1);
-
-  if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
+  if (any_pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
     yes_no_option = !yes_no_option;
-  } else if (pressed & (PAD_A | PAD_START)) {
+  } else if (any_pressed & (PAD_A | PAD_START)) {
     banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
@@ -450,9 +441,6 @@ void Gameplay::gameplay_handler() {
   lines_cleared = 0;
   snack_was_eaten = false;
 
-  auto p1_pressed = get_pad_new(0);
-  auto any_pressed = p1_pressed | get_pad_new(1);
-
   bool line_clearing_in_progress = board.ongoing_line_clearing(
       polyomino.state == Polyomino::State::Settling);
 
@@ -463,10 +451,11 @@ void Gameplay::gameplay_handler() {
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
 
-  banked_lambda(PLAYER_BANK, [this]() { unicorn.update(input_mode); });
+  banked_lambda(PLAYER_BANK,
+                [this]() { unicorn.update(unicorn_pressed, unicorn_held); });
 
   banked_lambda(GET_BANK(polyominos), [this]() {
-    polyomino.handle_input(input_mode);
+    polyomino.handle_input(polyomino_pressed, polyomino_held);
     polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
                      failed_to_place, lines_cleared);
   });
@@ -476,10 +465,9 @@ void Gameplay::gameplay_handler() {
   STOP_MESEN_WATCH(3);
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
-      polyomino.state != Polyomino::State::Active) {
-    if (input_mode == InputMode::Polyomino) {
-      input_mode = InputMode::Unicorn;
-    }
+      polyomino.state != Polyomino::State::Active &&
+      input_mode == InputMode::Polyomino) {
+    input_mode = InputMode::Unicorn;
   }
 
   if (lines_cleared) {
@@ -500,7 +488,7 @@ void Gameplay::gameplay_handler() {
 
   if (any_pressed & PAD_START) {
     pause_game();
-  } else if (p1_pressed & PAD_SELECT) {
+  } else if (any_pressed & PAD_SELECT) {
     if (input_mode == InputMode::Unicorn) {
       input_mode = InputMode::Polyomino;
     } else {
@@ -634,6 +622,22 @@ void Gameplay::loop() {
     ppu_wait_nmi();
 
     START_MESEN_WATCH(1);
+
+    pad_poll(0);
+    pad_poll(1);
+    if (input_mode == InputMode::Unicorn) {
+      unicorn_pressed = get_pad_new(0);
+      unicorn_held = pad_state(0);
+      polyomino_pressed = get_pad_new(1);
+      polyomino_held = pad_state(1);
+    } else {
+      unicorn_pressed = get_pad_new(1);
+      unicorn_held = pad_state(1);
+      polyomino_pressed = get_pad_new(0);
+      polyomino_held = pad_state(0);
+    }
+    any_pressed = unicorn_pressed | polyomino_pressed;
+    any_held = unicorn_held | polyomino_held;
 
     u8 frame = FRAME_CNT1;
 
