@@ -57,12 +57,12 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   fruit.state = Fruit::State::Dropping;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
-  fruit.dropping_counter = 0;
   fruit.raindrop_y = fruit.y.get();
   while (fruit.raindrop_y >= DROP_SPEED) {
     fruit.raindrop_y -= DROP_SPEED;
   }
   fruit.life = EXPIRATION_TIME;
+  splash_animation.reset();
 }
 
 Fruits::Fruits(Board &board) : board(board) {
@@ -81,13 +81,13 @@ void Fruits::update(Player &player, bool &snack_was_eaten) {
       break;
     case Fruit::State::Dropping:
       if (fruit.raindrop_y == fruit.y) {
-        fruit.dropping_counter++;
-        if (fruit.dropping_counter == 39) {
+        if (splash_animation.current_cell == 13 &&
+            splash_animation.current_frame == 0) {
           // near splash 14
           // TODO: check if this is ok
           banked_play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
         }
-        if (fruit.dropping_counter == 51) {
+        if (splash_animation.finished) {
           fruit.state = Fruit::State::Active;
           fruit.bobbing_counter = 0;
         }
@@ -158,10 +158,11 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
     if (fruit.y == fruit.raindrop_y) {
       // splash anim
       splash_animation.update(fruit.x, fruit.y - y_scroll);
-      if (fruit.dropping_counter >= 39 && fruit.dropping_counter <= 44) {
+      if (splash_animation.current_cell == 13 ||
+          splash_animation.current_cell == 14) {
         // splash anim 14 & 15
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.high_metasprite);
-      } else if (fruit.dropping_counter >= 45 && fruit.dropping_counter <= 50) {
+      } else if (splash_animation.current_cell >= 15) {
         // splash anim 16 & 17
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
       }

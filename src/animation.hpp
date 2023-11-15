@@ -15,9 +15,22 @@ public:
   const soa::Array<AnimCell, N> *cells;
   u8 current_frame;
   u8 current_cell;
+  bool loop;
+  bool finished;
+
+  Animation(const soa::Array<AnimCell, N> *cells, bool loop)
+      : cells(cells), current_frame(0), current_cell(0), loop(loop),
+        finished(false) {}
 
   Animation(const soa::Array<AnimCell, N> *cells)
-      : cells(cells), current_frame(0), current_cell(0) {}
+      : cells(cells), current_frame(0), current_cell(0), loop(true),
+        finished(false) {}
+
+  void reset() {
+    current_frame = 0;
+    current_cell = 0;
+    finished = false;
+  }
 
   void update(char x, int y) {
     banked_oam_meta_spr(x, y, (*cells)[current_cell]->metasprite);
@@ -27,6 +40,9 @@ public:
       current_cell++;
       if (current_cell == N) {
         current_cell = 0;
+        if (!loop) {
+          finished = true;
+        }
       }
     }
   }

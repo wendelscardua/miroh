@@ -42,10 +42,8 @@ struct Fruit {
   s8 column;
   u8 x;
   u8 y;
-  union {
-    u8 dropping_counter;
-    u8 bobbing_counter;
-  };
+
+  u8 bobbing_counter;
   union {
     u8 raindrop_y;
     u8 despawn_counter;
@@ -62,7 +60,6 @@ struct Fruit {
   MEMBER(column)                                                               \
   MEMBER(x)                                                                    \
   MEMBER(y)                                                                    \
-  MEMBER(dropping_counter)                                                     \
   MEMBER(bobbing_counter)                                                      \
   MEMBER(raindrop_y)                                                           \
   MEMBER(despawn_counter)                                                      \
@@ -111,7 +108,7 @@ class Fruits {
   Board &board;
   u16 spawn_timer;
 
-  Animation<17> splash_animation{&splash_cells};
+  Animation<17> splash_animation{&splash_cells, false};
 
 public:
   static constexpr u16 SPAWN_DELAY = 5 * 60;
