@@ -18,6 +18,12 @@ moving_left:
   - [UniLeftWalk2, 9]
   - [UniLeftWalk3, 5]
   - [UniLeftWalk4, 9]
+tired_right:
+  - [UniRightBreath1, 60]
+  - [UniRightBreath2, 60]
+tired_left:
+  - [UniLeftBreath1, 60]
+  - [UniLeftBreath2, 60]
 splash:
   - [Splash1, 3]
   - [Splash2, 3]

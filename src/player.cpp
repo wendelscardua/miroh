@@ -208,20 +208,31 @@ void Player::render(int y_scroll, bool left_wall, bool right_wall) {
   switch (state) {
   case State::Idle:
     if (facing == Direction::Right) {
-      idleRightAnimation.update(board.origin_x + x.whole,
-                                reference_y + y.whole);
+      if (energy > 0) {
+        idle_right_animation.update(board.origin_x + x.whole,
+                                    reference_y + y.whole);
+      } else {
+        tired_right_animation.update(board.origin_x + x.whole,
+                                     reference_y + y.whole);
+      }
     } else {
-      idleLeftAnimation.update(board.origin_x + x.whole, reference_y + y.whole);
+      if (energy > 0) {
+        idle_left_animation.update(board.origin_x + x.whole,
+                                   reference_y + y.whole);
+      } else {
+        tired_left_animation.update(board.origin_x + x.whole,
+                                    reference_y + y.whole);
+      }
     }
     break;
   case State::Moving:
     sprite_offset = SPRID;
     if (facing == Direction::Right) {
-      movingRightAnimation.update(board.origin_x + x.whole,
-                                  reference_y + y.whole);
+      moving_right_animation.update(board.origin_x + x.whole,
+                                    reference_y + y.whole);
     } else {
-      movingLeftAnimation.update(board.origin_x + x.whole,
-                                 reference_y + y.whole);
+      moving_left_animation.update(board.origin_x + x.whole,
+                                   reference_y + y.whole);
     }
     fix_uni_priority(left_wall, right_wall);
     break;

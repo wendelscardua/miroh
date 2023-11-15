@@ -24,13 +24,12 @@ private:
   u8 original_energy;
   u8 sprite_offset;
 
-  Animation<4> idleRightAnimation{&idle_right_cells};
-
-  Animation<4> idleLeftAnimation{&idle_left_cells};
-
-  Animation<4> movingRightAnimation{&moving_right_cells};
-
-  Animation<4> movingLeftAnimation{&moving_left_cells};
+  Animation<4> idle_right_animation{&idle_right_cells};
+  Animation<4> idle_left_animation{&idle_left_cells};
+  Animation<2> tired_right_animation{&tired_right_cells};
+  Animation<2> tired_left_animation{&tired_left_cells};
+  Animation<4> moving_right_animation{&moving_right_cells};
+  Animation<4> moving_left_animation{&moving_left_cells};
   // fixes priority flags for bottom sprites
   void fix_uni_priority(bool left_wall, bool right_wall);
 
