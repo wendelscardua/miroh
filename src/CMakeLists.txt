@@ -152,7 +152,11 @@ set_property(
   GlitteryGrotto.nam.rle
   GlitteryGrottoAlt.nam.rle
   
+  MarshmallowMountainBG.pal
   MarshmallowMountainSPR.pal
+  MarshmallowMountainBG.suffix.chr.donut
+  MarshmallowMountain.nam.rle
+  MarshmallowMountainAlt.nam.rle
 )
 
 add_donut_asset(SOURCE "SPR.chr")
@@ -187,8 +191,11 @@ add_donut_asset(SOURCE "GlitteryGrottoBG.suffix.chr")
 add_rle_asset(SOURCE "GlitteryGrotto.nam")
 add_rle_asset(SOURCE "GlitteryGrottoAlt.nam")
 
+add_raw_asset(SOURCE "MarshmallowMountainBG.pal")
 add_raw_asset(SOURCE "MarshmallowMountainSPR.pal")
-
+add_donut_asset(SOURCE "MarshmallowMountainBG.suffix.chr")
+add_rle_asset(SOURCE "MarshmallowMountain.nam")
+add_rle_asset(SOURCE "MarshmallowMountainAlt.nam")
 
 find_program(
   ANIMATOR_TOOL

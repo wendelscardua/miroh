@@ -6,12 +6,12 @@ level_bg_palettes:
     .byte RainbowRetreatBG_pal@mos16lo
     .byte FairyForestBG_pal@mos16lo
     .byte GlitteryGrottoBG_pal@mos16lo
-    .zero 1
+    .byte MarshmallowMountainBG_pal@mos16lo
     .byte StarlitStablesBG_pal@mos16hi
     .byte RainbowRetreatBG_pal@mos16hi
     .byte FairyForestBG_pal@mos16hi
     .byte GlitteryGrottoBG_pal@mos16hi
-    .zero 1
+    .byte MarshmallowMountainBG_pal@mos16hi
 
     .global level_spr_palettes
 level_spr_palettes:
@@ -32,12 +32,12 @@ level_bg_tiles:
     .byte RainbowRetreatBG_chr@mos16lo
     .byte FairyForestBG_chr@mos16lo
     .byte GlitteryGrottoBG_chr@mos16lo
-    .zero 1
+    .byte MarshmallowMountainBG_chr@mos16lo
     .byte StarlitStablesBG_chr@mos16hi
     .byte RainbowRetreatBG_chr@mos16hi
     .byte FairyForestBG_chr@mos16hi
     .byte GlitteryGrottoBG_chr@mos16hi
-    .zero 1
+    .byte MarshmallowMountainBG_chr@mos16hi
 
     .global level_bg_tile_blocks
 level_bg_tile_blocks:
@@ -45,7 +45,7 @@ level_bg_tile_blocks:
     .byte 41
     .byte 0
     .byte 37
-    .byte 0 ; TODO
+    .byte 39
 
     .global level_nametables
 level_nametables:
@@ -53,12 +53,12 @@ level_nametables:
     .byte RainbowRetreat_nam@mos16lo
     .byte FairyForest_nam@mos16lo
     .byte GlitteryGrotto_nam@mos16lo
-    .zero 1
+    .byte MarshmallowMountain_nam@mos16lo
     .byte StarlitStables_nam@mos16hi
     .byte RainbowRetreat_nam@mos16hi
     .byte FairyForest_nam@mos16hi
     .byte GlitteryGrotto_nam@mos16hi
-    .zero 1
+    .byte MarshmallowMountain_nam@mos16hi
 
     .global level_alt_nametables
 level_alt_nametables:
@@ -66,12 +66,12 @@ level_alt_nametables:
     .byte RainbowRetreatAlt_nam@mos16lo
     .byte FairyForestAlt_nam@mos16lo
     .byte GlitteryGrottoAlt_nam@mos16lo
-    .zero 1
+    .byte MarshmallowMountainAlt_nam@mos16lo
     .byte StarlitStablesAlt_nam@mos16hi
     .byte RainbowRetreatAlt_nam@mos16hi
     .byte FairyForestAlt_nam@mos16hi
     .byte GlitteryGrottoAlt_nam@mos16hi
-    .zero 1
+    .byte MarshmallowMountainAlt_nam@mos16hi
  
     ; Starlit Stables
 StarlitStablesBG_pal: .incbin "StarlitStablesBG.pal"
@@ -102,11 +102,11 @@ GlitteryGrotto_nam: .incbin "GlitteryGrotto.nam.rle"
 GlitteryGrottoAlt_nam: .incbin "GlitteryGrottoAlt.nam.rle"
 
     ; Marshmallow Mountain
-;MarshmallowMountainBG_pal: .incbin "MarshmallowMountainBG.pal"
+MarshmallowMountainBG_pal: .incbin "MarshmallowMountainBG.pal"
 MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
-;MarshmallowMountainBG_chr: .incbin "MarshmallowMountainBG.suffix.chr.donut"
-;MarshmallowMountain_nam: .incbin "MarshmallowMountain.nam.rle"
-;MarshmallowMountainAlt_nam: .incbin "MarshmallowMountainAlt.nam.rle"
+MarshmallowMountainBG_chr: .incbin "MarshmallowMountainBG.suffix.chr.donut"
+MarshmallowMountain_nam: .incbin "MarshmallowMountain.nam.rle"
+MarshmallowMountainAlt_nam: .incbin "MarshmallowMountainAlt.nam.rle"
 
     ; Title Screen
 .global title_bg_palette, title_spr_palette, title_bg_tiles, title_nametable, title_alt_nametable
