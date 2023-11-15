@@ -26,6 +26,7 @@
 ;;; 2022-09-13: Don't use fixed memory locations, add support for C code
 
         .global _asm_donut_decompress_to_ppu
+        .global donut_block_buffer
 
         .section .bss
 donut_block_buffer: .zero 64

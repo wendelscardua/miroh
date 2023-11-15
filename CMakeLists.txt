@@ -23,8 +23,8 @@ add_compile_options(
 
 add_link_options(
   -g -gdwarf-4
-  -mreserve-zp=58
-  # donut: 18, ggsound: 40
+  -mreserve-zp=67
+  # donut: 18, ggsound: 40, zx02: 7
 
   # make functions non-recursive by default
   -fnonreentrant
