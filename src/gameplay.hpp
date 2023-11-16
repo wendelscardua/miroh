@@ -10,6 +10,7 @@ class Gameplay {
 
   enum class GameplayState : u8 {
     Playing,
+    Swapping,
     Paused,
     ConfirmExit,
     ConfirmRetry,
@@ -65,6 +66,14 @@ public:
   static const int INTRO_SCROLL_Y = -0x100 + 0x50;
   static const int PAUSE_MENU_POSITION = NTADR_C(0, 3);
   static const int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
+  static const constexpr struct {
+    bool display_unicorn : 1;
+    bool display_polyomino : 1;
+    u8 duration : 6;
+  } swap_frames[] = {
+      {false, true, 4}, {true, false, 4}, {false, true, 4},
+      {true, false, 4}, {true, true, 1},
+  };
   static const u8 TIME_TRIAL_DURATION = 90;
   static const u8 LINES_GOAL = 12;
   static const u8 SNACKS_GOAL = 24;
@@ -94,6 +103,10 @@ public:
   u8 any_pressed;
   // buttons held by anyone
   u8 any_held;
+
+  // countdown of frames for the swap flashing and sfx
+  u8 swap_index : 4;
+  u8 swap_frame_counter : 4;
 
   // Track current answer for a yes-or-no prompt
   bool yes_no_option;

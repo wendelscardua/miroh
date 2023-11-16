@@ -206,9 +206,15 @@ void Gameplay::render() {
     }
   }
   fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
-  unicorn.render(y_scroll, left_wall, right_wall);
+  if (gameplay_state != GameplayState::Swapping ||
+      swap_frames[swap_index].display_unicorn) {
+    unicorn.render(y_scroll, left_wall, right_wall);
+  }
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
-  polyomino.render(y_scroll);
+  if (gameplay_state != GameplayState::Swapping ||
+      swap_frames[swap_index].display_polyomino) {
+    polyomino.render(y_scroll);
+  }
   unicorn.refresh_energy_hud(y_scroll);
   oam_hide_rest();
 }
@@ -671,12 +677,30 @@ void Gameplay::loop() {
       // leaves the gameplay loop; since we're still on the gameplay game
       // state this is equivalent to retrying under the same conditions
       return;
+    case GameplayState::Swapping:
+      if (swap_frame_counter == 0) {
+        if (swap_frames[swap_index].display_unicorn) {
+          banked_play_sfx(SFX::Unicornon, GGSound::SFXPriority::Two);
+        } else {
+          banked_play_sfx(SFX::Unicornoff, GGSound::SFXPriority::Two);
+        }
+      }
+      swap_frame_counter++;
+      if (swap_frame_counter >= swap_frames[swap_index].duration) {
+        swap_frame_counter = 0;
+        swap_index++;
+        if (swap_index >= sizeof(swap_frames)) {
+          swap_index = 0;
+          gameplay_state = GameplayState::Playing;
+        }
+      }
+      break;
     }
 
     if (input_mode != old_mode) {
-      banked_play_sfx(input_mode == InputMode::Unicorn ? SFX::Unicornon
-                                                       : SFX::Unicornoff,
-                      GGSound::SFXPriority::One);
+      gameplay_state = GameplayState::Swapping;
+      swap_frame_counter = 0;
+      swap_index = 0;
     }
     Attributes::flush_vram_update();
 
