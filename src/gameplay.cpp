@@ -123,6 +123,16 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     if (bg_blocks > 0) {
       Donut::decompress_to_ppu(level_bg_tiles[(u8)current_stage], bg_blocks);
     }
+
+    // mode labels start at tile $84, both require 1 donut block (64 bytes)
+    if (current_game_mode == GameMode::TimeTrial) {
+      vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
+      Donut::decompress_to_ppu((void *)time_label_tiles, 1);
+    } else if (current_game_mode == GameMode::Endless) {
+      vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
+      Donut::decompress_to_ppu((void *)level_label_tiles, 1);
+    }
+
     vram_adr(PPU_PATTERN_TABLE_1);
     Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
