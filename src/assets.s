@@ -104,3 +104,8 @@ base_bg_tiles = FairyForestBG_chr
 
 .global spr_tiles
 spr_tiles: .incbin "SPR.chr.donut"
+
+.global level_label_tiles
+level_label_tiles: .incbin "Level.chr.donut"
+.global time_label_tiles
+time_label_tiles: .incbin "Time.chr.donut"

@@ -36,3 +36,8 @@ extern "C" const char title_nametable[];
 extern "C" const char base_bg_tiles[];
 
 extern "C" const char spr_tiles[];
+
+// replace story mode's goal with "level"
+extern "C" const char level_label_tiles[];
+// replace story mode's goal with "time"
+extern "C" const char time_label_tiles[];
