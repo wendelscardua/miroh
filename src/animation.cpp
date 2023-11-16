@@ -11,6 +11,7 @@ Animation::Animation(const AnimCell (&cells)[], u8 length)
 void Animation::reset() {
   current_frame = 0;
   current_cell_index = 0;
+  current_cell = &cells[0];
   finished = false;
 }
 
