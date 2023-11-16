@@ -105,6 +105,10 @@ class Polyomino < Thor
           delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
           f.puts "  .byte #{delta}"
         end
+
+        # alignment is only important for canon pieces
+        next unless canon.include?(key.to_s)
+
         (5 - blocks.size).times do
           f.puts '  .byte 0'
         end
@@ -113,7 +117,14 @@ class Polyomino < Thor
         f.puts "  .byte #{preview_bytes(blocks).join(', ')}"
       end
 
+      used_kicks = {};
+
       kicks.each do |key, values|
+        if (used_key = used_kicks[values])
+          f.puts "kick_type_#{key} = kick_type_#{used_key}"
+          next
+        end
+        used_kicks[values] = key
         f.puts "kick_type_#{key}:"
         values.each do |delta_x, delta_y|
           delta_row = -delta_y
