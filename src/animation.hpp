@@ -9,7 +9,6 @@ struct AnimCell {
 
 class Animation {
 public:
-  static constexpr u8 BANK = 0;
   const AnimCell (&cells)[];
   const AnimCell *current_cell;
   static bool paused;

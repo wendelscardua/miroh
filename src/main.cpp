@@ -1,3 +1,4 @@
+#include <mapper.h>
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -25,6 +26,8 @@ static void main_init() {
   current_game_state = GameState::TitleScreen;
   current_game_mode = GameMode::Story;
   current_controller_scheme = ControllerScheme::OnePlayer;
+
+  set_prg_bank(0);
 
   for (u8 i = 0; i < NUM_MAZES; i++) {
     high_score[i] = 0;

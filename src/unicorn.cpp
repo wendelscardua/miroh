@@ -1,6 +1,5 @@
 #include "unicorn.hpp"
 #include "animation.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
@@ -345,7 +344,6 @@ void Unicorn::refresh_energy_hud(int y_scroll) {
 
 void Unicorn::refresh_score_hud() {
   // refresh hunger hud
-  ScopedBank scopedBank(INT_TO_TEXT_BANK); // int_to_text's bank
   u8 score_text[4];
 
   int_to_text(score_text, score);
