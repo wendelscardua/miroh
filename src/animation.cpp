@@ -1,4 +1,5 @@
 #include "animation.hpp"
+#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "log.hpp"
 
@@ -17,6 +18,7 @@ void Animation::reset() {
 
 void Animation::update(char x, int y) {
   START_MESEN_WATCH(3);
+  ScopedBank scopedBank(Animation::BANK);
   banked_oam_meta_spr(x, y, current_cell->metasprite);
   if (paused)
     goto exit;

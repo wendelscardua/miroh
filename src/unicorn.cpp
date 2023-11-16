@@ -28,6 +28,32 @@ const fixed_point &Unicorn::move_speed() {
   }
 }
 
+void Unicorn::set_state(State new_state) {
+  state = new_state;
+  switch (state) {
+  case State::Idle:
+    idle_left_animation.reset();
+    idle_right_animation.reset();
+    tired_left_animation.reset();
+    tired_right_animation.reset();
+    break;
+  case State::Moving:
+    moving_left_animation.reset();
+    moving_right_animation.reset();
+    trudging_left_animation.reset();
+    trudging_right_animation.reset();
+    break;
+  case State::Yawning:
+    yawn_left_animation.reset();
+    yawn_right_animation.reset();
+    break;
+  case State::Sleeping:
+    sleep_left_animation.reset();
+    sleep_right_animation.reset();
+    break;
+  }
+}
+
 void Unicorn::energy_upkeep() {
   energy_timer++;
   // XXX: this could be an if, but eats 40 bytes of rom for some reason?
@@ -47,7 +73,9 @@ Unicorn::update(u8 pressed, u8 held) {
   energy_upkeep();
 
   switch (state) {
-  case State::Idle: {
+  case State::Idle:
+  case State::Yawning:
+  case State::Sleeping: {
   check_idle:
     if (!pressed && buffered_input) {
       pressed = buffered_input;
@@ -66,7 +94,7 @@ Unicorn::update(u8 pressed, u8 held) {
         moving = Direction::Up;
         target_x = x;
         target_y = y - GRID_SIZE;
-        state = State::Moving;
+        set_state(State::Moving);
         break;
       }
     }
@@ -76,7 +104,7 @@ Unicorn::update(u8 pressed, u8 held) {
         moving = Direction::Down;
         target_x = x;
         target_y = y + GRID_SIZE;
-        state = State::Moving;
+        set_state(State::Moving);
         break;
       }
     }
@@ -87,7 +115,7 @@ Unicorn::update(u8 pressed, u8 held) {
         moving = Direction::Left;
         target_x = x - GRID_SIZE;
         target_y = y;
-        state = State::Moving;
+        set_state(State::Moving);
         break;
       }
     }
@@ -98,7 +126,7 @@ Unicorn::update(u8 pressed, u8 held) {
         moving = Direction::Right;
         target_x = x + GRID_SIZE;
         target_y = y;
-        state = State::Moving;
+        set_state(State::Moving);
         break;
       }
     }
@@ -115,7 +143,7 @@ Unicorn::update(u8 pressed, u8 held) {
     case Direction::Up:
       if (y <= target_y + move_speed()) {
         y = target_y;
-        state = State::Idle;
+        set_state(State::Idle);
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
@@ -128,7 +156,7 @@ Unicorn::update(u8 pressed, u8 held) {
       x += move_speed();
       if (x >= target_x) {
         x = target_x;
-        state = State::Idle;
+        set_state(State::Idle);
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
@@ -139,7 +167,7 @@ Unicorn::update(u8 pressed, u8 held) {
       y += move_speed();
       if (y >= target_y) {
         y = target_y;
-        state = State::Idle;
+        set_state(State::Idle);
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
@@ -149,7 +177,7 @@ Unicorn::update(u8 pressed, u8 held) {
     case Direction::Left:
       if (x <= target_x + move_speed()) {
         x = target_x;
-        state = State::Idle;
+        set_state(State::Idle);
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
         }
@@ -188,45 +216,36 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
   int reference_y = board.origin_y - y_scroll;
 
   switch (state) {
-  case State::Idle:
-    if (facing == Direction::Right) {
-      if (energy > 0) {
-        idle_right_animation.update(board.origin_x + x.whole,
-                                    reference_y + y.whole);
-      } else {
-        tired_right_animation.update(board.origin_x + x.whole,
-                                     reference_y + y.whole);
-      }
-    } else {
-      if (energy > 0) {
-        idle_left_animation.update(board.origin_x + x.whole,
-                                   reference_y + y.whole);
-      } else {
-        tired_left_animation.update(board.origin_x + x.whole,
-                                    reference_y + y.whole);
-      }
+  case State::Idle: {
+    Animation &animation =
+        (facing == Direction::Right
+             ? (energy > 0 ? idle_right_animation : tired_right_animation)
+             : (energy > 0 ? idle_left_animation : tired_left_animation));
+    animation.update(board.origin_x + x.whole, reference_y + y.whole);
+    if (animation.finished) {
+      set_state(State::Yawning);
     }
-    break;
-  case State::Moving:
+  } break;
+  case State::Moving: {
     sprite_offset = SPRID;
-    if (facing == Direction::Right) {
-      if (energy > 0) {
-        moving_right_animation.update(board.origin_x + x.whole,
-                                      reference_y + y.whole);
-      } else {
-        trudging_right_animation.update(board.origin_x + x.whole,
-                                        reference_y + y.whole);
-      }
-    } else {
-      if (energy > 0) {
-        moving_left_animation.update(board.origin_x + x.whole,
-                                     reference_y + y.whole);
-      } else {
-        trudging_left_animation.update(board.origin_x + x.whole,
-                                       reference_y + y.whole);
-      }
-    }
+    Animation &animation =
+        (facing == Direction::Right
+             ? (energy > 0 ? moving_right_animation : trudging_right_animation)
+             : (energy > 0 ? moving_left_animation : trudging_left_animation));
+    animation.update(board.origin_x + x.whole, reference_y + y.whole);
     fix_uni_priority(left_wall, right_wall);
+  } break;
+  case State::Yawning: {
+    Animation &animation = (facing == Direction::Right ? yawn_right_animation
+                                                       : yawn_left_animation);
+    animation.update(board.origin_x + x.whole, reference_y + y.whole);
+    if (animation.finished) {
+      set_state(State::Sleeping);
+    }
+  } break;
+  case State::Sleeping:
+    (facing == Direction::Right ? sleep_right_animation : sleep_left_animation)
+        .update(board.origin_x + x.whole, reference_y + y.whole);
     break;
   }
 }

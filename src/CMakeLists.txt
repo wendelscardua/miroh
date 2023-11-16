@@ -203,7 +203,7 @@ endif()
 
 add_custom_command(
     OUTPUT "${CMAKE_BINARY_DIR}/src/animation-defs.s" "${CMAKE_BINARY_DIR}/src/animation-defs.hpp"
-    COMMAND ${ANIMATOR_TOOL} animate "${CMAKE_SOURCE_DIR}/assets/animations.yaml" --asm-output "${CMAKE_BINARY_DIR}/src/animation-defs.s" --hpp-output "${CMAKE_BINARY_DIR}/src/animation-defs.hpp" --section ".prg_rom_last" 
+    COMMAND ${ANIMATOR_TOOL} animate "${CMAKE_SOURCE_DIR}/assets/animations.yaml" --asm-output "${CMAKE_BINARY_DIR}/src/animation-defs.s" --hpp-output "${CMAKE_BINARY_DIR}/src/animation-defs.hpp" --section ".prg_rom_0" 
     DEPENDS ${ANIMATOR_TOOL} "${CMAKE_SOURCE_DIR}/assets/animations.yaml"
 )
 

@@ -62,6 +62,8 @@ public:
   enum class State {
     Idle,
     Moving,
+    Yawning,
+    Sleeping,
   };
 
   State state;
@@ -80,5 +82,6 @@ public:
   void energy_upkeep();
   void refresh_energy_hud(int y_scroll);
   void refresh_score_hud();
+  void set_state(State new_state);
   const fixed_point &move_speed();
 };
