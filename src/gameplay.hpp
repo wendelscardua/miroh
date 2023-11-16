@@ -149,4 +149,5 @@ private:
   void confirm_continue_handler();
   void initialize_goal();
   void game_mode_upkeep(bool stuff_in_progress);
+  void swap_inputs();
 };

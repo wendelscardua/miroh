@@ -473,7 +473,7 @@ void Gameplay::gameplay_handler() {
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       polyomino.state != Polyomino::State::Active &&
       input_mode == InputMode::Polyomino) {
-    input_mode = InputMode::Unicorn;
+    swap_inputs();
   }
 
   if (lines_cleared) {
@@ -495,11 +495,7 @@ void Gameplay::gameplay_handler() {
   if (any_pressed & PAD_START) {
     pause_game();
   } else if (any_pressed & PAD_SELECT) {
-    if (input_mode == InputMode::Unicorn) {
-      input_mode = InputMode::Polyomino;
-    } else {
-      input_mode = InputMode::Unicorn;
-    }
+    swap_inputs();
   }
 
   if (gameplay_state == GameplayState::Playing) {
@@ -620,6 +616,19 @@ void Gameplay::pause_game() {
                          PAUSE_MENU_OPTIONS_POSITION);
 }
 
+void Gameplay::swap_inputs() {
+  if (input_mode == InputMode::Unicorn) {
+    input_mode = InputMode::Polyomino;
+  } else {
+    input_mode = InputMode::Unicorn;
+  }
+
+  gameplay_state = GameplayState::Swapping;
+
+  swap_frame_counter = 0;
+  swap_index = 0;
+}
+
 void Gameplay::loop() {
   static bool no_lag_frame = true;
   extern volatile char FRAME_CNT1;
@@ -648,8 +657,6 @@ void Gameplay::loop() {
     u8 frame = FRAME_CNT1;
 
     Attributes::enable_vram_buffer();
-
-    InputMode old_mode = input_mode;
 
     pad_poll(0);
     pad_poll(1);
@@ -680,9 +687,9 @@ void Gameplay::loop() {
     case GameplayState::Swapping:
       if (swap_frame_counter == 0) {
         if (swap_frames[swap_index].display_unicorn) {
-          banked_play_sfx(SFX::Unicornon, GGSound::SFXPriority::Two);
+          banked_play_sfx(SFX::Unicornon, GGSound::SFXPriority::One);
         } else {
-          banked_play_sfx(SFX::Unicornoff, GGSound::SFXPriority::Two);
+          banked_play_sfx(SFX::Unicornoff, GGSound::SFXPriority::One);
         }
       }
       swap_frame_counter++;
@@ -697,11 +704,6 @@ void Gameplay::loop() {
       break;
     }
 
-    if (input_mode != old_mode) {
-      gameplay_state = GameplayState::Swapping;
-      swap_frame_counter = 0;
-      swap_index = 0;
-    }
     Attributes::flush_vram_update();
 
     extern u8 VRAM_INDEX;
