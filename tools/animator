@@ -30,7 +30,6 @@ class Animator < Thor
         f.puts ".global #{label}_cells"
         f.puts "#{label}_cells:"
         cells.map {|metasprite, duration| ["metasprite_#{metasprite}@mos16lo", "metasprite_#{metasprite}@mos16hi", duration] }
-             .transpose
              .each do |values|
                f.puts ".byte #{values.join(', ')}"
              end
@@ -38,10 +37,9 @@ class Animator < Thor
     end
 
     File.open(options[:hpp_output], 'w') do |f|
-      f.puts '#include <soa.h>'
       f.puts '#include "animation.hpp"'
       animations.each do |label, cells|
-        f.puts "extern \"C\" const soa::Array<AnimCell, #{cells.size}> #{label}_cells;"
+        f.puts "extern \"C\" const AnimCell #{label}_cells[#{cells.size}];"
       end
     end
   end

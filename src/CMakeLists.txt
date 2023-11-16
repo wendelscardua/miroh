@@ -89,6 +89,7 @@ add_library(SourceObj
   title-screen.cpp
   gameplay.cpp
 
+  animation.cpp
   attributes.cpp
   banked-asset-helpers.s
   banked-asset-helpers.cpp
