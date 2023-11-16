@@ -464,6 +464,13 @@ void Gameplay::gameplay_handler() {
   lines_cleared = 0;
   snack_was_eaten = false;
 
+  if (any_pressed & PAD_START) {
+    pause_game();
+    return;
+  } else if (any_pressed & PAD_SELECT) {
+    swap_inputs();
+  }
+
   bool line_clearing_in_progress = board.ongoing_line_clearing(
       polyomino.state == Polyomino::State::Settling);
 
@@ -507,13 +514,8 @@ void Gameplay::gameplay_handler() {
     add_experience(1);
   }
 
-  if (any_pressed & PAD_START) {
-    pause_game();
-  } else if (any_pressed & PAD_SELECT) {
-    swap_inputs();
-  }
-
-  if (gameplay_state == GameplayState::Playing) {
+  if (gameplay_state == GameplayState::Playing ||
+      gameplay_state == GameplayState::Swapping) {
     game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
                      polyomino.state != Polyomino::State::Inactive);
   }
