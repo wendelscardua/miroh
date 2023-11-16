@@ -273,9 +273,12 @@ void Gameplay::initialize_goal() {
     time_trial_seconds = TIME_TRIAL_DURATION;
     break;
   }
-  if (current_game_mode != GameMode::Endless &&
-      current_stage != Stage::GlitteryGrotto) {
-    u8 goal_counter_text[2];
+  u8 goal_counter_text[2];
+  if (current_game_mode == GameMode::Endless ||
+      current_stage == Stage::GlitteryGrotto) {
+    u8_to_text(goal_counter_text, current_level + 1);
+    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+  } else {
     u8_to_text(goal_counter_text, (u8)goal_counter);
     multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
   }
@@ -573,10 +576,12 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       // TODO: track Miroh Jr's defeat
       break;
     }
-    if (current_stage != Stage::GlitteryGrotto) {
+    if (current_stage == Stage::GlitteryGrotto) {
+      u8_to_text(goal_counter_text, current_level + 1);
+    } else {
       u8_to_text(goal_counter_text, (u8)goal_counter);
-      multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
     }
+    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
 
     if (!stuff_in_progress && goal_counter == 0) {
       multi_vram_buffer_horz(
@@ -601,6 +606,9 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     }
     break;
   case GameMode::Endless:
+    u8_to_text(goal_counter_text, current_level + 1);
+    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+
     if (failed_to_place) {
       multi_vram_buffer_horz(non_story_mode_match_ending_text,
                              sizeof(non_story_mode_match_ending_text),
