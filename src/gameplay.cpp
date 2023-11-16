@@ -1,3 +1,4 @@
+#include "animation.hpp"
 #include "assets.hpp"
 #include "board.hpp"
 #include "log.hpp"
@@ -194,6 +195,8 @@ __attribute__((noinline)) Gameplay::~Gameplay() {
 }
 
 void Gameplay::render() {
+  Animation::paused = (gameplay_state != GameplayState::Playing &&
+                       gameplay_state != GameplayState::Swapping);
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {

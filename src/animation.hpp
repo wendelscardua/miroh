@@ -11,6 +11,7 @@ class Animation {
 public:
   const AnimCell (&cells)[];
   const AnimCell *current_cell;
+  static bool paused;
   u8 current_frame;
   u8 current_cell_index;
   u8 length;
