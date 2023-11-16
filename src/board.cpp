@@ -475,13 +475,15 @@ void Board::restore_maze_cell(s8 row, s8 column) {
   if (column == 0) {
     if (row > 0 && current_cell->up_wall) {
       TOP_0 = MAZE_BASE_TILE + 0x1b;
-    } else if (row < HEIGHT - 1 && current_cell->down_wall) {
+    }
+    if (row < HEIGHT - 1 && current_cell->down_wall) {
       BOTTOM_0 = MAZE_BASE_TILE + 0x0b;
     }
   } else if (column == WIDTH - 1) {
     if (row > 0 && current_cell->up_wall) {
       TOP_1 = MAZE_BASE_TILE + 0x1c;
-    } else if (row < HEIGHT - 1 && current_cell->down_wall) {
+    }
+    if (row < HEIGHT - 1 && current_cell->down_wall) {
       BOTTOM_1 = MAZE_BASE_TILE + 0x0c;
     }
   }
