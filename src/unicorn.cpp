@@ -32,11 +32,12 @@ void Unicorn::energy_upkeep(s16 delta) {
   energy_timer += delta;
   while (energy_timer >= ENERGY_TICKS) {
     energy_timer -= ENERGY_TICKS;
+    if (energy > 0) {
+      energy--;
+    }
     if (energy == 0) {
       banked_play_sfx(SFX::Outofenergy, GGSound::SFXPriority::One);
       break;
-    } else {
-      energy--;
     }
   }
 }
