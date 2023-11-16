@@ -138,7 +138,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
     set_chr_bank(1);
     vram_adr(0);
-    zx02_decompress_to_chr_ram(level_nametables[(u8)current_stage], 0);
+    zx02_decompress_to_vram(level_nametables[(u8)current_stage], 0);
 
     for (u16 i = 0; i < 1024; i += 64) {
       vram_adr(i);

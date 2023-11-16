@@ -10,7 +10,7 @@
 ; (c) 2022 DMSC
 ; Code under MIT license, see LICENSE.zx02 file.
 ;
-; (adapted for llvm-mos + chr ram buffer by Wendel Scardua)
+; (adapted for llvm-mos + vram buffer by Wendel Scardua)
 
 .section .zp,"z",@nobits
 offset: .zero 2
@@ -24,9 +24,9 @@ pntr: .zero 2
 PPU_ADDR = $2006
 PPU_DATA = $2007
 
-; void zx02_decompress_to_chr_ram(void *src)
-.global zx02_decompress_to_chr_ram
-zx02_decompress_to_chr_ram:
+; void zx02_decompress_to_vram(void *src)
+.global zx02_decompress_to_vram
+zx02_decompress_to_vram:
 ; TODO maybe use __rc2 directly instead of ZX0_src
     sta ZX0_dst
     stx ZX0_dst+1

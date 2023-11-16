@@ -83,7 +83,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
     set_chr_bank(1);
     vram_adr(0);
-    zx02_decompress_to_chr_ram((void *)title_nametable, 0);
+    zx02_decompress_to_vram((void *)title_nametable, 0);
 
     for (u16 i = 0; i < 1024; i += 64) {
       vram_adr(i);
