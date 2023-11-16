@@ -28,10 +28,11 @@ const fixed_point &Unicorn::move_speed() {
   }
 }
 
-void Unicorn::energy_upkeep(s16 delta) {
-  energy_timer += delta;
+void Unicorn::energy_upkeep() {
+  energy_timer++;
+  // XXX: this could be an if, but eats 40 bytes of rom for some reason?
   while (energy_timer >= ENERGY_TICKS) {
-    energy_timer -= ENERGY_TICKS;
+    energy_timer = 0;
     if (energy > 0) {
       energy--;
       if (energy == 0) {
@@ -43,7 +44,7 @@ void Unicorn::energy_upkeep(s16 delta) {
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
 Unicorn::update(u8 pressed, u8 held) {
-  energy_upkeep(1);
+  energy_upkeep();
 
   switch (state) {
   case State::Idle: {

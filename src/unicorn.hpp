@@ -57,7 +57,7 @@ public:
   void update(u8 pressed, u8 held);
   void render(int y_scroll, bool left_wall, bool right_wall);
   void feed(u8 nutrition);
-  void energy_upkeep(s16 delta);
+  void energy_upkeep();
   void refresh_energy_hud(int y_scroll);
   void refresh_score_hud();
   const fixed_point &move_speed();
