@@ -18,7 +18,7 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : facing(Direction::Right), moving(Direction::Right),
       energy(STARTING_ENERGY), energy_timer(0),
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
-      x(starting_x), y(starting_y), score(0), lines(0) {}
+      x(starting_x), y(starting_y), score(0) {}
 
 const fixed_point &Unicorn::move_speed() {
   if (energy > 0) {
@@ -337,7 +337,4 @@ void Unicorn::refresh_score_hud() {
   }
   int_to_text(score_text, high_score[maze]);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 4));
-
-  u8_to_text(score_text, lines);
-  multi_vram_buffer_horz(score_text, 2, NTADR_A(15, 27));
 }

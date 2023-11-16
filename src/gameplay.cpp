@@ -504,10 +504,6 @@ void Gameplay::gameplay_handler() {
     if (unicorn.score > 9999) {
       unicorn.score = 9999;
     }
-    unicorn.lines += lines_cleared;
-    if (unicorn.lines > 99) {
-      unicorn.lines = 99;
-    }
     add_experience(points);
   } else if (blocks_were_placed) {
     unicorn.score += 1;
@@ -522,6 +518,7 @@ void Gameplay::gameplay_handler() {
 }
 
 void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
+  u8 goal_counter_text[2];
   switch (current_game_mode) {
   case GameMode::Story:
     /*
@@ -560,6 +557,11 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       // TODO: track Miroh Jr's defeat
       break;
     }
+    if (current_stage != Stage::GlitteryGrotto) {
+      u8_to_text(goal_counter_text, (u8)goal_counter);
+      multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+    }
+
     if (!stuff_in_progress && goal_counter == 0) {
       multi_vram_buffer_horz(
           story_mode_victory_text_per_stage[(u8)current_stage],

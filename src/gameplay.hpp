@@ -121,9 +121,14 @@ public:
       u8 time_trial_seconds;
       u8 time_trial_frames;
     };
-    u8 lines_left;
-    u8 snacks_left;
-    u8 blocks_left;
+    struct {
+      union {
+        u8 lines_left;
+        u8 snacks_left;
+        u8 blocks_left;
+      };
+      u8 _padding;
+    };
     u16 points_left;
   };
   bool blocks_were_placed;
