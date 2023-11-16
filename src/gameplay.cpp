@@ -263,6 +263,12 @@ void Gameplay::initialize_goal() {
     time_trial_seconds = TIME_TRIAL_DURATION;
     break;
   }
+  if (current_game_mode != GameMode::Endless &&
+      current_stage != Stage::GlitteryGrotto) {
+    u8 goal_counter_text[2];
+    u8_to_text(goal_counter_text, (u8)goal_counter);
+    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+  }
 }
 
 void Gameplay::ease_scroll(const int target) {
