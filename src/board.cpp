@@ -339,9 +339,6 @@ void Board::block_maze_cell(s8 row, s8 column) {
   block_maze_cell(row, column, false);
 }
 
-extern u8 VRAM_INDEX;
-extern char VRAM_BUF[256];
-
 /*
  VRAM BUFFER layout:
  0: address.h + horizontal (top)

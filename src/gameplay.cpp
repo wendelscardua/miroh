@@ -706,7 +706,6 @@ void Gameplay::loop() {
 
     Attributes::flush_vram_update();
 
-    extern u8 VRAM_INDEX;
     if (VRAM_INDEX + 16 < 64) {
       unicorn.refresh_score_hud();
     }
