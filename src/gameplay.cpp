@@ -1,3 +1,4 @@
+#include "animation.hpp"
 #include "assets.hpp"
 #include "board.hpp"
 #include "log.hpp"
@@ -194,6 +195,8 @@ __attribute__((noinline)) Gameplay::~Gameplay() {
 }
 
 void Gameplay::render() {
+  Animation::paused = (gameplay_state != GameplayState::Playing &&
+                       gameplay_state != GameplayState::Swapping);
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {
@@ -262,8 +265,16 @@ void Gameplay::initialize_goal() {
   }
 }
 
+void Gameplay::ease_scroll(const int target) {
+  if (y_scroll < target) {
+    y_scroll += 0x08;
+  } else if (y_scroll > target) {
+    y_scroll -= 0x08;
+  }
+}
+
 void Gameplay::pause_handler() {
-  y_scroll = PAUSE_SCROLL_Y;
+  ease_scroll(PAUSE_SCROLL_Y);
 
   static const PauseOption NEXT_OPTION[] = {
       Gameplay::PauseOption::Resume,
@@ -354,7 +365,7 @@ void Gameplay::yes_no_cursor() {
 }
 
 void Gameplay::confirm_exit_handler() {
-  y_scroll = PAUSE_SCROLL_Y;
+  ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & PAD_B) {
     banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
@@ -400,7 +411,7 @@ void Gameplay::confirm_retry_handler() {
 }
 
 void Gameplay::confirm_continue_handler() {
-  y_scroll = PAUSE_SCROLL_Y;
+  ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & (PAD_A | PAD_START)) {
     // TODO: world map
@@ -416,7 +427,7 @@ void Gameplay::confirm_continue_handler() {
 }
 
 void Gameplay::retry_exit_handler() {
-  y_scroll = PAUSE_SCROLL_Y;
+  ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
@@ -446,7 +457,7 @@ void Gameplay::retry_exit_handler() {
 }
 
 void Gameplay::gameplay_handler() {
-  y_scroll = DEFAULT_Y_SCROLL;
+  ease_scroll(DEFAULT_Y_SCROLL);
 
   blocks_were_placed = false;
   failed_to_place = false;
