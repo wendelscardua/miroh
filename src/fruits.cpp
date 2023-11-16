@@ -1,6 +1,5 @@
 #include "fruits.hpp"
 #include "banked-asset-helpers.hpp"
-#include "log.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -123,12 +122,9 @@ void Fruits::update(Unicorn &player, bool &snack_was_eaten) {
   }
 
   if (spawn_timer >= SPAWN_DELAY) {
-    START_MESEN_WATCH(4);
     for (u8 fruit_index = 0; fruit_index < NUM_FRUITS; fruit_index++) {
       if (fruits[fruit_index].state == Fruit::State::Inactive) {
-        START_MESEN_WATCH(5);
         spawn_on_board(fruit_index);
-        STOP_MESEN_WATCH(5);
         if (fruits[fruit_index].state == Fruit::State::Dropping) {
           active_fruits++;
           spawn_timer -= SPAWN_DELAY;
@@ -136,7 +132,6 @@ void Fruits::update(Unicorn &player, bool &snack_was_eaten) {
         break;
       }
     }
-    STOP_MESEN_WATCH(4);
   } else if (active_fruits < NUM_FRUITS) {
     spawn_timer++;
   }

@@ -472,9 +472,7 @@ void Gameplay::gameplay_handler() {
                      failed_to_place, lines_cleared);
   });
 
-  START_MESEN_WATCH(3);
   fruits.update(unicorn, snack_was_eaten);
-  STOP_MESEN_WATCH(3);
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       polyomino.state != Polyomino::State::Active &&
