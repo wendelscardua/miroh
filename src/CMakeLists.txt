@@ -103,6 +103,7 @@ add_library(SourceObj
   polyomino.cpp
   polyomino-defs.cpp
   unicorn.cpp
+  utils.cpp
   zx02.s
 
   assets.s
@@ -122,7 +123,9 @@ set_property(
   PROPERTY
   OBJECT_DEPENDS
 
+  Level.chr.donut
   SPR.chr.donut
+  Time.chr.donut
 
   TitleBG.pal
   TitleSPR.pal
@@ -155,7 +158,9 @@ set_property(
   MarshmallowMountain.nam.zx02
 )
 
+add_donut_asset(SOURCE "Level.chr")
 add_donut_asset(SOURCE "SPR.chr")
+add_donut_asset(SOURCE "Time.chr")
 
 add_raw_asset(SOURCE "TitleBG.pal")
 add_raw_asset(SOURCE "TitleSPR.pal")

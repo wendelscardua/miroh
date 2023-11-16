@@ -123,6 +123,16 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     if (bg_blocks > 0) {
       Donut::decompress_to_ppu(level_bg_tiles[(u8)current_stage], bg_blocks);
     }
+
+    // mode labels start at tile $84, both require 1 donut block (64 bytes)
+    if (current_game_mode == GameMode::TimeTrial) {
+      vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
+      Donut::decompress_to_ppu((void *)time_label_tiles, 1);
+    } else if (current_game_mode == GameMode::Endless) {
+      vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
+      Donut::decompress_to_ppu((void *)level_label_tiles, 1);
+    }
+
     vram_adr(PPU_PATTERN_TABLE_1);
     Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
@@ -144,6 +154,22 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     }
 
     set_chr_bank(0);
+
+    if (current_game_mode == GameMode::TimeTrial) {
+      vram_adr(NTADR_C(6, 21));
+      vram_write(time_trial_prompt[0], 20);
+      vram_adr(NTADR_C(6, 23));
+      vram_write(time_trial_prompt[1], 20);
+      vram_adr(NTADR_C(6, 25));
+      vram_write(time_trial_prompt[2], 20);
+    } else if (current_game_mode == GameMode::Endless) {
+      vram_adr(NTADR_C(6, 21));
+      vram_write(endless_prompt[0], 20);
+      vram_adr(NTADR_C(6, 23));
+      vram_write(endless_prompt[1], 20);
+      vram_adr(NTADR_C(6, 25));
+      vram_write(endless_prompt[2], 20);
+    }
 
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);
@@ -262,6 +288,15 @@ void Gameplay::initialize_goal() {
     time_trial_frames = 0;
     time_trial_seconds = TIME_TRIAL_DURATION;
     break;
+  }
+  u8 goal_counter_text[2];
+  if (current_game_mode == GameMode::Endless ||
+      current_stage == Stage::GlitteryGrotto) {
+    u8_to_text(goal_counter_text, current_level + 1);
+    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+  } else {
+    u8_to_text(goal_counter_text, (u8)goal_counter);
+    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
   }
 }
 
@@ -464,6 +499,13 @@ void Gameplay::gameplay_handler() {
   lines_cleared = 0;
   snack_was_eaten = false;
 
+  if (any_pressed & PAD_START) {
+    pause_game();
+    return;
+  } else if (any_pressed & PAD_SELECT) {
+    swap_inputs();
+  }
+
   bool line_clearing_in_progress = board.ongoing_line_clearing(
       polyomino.state == Polyomino::State::Settling);
 
@@ -497,29 +539,21 @@ void Gameplay::gameplay_handler() {
     if (unicorn.score > 9999) {
       unicorn.score = 9999;
     }
-    unicorn.lines += lines_cleared;
-    if (unicorn.lines > 99) {
-      unicorn.lines = 99;
-    }
     add_experience(points);
   } else if (blocks_were_placed) {
     unicorn.score += 1;
     add_experience(1);
   }
 
-  if (any_pressed & PAD_START) {
-    pause_game();
-  } else if (any_pressed & PAD_SELECT) {
-    swap_inputs();
-  }
-
-  if (gameplay_state == GameplayState::Playing) {
+  if (gameplay_state == GameplayState::Playing ||
+      gameplay_state == GameplayState::Swapping) {
     game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
                      polyomino.state != Polyomino::State::Inactive);
   }
 }
 
 void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
+  u8 goal_counter_text[2];
   switch (current_game_mode) {
   case GameMode::Story:
     /*
@@ -558,6 +592,13 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       // TODO: track Miroh Jr's defeat
       break;
     }
+    if (current_stage == Stage::GlitteryGrotto) {
+      u8_to_text(goal_counter_text, current_level + 1);
+    } else {
+      u8_to_text(goal_counter_text, (u8)goal_counter);
+    }
+    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+
     if (!stuff_in_progress && goal_counter == 0) {
       multi_vram_buffer_horz(
           story_mode_victory_text_per_stage[(u8)current_stage],
@@ -581,6 +622,9 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     }
     break;
   case GameMode::Endless:
+    u8_to_text(goal_counter_text, current_level + 1);
+    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+
     if (failed_to_place) {
       multi_vram_buffer_horz(non_story_mode_match_ending_text,
                              sizeof(non_story_mode_match_ending_text),
@@ -595,7 +639,8 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     if (time_trial_frames == 60) {
       time_trial_frames = 0;
       time_trial_seconds--;
-      // TODO: display seconds
+      u8_to_text(goal_counter_text, time_trial_seconds);
+      multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
       if (time_trial_seconds == 10 || time_trial_seconds == 5 ||
           time_trial_seconds == 0) {
         banked_play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);

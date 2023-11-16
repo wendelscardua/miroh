@@ -121,9 +121,15 @@ public:
       u8 time_trial_seconds;
       u8 time_trial_frames;
     };
-    u8 lines_left;
-    u8 snacks_left;
-    u8 blocks_left;
+    struct {
+      union {
+        u8 lines_left;
+        u8 snacks_left;
+        u8 blocks_left;
+      };
+      u8 _padding; // used so the u8 values align with (u8) casting of the u16
+                   // goal counter
+    };
     u16 points_left;
   };
   bool blocks_were_placed;

@@ -1,6 +1,5 @@
 #include "unicorn.hpp"
 #include "animation.hpp"
-#include "assets.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
@@ -9,6 +8,7 @@
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
 #include "maze-defs.hpp"
+#include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -18,7 +18,7 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : facing(Direction::Right), moving(Direction::Right),
       energy(STARTING_ENERGY), energy_timer(0),
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
-      x(starting_x), y(starting_y), score(0), lines(0) {}
+      x(starting_x), y(starting_y), score(0) {}
 
 const fixed_point &Unicorn::move_speed() {
   if (energy > 0) {
@@ -324,105 +324,9 @@ void Unicorn::refresh_energy_hud(int y_scroll) {
   CORO_FINISH();
 }
 
-__attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[4],
-                                                             u16 value) {
-  score_text[0] = DIGITS_BASE_TILE;
-  if (value >= 8000) {
-    score_text[0] += 8;
-    value -= 8000;
-  }
-  if (value >= 4000) {
-    score_text[0] += 4;
-    value -= 4000;
-  }
-  if (value >= 2000) {
-    score_text[0] += 2;
-    value -= 2000;
-  }
-  if (value >= 1000) {
-    score_text[0] += 1;
-    value -= 1000;
-  }
-
-  score_text[1] = DIGITS_BASE_TILE;
-  if (value >= 800) {
-    score_text[1] += 8;
-    value -= 800;
-  }
-  if (value >= 400) {
-    score_text[1] += 4;
-    value -= 400;
-  }
-  if (value >= 200) {
-    score_text[1] += 2;
-    value -= 200;
-  }
-  if (value >= 100) {
-    score_text[1] += 1;
-    value -= 100;
-  }
-
-  score_text[2] = DIGITS_BASE_TILE;
-  if (value >= 80) {
-    score_text[2] += 8;
-    value -= 80;
-  }
-  if (value >= 40) {
-    score_text[2] += 4;
-    value -= 40;
-  }
-  if (value >= 20) {
-    score_text[2] += 2;
-    value -= 20;
-  }
-  if (value >= 10) {
-    score_text[2] += 1;
-    value -= 10;
-  }
-
-  score_text[3] = DIGITS_BASE_TILE + (u8)value;
-
-  // leading zeroes are darker
-  for (u8 i = 0; i < 3; i++) {
-    if (score_text[i] > DIGITS_BASE_TILE) {
-      break;
-    }
-    score_text[i] = DARK_ZERO_TILE;
-  }
-}
-
-__attribute__((section(".prg_rom_0.text"))) void u8_to_text(u8 score_text[4],
-                                                            u8 value) {
-  score_text[0] = DIGITS_BASE_TILE;
-  if (value >= 80) {
-    score_text[0] += 8;
-    value -= 80;
-  }
-  if (value >= 40) {
-    score_text[0] += 4;
-    value -= 40;
-  }
-  if (value >= 20) {
-    score_text[0] += 2;
-    value -= 20;
-  }
-  if (value >= 10) {
-    score_text[0] += 1;
-    value -= 10;
-  }
-
-  score_text[1] = DIGITS_BASE_TILE + (u8)value;
-
-  if (score_text[0] == DIGITS_BASE_TILE) {
-    score_text[0] = DARK_ZERO_TILE;
-  }
-}
-
-extern u16 high_score[];
-
 void Unicorn::refresh_score_hud() {
   // refresh hunger hud
-  ScopedBank scopedBank(0); // int_to_text's bank
+  ScopedBank scopedBank(INT_TO_TEXT_BANK); // int_to_text's bank
   u8 score_text[4];
 
   int_to_text(score_text, score);
@@ -433,7 +337,4 @@ void Unicorn::refresh_score_hud() {
   }
   int_to_text(score_text, high_score[maze]);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 4));
-
-  u8_to_text(score_text, lines);
-  multi_vram_buffer_horz(score_text, 2, NTADR_A(15, 27));
 }
