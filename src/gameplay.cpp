@@ -605,7 +605,8 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     if (time_trial_frames == 60) {
       time_trial_frames = 0;
       time_trial_seconds--;
-      // TODO: display seconds
+      u8_to_text(goal_counter_text, time_trial_seconds);
+      multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
       if (time_trial_seconds == 10 || time_trial_seconds == 5 ||
           time_trial_seconds == 0) {
         banked_play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
