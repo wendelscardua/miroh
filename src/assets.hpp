@@ -41,3 +41,8 @@ extern "C" const char spr_tiles[];
 extern "C" const char level_label_tiles[];
 // replace story mode's goal with "time"
 extern "C" const char time_label_tiles[];
+
+// replaces story mode prompt with time trial one
+extern "C" const char time_trial_prompt[3][20];
+// replaces story mode prompt with endless mode one
+extern "C" const char endless_prompt[3][20];

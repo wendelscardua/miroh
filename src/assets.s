@@ -109,3 +109,15 @@ spr_tiles: .incbin "SPR.chr.donut"
 level_label_tiles: .incbin "Level.chr.donut"
 .global time_label_tiles
 time_label_tiles: .incbin "Time.chr.donut"
+
+.global time_trial_prompt
+time_trial_prompt:
+	.byte $1d,$11,$19,$02,$0f,$04,$10,$1b,$02,$12,$11,$0c,$10,$16,$15,$02,$06,$04,$10,$02
+	.byte $02,$1b,$11,$17,$02,$14,$04,$06,$0d,$02,$17,$12,$02,$05,$08,$09,$11,$14,$08,$02
+	.byte $02,$02,$16,$0c,$0f,$08,$02,$14,$17,$10,$15,$02,$11,$17,$16,$3f,$02,$02,$02,$02
+
+.global endless_prompt
+endless_prompt:
+	.byte $02,$02,$1d,$11,$19,$02,$0e,$11,$10,$0a,$02,$06,$04,$10,$02,$1b,$11,$17,$02,$02
+	.byte $15,$17,$14,$18,$0c,$18,$08,$02,$16,$0b,$0c,$15,$02,$15,$17,$0a,$04,$14,$1b,$02
+	.byte $02,$0a,$08,$0e,$04,$16,$0c,$10,$02,$05,$04,$14,$14,$04,$0a,$08,$3f,$2f,$02,$02

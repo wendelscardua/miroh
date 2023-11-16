@@ -155,6 +155,22 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
     set_chr_bank(0);
 
+    if (current_game_mode == GameMode::TimeTrial) {
+      vram_adr(NTADR_C(6, 21));
+      vram_write(time_trial_prompt[0], 20);
+      vram_adr(NTADR_C(6, 23));
+      vram_write(time_trial_prompt[1], 20);
+      vram_adr(NTADR_C(6, 25));
+      vram_write(time_trial_prompt[2], 20);
+    } else if (current_game_mode == GameMode::Endless) {
+      vram_adr(NTADR_C(6, 21));
+      vram_write(endless_prompt[0], 20);
+      vram_adr(NTADR_C(6, 23));
+      vram_write(endless_prompt[1], 20);
+      vram_adr(NTADR_C(6, 25));
+      vram_write(endless_prompt[2], 20);
+    }
+
     Attributes::reset_shadow();
     vram_adr(NAMETABLE_A);
 
