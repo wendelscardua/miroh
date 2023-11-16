@@ -103,6 +103,7 @@ add_library(SourceObj
   polyomino.cpp
   polyomino-defs.cpp
   unicorn.cpp
+  utils.cpp
   zx02.s
 
   assets.s

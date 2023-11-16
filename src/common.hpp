@@ -36,6 +36,7 @@ extern GameState current_game_state;
 extern GameMode current_game_mode;
 extern ControllerScheme current_controller_scheme;
 extern Stage current_stage;
+extern u16 high_score[];
 
 // neslib/nesdoug internal stuff
 
