@@ -24,14 +24,35 @@ private:
   u8 original_energy;
   u8 sprite_offset;
 
-  Animation idle_right_animation{idle_right_cells, 4};
-  Animation idle_left_animation{idle_left_cells, 4};
-  Animation tired_right_animation{tired_right_cells, 2};
-  Animation tired_left_animation{tired_left_cells, 2};
-  Animation moving_right_animation{moving_right_cells, 4};
-  Animation moving_left_animation{moving_left_cells, 4};
-  Animation trudging_right_animation{trudging_right_cells, 4};
-  Animation trudging_left_animation{trudging_left_cells, 4};
+  Animation idle_right_animation{idle_right_cells,
+                                 sizeof(idle_right_cells) / sizeof(AnimCell)};
+  Animation idle_left_animation{idle_left_cells,
+                                sizeof(idle_left_cells) / sizeof(AnimCell)};
+
+  Animation tired_right_animation{tired_right_cells,
+                                  sizeof(tired_right_cells) / sizeof(AnimCell)};
+  Animation tired_left_animation{tired_left_cells,
+                                 sizeof(tired_left_cells) / sizeof(AnimCell)};
+
+  Animation yawn_right_animation{yawn_right_cells,
+                                 sizeof(yawn_right_cells) / sizeof(AnimCell)};
+  Animation yawn_left_animation{yawn_left_cells,
+                                sizeof(yawn_left_cells) / sizeof(AnimCell)};
+
+  Animation sleep_right_animation{sleep_right_cells,
+                                  sizeof(sleep_right_cells) / sizeof(AnimCell)};
+  Animation sleep_left_animation{sleep_left_cells,
+                                 sizeof(sleep_left_cells) / sizeof(AnimCell)};
+
+  Animation moving_right_animation{
+      moving_right_cells, sizeof(moving_right_cells) / sizeof(AnimCell)};
+  Animation moving_left_animation{moving_left_cells,
+                                  sizeof(moving_left_cells) / sizeof(AnimCell)};
+
+  Animation trudging_right_animation{
+      trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
+  Animation trudging_left_animation{
+      trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
   // fixes priority flags for bottom sprites
   void fix_uni_priority(bool left_wall, bool right_wall);
 
@@ -41,6 +62,8 @@ public:
   enum class State {
     Idle,
     Moving,
+    Yawning,
+    Sleeping,
   };
 
   State state;
@@ -59,5 +82,6 @@ public:
   void energy_upkeep();
   void refresh_energy_hud(int y_scroll);
   void refresh_score_hud();
+  void set_state(State new_state);
   const fixed_point &move_speed();
 };

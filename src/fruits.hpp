@@ -3,6 +3,7 @@
 #include <soa.h>
 
 #include "animation-defs.hpp"
+#include "animation.hpp"
 #include "board.hpp"
 #include "common.hpp"
 #include "metasprites.hpp"
@@ -108,7 +109,8 @@ class Fruits {
   Board &board;
   u16 spawn_timer;
 
-  Animation splash_animation{splash_cells, 17};
+  Animation splash_animation{splash_cells,
+                             sizeof(splash_cells) / sizeof(AnimCell)};
 
 public:
   static constexpr u16 SPAWN_DELAY = 5 * 60;

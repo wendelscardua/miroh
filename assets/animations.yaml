@@ -3,11 +3,35 @@ idle_right:
   - [UniRightBlink, 12]
   - [UniRightIdle, 8]
   - [UniRightBlink, 12]
+  - [UniRightIdle, 162]
+  - [UniRightBlink, 12]
+  - [UniRightIdle, 8]
+  - [UniRightBlink, 12]
+  - [UniRightIdle, 162]
+  - [UniRightBlink, 12]
 idle_left:
   - [UniLeftIdle, 162]
   - [UniLeftBlink, 12]
   - [UniLeftIdle, 8]
   - [UniLeftBlink, 12]
+  - [UniLeftIdle, 162]
+  - [UniLeftBlink, 12]
+  - [UniLeftIdle, 8]
+  - [UniLeftBlink, 12]
+  - [UniLeftIdle, 162]
+  - [UniLeftBlink, 12]
+yawn_right:
+  - [UniRightYawn1, 78]
+  - [UniRightYawn2, 78]
+yawn_left:
+  - [UniLeftYawn1, 78]
+  - [UniLeftYawn2, 78]
+sleep_right:
+  - [UniRightSleep1, 162]
+  - [UniRightSleep2, 162]
+sleep_left:
+  - [UniLeftSleep1, 162]
+  - [UniLeftSleep2, 162]
 moving_right:
   - [UniRightWalk1, 5]
   - [UniRightWalk2, 9]
