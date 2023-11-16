@@ -97,17 +97,13 @@ class Polyomino < Thor
         # pointers to lists of kick deltas for counterclockwise and clockwise rotations
         f.puts ".word #{left_kick}, #{right_kick}"
 
-        # SoA array [5] of (delta row, delta column), padded with zeroes
+        # array [5] of (delta row, delta column), padded with zeroes
+        # each pair of deltas fit in a byte
         f.puts ".byte #{blocks.size}"
         blocks.sort_by! { |delta_row, delta_column| [delta_row, delta_column] }
-        blocks.each do |delta_row, _delta_column|
-          f.puts "  .byte #{delta_row}"
-        end
-        (5 - blocks.size).times do
-          f.puts '  .byte 0'
-        end
-        blocks.each do |_delta_row, delta_column|
-          f.puts "  .byte #{delta_column}"
+        blocks.each do |delta_row, delta_column|
+          delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
+          f.puts "  .byte #{delta}"
         end
         (5 - blocks.size).times do
           f.puts '  .byte 0'
@@ -119,11 +115,11 @@ class Polyomino < Thor
 
       kicks.each do |key, values|
         f.puts "kick_type_#{key}:"
-        values.each do |_delta_x, delta_y|
-          f.puts ".byte #{-delta_y}"
-        end
-        values.each do |delta_x, _delta_y|
-          f.puts ".byte #{delta_x}"
+        values.each do |delta_x, delta_y|
+          delta_row = -delta_y
+          delta_column = delta_x
+          delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
+          f.puts ".byte #{delta}"
         end
       end
     end
