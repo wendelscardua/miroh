@@ -31,12 +31,7 @@ class GenerateMetasprites < Thor
     File.open(s_file, 'w') do |f|
       f.puts <<~PREAMBLE
         .section #{bank},"aR",@progbits
-        .global #{label_prefix}_list
-        #{label_prefix}_list:
       PREAMBLE
-      session.metasprites.each do |metasprite|
-        f.puts ".word #{label_prefix}_#{metasprite.name}"
-      end
       # rubocop:disable Style/CombinableLoops
       session.metasprites.each do |metasprite|
         f.puts ".global #{label_prefix}_#{metasprite.name}"
@@ -52,7 +47,6 @@ class GenerateMetasprites < Thor
     File.open(h_file, 'w') do |f|
       f.puts '#pragma once'
       f.puts '#include "common.hpp"'
-      f.puts "extern \"C\" const u8* const #{label_prefix}_list[];"
       session.metasprites.each do |metasprite|
         f.puts "extern \"C\" const u8 #{label_prefix}_#{metasprite.name}[];"
       end
