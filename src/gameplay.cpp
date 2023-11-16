@@ -216,7 +216,13 @@ void Gameplay::render() {
     polyomino.render(y_scroll);
   }
   unicorn.refresh_energy_hud(y_scroll);
-  oam_hide_rest();
+
+  if (SPRID) {
+    // if we rendered 64 sprites already, SPRID will have wrapped around back to
+    // zero. in that case oam_hide_rest() would've hidden everyone
+
+    oam_hide_rest();
+  }
 }
 
 void Gameplay::initialize_goal() {
@@ -706,7 +712,6 @@ void Gameplay::loop() {
 
     Attributes::flush_vram_update();
 
-    extern u8 VRAM_INDEX;
     if (VRAM_INDEX + 16 < 64) {
       unicorn.refresh_score_hud();
     }

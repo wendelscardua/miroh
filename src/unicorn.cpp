@@ -165,9 +165,6 @@ Unicorn::update(u8 pressed, u8 held) {
   }
 }
 
-extern "C" char OAM_BUF[256];
-extern "C" char SPRID;
-
 void Unicorn::fix_uni_priority(bool left_wall, bool right_wall) {
   if (state != State::Moving) {
     return;
