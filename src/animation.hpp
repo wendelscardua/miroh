@@ -10,8 +10,9 @@ struct AnimCell {
 class Animation {
 public:
   const AnimCell (&cells)[];
+  const AnimCell *current_cell;
   u8 current_frame;
-  u8 current_cell;
+  u8 current_cell_index;
   u8 length;
   bool finished;
 
