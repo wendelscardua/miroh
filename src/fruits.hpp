@@ -6,7 +6,7 @@
 #include "board.hpp"
 #include "common.hpp"
 #include "metasprites.hpp"
-#include "player.hpp"
+#include "unicorn.hpp"
 
 struct Fruit {
   enum class Type : u8 {
@@ -116,7 +116,7 @@ public:
 
   Fruits(Board &board);
 
-  void update(Player &player, bool &snack_was_eaten);
+  void update(Unicorn &player, bool &snack_was_eaten);
 
   void spawn_on_board(u8 fruit_index);
 

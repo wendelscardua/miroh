@@ -3,7 +3,6 @@
 #include "bag.hpp"
 #include "board.hpp"
 #include "direction.hpp"
-#include "input-mode.hpp"
 #include "polyomino-defs.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -43,7 +42,7 @@ public:
 
   void spawn();
 
-  void handle_input(InputMode input_mode);
+  void handle_input(u8 pressed, u8 held);
 
   void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
               u8 &lines_filled);

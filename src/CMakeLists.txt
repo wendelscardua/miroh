@@ -99,9 +99,9 @@ add_library(SourceObj
   ggsound.cpp
   ggsound.s
   log.cpp
-  player.cpp
   polyomino.cpp
   polyomino-defs.cpp
+  unicorn.cpp
   zx02.s
 
   assets.s

@@ -5,12 +5,11 @@
 #include "board.hpp"
 #include "direction.hpp"
 #include "fixed-point.hpp"
-#include "input-mode.hpp"
 
 #define PLAYER_BANK 0
 #define PLAYER_TEXT_SECTION ".prg_rom_0.text.player"
 
-class Player {
+class Unicorn {
   static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x25);
   static constexpr fixed_point TIRED_MOVE_SPEED = fixed_point(0, 0x92);
   static constexpr u8 MAX_ENERGY = 12;
@@ -53,9 +52,9 @@ public:
 
   u8 buffered_input;
 
-  Player(Board &board, fixed_point starting_x, fixed_point starting_y);
+  Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y);
 
-  void update(InputMode input_mode);
+  void update(u8 pressed, u8 held);
   void render(int y_scroll, bool left_wall, bool right_wall);
   void feed(u8 nutrition);
   void energy_upkeep(s16 delta);
