@@ -98,6 +98,12 @@ title_spr_palette: .incbin "TitleSPR.pal"
 title_bg_tiles: .incbin "TitleBG.suffix.chr.donut"
 title_nametable: .incbin "Title.nam.zx02"
 
+    ; Map
+.global map_bg_palette, map_nametable
+
+map_bg_palette: .incbin "MapBG.pal"
+map_nametable: .incbin "Map.nam.zx02"
+
     ; Generic
 .global base_bg_tiles
 base_bg_tiles = FairyForestBG_chr

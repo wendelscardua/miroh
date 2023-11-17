@@ -33,6 +33,10 @@ extern "C" const char title_spr_palette[];
 extern "C" const char title_bg_tiles[];
 extern "C" const char title_nametable[];
 
+// map
+extern "C" const char map_bg_palette[];
+extern "C" const char map_nametable[];
+
 // base tiles, other tiles are replacement suffixes of this one
 // except for Fairy Forest, which is actually the same one
 extern "C" const char base_bg_tiles[];
