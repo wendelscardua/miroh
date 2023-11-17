@@ -4,7 +4,6 @@
 #include "log.hpp"
 #include "polyomino.hpp"
 #include "soundtrack.hpp"
-#include "zx02.hpp"
 #ifndef NDEBUG
 #include <cstdio>
 #endif
@@ -16,7 +15,6 @@
 
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
-#include "donut.hpp"
 #include "fixed-point.hpp"
 #include "fruits.hpp"
 #include "gameplay.hpp"
