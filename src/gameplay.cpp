@@ -286,6 +286,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
 __attribute__((noinline)) Gameplay::~Gameplay() {
   pal_fade_to(4, 0);
+  color_emphasis(COL_EMP_NORMAL);
   ppu_off();
 }
 
