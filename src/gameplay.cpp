@@ -469,6 +469,11 @@ void Gameplay::gameplay_handler() {
 
   fruits.update(unicorn, snack_was_eaten);
 
+  if (failed_to_place) {
+    gameplay_state = GameplayState::MarshmallowOverflow;
+    marshmallow_overflow_counter = 0;
+  }
+
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       polyomino.state != Polyomino::State::Active &&
       input_mode == InputMode::Polyomino) {
