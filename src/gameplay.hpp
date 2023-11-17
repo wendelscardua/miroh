@@ -102,14 +102,14 @@ class Gameplay {
   u16 spawn_timer;
 
 public:
-  static const u8 BANK = 0;
-  static const u16 INTRO_DELAY = 900;
-  static const int DEFAULT_Y_SCROLL = 0x07;
-  static const int PAUSE_SCROLL_Y = 0x050;
-  static const int INTRO_SCROLL_Y = -0x100 + 0x50;
-  static const int PAUSE_MENU_POSITION = NTADR_C(0, 3);
-  static const int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
-  static const constexpr struct {
+  static constexpr u8 BANK = 0;
+  static constexpr u16 INTRO_DELAY = 900;
+  static constexpr int DEFAULT_Y_SCROLL = 0x07;
+  static constexpr int PAUSE_SCROLL_Y = 0x050;
+  static constexpr int INTRO_SCROLL_Y = -0x100 + 0x50;
+  static constexpr int PAUSE_MENU_POSITION = NTADR_C(0, 3);
+  static constexpr int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
+  static constexpr struct {
     u8 duration : 6;
     bool display_unicorn : 1;
     bool display_polyomino : 1;
@@ -117,11 +117,11 @@ public:
       {4, false, true}, {4, true, false}, {4, false, true},
       {4, true, false}, {4, true, true},
   };
-  static const u8 TIME_TRIAL_DURATION = 90;
-  static const u8 LINES_GOAL = 12;
-  static const u8 SNACKS_GOAL = 24;
-  static const u8 BLOCKS_GOAL = 60;
-  static const u16 SCORE_GOAL = 200;
+  static constexpr u8 TIME_TRIAL_DURATION = 90;
+  static constexpr u8 LINES_GOAL = 12;
+  static constexpr u8 SNACKS_GOAL = 24;
+  static constexpr u8 BLOCKS_GOAL = 60;
+  static constexpr u16 SCORE_GOAL = 200;
   Board &board;
   Unicorn unicorn;
   Polyomino polyomino;

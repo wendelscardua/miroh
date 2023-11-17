@@ -25,9 +25,6 @@ public:
 };
 
 class Board {
-  // these are used for the coroutinish line clearing function
-  static const u8 LINE_CLEARING_BUDGET = 4;
-
   // convert column into its bitmask
   static constexpr soa::Array<const u16, WIDTH> OCCUPIED_BITMASK = {
       0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,

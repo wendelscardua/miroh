@@ -11,8 +11,8 @@
 #define FROZEN_BLOCK_ATTRIBUTE 2
 
 class Polyomino {
-  static const s8 MOVEMENT_INITIAL_DELAY = 16;
-  static const s8 MOVEMENT_DELAY = 6;
+  static constexpr s8 MOVEMENT_INITIAL_DELAY = 16;
+  static constexpr s8 MOVEMENT_DELAY = 6;
 
   static Bag<u8, NUM_POLYOMINOS> pieces;
 

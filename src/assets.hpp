@@ -10,17 +10,17 @@ const int PPU_PATTERN_TABLE_1 = 0x1000;
 const u8 ASSETS_BANK = 1;
 
 // various base tiles
-static const u8 MAZE_BASE_TILE = 0x20;
-static const u8 MARSHMALLOW_BASE_TILE = 0x40;
-static const u8 DIGITS_BASE_TILE = 0x64;
-static const u8 DARK_ZERO_TILE = 0x6e;
-static const u8 GAMEPLAY_CURSOR_TILE = 0x3d;
-static const u8 GAMEPLAY_CURSOR_ALT_TILE = 0x3e;
-static const u8 GAMEPLAY_CURSOR_CLEAR_TILE = 0x02;
-static const u8 SELECT_BUTTON_BASE_TILE = 0xb3;
-static const u8 HOW_TO_PLAYER_LABELS_BASE_TILE = 0xa9;
-static const u8 MOUNTAIN_MOUTH_BASE_TILE = 0x80;
-static const u8 PREVIEW_BASE_TILE = 0x70;
+static constexpr u8 MAZE_BASE_TILE = 0x20;
+static constexpr u8 MARSHMALLOW_BASE_TILE = 0x40;
+static constexpr u8 DIGITS_BASE_TILE = 0x64;
+static constexpr u8 DARK_ZERO_TILE = 0x6e;
+static constexpr u8 GAMEPLAY_CURSOR_TILE = 0x3d;
+static constexpr u8 GAMEPLAY_CURSOR_ALT_TILE = 0x3e;
+static constexpr u8 GAMEPLAY_CURSOR_CLEAR_TILE = 0x02;
+static constexpr u8 SELECT_BUTTON_BASE_TILE = 0xb3;
+static constexpr u8 HOW_TO_PLAYER_LABELS_BASE_TILE = 0xa9;
+static constexpr u8 MOUNTAIN_MOUTH_BASE_TILE = 0x80;
+static constexpr u8 PREVIEW_BASE_TILE = 0x70;
 
 extern "C" const soa::Array<char *, NUM_STAGES> level_bg_palettes;
 extern "C" const soa::Array<char *, NUM_STAGES> level_spr_palettes;

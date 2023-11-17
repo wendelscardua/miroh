@@ -389,13 +389,13 @@ void Gameplay::ease_scroll(const int target) {
 void Gameplay::pause_handler() {
   ease_scroll(PAUSE_SCROLL_Y);
 
-  static const PauseOption NEXT_OPTION[] = {
+  static constexpr PauseOption NEXT_OPTION[] = {
       Gameplay::PauseOption::Resume,
       Gameplay::PauseOption::Exit,
       Gameplay::PauseOption::Retry,
   };
 
-  static const PauseOption PREV_OPTION[] = {
+  static constexpr PauseOption PREV_OPTION[] = {
       Gameplay::PauseOption::Exit,
       Gameplay::PauseOption::Retry,
       Gameplay::PauseOption::Resume,
