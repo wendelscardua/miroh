@@ -56,6 +56,8 @@ public:
 
   void render(int y_scroll);
 
+  void outside_render(int y_scroll);
+
   void render_next();
 
   // returns number of filled lines aftter blocks were frozen, or -1 if

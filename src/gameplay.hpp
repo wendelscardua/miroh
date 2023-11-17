@@ -24,6 +24,18 @@ class Gameplay {
   // the other)
   enum class InputMode { Unicorn, Polyomino };
 
+  // each step of the marshmallow overflow "cutscene"
+  enum class OverflowState : u8 {
+    FlashOutsideBlocks,
+    SwallowNextPiece,
+    ShootBlockStream,
+    ShadowBeforeRaining,
+    FewDrops,
+    FasterDrops,
+    DropEverywhereElse,
+    GameOver,
+  };
+
   // we level up every 50 points
   static constexpr u16 LEVEL_UP_POINTS = 50;
 
@@ -87,6 +99,9 @@ public:
 
   // sub-state for the gameplay state
   GameplayState gameplay_state;
+
+  // sub-sub-state for the marshmallow overflow sub-state
+  OverflowState overflow_state;
 
   // it's actually the input mode for player 1; whatever
   // p1 controls, p2 controls the other

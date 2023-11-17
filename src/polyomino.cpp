@@ -227,6 +227,13 @@ void Polyomino::render(int y_scroll) {
                      (board.origin_y - y_scroll + (row << 4)));
 }
 
+void Polyomino::outside_render(int y_scroll) {
+  ScopedBank bank(GET_BANK(polyominos));
+  definition->outside_render(board.origin_x + (u8)(column << 4),
+                             (board.origin_y - y_scroll + (row << 4)),
+                             board.origin_y - y_scroll);
+}
+
 void Polyomino::render_next() {
   ScopedBank iban(GET_BANK(polyominos));
   next->chibi_render(3, 5);

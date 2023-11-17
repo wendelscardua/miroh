@@ -181,10 +181,18 @@ void Gameplay::render() {
     unicorn.render(y_scroll, left_wall, right_wall);
   }
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
-  if (gameplay_state != GameplayState::Swapping ||
-      swap_frames[swap_index].display_polyomino) {
+
+  if (gameplay_state == GameplayState::MarshmallowOverflow &&
+      overflow_state == OverflowState::FlashOutsideBlocks &&
+      marshmallow_overflow_counter & 0b100) {
+    polyomino.outside_render(y_scroll);
+  } else if ((gameplay_state == GameplayState::Swapping &&
+              swap_frames[swap_index].display_polyomino) ||
+             (gameplay_state != GameplayState::Swapping &&
+              gameplay_state != GameplayState::MarshmallowOverflow)) {
     polyomino.render(y_scroll);
   }
+
   unicorn.refresh_energy_hud(y_scroll);
 
   if (SPRID) {
@@ -471,6 +479,7 @@ void Gameplay::gameplay_handler() {
 
   if (failed_to_place) {
     gameplay_state = GameplayState::MarshmallowOverflow;
+    overflow_state = OverflowState::FlashOutsideBlocks;
     marshmallow_overflow_counter = 0;
   }
 
@@ -499,7 +508,21 @@ void Gameplay::gameplay_handler() {
   }
 }
 
-void Gameplay::marshmallow_overflow_handler() {}
+void Gameplay::marshmallow_overflow_handler() {
+  marshmallow_overflow_counter++;
+  switch (overflow_state) {
+  case OverflowState::FlashOutsideBlocks:
+    break;
+  case OverflowState::SwallowNextPiece:
+  case OverflowState::ShootBlockStream:
+  case OverflowState::ShadowBeforeRaining:
+  case OverflowState::FewDrops:
+  case OverflowState::FasterDrops:
+  case OverflowState::DropEverywhereElse:
+  case OverflowState::GameOver:
+    break;
+  }
+}
 
 void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   u8 goal_counter_text[2];
