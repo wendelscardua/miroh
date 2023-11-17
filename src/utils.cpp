@@ -20,13 +20,12 @@ __attribute__((section(".prg_rom_0.text"))) void u8_to_text(u8 score_text[],
     score_text[0] |= 1;
     value -= 10;
   }
-  score_text[0] += DIGITS_BASE_TILE;
-
-  score_text[1] = DIGITS_BASE_TILE + (u8)value;
-
-  if (score_text[0] == DIGITS_BASE_TILE) {
+  if (score_text[0] == 0) {
     score_text[0] = DARK_ZERO_TILE;
+  } else {
+    score_text[0] += DIGITS_BASE_TILE;
   }
+  score_text[1] = DIGITS_BASE_TILE + (u8)value;
 }
 
 __attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[],
