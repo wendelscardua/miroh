@@ -242,11 +242,7 @@ void Gameplay::initialize_goal() {
 }
 
 void Gameplay::ease_scroll(const int target) {
-  if (y_scroll < target) {
-    y_scroll += 0x08;
-  } else if (y_scroll > target) {
-    y_scroll -= 0x08;
-  }
+  y_scroll += (target - y_scroll + 1) / 2;
 }
 
 void Gameplay::pause_handler() {

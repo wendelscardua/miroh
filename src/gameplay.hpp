@@ -61,7 +61,7 @@ class Gameplay {
 public:
   static const u8 BANK = 0;
   static const u16 INTRO_DELAY = 900;
-  static const int DEFAULT_Y_SCROLL = 0x08;
+  static const int DEFAULT_Y_SCROLL = 0x07;
   static const int PAUSE_SCROLL_Y = 0x050;
   static const int INTRO_SCROLL_Y = -0x100 + 0x50;
   static const int PAUSE_MENU_POSITION = NTADR_C(0, 3);
