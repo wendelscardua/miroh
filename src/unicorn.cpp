@@ -200,6 +200,11 @@ Unicorn::update(u8 pressed, u8 held) {
     }
     break;
   case State::Trapped:
+    if ((trapped_animation.current_cell_index == 1 ||
+         trapped_animation.current_cell_index == 3) &&
+        trapped_animation.current_frame == 0) {
+      banked_play_sfx(SFX::Marshmallow, GGSound::SFXPriority::Two);
+    }
     break;
   }
 }
