@@ -100,6 +100,13 @@ const Song song_per_stage[] = {
     Song::Marshmallow_mountain, // MarshmallowMountain
 };
 
+const u8 CLOSED_MOUTH[] = {MOUNTAIN_MOUTH_BASE_TILE + 0,
+                           MOUNTAIN_MOUTH_BASE_TILE + 1};
+const u8 OPEN_MOUTH[] = {MOUNTAIN_MOUTH_BASE_TILE + 2,
+                         MOUNTAIN_MOUTH_BASE_TILE + 3};
+
+const s16 MOUNTAIN_MOUTH_POSITION = NTADR_A(5, 5);
+
 __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
       board(board),
@@ -480,7 +487,7 @@ void Gameplay::gameplay_handler() {
   if (failed_to_place) {
     gameplay_state = GameplayState::MarshmallowOverflow;
     overflow_state = OverflowState::FlashOutsideBlocks;
-    marshmallow_overflow_counter = 0;
+    marshmallow_overflow_counter = 0xff;
   }
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
@@ -512,6 +519,12 @@ void Gameplay::marshmallow_overflow_handler() {
   marshmallow_overflow_counter++;
   switch (overflow_state) {
   case OverflowState::FlashOutsideBlocks:
+    if (marshmallow_overflow_counter ==
+        19) { // enough for blocks to blink {off, on, off, on, off}
+      overflow_state = OverflowState::SwallowNextPiece;
+      marshmallow_overflow_counter = 0xff;
+      multi_vram_buffer_horz(OPEN_MOUTH, 2, MOUNTAIN_MOUTH_POSITION);
+    }
     break;
   case OverflowState::SwallowNextPiece:
   case OverflowState::ShootBlockStream:
