@@ -494,6 +494,8 @@ void Gameplay::gameplay_handler() {
   }
 }
 
+void Gameplay::marshmallow_overflow_handler() {}
+
 void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   u8 goal_counter_text[2];
   switch (current_game_mode) {
@@ -710,6 +712,9 @@ void Gameplay::loop() {
           gameplay_state = GameplayState::Playing;
         }
       }
+      break;
+    case GameplayState::MarshmallowOverflow:
+      Gameplay::marshmallow_overflow_handler();
       break;
     }
 

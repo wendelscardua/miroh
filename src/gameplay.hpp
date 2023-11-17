@@ -16,7 +16,8 @@ class Gameplay {
     ConfirmRetry,
     ConfirmContinue,
     RetryOrExit,
-    Retrying
+    Retrying,
+    MarshmallowOverflow,
   };
 
   // the semantic applies to player 1 (whichever it controls, p2 will control
@@ -108,6 +109,9 @@ public:
   u8 swap_index : 4;
   u8 swap_frame_counter : 4;
 
+  // counter for marshmallow overflow events
+  u8 marshmallow_overflow_counter;
+
   // Track current answer for a yes-or-no prompt
   bool yes_no_option;
 
@@ -154,6 +158,7 @@ private:
   void confirm_retry_handler();
   void retry_exit_handler();
   void confirm_continue_handler();
+  void marshmallow_overflow_handler();
   void initialize_goal();
   void game_mode_upkeep(bool stuff_in_progress);
   void swap_inputs();
