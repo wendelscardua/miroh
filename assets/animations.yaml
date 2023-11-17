@@ -58,6 +58,12 @@ trudging_left:
   - [UniLeftTrudge2, 18]
   - [UniLeftTrudge3, 10]
   - [UniLeftTrudge4, 18]
+trapped:
+  - [UniTrapped, 90]
+  - [UniTrappedBlink, 12]
+  - [UniTrapped, 8]
+  - [UniTrappedBlink, 12]
+  - [UniTrapped, 48]
 splash:
   - [Splash1, 3]
   - [Splash2, 3]

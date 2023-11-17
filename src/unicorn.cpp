@@ -50,6 +50,9 @@ void Unicorn::set_state(State new_state) {
     sleep_left_animation.reset();
     sleep_right_animation.reset();
     break;
+  case State::Trapped:
+    trapped_animation.reset();
+    break;
   }
 }
 
@@ -189,6 +192,8 @@ Unicorn::update(u8 pressed, u8 held) {
       break;
     }
     break;
+  case State::Trapped:
+    break;
   }
 }
 
@@ -245,6 +250,9 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
   case State::Sleeping:
     (facing == Direction::Right ? sleep_right_animation : sleep_left_animation)
         .update(board.origin_x + x.whole, reference_y + y.whole);
+    break;
+  case State::Trapped:
+    trapped_animation.update(board.origin_x + x.whole, reference_y + y.whole);
     break;
   }
 }
