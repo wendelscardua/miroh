@@ -517,6 +517,7 @@ const SFX sfx_per_lines_cleared[] = {SFX::Lineclear1, SFX::Lineclear2,
 
 bool Board::ongoing_line_clearing(bool jiggling) {
   bool any_deleted = false;
+  bool changed = false;
   u8 lines_cleared_for_sfx;
 
   CORO_INIT;
@@ -564,6 +565,7 @@ bool Board::ongoing_line_clearing(bool jiggling) {
         erasing_row_source--;
       }
 
+      changed = false;
       if (erasing_row_source < erasing_row) {
         bool source_occupied =
             erasing_row_source < 0
@@ -574,17 +576,24 @@ bool Board::ongoing_line_clearing(bool jiggling) {
           if (!occupied(erasing_row, erasing_column)) {
             block_maze_cell(erasing_row, erasing_column);
             occupy(erasing_row, erasing_column);
+            changed = true;
           }
           if (erasing_row_source >= 0 &&
               occupied(erasing_row_source, erasing_column)) {
             restore_maze_cell(erasing_row_source, erasing_column);
+            changed = true;
           }
         } else if (occupied(erasing_row, erasing_column)) {
           restore_maze_cell(erasing_row, erasing_column);
+          changed = true;
         }
       }
       erasing_row--;
       erasing_row_source--;
+
+      if (!changed) {
+        continue;
+      }
 
       CORO_YIELD(true);
     }
