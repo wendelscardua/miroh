@@ -456,21 +456,20 @@ void Gameplay::gameplay_handler() {
   bool line_clearing_in_progress = board.ongoing_line_clearing(
       polyomino.state == Polyomino::State::Settling);
 
-  // we only spawn when there's no line clearing going on
-  if (polyomino.state == Polyomino::State::Inactive &&
-      !line_clearing_in_progress && --spawn_timer == 0) {
-    banked_lambda(GET_BANK(polyominos), [this]() { polyomino.spawn(); });
-    spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
-  }
-
-  banked_lambda(PLAYER_BANK,
-                [this]() { unicorn.update(unicorn_pressed, unicorn_held); });
-
-  banked_lambda(GET_BANK(polyominos), [this]() {
+  banked_lambda(GET_BANK(polyominos), [this, line_clearing_in_progress]() {
+    // we only spawn when there's no line clearing going on
+    if (polyomino.state == Polyomino::State::Inactive &&
+        !line_clearing_in_progress && --spawn_timer == 0) {
+      polyomino.spawn();
+      spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
+    }
     polyomino.handle_input(polyomino_pressed, polyomino_held);
     polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
                      failed_to_place, lines_cleared);
   });
+
+  banked_lambda(PLAYER_BANK,
+                [this]() { unicorn.update(unicorn_pressed, unicorn_held); });
 
   fruits.update(unicorn, snack_was_eaten);
 

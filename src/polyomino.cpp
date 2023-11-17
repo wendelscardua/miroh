@@ -224,15 +224,14 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
-
-  banked_lambda(GET_BANK(polyominos), [this, y_scroll]() {
-    definition->render(board.origin_x + (u8)(column << 4),
-                       (board.origin_y - y_scroll + (row << 4)));
-  });
+  ScopedBank bank(GET_BANK(polyominos));
+  definition->render(board.origin_x + (u8)(column << 4),
+                     (board.origin_y - y_scroll + (row << 4)));
 }
 
 void Polyomino::render_next() {
-  banked_lambda(GET_BANK(polyominos), [this]() { next->chibi_render(3, 5); });
+  ScopedBank iban(GET_BANK(polyominos));
+  next->chibi_render(3, 5);
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) bool
