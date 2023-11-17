@@ -442,6 +442,12 @@ void Gameplay::gameplay_handler() {
   lines_cleared = 0;
   snack_was_eaten = false;
 
+  if (current_controller_scheme == ControllerScheme::OnePlayer &&
+      input_mode == InputMode::Polyomino &&
+      unicorn.state == Unicorn::State::Idle) {
+    unicorn.set_state(Unicorn::State::Yawning);
+  }
+
   if (any_pressed & PAD_START) {
     pause_game();
     return;
@@ -621,6 +627,10 @@ void Gameplay::pause_game() {
 
 void Gameplay::swap_inputs() {
   if (input_mode == InputMode::Unicorn) {
+    if (polyomino.state != Polyomino::State::Active) {
+      banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
+      return;
+    }
     input_mode = InputMode::Polyomino;
   } else {
     input_mode = InputMode::Unicorn;
