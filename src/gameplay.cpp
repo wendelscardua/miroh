@@ -639,7 +639,8 @@ void Gameplay::gameplay_handler() {
   }
 
   if (gameplay_state == GameplayState::Playing ||
-      gameplay_state == GameplayState::Swapping) {
+      gameplay_state == GameplayState::Swapping ||
+      gameplay_state == GameplayState::MarshmallowOverflow) {
     game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
                      polyomino.state != Polyomino::State::Inactive);
   }
@@ -775,43 +776,37 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       banked_play_song(Song::Victory);
       break;
     }
-    if (game_is_over()) {
-      fail_game();
-    }
     break;
   case GameMode::Endless:
     u8_to_text(goal_counter_text, current_level + 1);
     multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
-
-    if (game_is_over()) {
-      multi_vram_buffer_horz(non_story_mode_match_ending_text,
-                             sizeof(non_story_mode_match_ending_text),
-                             PAUSE_MENU_POSITION);
-      multi_vram_buffer_horz(continue_text, sizeof(continue_text),
-                             PAUSE_MENU_OPTIONS_POSITION);
-      gameplay_state = GameplayState::ConfirmContinue;
-    }
     break;
   case GameMode::TimeTrial:
-    time_trial_frames++;
-    if (time_trial_frames == 60) {
-      time_trial_frames = 0;
-      time_trial_seconds--;
-      u8_to_text(goal_counter_text, time_trial_seconds);
-      multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
-      if (time_trial_seconds == 10 || time_trial_seconds == 5 ||
-          time_trial_seconds == 0) {
-        banked_play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
+    if (gameplay_state != GameplayState::MarshmallowOverflow) {
+      time_trial_frames++;
+      if (time_trial_frames == 60) {
+        time_trial_frames = 0;
+        time_trial_seconds--;
+        u8_to_text(goal_counter_text, time_trial_seconds);
+        multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+        if (time_trial_seconds == 10 || time_trial_seconds == 5 ||
+            time_trial_seconds == 0) {
+          banked_play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
+        }
+        if (time_trial_seconds == 0) {
+          end_game();
+          break;
+        }
       }
-      if (time_trial_seconds == 0) {
-        end_game();
-        break;
-      }
-    }
-    if (game_is_over()) {
-      end_game();
     }
     break;
+  }
+  if (game_is_over()) {
+    if (current_game_mode == GameMode::Story) {
+      fail_game();
+    } else {
+      end_game();
+    }
   }
 }
 
