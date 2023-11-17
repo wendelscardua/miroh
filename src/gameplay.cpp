@@ -556,15 +556,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       break;
     }
     if (failed_to_place) {
-      multi_vram_buffer_horz(story_mode_failure_text,
-                             sizeof(story_mode_failure_text),
-                             PAUSE_MENU_POSITION);
-      multi_vram_buffer_horz(retry_exit_confirmation_text,
-                             sizeof(retry_exit_confirmation_text),
-                             PAUSE_MENU_OPTIONS_POSITION);
-      gameplay_state = GameplayState::RetryOrExit;
-      yes_no_option = true;
-      banked_play_song(Song::Failure);
+      fail_game();
     }
     break;
   case GameMode::Endless:
@@ -610,6 +602,17 @@ void Gameplay::end_game() {
   multi_vram_buffer_horz(continue_text, sizeof(continue_text),
                          PAUSE_MENU_OPTIONS_POSITION);
   gameplay_state = GameplayState::ConfirmContinue;
+}
+
+void Gameplay::fail_game() {
+  multi_vram_buffer_horz(story_mode_failure_text,
+                         sizeof(story_mode_failure_text), PAUSE_MENU_POSITION);
+  multi_vram_buffer_horz(retry_exit_confirmation_text,
+                         sizeof(retry_exit_confirmation_text),
+                         PAUSE_MENU_OPTIONS_POSITION);
+  gameplay_state = GameplayState::RetryOrExit;
+  yes_no_option = true;
+  banked_play_song(Song::Failure);
 }
 
 void Gameplay::pause_game() {

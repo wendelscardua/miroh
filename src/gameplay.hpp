@@ -146,6 +146,7 @@ private:
   void render();
   void pause_game();
   void end_game();
+  void fail_game();
   void yes_no_cursor();
   void pause_handler();
   void gameplay_handler();
