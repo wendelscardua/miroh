@@ -555,7 +555,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       banked_play_song(Song::Victory);
       break;
     }
-    if (failed_to_place) {
+    if (unicorn.trapped_animation.finished) {
       fail_game();
     }
     break;
@@ -563,7 +563,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     u8_to_text(goal_counter_text, current_level + 1);
     multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
 
-    if (failed_to_place) {
+    if (unicorn.trapped_animation.finished) {
       multi_vram_buffer_horz(non_story_mode_match_ending_text,
                              sizeof(non_story_mode_match_ending_text),
                              PAUSE_MENU_POSITION);
@@ -588,7 +588,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
         break;
       }
     }
-    if (failed_to_place) {
+    if (unicorn.trapped_animation.finished) {
       end_game();
     }
     break;
