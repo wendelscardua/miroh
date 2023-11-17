@@ -211,4 +211,5 @@ private:
   void game_mode_upkeep(bool stuff_in_progress);
   void swap_inputs();
   void ease_scroll(const int target);
+  bool game_is_over();
 };

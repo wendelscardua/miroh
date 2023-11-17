@@ -709,6 +709,13 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
   }
 }
 
+bool Gameplay::game_is_over() {
+  return unicorn.trapped_animation.finished &&
+         (gameplay_state != GameplayState::MarshmallowOverflow ||
+          (gameplay_state == GameplayState::MarshmallowOverflow &&
+           overflow_state == OverflowState::GameOver));
+}
+
 __attribute__((noinline)) void
 Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   u8 goal_counter_text[2];
@@ -767,8 +774,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       banked_play_song(Song::Victory);
       break;
     }
-    if (overflow_state == OverflowState::GameOver &&
-        unicorn.trapped_animation.finished) {
+    if (game_is_over()) {
       fail_game();
     }
     break;
@@ -776,8 +782,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     u8_to_text(goal_counter_text, current_level + 1);
     multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
 
-    if (overflow_state == OverflowState::GameOver &&
-        unicorn.trapped_animation.finished) {
+    if (game_is_over()) {
       multi_vram_buffer_horz(non_story_mode_match_ending_text,
                              sizeof(non_story_mode_match_ending_text),
                              PAUSE_MENU_POSITION);
@@ -802,8 +807,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
         break;
       }
     }
-    if (overflow_state == OverflowState::GameOver &&
-        unicorn.trapped_animation.finished) {
+    if (game_is_over()) {
       end_game();
     }
     break;
@@ -841,6 +845,9 @@ void Gameplay::pause_game() {
 }
 
 void Gameplay::swap_inputs() {
+  if (gameplay_state != GameplayState::Playing) {
+    return;
+  }
   if (input_mode == InputMode::Unicorn) {
     if (polyomino.state != Polyomino::State::Active) {
       banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
