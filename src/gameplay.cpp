@@ -116,67 +116,10 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   set_mirroring(MIRROR_HORIZONTAL);
 
-  banked_lambda(ASSETS_BANK, []() {
-    vram_adr(PPU_PATTERN_TABLE_0);
-    u8 bg_blocks = level_bg_tile_blocks[(u8)current_stage];
-    Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64 - bg_blocks);
-    if (bg_blocks > 0) {
-      Donut::decompress_to_ppu(level_bg_tiles[(u8)current_stage], bg_blocks);
-    }
+  banked_lambda(ASSETS_BANK, []() { load_gameplay_assets(); });
 
-    // mode labels start at tile $84, both require 1 donut block (64 bytes)
-    if (current_game_mode == GameMode::TimeTrial) {
-      vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
-      Donut::decompress_to_ppu((void *)time_label_tiles, 1);
-    } else if (current_game_mode == GameMode::Endless) {
-      vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
-      Donut::decompress_to_ppu((void *)level_label_tiles, 1);
-    }
-
-    vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
-
-    set_chr_bank(1);
-    vram_adr(0);
-    zx02_decompress_to_vram(level_nametables[(u8)current_stage], 0);
-
-    for (u16 i = 0; i < 1024; i += 64) {
-      vram_adr(i);
-      vram_read(donut_block_buffer, 64);
-      vram_adr(NAMETABLE_A + i);
-      vram_write(donut_block_buffer, 64);
-    }
-    for (u16 i = 0; i < 1024; i += 64) {
-      vram_adr(1024 + i);
-      vram_read(donut_block_buffer, 64);
-      vram_adr(NAMETABLE_C + i);
-      vram_write(donut_block_buffer, 64);
-    }
-
-    set_chr_bank(0);
-
-    if (current_game_mode == GameMode::TimeTrial) {
-      vram_adr(NTADR_C(6, 21));
-      vram_write(time_trial_prompt[0], 20);
-      vram_adr(NTADR_C(6, 23));
-      vram_write(time_trial_prompt[1], 20);
-      vram_adr(NTADR_C(6, 25));
-      vram_write(time_trial_prompt[2], 20);
-    } else if (current_game_mode == GameMode::Endless) {
-      vram_adr(NTADR_C(6, 21));
-      vram_write(endless_prompt[0], 20);
-      vram_adr(NTADR_C(6, 23));
-      vram_write(endless_prompt[1], 20);
-      vram_adr(NTADR_C(6, 25));
-      vram_write(endless_prompt[2], 20);
-    }
-
-    Attributes::reset_shadow();
-    vram_adr(NAMETABLE_A);
-
-    pal_bg(level_bg_palettes[(u8)current_stage]);
-    pal_spr(level_spr_palettes[(u8)current_stage]);
-  });
+  Attributes::reset_shadow();
+  vram_adr(NAMETABLE_A);
 
   board.render();
 

@@ -7,12 +7,10 @@
 
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
-#include "donut.hpp"
 #include "ggsound.hpp"
 #include "metasprites.hpp"
 #include "soundtrack.hpp"
 #include "title-screen.hpp"
-#include "zx02.hpp"
 
 #pragma clang section text = ".prg_rom_0.text"
 #pragma clang section rodata = ".prg_rom_0.rodata"
@@ -73,34 +71,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   set_mirroring(MIRROR_VERTICAL);
 
-  banked_lambda(ASSETS_BANK, []() {
-    vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64 - 56);
-    Donut::decompress_to_ppu((void *)title_bg_tiles, 56);
-
-    vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
-
-    set_chr_bank(1);
-    vram_adr(0);
-    zx02_decompress_to_vram((void *)title_nametable, 0);
-
-    for (u16 i = 0; i < 1024; i += 64) {
-      vram_adr(i);
-      vram_read(donut_block_buffer, 64);
-      vram_adr(NAMETABLE_B + i);
-      vram_write(donut_block_buffer, 64);
-    }
-    for (u16 i = 0; i < 1024; i += 64) {
-      vram_adr(1024 + i);
-      vram_read(donut_block_buffer, 64);
-      vram_adr(NAMETABLE_A + i);
-      vram_write(donut_block_buffer, 64);
-    }
-    set_chr_bank(0);
-    pal_bg(title_bg_palette);
-    pal_spr(title_spr_palette);
-  });
+  banked_lambda(ASSETS_BANK, []() { load_title_assets(); });
 
   pal_bright(0);
 

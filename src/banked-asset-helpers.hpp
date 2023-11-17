@@ -13,3 +13,8 @@ void banked_play_song(Song song);
 
 // plays sfx from the sfx bank
 void banked_play_sfx(SFX sfx, GGSound::SFXPriority priority);
+
+// [assets bank] loads title assets
+void load_title_assets();
+
+void load_gameplay_assets();
