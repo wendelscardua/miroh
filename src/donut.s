@@ -35,7 +35,7 @@ donut_block_buffer: .zero 64
 donut_stream_ptr:       .zero 2
 temp: .zero 16
 
-        .section .prg_rom_last,"a"
+        .section .prg_rom_1,"a" ; ASSETS bank
 
         ;; void _asm_donut_decompress_to_ppu(void *stream_ptr, char num_blocks)
         ;; decompress num_blocks * 64 bytes from stream_ptr to the PPU
