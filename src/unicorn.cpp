@@ -83,9 +83,16 @@ Unicorn::update(u8 pressed, u8 held) {
       pressed = buffered_input;
       buffered_input = 0;
     }
-    auto current_row = y.whole >> 4;
-    auto current_column = x.whole >> 4;
-    auto current_cell = board.cell_at((u8)current_row, (u8)current_column);
+    u8 current_row = y.whole >> 4;
+    u8 current_column = x.whole >> 4;
+
+    // check if unicorn is trapped
+    if (board.occupied((s8)current_row, (s8)current_column)) {
+      set_state(State::Trapped);
+      break;
+    }
+
+    auto current_cell = board.cell_at(current_row, current_column);
 
 #define PRESS_HELD(button)                                                     \
   ((pressed & (button)) ||                                                     \
