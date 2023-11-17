@@ -3,7 +3,6 @@
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
-#include "coroutine.hpp"
 #include "direction.hpp"
 #include "ggsound.hpp"
 #include "polyomino-defs.hpp"
@@ -140,18 +139,15 @@ Polyomino::handle_input(u8 pressed, u8 held) {
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::jiggling() {
-  CORO_INIT;
-
-  for (grounded_timer = 0; grounded_timer < 3; grounded_timer++) {
-    for (jiggling_timer = 0; jiggling_timer < 8; jiggling_timer++) {
-      CORO_YIELD();
+  definition->board_render(board, row, column, grounded_timer & 0b1);
+  jiggling_timer++;
+  if (jiggling_timer == 8) {
+    jiggling_timer = 0;
+    grounded_timer++;
+    if (grounded_timer == 3) {
+      state = State::Inactive;
     }
-    definition->board_render(board, row, column, grounded_timer & 0b1);
-    CORO_YIELD();
   }
-  state = State::Inactive;
-
-  CORO_FINISH();
 }
 
 void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
@@ -244,6 +240,7 @@ Polyomino::freeze_blocks() {
   banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
 
   state = State::Settling;
+  grounded_timer = 0;
   jiggling_timer = 0;
   s8 filled_lines = 0;
   if (!definition->board_render(board, row, column, true)) {
