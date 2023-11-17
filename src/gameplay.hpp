@@ -110,12 +110,12 @@ public:
   static const int PAUSE_MENU_POSITION = NTADR_C(0, 3);
   static const int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
   static const constexpr struct {
+    u8 duration : 6;
     bool display_unicorn : 1;
     bool display_polyomino : 1;
-    u8 duration : 6;
   } swap_frames[] = {
-      {false, true, 4}, {true, false, 4}, {false, true, 4},
-      {true, false, 4}, {true, true, 1},
+      {4, false, true}, {4, true, false}, {4, false, true},
+      {4, true, false}, {4, true, true},
   };
   static const u8 TIME_TRIAL_DURATION = 90;
   static const u8 LINES_GOAL = 12;
