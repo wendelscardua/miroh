@@ -1,5 +1,6 @@
 #include "fruits.hpp"
 #include "banked-asset-helpers.hpp"
+#include "metasprites.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -160,20 +161,18 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
       }
       splash_animation.update(fruit.x, fruit.y - y_scroll);
-    } else if (fruit.y - fruit.raindrop_y <= 48) {
-      // reaching target position
-      if (fruit.raindrop_y - y_scroll > 0 &&
-          fruit.raindrop_y - y_scroll < 0xe0) {
-        oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), 0xb2, 0);
-      }
-      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite_RainShadowB);
     } else {
-      // far from target
+      auto &metasprite = (fruit.y - fruit.raindrop_y <= 48)
+                             ? metasprite_RainShadowB
+                             : metasprite_RainShadowA;
+
       if (fruit.raindrop_y - y_scroll > 0 &&
           fruit.raindrop_y - y_scroll < 0xe0) {
-        oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), 0xb1, 0);
+        u8 drop_tile = (fruit.y - fruit.raindrop_y <= 48) ? 0xb2 : 0xb1;
+
+        oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), drop_tile, 0);
       }
-      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite_RainShadowA);
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite);
     }
     break;
   case Fruit::State::Inactive:
