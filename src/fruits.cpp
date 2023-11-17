@@ -173,7 +173,7 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
           fruit.raindrop_y - y_scroll < 0xe0) {
         oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), 0xb1, 0);
       }
-      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite_RainShadowB);
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite_RainShadowA);
     }
     break;
   case Fruit::State::Inactive:
