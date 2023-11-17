@@ -79,6 +79,10 @@ Unicorn::update(u8 pressed, u8 held) {
   case State::Yawning:
   case State::Sleeping: {
   check_idle:
+    if ((pressed & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT)) &&
+        state != State::Idle) {
+      set_state(State::Idle);
+    }
     if (!pressed && buffered_input) {
       pressed = buffered_input;
       buffered_input = 0;
