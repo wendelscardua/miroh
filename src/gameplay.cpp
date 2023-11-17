@@ -2,6 +2,7 @@
 #include "assets.hpp"
 #include "board.hpp"
 #include "log.hpp"
+#include "metasprites.hpp"
 #include "polyomino.hpp"
 #include "soundtrack.hpp"
 #ifndef NDEBUG
@@ -104,8 +105,128 @@ const u8 CLOSED_MOUTH[] = {MOUNTAIN_MOUTH_BASE_TILE + 0,
                            MOUNTAIN_MOUTH_BASE_TILE + 1};
 const u8 OPEN_MOUTH[] = {MOUNTAIN_MOUTH_BASE_TILE + 2,
                          MOUNTAIN_MOUTH_BASE_TILE + 3};
+const u8 EMPTY_PREVIEW[] = {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE};
 
-const s16 MOUNTAIN_MOUTH_POSITION = NTADR_A(5, 5);
+const u8 STREAM[][4] = {{PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2,
+                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8,
+                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
+                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
+                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
+                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2,
+                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
+                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8,
+                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8},
+                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
+                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
+                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8,
+                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 10},
+                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
+                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 10},
+                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8,
+                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
+                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
+                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
+                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 10,
+                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
+                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 10,
+                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
+                        {PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10,
+                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10}};
+
+Drops::Drops(Board &board) : board(board) {
+  for (auto drop : drops) {
+    drop.row = 0xff;
+  }
+  active_drops = 0;
+}
+
+u8 Drops::active_drops(0);
+
+void Drops::add_random_drop() {
+  u8 index;
+  for (index = 0; index < drops.size(); index++) {
+    if (drops[index].row > HEIGHT) {
+      break;
+    }
+  }
+  if (index == drops.size()) {
+    return;
+  }
+
+  drops[index].row = board.random_free_row();
+  drops[index].column = board.random_free_column(drops[index].row);
+  drops[index].x = (u8)(drops[index].column << 4) + board.origin_x;
+  drops[index].target_y = (u8)(drops[index].row << 4) + board.origin_y;
+  drops[index].current_y = 0;
+  drops[index].shadow = drops[index].target_y >> 4;
+  active_drops++;
+}
+
+void Drops::update() {
+  for (auto drop : drops) {
+    if (drop.row > HEIGHT) {
+      continue;
+    }
+    if (drop.current_y == drop.target_y) {
+      board.block_maze_cell((s8)drop.row, (s8)drop.column);
+      drop.row = 0xff;
+      active_drops--;
+    } else {
+      drop.shadow--;
+      drop.current_y += 0x10;
+    }
+  }
+}
+
+const u8 *const shadows[] = {metasprite_BlockShadow1, metasprite_BlockShadow2,
+                             metasprite_BlockShadow3, metasprite_BlockShadow4,
+                             metasprite_BlockShadow5};
+
+void Drops::render(int y_scroll) {
+  for (auto drop : drops) {
+    if (drop.row > HEIGHT) {
+      continue;
+    }
+    banked_oam_meta_spr(drop.x, drop.current_y - y_scroll,
+                        current_stage == Stage::StarlitStables
+                            ? metasprite_block
+                            : metasprite_BlockB);
+    if (drop.shadow > 5) {
+      banked_oam_meta_spr(drop.x, drop.target_y - y_scroll,
+                          metasprite_BlockShadow5);
+    } else if (drop.shadow > 0) {
+      banked_oam_meta_spr(drop.x, drop.target_y - y_scroll,
+                          shadows[drop.shadow - 1]);
+    }
+  }
+}
+
+bool Drops::random_hard_drop() {
+  u8 row = board.random_free_row();
+  if (row > HEIGHT) {
+    return false;
+  }
+  u8 column = board.random_free_column(row);
+  board.block_maze_cell((s8)row, (s8)column);
+  return true;
+}
 
 __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
@@ -116,7 +237,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
                      ? InputMode::Unicorn
                      : InputMode::Polyomino),
       yes_no_option(false), pause_option(PauseOption::Resume),
-      y_scroll(INTRO_SCROLL_Y), goal_counter(0) {
+      drops(Drops(board)), y_scroll(INTRO_SCROLL_Y), goal_counter(0) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
@@ -198,6 +319,9 @@ void Gameplay::render() {
              (gameplay_state != GameplayState::Swapping &&
               gameplay_state != GameplayState::MarshmallowOverflow)) {
     polyomino.render(y_scroll);
+  }
+  if (Drops::active_drops) {
+    drops.render(y_scroll);
   }
 
   unicorn.refresh_energy_hud(y_scroll);
@@ -515,7 +639,7 @@ void Gameplay::gameplay_handler() {
   }
 }
 
-void Gameplay::marshmallow_overflow_handler() {
+__attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
   marshmallow_overflow_counter++;
   switch (overflow_state) {
   case OverflowState::FlashOutsideBlocks:
@@ -523,21 +647,65 @@ void Gameplay::marshmallow_overflow_handler() {
         19) { // enough for blocks to blink {off, on, off, on, off}
       overflow_state = OverflowState::SwallowNextPiece;
       marshmallow_overflow_counter = 0xff;
-      multi_vram_buffer_horz(OPEN_MOUTH, 2, MOUNTAIN_MOUTH_POSITION);
+      multi_vram_buffer_horz(OPEN_MOUTH, 2, NTADR_A(5, 5));
+      multi_vram_buffer_horz(EMPTY_PREVIEW, 2, NTADR_A(5, 3));
+      multi_vram_buffer_horz(EMPTY_PREVIEW, 2, NTADR_A(5, 4));
     }
     break;
   case OverflowState::SwallowNextPiece:
+    // wait without doing anything
+    if (marshmallow_overflow_counter == 20) {
+      overflow_state = OverflowState::ShootBlockStream;
+      marshmallow_overflow_counter = 0xff;
+      multi_vram_buffer_horz(CLOSED_MOUTH, 2, NTADR_A(5, 5));
+    }
+    break;
   case OverflowState::ShootBlockStream:
+    multi_vram_buffer_vert(STREAM[marshmallow_overflow_counter >> 2], 4,
+                           NTADR_A(6, 1));
+    if (marshmallow_overflow_counter >> 2 == 20) {
+      overflow_state = OverflowState::ShadowBeforeRaining;
+      marshmallow_overflow_counter = 0xff;
+      color_emphasis(COL_EMP_RED);
+    }
+    break;
   case OverflowState::ShadowBeforeRaining:
+    if (marshmallow_overflow_counter == 20) {
+      overflow_state = OverflowState::FewDrops;
+      marshmallow_overflow_counter = 0xff;
+    }
   case OverflowState::FewDrops:
+    if (marshmallow_overflow_counter == 63) {
+      overflow_state = OverflowState::FasterDrops;
+      marshmallow_overflow_counter = 0xff;
+    } else if ((marshmallow_overflow_counter & 0b1111) == 0) {
+      drops.add_random_drop();
+    }
+    drops.update();
+    break;
   case OverflowState::FasterDrops:
+    if (marshmallow_overflow_counter == 63) {
+      overflow_state = OverflowState::DropEverywhereElse;
+      marshmallow_overflow_counter = 0xff;
+    } else if ((marshmallow_overflow_counter & 0b111) == 0) {
+      drops.add_random_drop();
+    }
+    drops.update();
+    break;
   case OverflowState::DropEverywhereElse:
+    if (Drops::active_drops) {
+      drops.update();
+    } else if (!drops.random_hard_drop()) {
+      overflow_state = OverflowState::GameOver;
+    }
+    break;
   case OverflowState::GameOver:
     break;
   }
 }
 
-void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
+__attribute__((noinline)) void
+Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   u8 goal_counter_text[2];
   switch (current_game_mode) {
   case GameMode::Story:

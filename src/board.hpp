@@ -86,5 +86,12 @@ public:
   // returns true if such process is still ongoing
   bool ongoing_line_clearing(bool jiggling);
 
+  // returns index of a row with free space (or 0xff in case of failure)
+  u8 random_free_row();
+
+  // returns index of a column with free space
+  // (you passed a valid row so it should always succeed)
+  u8 random_free_column(u8 row);
+
   Cell &cell_at(u8 row, u8 column);
 };

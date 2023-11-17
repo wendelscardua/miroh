@@ -596,3 +596,30 @@ bool Board::ongoing_line_clearing(bool jiggling) {
 
   CORO_FINISH(false);
 }
+
+u8 Board::random_free_row() {
+  u8 possible_rows[HEIGHT];
+  u8 max_possible_rows = 0;
+  for (u8 i = 0; i < HEIGHT; i++) {
+    if (!row_filled((s8)i)) {
+      possible_rows[max_possible_rows++] = i;
+    }
+  }
+  if (max_possible_rows == 0) {
+    return 0xff;
+  }
+  return possible_rows[RAND_UP_TO(max_possible_rows)];
+}
+
+u8 Board::random_free_column(u8 row) {
+  u8 possible_columns[WIDTH];
+  u8 max_possible_columns = 0;
+  u16 bits = occupied_bitset[row];
+  for (u8 j = 0; j < WIDTH; j++) {
+    if (!(bits & 0b1)) {
+      possible_columns[max_possible_columns++] = j;
+    }
+    bits >>= 1;
+  }
+  return possible_columns[RAND_UP_TO(max_possible_columns)];
+}

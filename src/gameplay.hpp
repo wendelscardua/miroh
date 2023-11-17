@@ -5,6 +5,36 @@
 #include "polyomino.hpp"
 #include "unicorn.hpp"
 
+struct Drop {
+  u8 row;
+  u8 column;
+  u8 x;
+  u8 current_y;
+  u8 target_y;
+  u8 shadow;
+};
+
+#define SOA_STRUCT Drop
+#define SOA_MEMBERS                                                            \
+  MEMBER(row)                                                                  \
+  MEMBER(column) MEMBER(x) MEMBER(current_y) MEMBER(target_y) MEMBER(shadow)
+#include <soa-struct.inc>
+
+class Drops {
+  soa::Array<Drop, 4> drops;
+
+public:
+  static u8 active_drops;
+
+  Board &board;
+
+  Drops(Board &board);
+  void add_random_drop();
+  void update();
+  void render(int y_scroll);
+  bool random_hard_drop();
+};
+
 class Gameplay {
   enum class PauseOption : u8 { Retry, Resume, Exit };
 
@@ -132,6 +162,9 @@ public:
 
   // Track current pause option
   PauseOption pause_option;
+
+  // Used for game over animation
+  Drops drops;
 
   int y_scroll;
   union {
