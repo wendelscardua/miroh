@@ -588,8 +588,13 @@ void Gameplay::gameplay_handler() {
     swap_inputs();
   }
 
-  bool line_clearing_in_progress = board.ongoing_line_clearing(
-      polyomino.state == Polyomino::State::Settling);
+  // XXX: if we say line clearing is in progress during overflow, it will make
+  // other stuff not happen (polyomino won't spawn, victory conditions won't
+  // trigger, not even the line clearing itself will run)
+  bool line_clearing_in_progress =
+      gameplay_state == GameplayState::MarshmallowOverflow ||
+      board.ongoing_line_clearing(polyomino.state ==
+                                  Polyomino::State::Settling);
 
   banked_lambda(GET_BANK(polyominos), [this, line_clearing_in_progress]() {
     // we only spawn when there's no line clearing going on
@@ -762,7 +767,8 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       banked_play_song(Song::Victory);
       break;
     }
-    if (unicorn.trapped_animation.finished) {
+    if (overflow_state == OverflowState::GameOver &&
+        unicorn.trapped_animation.finished) {
       fail_game();
     }
     break;
@@ -770,7 +776,8 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     u8_to_text(goal_counter_text, current_level + 1);
     multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
 
-    if (unicorn.trapped_animation.finished) {
+    if (overflow_state == OverflowState::GameOver &&
+        unicorn.trapped_animation.finished) {
       multi_vram_buffer_horz(non_story_mode_match_ending_text,
                              sizeof(non_story_mode_match_ending_text),
                              PAUSE_MENU_POSITION);
@@ -795,7 +802,8 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
         break;
       }
     }
-    if (unicorn.trapped_animation.finished) {
+    if (overflow_state == OverflowState::GameOver &&
+        unicorn.trapped_animation.finished) {
       end_game();
     }
     break;
@@ -882,6 +890,8 @@ void Gameplay::loop() {
     pad_poll(1);
 
     switch (gameplay_state) {
+    case GameplayState::MarshmallowOverflow:
+      Gameplay::marshmallow_overflow_handler();
     case GameplayState::Playing:
       Gameplay::gameplay_handler();
       break;
@@ -921,9 +931,6 @@ void Gameplay::loop() {
           gameplay_state = GameplayState::Playing;
         }
       }
-      break;
-    case GameplayState::MarshmallowOverflow:
-      Gameplay::marshmallow_overflow_handler();
       break;
     }
 
