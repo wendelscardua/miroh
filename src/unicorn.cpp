@@ -7,6 +7,7 @@
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
 #include "maze-defs.hpp"
+#include "metasprites.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -17,7 +18,7 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : facing(Direction::Right), moving(Direction::Right),
       energy(STARTING_ENERGY), energy_timer(0),
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
-      x(starting_x), y(starting_y), score(0) {}
+      x(starting_x), y(starting_y), score(0), statue(false) {}
 
 const fixed_point &Unicorn::move_speed() {
   if (energy > 0) {
@@ -234,6 +235,13 @@ void Unicorn::fix_uni_priority(bool left_wall, bool right_wall) {
 
 void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
   int reference_y = board.origin_y - y_scroll;
+
+  if (statue) {
+    banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
+                        facing == Direction::Right ? metasprite_UniRightStatue
+                                                   : metasprite_UniLeftStatue);
+    return;
+  }
 
   switch (state) {
   case State::Idle: {

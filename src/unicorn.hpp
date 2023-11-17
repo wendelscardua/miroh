@@ -76,6 +76,8 @@ public:
 
   u8 buffered_input;
 
+  bool statue;
+
   Animation trapped_animation{trapped_cells,
                               sizeof(trapped_cells) / sizeof(AnimCell)};
 

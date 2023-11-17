@@ -577,10 +577,11 @@ void Gameplay::gameplay_handler() {
   lines_cleared = 0;
   snack_was_eaten = false;
 
+  unicorn.statue = false;
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       input_mode == InputMode::Polyomino &&
       unicorn.state == Unicorn::State::Idle) {
-    unicorn.set_state(Unicorn::State::Yawning);
+    unicorn.statue = true;
   }
 
   if (any_pressed & PAD_START) {
