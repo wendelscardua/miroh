@@ -146,10 +146,10 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
     ppu_wait_nmi();
   }
 
-  while (y_scroll < Gameplay::DEFAULT_Y_SCROLL) {
+  while (y_scroll != Gameplay::DEFAULT_Y_SCROLL) {
     ppu_wait_nmi();
-    y_scroll++;
-    if (y_scroll == -0x20) {
+    ease_scroll(Gameplay::DEFAULT_Y_SCROLL);
+    if (y_scroll >= -0x20 && y_scroll < 0) {
       y_scroll = 0;
     }
     scroll(0, (unsigned int)y_scroll);
