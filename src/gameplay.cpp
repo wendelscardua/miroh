@@ -675,19 +675,19 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
       marshmallow_overflow_counter = 0xff;
     }
   case OverflowState::FewDrops:
-    if (marshmallow_overflow_counter == 63) {
+    if (marshmallow_overflow_counter == 255) {
       overflow_state = OverflowState::FasterDrops;
       marshmallow_overflow_counter = 0xff;
-    } else if ((marshmallow_overflow_counter & 0b1111) == 0) {
+    } else if ((marshmallow_overflow_counter & 0b111111) == 0) {
       drops.add_random_drop();
     }
     drops.update();
     break;
   case OverflowState::FasterDrops:
-    if (marshmallow_overflow_counter == 63) {
+    if (marshmallow_overflow_counter == 255) {
       overflow_state = OverflowState::DropEverywhereElse;
       marshmallow_overflow_counter = 0xff;
-    } else if ((marshmallow_overflow_counter & 0b111) == 0) {
+    } else if ((marshmallow_overflow_counter & 0b11111) == 0) {
       drops.add_random_drop();
     }
     drops.update();
