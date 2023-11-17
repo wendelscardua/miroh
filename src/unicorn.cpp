@@ -50,6 +50,9 @@ void Unicorn::set_state(State new_state) {
     sleep_left_animation.reset();
     sleep_right_animation.reset();
     break;
+  case State::Trapped:
+    trapped_animation.reset();
+    break;
   }
 }
 
@@ -80,9 +83,16 @@ Unicorn::update(u8 pressed, u8 held) {
       pressed = buffered_input;
       buffered_input = 0;
     }
-    auto current_row = y.whole >> 4;
-    auto current_column = x.whole >> 4;
-    auto current_cell = board.cell_at((u8)current_row, (u8)current_column);
+    u8 current_row = y.whole >> 4;
+    u8 current_column = x.whole >> 4;
+
+    // check if unicorn is trapped
+    if (board.occupied((s8)current_row, (s8)current_column)) {
+      set_state(State::Trapped);
+      break;
+    }
+
+    auto current_cell = board.cell_at(current_row, current_column);
 
 #define PRESS_HELD(button)                                                     \
   ((pressed & (button)) ||                                                     \
@@ -189,6 +199,13 @@ Unicorn::update(u8 pressed, u8 held) {
       break;
     }
     break;
+  case State::Trapped:
+    if ((trapped_animation.current_cell_index == 1 ||
+         trapped_animation.current_cell_index == 3) &&
+        trapped_animation.current_frame == 0) {
+      banked_play_sfx(SFX::Marshmallow, GGSound::SFXPriority::Two);
+    }
+    break;
   }
 }
 
@@ -245,6 +262,9 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
   case State::Sleeping:
     (facing == Direction::Right ? sleep_right_animation : sleep_left_animation)
         .update(board.origin_x + x.whole, reference_y + y.whole);
+    break;
+  case State::Trapped:
+    trapped_animation.update(board.origin_x + x.whole, reference_y + y.whole);
     break;
   }
 }

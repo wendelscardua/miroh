@@ -42,17 +42,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
     return;
   }
 
-  s8 possible_columns[WIDTH];
-  u8 max_possible_columns = 0;
-  u16 bits = board.occupied_bitset[(u8)fruit.row];
-  for (s8 j = 0; j < WIDTH; j++) {
-    if (!(bits & 0b1)) {
-      possible_columns[max_possible_columns++] = j;
-    }
-    bits >>= 1;
-  }
-
-  fruit.column = possible_columns[RAND_UP_TO(max_possible_columns)];
+  fruit.column = (s8)board.random_free_column((u8)fruit.row);
 
   fruit.state = Fruit::State::Dropping;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);

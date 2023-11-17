@@ -53,6 +53,7 @@ private:
       trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
   Animation trudging_left_animation{
       trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
+
   // fixes priority flags for bottom sprites
   void fix_uni_priority(bool left_wall, bool right_wall);
 
@@ -64,6 +65,7 @@ public:
     Moving,
     Yawning,
     Sleeping,
+    Trapped,
   };
 
   State state;
@@ -73,6 +75,9 @@ public:
   u16 score;
 
   u8 buffered_input;
+
+  Animation trapped_animation{trapped_cells,
+                              sizeof(trapped_cells) / sizeof(AnimCell)};
 
   Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y);
 

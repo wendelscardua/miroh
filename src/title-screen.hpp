@@ -7,7 +7,7 @@
 
 class TitleScreen {
 public:
-  static const u8 BANK = 0;
+  static const u8 BANK = 2;
   static const s16 TITLE_SCROLL = 0x100;
   static const s16 HOW_TO_SCROLL = 0x0;
   static const s16 PALETTE_SWAP_POINT = 0xb0;

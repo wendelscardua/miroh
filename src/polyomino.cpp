@@ -154,6 +154,17 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::jiggling() {
   CORO_FINISH();
 }
 
+void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
+                                 u8 &lines_cleared) {
+  s8 lines = freeze_blocks();
+  if (lines >= 0) {
+    lines_cleared = (u8)lines;
+    blocks_placed = true;
+  } else {
+    failed_to_place = true;
+    banked_play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::One);
+  }
+}
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
                   u8 &lines_cleared) {
@@ -171,15 +182,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
         grounded_timer = 0;
         drop_timer = 0;
         movement_direction = Direction::None;
-        if (can_be_frozen()) {
-          lines_cleared = freeze_blocks();
-          blocks_placed = true;
-          return;
-        } else {
-          failed_to_place = true;
-          banked_play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::One);
-          return;
-        }
+        freezing_handler(blocks_placed, failed_to_place, lines_cleared);
       } else {
         grounded_timer++;
       }
@@ -206,12 +209,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
     break;
   case Direction::Down:
     if (definition->collide(board, row + 1, column)) {
-      if (can_be_frozen()) {
-        lines_cleared = freeze_blocks();
-        blocks_placed = true;
-      } else {
-        failed_to_place = true;
-      }
+      freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
       movement_direction = Direction::None;
@@ -229,31 +227,28 @@ void Polyomino::render(int y_scroll) {
                      (board.origin_y - y_scroll + (row << 4)));
 }
 
+void Polyomino::outside_render(int y_scroll) {
+  ScopedBank bank(GET_BANK(polyominos));
+  definition->outside_render(board.origin_x + (u8)(column << 4),
+                             (board.origin_y - y_scroll + (row << 4)),
+                             board.origin_y - y_scroll);
+}
+
 void Polyomino::render_next() {
   ScopedBank iban(GET_BANK(polyominos));
   next->chibi_render(3, 5);
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) bool
-Polyomino::can_be_frozen() {
-  s8 min_y_delta = 2;
-
-  for (u8 i = 0; i < definition->size; i++) {
-    auto delta = definition->deltas[i];
-    if (delta.delta_row < min_y_delta)
-      min_y_delta = delta.delta_row;
-  }
-  return row + min_y_delta >= 0;
-}
-
-__attribute__((noinline, section(POLYOMINOS_TEXT))) u8
+__attribute__((noinline, section(POLYOMINOS_TEXT))) s8
 Polyomino::freeze_blocks() {
   banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
 
   state = State::Settling;
   jiggling_timer = 0;
-  u8 filled_lines = 0;
-  definition->board_render(board, row, column, true);
+  s8 filled_lines = 0;
+  if (!definition->board_render(board, row, column, true)) {
+    return -1;
+  }
 
   // XXX: checking the range of possible rows that could have been filled by a
   // polyomino

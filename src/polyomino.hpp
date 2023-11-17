@@ -44,6 +44,8 @@ public:
 
   void handle_input(u8 pressed, u8 held);
 
+  void freezing_handler(bool &blocks_placed, bool &failed_to_place,
+                        u8 &lines_cleared);
   void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
               u8 &lines_filled);
 
@@ -54,11 +56,11 @@ public:
 
   void render(int y_scroll);
 
+  void outside_render(int y_scroll);
+
   void render_next();
 
-  // checks if polyomino is already inside the board
-  bool can_be_frozen();
-
-  // returns number of filled lines aftter blocks were frozen
-  u8 freeze_blocks();
+  // returns number of filled lines aftter blocks were frozen, or -1 if
+  // polyomino didn't fit
+  s8 freeze_blocks();
 };

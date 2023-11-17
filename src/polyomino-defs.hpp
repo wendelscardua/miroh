@@ -32,8 +32,12 @@ struct PolyominoDef {
 
   bool collide(Board &board, s8 row, s8 column) const;
   void render(u8 x, int y) const;
+  void outside_render(u8 x, int y, int cutting_point_y) const;
   void chibi_render(u8 row, u8 column) const;
-  void board_render(Board &board, s8 row, s8 column, bool jiggling) const;
+
+  // draws the polyomino on the nametable/board
+  // returns true if the whole polyomino fits
+  bool board_render(Board &board, s8 row, s8 column, bool jiggling) const;
 };
 
 extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;
