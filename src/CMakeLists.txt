@@ -87,6 +87,7 @@ add_library(SourceObj
 
   main.cpp
   title-screen.cpp
+  world-map.cpp
   gameplay.cpp
 
   animation.cpp

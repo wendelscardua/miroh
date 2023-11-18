@@ -18,7 +18,8 @@ GameMode current_game_mode;
 ControllerScheme current_controller_scheme;
 Stage current_stage;
 
-u16 high_score[NUM_MAZES];
+u16 high_score[NUM_STAGES];
+bool story_completion[NUM_STAGES];
 Maze maze;
 
 static void main_init() {
