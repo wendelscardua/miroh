@@ -68,7 +68,7 @@ int main() {
     switch (current_game_state) {
     case GameState::TitleScreen: {
       ScopedBank scopedBank(TitleScreen::BANK);
-      TitleScreen title_screen(board);
+      TitleScreen title_screen;
       title_screen.loop();
     }; break;
     case GameState::Gameplay: {

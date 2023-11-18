@@ -71,10 +71,10 @@ __attribute__((
 
 static_assert(bgm_test_songs[0] == Song::Marshmallow_mountain);
 
-__attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
+__attribute__((noinline)) TitleScreen::TitleScreen()
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
       current_track(Song::Marshmallow_mountain), next_track_delay(0),
-      board(board), x_scroll(TITLE_SCROLL) {
+      x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_VERTICAL);

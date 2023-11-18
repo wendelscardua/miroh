@@ -1,6 +1,5 @@
 #pragma once
 
-#include "board.hpp"
 #include "common.hpp"
 #include "soundtrack.hpp"
 #include <neslib.h>
@@ -38,10 +37,9 @@ public:
   MenuOption current_option;
   Song current_track;
   u8 next_track_delay;
-  Board &board;
   s16 x_scroll;
 
-  TitleScreen(Board &board);
+  TitleScreen();
   ~TitleScreen();
   void render_sprites();
   void loop();
