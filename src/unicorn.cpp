@@ -18,7 +18,9 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : facing(Direction::Right), moving(Direction::Right),
       energy(STARTING_ENERGY), energy_timer(0),
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
-      x(starting_x), y(starting_y), score(0), statue(false) {}
+      x(starting_x), y(starting_y), score(0), statue(false) {
+  set_state(State::Idle);
+}
 
 const fixed_point &Unicorn::move_speed() {
   if (energy > 0) {
@@ -28,31 +30,45 @@ const fixed_point &Unicorn::move_speed() {
   }
 }
 
-void Unicorn::set_state(State new_state) {
+__attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
+Unicorn::set_state(State new_state) {
   state = new_state;
   switch (state) {
   case State::Idle:
-    idle_left_animation.reset();
-    idle_right_animation.reset();
-    tired_left_animation.reset();
-    tired_right_animation.reset();
+    left_animation =
+        Animation{&idle_left_cells, sizeof(idle_left_cells) / sizeof(AnimCell)};
+    right_animation = Animation{&idle_right_cells,
+                                sizeof(idle_right_cells) / sizeof(AnimCell)};
+    left_tired_animation = Animation{
+        &tired_left_cells, sizeof(tired_left_cells) / sizeof(AnimCell)};
+    right_tired_animation = Animation{
+        &tired_right_cells, sizeof(tired_right_cells) / sizeof(AnimCell)};
     break;
   case State::Moving:
-    moving_left_animation.reset();
-    moving_right_animation.reset();
-    trudging_left_animation.reset();
-    trudging_right_animation.reset();
+    left_animation = Animation{&moving_left_cells,
+                               sizeof(moving_left_cells) / sizeof(AnimCell)};
+    right_animation = Animation{&moving_right_cells,
+                                sizeof(moving_right_cells) / sizeof(AnimCell)};
+    left_tired_animation = Animation{
+        &trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
+    right_tired_animation = Animation{
+        &trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
     break;
   case State::Yawning:
-    yawn_left_animation.reset();
-    yawn_right_animation.reset();
+    left_animation = left_tired_animation =
+        Animation{&yawn_left_cells, sizeof(yawn_left_cells) / sizeof(AnimCell)};
+    right_animation = right_tired_animation = Animation{
+        &yawn_right_cells, sizeof(yawn_right_cells) / sizeof(AnimCell)};
     break;
   case State::Sleeping:
-    sleep_left_animation.reset();
-    sleep_right_animation.reset();
+    left_animation = left_tired_animation = Animation{
+        &sleep_left_cells, sizeof(sleep_left_cells) / sizeof(AnimCell)};
+    right_animation = right_tired_animation = Animation{
+        &sleep_right_cells, sizeof(sleep_right_cells) / sizeof(AnimCell)};
     break;
   case State::Trapped:
-    trapped_animation.reset();
+    generic_animation =
+        Animation{&trapped_cells, sizeof(trapped_cells) / sizeof(AnimCell)};
     break;
   }
 }
@@ -205,9 +221,9 @@ Unicorn::update(u8 pressed, u8 held) {
     }
     break;
   case State::Trapped:
-    if ((trapped_animation.current_cell_index == 1 ||
-         trapped_animation.current_cell_index == 3) &&
-        trapped_animation.current_frame == 0) {
+    if ((generic_animation.current_cell_index == 1 ||
+         generic_animation.current_cell_index == 3) &&
+        generic_animation.current_frame == 0) {
       banked_play_sfx(SFX::Marshmallow, GGSound::SFXPriority::Two);
     }
     break;
@@ -243,40 +259,33 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
     return;
   }
 
+  if (state == State::Trapped) {
+    generic_animation.update(board.origin_x + x.whole, reference_y + y.whole);
+    return;
+  }
+  sprite_offset = SPRID;
+
+  Animation &animation =
+      (facing == Direction::Right
+           ? (energy > 0 ? right_animation : right_tired_animation)
+           : (energy > 0 ? left_animation : left_tired_animation));
+  animation.update(board.origin_x + x.whole, reference_y + y.whole);
+
   switch (state) {
-  case State::Idle: {
-    Animation &animation =
-        (facing == Direction::Right
-             ? (energy > 0 ? idle_right_animation : tired_right_animation)
-             : (energy > 0 ? idle_left_animation : tired_left_animation));
-    animation.update(board.origin_x + x.whole, reference_y + y.whole);
+  case State::Idle:
     if (animation.finished) {
       set_state(State::Yawning);
     }
-  } break;
-  case State::Moving: {
-    sprite_offset = SPRID;
-    Animation &animation =
-        (facing == Direction::Right
-             ? (energy > 0 ? moving_right_animation : trudging_right_animation)
-             : (energy > 0 ? moving_left_animation : trudging_left_animation));
-    animation.update(board.origin_x + x.whole, reference_y + y.whole);
+    break;
+  case State::Moving:
     fix_uni_priority(left_wall, right_wall);
-  } break;
-  case State::Yawning: {
-    Animation &animation = (facing == Direction::Right ? yawn_right_animation
-                                                       : yawn_left_animation);
-    animation.update(board.origin_x + x.whole, reference_y + y.whole);
+    break;
+  case State::Yawning:
     if (animation.finished) {
       set_state(State::Sleeping);
     }
-  } break;
-  case State::Sleeping:
-    (facing == Direction::Right ? sleep_right_animation : sleep_left_animation)
-        .update(board.origin_x + x.whole, reference_y + y.whole);
     break;
-  case State::Trapped:
-    trapped_animation.update(board.origin_x + x.whole, reference_y + y.whole);
+  default:
     break;
   }
 }
