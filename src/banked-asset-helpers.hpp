@@ -17,4 +17,8 @@ void banked_play_sfx(SFX sfx, GGSound::SFXPriority priority);
 // [assets bank] loads title assets
 void load_title_assets();
 
+// [assets bank] loads map assets
+void load_map_assets();
+
+// [assets bank] loads game assets
 void load_gameplay_assets();

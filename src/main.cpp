@@ -10,6 +10,7 @@
 #include "title-screen.hpp"
 
 #include "soundtrack-ptr.hpp"
+#include "world-map.hpp"
 
 GameState current_game_state;
 GameState previous_game_state;
@@ -32,6 +33,9 @@ static void main_init() {
 
   for (u8 i = 0; i < NUM_MAZES; i++) {
     high_score[i] = 0;
+  }
+  for (u8 i = 0; i < NUM_STAGES; i++) {
+    story_completion[i] = false;
   }
 
   maze = 0;
@@ -64,15 +68,20 @@ int main() {
     switch (current_game_state) {
     case GameState::TitleScreen: {
       ScopedBank scopedBank(TitleScreen::BANK);
-      TitleScreen titleScreen(board);
-      titleScreen.loop();
+      TitleScreen title_screen(board);
+      title_screen.loop();
     }; break;
     case GameState::Gameplay: {
       ScopedBank scopedBank(Gameplay::BANK);
       Gameplay gameplay(board);
       gameplay.loop();
-    };
-    default:
+    }; break;
+    case GameState::WorldMap: {
+      ScopedBank scopedBank(WorldMap::BANK);
+      WorldMap world_map(board);
+      world_map.loop();
+    } break;
+    case GameState::None:
       break;
     }
   }

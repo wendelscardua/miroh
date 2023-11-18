@@ -198,10 +198,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
         banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_START | PAD_A)) {
         banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
-        current_game_state = GameState::Gameplay;
-        // TODO: select stage on world map
+        current_game_state = GameState::WorldMap;
         current_stage = Stage::StarlitStables;
-        banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
       }
       break;
     case State::HowToPlay:
