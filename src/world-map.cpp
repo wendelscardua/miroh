@@ -59,9 +59,12 @@ WorldMap::WorldMap(Board &board) : board(board) {
     if (available_stages[i]) {
       multi_vram_buffer_horz(stage_labels[i], sizeof(stage_labels[i]),
                              position);
-      position += 0x60;
     }
+    position += 0x60;
   }
+  multi_vram_buffer_horz(stage_labels[(u8)Stage::MarshmallowMountain],
+                         sizeof(stage_labels[(u8)Stage::MarshmallowMountain]),
+                         position);
 
   for (u8 i = (u8)current_stage; i < NUM_STAGES; i++) {
     if (available_stages[i]) {
