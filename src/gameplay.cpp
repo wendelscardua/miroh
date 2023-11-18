@@ -420,6 +420,7 @@ void Gameplay::pause_handler() {
     banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     switch (pause_option) {
     case PauseOption::Exit:
+      ppu_wait_nmi();
       gameplay_state = GameplayState::ConfirmExit;
       multi_vram_buffer_horz(exit_confirmation_text,
                              sizeof(exit_confirmation_text),
@@ -434,6 +435,7 @@ void Gameplay::pause_handler() {
       GGSound::resume();
       break;
     case PauseOption::Retry:
+      ppu_wait_nmi();
       gameplay_state = GameplayState::ConfirmRetry;
       multi_vram_buffer_horz(retry_confirmation_text,
                              sizeof(retry_confirmation_text),
@@ -775,6 +777,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
 
     if (!stuff_in_progress && goal_counter == 0) {
+      ppu_wait_nmi();
       multi_vram_buffer_horz(
           story_mode_victory_text_per_stage[(u8)current_stage],
           sizeof(story_mode_victory_text_per_stage[0]), PAUSE_MENU_POSITION);
@@ -810,6 +813,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     break;
   }
   if (game_is_over()) {
+    ppu_wait_nmi();
     if (current_game_mode == GameMode::Story) {
       fail_game();
     } else {
@@ -839,6 +843,7 @@ void Gameplay::fail_game() {
 }
 
 void Gameplay::pause_game() {
+  ppu_wait_nmi();
   gameplay_state = GameplayState::Paused;
   GGSound::pause();
   multi_vram_buffer_horz(pause_menu_text, sizeof(pause_menu_text),
