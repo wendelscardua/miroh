@@ -49,9 +49,6 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_map_assets() {
   vram_adr(PPU_PATTERN_TABLE_0);
   Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64);
 
-  vram_adr(PPU_PATTERN_TABLE_1);
-  Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
-
   vram_adr(NAMETABLE_A);
   zx02_decompress_to_vram((void *)map_nametable, NAMETABLE_A);
 
@@ -75,9 +72,6 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
     vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
     Donut::decompress_to_ppu((void *)level_label_tiles, 1);
   }
-
-  vram_adr(PPU_PATTERN_TABLE_1);
-  Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
   set_chr_bank(1);
   vram_adr(0);
