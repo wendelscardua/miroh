@@ -88,9 +88,12 @@ Polyomino::able_to_kick(auto kick_deltas) {
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::handle_input(u8 pressed, u8 held) {
+  if (state != State::Active) {
+    return;
+  }
   if (pressed & PAD_UP) {
     // just some high enough value for the drop to proceed until the end
-    drop_timer = HEIGHT * 60;
+    drop_timer = HEIGHT * 70;
     grounded_timer = MAX_GROUNDED_TIMER;
     movement_direction = Direction::Up;
   } else if (pressed & PAD_LEFT) {
