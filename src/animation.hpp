@@ -9,7 +9,7 @@ struct AnimCell {
 
 class Animation {
 public:
-  const AnimCell (&cells)[];
+  const AnimCell (*cells)[];
   const AnimCell *current_cell;
   static bool paused;
   u8 current_frame;
@@ -17,7 +17,7 @@ public:
   u8 length;
   bool finished;
 
-  Animation(const AnimCell (&cells)[], u8 length);
+  Animation(const AnimCell (*cells)[], u8 length);
 
   void reset();
 

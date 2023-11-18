@@ -24,35 +24,35 @@ private:
   u8 original_energy;
   u8 sprite_offset;
 
-  Animation idle_right_animation{idle_right_cells,
+  Animation idle_right_animation{&idle_right_cells,
                                  sizeof(idle_right_cells) / sizeof(AnimCell)};
-  Animation idle_left_animation{idle_left_cells,
+  Animation idle_left_animation{&idle_left_cells,
                                 sizeof(idle_left_cells) / sizeof(AnimCell)};
 
-  Animation tired_right_animation{tired_right_cells,
+  Animation tired_right_animation{&tired_right_cells,
                                   sizeof(tired_right_cells) / sizeof(AnimCell)};
-  Animation tired_left_animation{tired_left_cells,
+  Animation tired_left_animation{&tired_left_cells,
                                  sizeof(tired_left_cells) / sizeof(AnimCell)};
 
-  Animation yawn_right_animation{yawn_right_cells,
+  Animation yawn_right_animation{&yawn_right_cells,
                                  sizeof(yawn_right_cells) / sizeof(AnimCell)};
-  Animation yawn_left_animation{yawn_left_cells,
+  Animation yawn_left_animation{&yawn_left_cells,
                                 sizeof(yawn_left_cells) / sizeof(AnimCell)};
 
-  Animation sleep_right_animation{sleep_right_cells,
+  Animation sleep_right_animation{&sleep_right_cells,
                                   sizeof(sleep_right_cells) / sizeof(AnimCell)};
-  Animation sleep_left_animation{sleep_left_cells,
+  Animation sleep_left_animation{&sleep_left_cells,
                                  sizeof(sleep_left_cells) / sizeof(AnimCell)};
 
   Animation moving_right_animation{
-      moving_right_cells, sizeof(moving_right_cells) / sizeof(AnimCell)};
-  Animation moving_left_animation{moving_left_cells,
+      &moving_right_cells, sizeof(moving_right_cells) / sizeof(AnimCell)};
+  Animation moving_left_animation{&moving_left_cells,
                                   sizeof(moving_left_cells) / sizeof(AnimCell)};
 
   Animation trudging_right_animation{
-      trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
+      &trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
   Animation trudging_left_animation{
-      trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
+      &trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
 
   // fixes priority flags for bottom sprites
   void fix_uni_priority(bool left_wall, bool right_wall);
@@ -78,7 +78,7 @@ public:
 
   bool statue;
 
-  Animation trapped_animation{trapped_cells,
+  Animation trapped_animation{&trapped_cells,
                               sizeof(trapped_cells) / sizeof(AnimCell)};
 
   Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y);

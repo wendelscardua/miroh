@@ -4,14 +4,14 @@
 
 bool Animation::paused = false;
 
-Animation::Animation(const AnimCell (&cells)[], u8 length)
-    : cells(cells), current_cell(&cells[0]), current_frame(0),
+Animation::Animation(const AnimCell (*cells)[], u8 length)
+    : cells(cells), current_cell(&(*cells)[0]), current_frame(0),
       current_cell_index(0), length(length), finished(false) {}
 
 void Animation::reset() {
   current_frame = 0;
   current_cell_index = 0;
-  current_cell = &cells[0];
+  current_cell = &(*cells)[0];
   finished = false;
 }
 
@@ -26,7 +26,7 @@ void Animation::update(char x, int y) {
     current_cell_index++;
     if (current_cell_index == length) {
       current_cell_index = 0;
-      current_cell = &cells[0];
+      current_cell = &(*cells)[0];
       finished = true;
     } else {
       current_cell++;
