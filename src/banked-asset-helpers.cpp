@@ -61,22 +61,8 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
     Donut::decompress_to_ppu((void *)level_label_tiles, 1);
   }
 
-  set_chr_bank(1);
-  vram_adr(0);
-  zx02_decompress_to_vram(level_nametables[(u8)current_stage], 0);
-
-  for (u16 i = 0; i < 1024; i += 64) {
-    vram_adr(i);
-    vram_read(donut_block_buffer, 64);
-    vram_adr(NAMETABLE_A + i);
-    vram_write(donut_block_buffer, 64);
-    vram_adr(1024 | i);
-    vram_read(donut_block_buffer, 64);
-    vram_adr(NAMETABLE_C + i);
-    vram_write(donut_block_buffer, 64);
-  }
-
-  set_chr_bank(0);
+  vram_adr(NAMETABLE_B);
+  zx02_decompress_to_vram(level_nametables[(u8)current_stage], NAMETABLE_B);
 
   if (current_game_mode == GameMode::TimeTrial) {
     vram_adr(NTADR_C(6, 21));
