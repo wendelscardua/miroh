@@ -18,7 +18,8 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : facing(Direction::Right), moving(Direction::Right),
       energy(STARTING_ENERGY), energy_timer(0),
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
-      x(starting_x), y(starting_y), score(0), statue(false) {
+      x(starting_x), y(starting_y), row(starting_y.whole >> 4),
+      column(starting_x.whole >> 4), score(0), statue(false) {
   set_state(State::Idle);
 }
 
@@ -104,23 +105,20 @@ Unicorn::update(u8 pressed, u8 held) {
       pressed = buffered_input;
       buffered_input = 0;
     }
-    u8 current_row = y.whole >> 4;
-    u8 current_column = x.whole >> 4;
-
     // check if unicorn is trapped
-    if (board.occupied((s8)current_row, (s8)current_column)) {
+    if (board.occupied((s8)row, (s8)column)) {
       set_state(State::Trapped);
       break;
     }
 
-    auto current_cell = board.cell_at(current_row, current_column);
+    auto current_cell = board.cell_at(row, column);
 
 #define PRESS_HELD(button)                                                     \
   ((pressed & (button)) ||                                                     \
    (!pressed && moving != Direction::None && (held & (button))))
     if (PRESS_HELD(PAD_UP)) {
-      if (!current_cell.up_wall && current_row > 0 &&
-          !board.occupied((s8)(current_row - 1), (s8)current_column)) {
+      if (!current_cell.up_wall && row > 0 &&
+          !board.occupied((s8)(row - 1), (s8)column)) {
         moving = Direction::Up;
         target_x = x;
         target_y = y - GRID_SIZE;
@@ -130,7 +128,7 @@ Unicorn::update(u8 pressed, u8 held) {
     }
     if (PRESS_HELD(PAD_DOWN)) {
       if (!current_cell.down_wall &&
-          !board.occupied((s8)(current_row + 1), (s8)current_column)) {
+          !board.occupied((s8)(row + 1), (s8)column)) {
         moving = Direction::Down;
         target_x = x;
         target_y = y + GRID_SIZE;
@@ -141,7 +139,7 @@ Unicorn::update(u8 pressed, u8 held) {
     if (PRESS_HELD(PAD_LEFT)) {
       facing = Direction::Left;
       if (!current_cell.left_wall &&
-          !board.occupied((s8)current_row, (s8)(current_column - 1))) {
+          !board.occupied((s8)row, (s8)(column - 1))) {
         moving = Direction::Left;
         target_x = x - GRID_SIZE;
         target_y = y;
@@ -152,7 +150,7 @@ Unicorn::update(u8 pressed, u8 held) {
     if (PRESS_HELD(PAD_RIGHT)) {
       facing = Direction::Right;
       if (!current_cell.right_wall &&
-          !board.occupied((s8)current_row, (s8)(current_column + 1))) {
+          !board.occupied((s8)row, (s8)(column + 1))) {
         moving = Direction::Right;
         target_x = x + GRID_SIZE;
         target_y = y;
@@ -173,6 +171,7 @@ Unicorn::update(u8 pressed, u8 held) {
     case Direction::Up:
       if (y <= target_y + move_speed()) {
         y = target_y;
+        row--;
         set_state(State::Idle);
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
@@ -186,6 +185,7 @@ Unicorn::update(u8 pressed, u8 held) {
       x += move_speed();
       if (x >= target_x) {
         x = target_x;
+        column++;
         set_state(State::Idle);
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
@@ -197,6 +197,7 @@ Unicorn::update(u8 pressed, u8 held) {
       y += move_speed();
       if (y >= target_y) {
         y = target_y;
+        row++;
         set_state(State::Idle);
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;
@@ -207,6 +208,7 @@ Unicorn::update(u8 pressed, u8 held) {
     case Direction::Left:
       if (x <= target_x + move_speed()) {
         x = target_x;
+        column--;
         set_state(State::Idle);
         if (!(held & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT))) {
           moving = Direction::None;

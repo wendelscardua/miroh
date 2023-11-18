@@ -42,6 +42,8 @@ public:
   Board &board;
   fixed_point x;
   fixed_point y;
+  u8 row;
+  u8 column;
   u16 score;
 
   u8 buffered_input;

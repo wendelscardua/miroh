@@ -297,8 +297,8 @@ void Gameplay::render() {
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {
-    u8 row = (u8)(unicorn.y.round() >> 4) + 1;
-    u8 col = (u8)(unicorn.x.round() >> 4);
+    u8 row = unicorn.row + 1;
+    u8 col = unicorn.column;
     if (row < HEIGHT) {
       auto cell = board.cell_at(row, col);
       left_wall = cell.left_wall;
