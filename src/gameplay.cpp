@@ -187,7 +187,7 @@ void Drops::update() {
       continue;
     }
     if (drop.current_y == drop.target_y) {
-      board.block_maze_cell((s8)drop.row, (s8)drop.column);
+      board.set_maze_cell((s8)drop.row, (s8)drop.column, CellType::Marshmallow);
       drop.row = 0xff;
       active_drops--;
     } else {
@@ -226,7 +226,7 @@ bool Drops::random_hard_drop() {
     return false;
   }
   u8 column = board.random_free_column(row);
-  board.block_maze_cell((s8)row, (s8)column);
+  board.set_maze_cell((s8)row, (s8)column, CellType::Marshmallow);
   return true;
 }
 

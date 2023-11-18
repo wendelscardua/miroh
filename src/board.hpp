@@ -5,6 +5,15 @@
 
 static constexpr u8 HEIGHT = 10;
 static constexpr u8 WIDTH = 12;
+
+enum class CellType {
+  Maze,
+  Marshmallow,
+  Jiggling,
+  LeanLeft,
+  LeanRight,
+};
+
 class Cell {
 public:
   union {
@@ -68,12 +77,8 @@ public:
   // marks a position as not occupied by a solid block
   void free(s8 row, s8 column);
 
-  // draw a block and occupy these coordinates
-  void block_maze_cell(s8 row, s8 column);
-  void block_maze_cell(s8 row, s8 column, bool jiggling);
-
-  // restore a maze andfree these coordinates
-  void restore_maze_cell(s8 row, s8 column);
+  // change a cell at these coordinates and with a given style
+  void set_maze_cell(s8 row, s8 column, CellType type);
 
   // advances the process of clearing a filled line
   // returns true if such process is still ongoing

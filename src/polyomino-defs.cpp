@@ -71,7 +71,9 @@ bool PolyominoDef::board_render(Board &board, s8 row, s8 column,
     s8 block_row = row + delta.delta_row;
     s8 block_column = column + delta.delta_column;
     if (block_row >= 0) {
-      board.block_maze_cell(block_row, block_column, jiggling);
+      board.set_maze_cell(block_row, block_column,
+                          jiggling ? CellType::Jiggling
+                                   : CellType::Marshmallow);
     } else {
       it_fits = false;
     }
