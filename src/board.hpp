@@ -5,10 +5,6 @@
 
 static constexpr u8 HEIGHT = 10;
 static constexpr u8 WIDTH = 12;
-static constexpr u8 WALL_ATTRIBUTE = 0b00000000;
-
-static constexpr u8 BLOCK_ATTRIBUTE = 0b00000000;
-
 class Cell {
 public:
   union {

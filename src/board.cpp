@@ -1,6 +1,5 @@
 #include "board.hpp"
 #include "assets.hpp"
-#include "attributes.hpp"
 #include "bag.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
@@ -422,9 +421,6 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
 
   // end of unrolled
 
-  Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
-                  BLOCK_ATTRIBUTE);
-
   occupy(row, column);
 }
 
@@ -501,9 +497,6 @@ void Board::restore_maze_cell(s8 row, s8 column) {
   VRAM_INDEX += 10;
 
   // end of unrolled
-
-  Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
-                  WALL_ATTRIBUTE);
 
   free(row, column);
 }

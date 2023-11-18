@@ -11,7 +11,6 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#include "attributes.hpp"
 #include "bank-helper.hpp"
 
 #include "banked-asset-helpers.hpp"
@@ -247,7 +246,6 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   banked_lambda(ASSETS_BANK, []() { load_gameplay_assets(); });
 
-  Attributes::reset_shadow();
   vram_adr(NAMETABLE_A);
 
   board.render();
@@ -894,8 +892,6 @@ void Gameplay::loop() {
 
     u8 frame = FRAME_CNT1;
 
-    Attributes::enable_vram_buffer();
-
     switch (gameplay_state) {
     case GameplayState::MarshmallowOverflow:
       Gameplay::marshmallow_overflow_handler();
@@ -940,8 +936,6 @@ void Gameplay::loop() {
       }
       break;
     }
-
-    Attributes::flush_vram_update();
 
     if (VRAM_INDEX + 16 < 64) {
       unicorn.refresh_score_hud();
