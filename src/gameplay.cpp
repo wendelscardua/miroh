@@ -295,6 +295,7 @@ void Gameplay::render() {
   Animation::paused = (gameplay_state != GameplayState::Playing &&
                        gameplay_state != GameplayState::Swapping &&
                        gameplay_state != GameplayState::MarshmallowOverflow);
+  BoardAnimation::paused = Animation::paused;
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {
@@ -335,6 +336,8 @@ void Gameplay::render() {
 
     oam_hide_rest();
   }
+
+  board.animate();
 }
 
 void Gameplay::initialize_goal() {
@@ -597,8 +600,7 @@ void Gameplay::gameplay_handler() {
   // trigger, not even the line clearing itself will run)
   bool line_clearing_in_progress =
       gameplay_state == GameplayState::MarshmallowOverflow ||
-      board.ongoing_line_clearing(polyomino.state ==
-                                  Polyomino::State::Settling);
+      board.ongoing_line_clearing(board.active_animations);
 
   banked_lambda(GET_BANK(polyominos), [this, line_clearing_in_progress]() {
     // we only spawn when there's no line clearing going on

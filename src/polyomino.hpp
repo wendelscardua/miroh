@@ -22,10 +22,7 @@ class Polyomino {
   s8 row;
   s8 column;
   u16 drop_timer;
-  union {
-    s8 move_timer;
-    u8 jiggling_timer;
-  };
+  s8 move_timer;
   Direction movement_direction;
 
   bool able_to_kick(auto kick_deltas);
@@ -34,7 +31,6 @@ public:
   enum class State {
     Inactive,
     Active,
-    Settling,
   };
   u8 grounded_timer;
   State state;
@@ -48,9 +44,6 @@ public:
                         u8 &lines_cleared);
   void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
               u8 &lines_filled);
-
-  // coroutine for jiggling the blocks before freezing for real
-  void jiggling();
 
   void banked_render();
 

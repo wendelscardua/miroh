@@ -5,6 +5,7 @@
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
+#include "log.hpp"
 #include "maze-defs.hpp"
 #include "soundtrack.hpp"
 #include "union-find.hpp"
@@ -24,11 +25,39 @@ static_assert(sizeof(CELL_ROW_START) == HEIGHT,
 
 u8 board_index(u8 row, u8 column) { return CELL_ROW_START[row] + column; }
 
+bool BoardAnimation::paused = false;
+
+BoardAnimation::BoardAnimation() : cells(NULL), length(0), finished(true) {}
+
+BoardAnimation::BoardAnimation(const BoardAnimFrame (*cells)[], u8 length,
+                               u8 row, u8 column)
+    : cells(cells), current_cell(&(*cells)[0]), current_frame(0),
+      current_cell_index(0), length(length), row(row), column(column),
+      finished(false) {}
+
+void BoardAnimation::update() {
+  START_MESEN_WATCH(13);
+  if (paused || finished)
+    goto exit;
+  current_frame++;
+  if (current_frame >= current_cell->duration) {
+    current_frame = 0;
+    current_cell_index++;
+    if (current_cell_index == length) {
+      finished = true;
+    } else {
+      current_cell++;
+    }
+  }
+exit:
+  STOP_MESEN_WATCH(13);
+}
+
 Cell &Board::cell_at(u8 row, u8 column) {
   return this->cell[board_index(row, column)];
 }
 
-Board::Board() {}
+Board::Board() : animations({}), active_animations(false) {}
 
 Board::~Board() {}
 
@@ -613,4 +642,30 @@ u8 Board::random_free_column(u8 row) {
     bits >>= 1;
   }
   return possible_columns[RAND_UP_TO(max_possible_columns)];
+}
+
+void Board::add_animation(BoardAnimation new_animation) {
+  for (auto &animation : animations) {
+    if (animation.finished) {
+      animation = new_animation;
+      break;
+    }
+  }
+}
+
+void Board::animate() {
+  active_animations = false;
+  for (auto &animation : animations) {
+    if (animation.finished) {
+      continue;
+    }
+    active_animations = true;
+    if (animation.current_frame == 0) {
+      set_maze_cell((s8)animation.row, (s8)animation.column,
+                    animation.current_cell->cell_type);
+    }
+    animation.update();
+  }
+  putchar('Z');
+  putchar('\n');
 }

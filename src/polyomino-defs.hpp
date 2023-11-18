@@ -37,7 +37,7 @@ struct PolyominoDef {
 
   // draws the polyomino on the nametable/board
   // returns true if the whole polyomino fits
-  bool board_render(Board &board, s8 row, s8 column, bool jiggling) const;
+  bool board_render(Board &board, s8 row, s8 column) const;
 };
 
 extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;
