@@ -171,6 +171,9 @@ void Drops::add_random_drop() {
   }
 
   drops[index].row = board.random_free_row();
+  if (drops[index].row > HEIGHT) {
+    return;
+  }
   drops[index].column = board.random_free_column(drops[index].row);
   drops[index].x = (u8)(drops[index].column << 4) + board.origin_x;
   drops[index].target_y = (u8)(drops[index].row << 4) + board.origin_y;
