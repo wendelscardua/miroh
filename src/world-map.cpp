@@ -54,27 +54,29 @@ WorldMap::WorldMap(Board &board) : board(board) {
     break;
   }
 
-  s16 position = NTADR_A(9, 8);
-  for (u8 i = 0; i < NUM_STAGES; i++) {
+  u16 position = NTADR_A(9, 8);
+  for (u8 i = 0; i < NUM_STAGES - 1; i++) {
     if (available_stages[i]) {
-      multi_vram_buffer_horz(stage_labels[i], sizeof(stage_labels[i]),
-                             position);
+      vram_adr(position);
+      vram_write(stage_labels[i], sizeof(stage_labels[i]));
     }
     position += 0x60;
   }
-  multi_vram_buffer_horz(stage_labels[(u8)Stage::MarshmallowMountain],
-                         sizeof(stage_labels[(u8)Stage::MarshmallowMountain]),
-                         position);
+  vram_adr(position);
+  vram_write(stage_labels[(u8)Stage::MarshmallowMountain],
+             sizeof(stage_labels[(u8)Stage::MarshmallowMountain]));
 
-  for (u8 i = (u8)current_stage; i < NUM_STAGES; i++) {
+  // TODO: fix offset for MM stage when it comes back
+  for (u8 i = (u8)current_stage; i < NUM_STAGES - 1; i++) {
     if (available_stages[i]) {
       current_stage = (Stage)i;
       break;
     }
   }
 
+  // TODO: fix offset for MM stage when it comes back
   if (!available_stages[(u8)current_stage]) {
-    for (u8 i = 0; i < NUM_STAGES; i++) {
+    for (u8 i = 0; i < NUM_STAGES - 1; i++) {
       if (available_stages[i]) {
         current_stage = (Stage)i;
         break;
@@ -142,8 +144,9 @@ void WorldMap::loop() {
     } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT)) {
       Stage new_stage = current_stage;
 
-      if ((u8)current_stage < NUM_STAGES - 1) {
-        for (s8 i = (s8)current_stage + 1; i < NUM_STAGES; i++) {
+      // TODO: fix these offsets when MM stage comes back
+      if ((u8)current_stage < NUM_STAGES - 2) {
+        for (s8 i = (s8)current_stage + 1; i < NUM_STAGES - 1; i++) {
           if (available_stages[i]) {
             new_stage = (Stage)i;
             break;
