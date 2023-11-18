@@ -891,9 +891,6 @@ void Gameplay::loop() {
 
     Attributes::enable_vram_buffer();
 
-    pad_poll(0);
-    pad_poll(1);
-
     switch (gameplay_state) {
     case GameplayState::MarshmallowOverflow:
       Gameplay::marshmallow_overflow_handler();
