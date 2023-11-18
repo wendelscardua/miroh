@@ -497,8 +497,7 @@ void Gameplay::confirm_exit_handler() {
   } else if (any_pressed & (PAD_A | PAD_START)) {
     banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
-      current_game_state = GameState::TitleScreen;
-      // TODO: go to world map instead
+      current_game_state = GameState::WorldMap;
     } else {
       pause_game();
     }
@@ -533,9 +532,8 @@ void Gameplay::confirm_continue_handler() {
   ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & (PAD_A | PAD_START)) {
-    // TODO: world map
     banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
-    current_game_state = GameState::TitleScreen;
+    current_game_state = GameState::WorldMap;
     return;
   }
 
@@ -556,8 +554,7 @@ void Gameplay::retry_exit_handler() {
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
     } else {
-      // TODO: world map instead
-      current_game_state = GameState::TitleScreen;
+      current_game_state = GameState::WorldMap;
     }
     return;
   }
