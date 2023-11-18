@@ -11,7 +11,6 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#include "attributes.hpp"
 #include "bank-helper.hpp"
 
 #include "banked-asset-helpers.hpp"
@@ -188,7 +187,7 @@ void Drops::update() {
       continue;
     }
     if (drop.current_y == drop.target_y) {
-      board.block_maze_cell((s8)drop.row, (s8)drop.column);
+      board.set_maze_cell((s8)drop.row, (s8)drop.column, CellType::Marshmallow);
       drop.row = 0xff;
       active_drops--;
     } else {
@@ -227,7 +226,7 @@ bool Drops::random_hard_drop() {
     return false;
   }
   u8 column = board.random_free_column(row);
-  board.block_maze_cell((s8)row, (s8)column);
+  board.set_maze_cell((s8)row, (s8)column, CellType::Marshmallow);
   return true;
 }
 
@@ -247,7 +246,6 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   banked_lambda(ASSETS_BANK, []() { load_gameplay_assets(); });
 
-  Attributes::reset_shadow();
   vram_adr(NAMETABLE_A);
 
   board.render();
@@ -297,6 +295,7 @@ void Gameplay::render() {
   Animation::paused = (gameplay_state != GameplayState::Playing &&
                        gameplay_state != GameplayState::Swapping &&
                        gameplay_state != GameplayState::MarshmallowOverflow);
+  BoardAnimation::paused = Animation::paused;
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {
@@ -337,6 +336,8 @@ void Gameplay::render() {
 
     oam_hide_rest();
   }
+
+  board.animate();
 }
 
 void Gameplay::initialize_goal() {
@@ -599,8 +600,7 @@ void Gameplay::gameplay_handler() {
   // trigger, not even the line clearing itself will run)
   bool line_clearing_in_progress =
       gameplay_state == GameplayState::MarshmallowOverflow ||
-      board.ongoing_line_clearing(polyomino.state ==
-                                  Polyomino::State::Settling);
+      board.ongoing_line_clearing(board.active_animations);
 
   banked_lambda(GET_BANK(polyominos), [this, line_clearing_in_progress]() {
     // we only spawn when there's no line clearing going on
@@ -614,8 +614,9 @@ void Gameplay::gameplay_handler() {
                      failed_to_place, lines_cleared);
   });
 
-  banked_lambda(PLAYER_BANK,
-                [this]() { unicorn.update(unicorn_pressed, unicorn_held); });
+  banked_lambda(PLAYER_BANK, [this, line_clearing_in_progress]() {
+    unicorn.update(unicorn_pressed, unicorn_held, line_clearing_in_progress);
+  });
 
   fruits.update(unicorn, snack_was_eaten);
 
@@ -894,8 +895,6 @@ void Gameplay::loop() {
 
     u8 frame = FRAME_CNT1;
 
-    Attributes::enable_vram_buffer();
-
     switch (gameplay_state) {
     case GameplayState::MarshmallowOverflow:
       Gameplay::marshmallow_overflow_handler();
@@ -940,8 +939,6 @@ void Gameplay::loop() {
       }
       break;
     }
-
-    Attributes::flush_vram_update();
 
     if (VRAM_INDEX + 16 < 64) {
       unicorn.refresh_score_hud();

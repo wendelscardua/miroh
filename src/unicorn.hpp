@@ -48,6 +48,7 @@ public:
   u8 row;
   u8 column;
   u8 roll_distance;
+  bool roll_into_block;
   u16 score;
 
   u8 buffered_input;
@@ -63,7 +64,7 @@ public:
 
   Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y);
 
-  void update(u8 pressed, u8 held);
+  void update(u8 pressed, u8 held, bool roll_disabled);
   void render(int y_scroll, bool left_wall, bool right_wall);
   void feed(u8 nutrition);
   void energy_upkeep();

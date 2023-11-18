@@ -141,18 +141,6 @@ Polyomino::handle_input(u8 pressed, u8 held) {
   }
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::jiggling() {
-  definition->board_render(board, row, column, grounded_timer & 0b1);
-  jiggling_timer++;
-  if (jiggling_timer == 8) {
-    jiggling_timer = 0;
-    grounded_timer++;
-    if (grounded_timer == 3) {
-      state = State::Inactive;
-    }
-  }
-}
-
 void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
                                  u8 &lines_cleared) {
   s8 lines = freeze_blocks();
@@ -167,10 +155,6 @@ void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
 Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
                   u8 &lines_cleared) {
-  if (state == State::Settling) {
-    jiggling();
-    return;
-  }
   if (state == State::Inactive) {
     return;
   }
@@ -191,6 +175,7 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
         grounded_timer = 0;
       }
     }
+    return;
   }
 
   switch (movement_direction) {
@@ -242,11 +227,10 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) s8
 Polyomino::freeze_blocks() {
   banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
 
-  state = State::Settling;
+  state = State::Inactive;
   grounded_timer = 0;
-  jiggling_timer = 0;
   s8 filled_lines = 0;
-  if (!definition->board_render(board, row, column, true)) {
+  if (!definition->board_render(board, row, column)) {
     return -1;
   }
 

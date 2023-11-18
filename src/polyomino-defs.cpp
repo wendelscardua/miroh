@@ -63,15 +63,19 @@ void PolyominoDef::chibi_render(u8 row, u8 column) const {
   multi_vram_buffer_horz(preview_tiles + 2, 2, NTADR_A(column, row + 1));
 }
 
-bool PolyominoDef::board_render(Board &board, s8 row, s8 column,
-                                bool jiggling) const {
+bool PolyominoDef::board_render(Board &board, s8 row, s8 column) const {
   bool it_fits = true;
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];
     s8 block_row = row + delta.delta_row;
     s8 block_column = column + delta.delta_column;
     if (block_row >= 0) {
-      board.block_maze_cell(block_row, block_column, jiggling);
+      board.add_animation(BoardAnimation(&Board::block_jiggle,
+                                         sizeof(Board::block_jiggle) /
+                                             sizeof(Board::block_jiggle[0]),
+                                         (u8)block_row, (u8)block_column));
+      // XXX: just so line clears can be counted
+      board.occupy(block_row, block_column);
     } else {
       it_fits = false;
     }

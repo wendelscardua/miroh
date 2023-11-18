@@ -1,6 +1,7 @@
 #include "unicorn.hpp"
 #include "animation.hpp"
 #include "banked-asset-helpers.hpp"
+#include "board.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
 #include "direction.hpp"
@@ -107,7 +108,7 @@ void Unicorn::energy_upkeep() {
 }
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
-Unicorn::update(u8 pressed, u8 held) {
+Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
   energy_upkeep();
 
   switch (state) {
@@ -131,26 +132,29 @@ Unicorn::update(u8 pressed, u8 held) {
 
     // begins roll action
     if (pressed & (PAD_A | PAD_B)) {
-      if (energy < CHARGE_COST) {
+      if (energy < CHARGE_COST && !roll_disabled) {
         banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
         break;
       }
       energy -= CHARGE_COST;
       set_state(State::Roll);
       roll_distance = 0;
+      bool occ, wall;
       if (facing == Direction::Right) {
-        while (roll_distance < 3 &&
-               !board.occupied((s8)row, column + roll_distance + 1) &&
-               !board.cell_at(row, column + roll_distance).right_wall) {
+        while (
+            roll_distance < 3 &&
+            !(wall = board.cell_at(row, column + roll_distance).right_wall) &&
+            !(occ = board.occupied((s8)row, column + roll_distance + 1))) {
           roll_distance++;
         }
       } else {
         while (roll_distance < 3 &&
-               !board.occupied((s8)row, column - roll_distance - 1) &&
-               !board.cell_at(row, column - roll_distance).left_wall) {
+               !(wall = board.cell_at(row, column - roll_distance).left_wall) &&
+               !(occ = board.occupied((s8)row, column - roll_distance - 1))) {
           roll_distance++;
         }
       }
+      roll_into_block = (roll_distance < 3 && occ);
       break;
     }
 
@@ -300,7 +304,48 @@ Unicorn::update(u8 pressed, u8 held) {
     if (generic_animation.finished) {
       set_state(State::Idle);
     }
-    // TODO: push block
+    if (roll_into_block && generic_animation.current_cell_index == 0 &&
+        generic_animation.current_frame == 3) {
+      if (facing == Direction::Right) {
+        if (board.occupied((s8)row, column + 2)) {
+          board.add_animation(
+              BoardAnimation(&Board::block_break_right,
+                             sizeof(Board::block_break_right) /
+                                 sizeof(Board::block_break_right[0]),
+                             row, column + 1));
+        } else {
+          board.add_animation(
+              BoardAnimation(&Board::block_move_right,
+                             sizeof(Board::block_move_right) /
+                                 sizeof(Board::block_move_right[0]),
+                             row, column + 1));
+          board.add_animation(
+              BoardAnimation(&Board::block_arrive_right,
+                             sizeof(Board::block_arrive_right) /
+                                 sizeof(Board::block_arrive_right[0]),
+                             row, column + 2));
+        }
+      } else {
+        if (board.occupied((s8)row, column - 2)) {
+          board.add_animation(
+              BoardAnimation(&Board::block_break_left,
+                             sizeof(Board::block_break_left) /
+                                 sizeof(Board::block_break_left[0]),
+                             row, column - 1));
+        } else {
+          board.add_animation(
+              BoardAnimation(&Board::block_move_left,
+                             sizeof(Board::block_move_left) /
+                                 sizeof(Board::block_move_left[0]),
+                             row, column - 1));
+          board.add_animation(
+              BoardAnimation(&Board::block_arrive_left,
+                             sizeof(Board::block_arrive_left) /
+                                 sizeof(Board::block_arrive_left[0]),
+                             row, column - 2));
+        }
+      }
+    }
     break;
   }
 }

@@ -5,9 +5,14 @@
 
 static constexpr u8 HEIGHT = 10;
 static constexpr u8 WIDTH = 12;
-static constexpr u8 WALL_ATTRIBUTE = 0b00000000;
 
-static constexpr u8 BLOCK_ATTRIBUTE = 0b00000000;
+enum class CellType : u8 {
+  Maze,
+  Marshmallow,
+  Jiggling,
+  LeanLeft,
+  LeanRight,
+};
 
 class Cell {
 public:
@@ -22,6 +27,32 @@ public:
   };
 
   Cell();
+};
+
+struct BoardAnimFrame {
+  CellType cell_type;
+  u8 duration;
+};
+
+class BoardAnimation {
+public:
+  const BoardAnimFrame (*cells)[];
+  const BoardAnimFrame *current_cell;
+  static bool paused;
+  u8 current_frame;
+  u8 current_cell_index;
+  u8 length;
+  u8 row;
+  u8 column;
+  bool finished;
+
+  BoardAnimation();
+
+  BoardAnimation(const BoardAnimFrame (*cells)[], u8 length, u8 row, u8 column);
+
+  void reset();
+
+  void update();
 };
 
 class Board {
@@ -43,6 +74,8 @@ public:
   soa::Array<u16, HEIGHT> occupied_bitset;
   Cell cell[HEIGHT * WIDTH]; // each of the board's cells
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
+  std::array<BoardAnimation, 7> animations;
+  bool active_animations;
 
   static constexpr u8 origin_row =
       origin_y >> 4; // origin in metatile space (y)
@@ -51,6 +84,36 @@ public:
 
   static constexpr u8 MAZE_BANK = 0;
 
+  static constexpr BoardAnimFrame block_jiggle[] = {{CellType::Jiggling, 8},
+                                                    {CellType::Marshmallow, 8},
+                                                    {CellType::Jiggling, 8},
+                                                    {CellType::Marshmallow, 1}};
+  static constexpr BoardAnimFrame block_move_right[] = {{CellType::LeanLeft, 4},
+                                                        {CellType::Maze, 1}};
+  static constexpr BoardAnimFrame block_move_left[] = {{CellType::LeanRight, 4},
+                                                       {CellType::Maze, 1}};
+  static constexpr BoardAnimFrame block_arrive_right[] = {
+      {CellType::Maze, 4},
+      {CellType::LeanLeft, 4},
+      {CellType::LeanRight, 4},
+      {CellType::LeanLeft, 4},
+      {CellType::Marshmallow, 1}};
+  static constexpr BoardAnimFrame block_arrive_left[] = {
+      {CellType::Maze, 4},
+      {CellType::LeanRight, 4},
+      {CellType::LeanLeft, 4},
+      {CellType::LeanRight, 4},
+      {CellType::Marshmallow, 1}};
+  static constexpr BoardAnimFrame block_break_right[] = {
+      {CellType::LeanLeft, 4},
+      {CellType::LeanRight, 4},
+      {CellType::LeanLeft, 4},
+      {CellType::Maze, 1}};
+  static constexpr BoardAnimFrame block_break_left[] = {
+      {CellType::LeanRight, 4},
+      {CellType::LeanLeft, 4},
+      {CellType::LeanRight, 4},
+      {CellType::Maze, 1}};
   Board();
   ~Board();
 
@@ -72,12 +135,8 @@ public:
   // marks a position as not occupied by a solid block
   void free(s8 row, s8 column);
 
-  // draw a block and occupy these coordinates
-  void block_maze_cell(s8 row, s8 column);
-  void block_maze_cell(s8 row, s8 column, bool jiggling);
-
-  // restore a maze andfree these coordinates
-  void restore_maze_cell(s8 row, s8 column);
+  // change a cell at these coordinates and with a given style
+  void set_maze_cell(s8 row, s8 column, CellType type);
 
   // advances the process of clearing a filled line
   // returns true if such process is still ongoing
@@ -91,4 +150,10 @@ public:
   u8 random_free_column(u8 row);
 
   Cell &cell_at(u8 row, u8 column);
+
+  // enqueues a new animation
+  void add_animation(BoardAnimation animation);
+
+  // animate cells
+  void animate();
 };

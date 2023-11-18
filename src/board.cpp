@@ -1,11 +1,11 @@
 #include "board.hpp"
 #include "assets.hpp"
-#include "attributes.hpp"
 #include "bag.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
+#include "log.hpp"
 #include "maze-defs.hpp"
 #include "soundtrack.hpp"
 #include "union-find.hpp"
@@ -25,11 +25,39 @@ static_assert(sizeof(CELL_ROW_START) == HEIGHT,
 
 u8 board_index(u8 row, u8 column) { return CELL_ROW_START[row] + column; }
 
+bool BoardAnimation::paused = false;
+
+BoardAnimation::BoardAnimation() : cells(NULL), length(0), finished(true) {}
+
+BoardAnimation::BoardAnimation(const BoardAnimFrame (*cells)[], u8 length,
+                               u8 row, u8 column)
+    : cells(cells), current_cell(&(*cells)[0]), current_frame(0),
+      current_cell_index(0), length(length), row(row), column(column),
+      finished(false) {}
+
+void BoardAnimation::update() {
+  START_MESEN_WATCH(13);
+  if (paused || finished)
+    goto exit;
+  current_frame++;
+  if (current_frame >= current_cell->duration) {
+    current_frame = 0;
+    current_cell_index++;
+    if (current_cell_index == length) {
+      finished = true;
+    } else {
+      current_cell++;
+    }
+  }
+exit:
+  STOP_MESEN_WATCH(13);
+}
+
 Cell &Board::cell_at(u8 row, u8 column) {
   return this->cell[board_index(row, column)];
 }
 
-Board::Board() {}
+Board::Board() : animations({}), active_animations(false) {}
 
 Board::~Board() {}
 
@@ -202,13 +230,13 @@ __attribute__((noinline, section(".prg_rom_0"))) void Board::generate_maze() {
 void Board::render() {
   for (s8 i = 0; i < HEIGHT; i++) {
     for (s8 j = 0; j < WIDTH; j++) {
-      restore_maze_cell(i, j);
+      set_maze_cell(i, j, CellType::Maze);
       flush_vram_update2();
     }
   }
 }
 
-bool Board::occupied(s8 row, s8 column) {
+__attribute__((noinline)) bool Board::occupied(s8 row, s8 column) {
   if (column < 0 || column > WIDTH - 1 || row > HEIGHT - 1)
     return true;
 
@@ -335,10 +363,6 @@ u8 walls_to_index(bool wall_going_up, bool wall_going_right,
   return value;
 }
 
-void Board::block_maze_cell(s8 row, s8 column) {
-  block_maze_cell(row, column, false);
-}
-
 /*
  VRAM BUFFER layout:
  0: address.h + horizontal (top)
@@ -359,50 +383,122 @@ void Board::block_maze_cell(s8 row, s8 column) {
 #define BOTTOM_0 VRAM_BUF[VRAM_INDEX + 8]
 #define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
 
-void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
+void Board::set_maze_cell(s8 row, s8 column, CellType cell_type) {
   auto current_cell = &cell_at((u8)row, (u8)column);
-  auto lower_cell =
-      row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
-  auto left_cell = column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
-  auto right_cell =
-      column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
 
-  TOP_0 = MARSHMALLOW_BASE_TILE;
-  TOP_1 = MARSHMALLOW_BASE_TILE + 1;
+  if (cell_type == CellType::Maze) {
+    free(row, column);
+    auto upper_cell = row > 0 ? &cell_at((u8)row - 1, (u8)column) : &null_cell;
+    auto lower_cell =
+        row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
+    auto left_cell =
+        column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
+    auto right_cell =
+        column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
 
-  BOTTOM_0 = lower_left_block_tile[walls_to_index(
-      current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
-      left_cell->down_wall)];
-  BOTTOM_1 = lower_right_block_tile[walls_to_index(
-      current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
-      current_cell->down_wall)];
+    TOP_0 = upper_left_maze_tile[walls_to_index(
+        upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
+        left_cell->up_wall)];
+    TOP_1 = upper_right_maze_tile[walls_to_index(
+        upper_cell->right_wall, right_cell->up_wall, current_cell->right_wall,
+        current_cell->up_wall)];
+    BOTTOM_0 = lower_left_maze_tile[walls_to_index(
+        current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
+        left_cell->down_wall)];
+    BOTTOM_1 = lower_right_maze_tile[walls_to_index(
+        current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
+        current_cell->down_wall)];
 
-  if (row == HEIGHT - 1) {
-    if (column > 0 && current_cell->left_wall) {
-      BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
+    if (row == 0) {
+      if (column > 0 && current_cell->left_wall) {
+        TOP_0 = MAZE_BASE_TILE + 0x0a;
+      }
+      if (column < WIDTH - 1 && current_cell->right_wall) {
+        TOP_1 = MAZE_BASE_TILE + 0x09;
+      }
+    } else if (row == HEIGHT - 1) {
+      if (column > 0 && current_cell->left_wall) {
+        BOTTOM_0 = MAZE_BASE_TILE + 0x1a;
+      }
+      if (column < WIDTH - 1 && current_cell->right_wall) {
+        BOTTOM_1 = MAZE_BASE_TILE + 0x19;
+      }
     }
-    if (column < WIDTH - 1 && current_cell->right_wall) {
-      BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
-    }
-  }
 
-  if (column == 0) {
-    if (row < HEIGHT - 1 && current_cell->down_wall) {
-      BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
+    if (column == 0) {
+      if (row > 0 && current_cell->up_wall) {
+        TOP_0 = MAZE_BASE_TILE + 0x1b;
+      }
+      if (row < HEIGHT - 1 && current_cell->down_wall) {
+        BOTTOM_0 = MAZE_BASE_TILE + 0x0b;
+      }
+    } else if (column == WIDTH - 1) {
+      if (row > 0 && current_cell->up_wall) {
+        TOP_1 = MAZE_BASE_TILE + 0x1c;
+      }
+      if (row < HEIGHT - 1 && current_cell->down_wall) {
+        BOTTOM_1 = MAZE_BASE_TILE + 0x0c;
+      }
     }
-  } else if (column == WIDTH - 1) {
-    if (row < HEIGHT - 1 && current_cell->down_wall) {
-      BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
-    }
-  }
 
-  if (jiggling) {
-    TOP_0 += 0x10;
-    TOP_1 += 0x10;
-    BOTTOM_0 += 0x10;
-    BOTTOM_1 += 0x10;
+  } else {
+    occupy(row, column);
+    auto lower_cell =
+        row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
+    auto left_cell =
+        column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
+    auto right_cell =
+        column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
+
+    TOP_0 = MARSHMALLOW_BASE_TILE;
+    TOP_1 = MARSHMALLOW_BASE_TILE + 1;
+
+    BOTTOM_0 = lower_left_block_tile[walls_to_index(
+        current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
+        left_cell->down_wall)];
+    BOTTOM_1 = lower_right_block_tile[walls_to_index(
+        current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
+        current_cell->down_wall)];
+
+    if (row == HEIGHT - 1) {
+      if (column > 0 && current_cell->left_wall) {
+        BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
+      }
+      if (column < WIDTH - 1 && current_cell->right_wall) {
+        BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
+      }
+    }
+
+    if (column == 0) {
+      if (row < HEIGHT - 1 && current_cell->down_wall) {
+        BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
+      }
+    } else if (column == WIDTH - 1) {
+      if (row < HEIGHT - 1 && current_cell->down_wall) {
+        BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
+      }
+    }
+
+    switch (cell_type) {
+    case CellType::Jiggling:
+      TOP_0 += 0x10;
+      TOP_1 += 0x10;
+      BOTTOM_0 += 0x10;
+      BOTTOM_1 += 0x10;
+      break;
+    case CellType::LeanLeft:
+      TOP_0 = 0x4c;
+      TOP_1 = 0x4d;
+      break;
+    case CellType::LeanRight:
+      TOP_0 = 0x4e;
+      TOP_1 = 0x4f;
+      break;
+    default:
+      break;
+    }
   }
 
   // unrolled equivalent of...
@@ -421,91 +517,6 @@ void Board::block_maze_cell(s8 row, s8 column, bool jiggling) {
   VRAM_INDEX += 10;
 
   // end of unrolled
-
-  Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
-                  BLOCK_ATTRIBUTE);
-
-  occupy(row, column);
-}
-
-void Board::restore_maze_cell(s8 row, s8 column) {
-  auto current_cell = &cell_at((u8)row, (u8)column);
-  int position =
-      NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
-
-  auto upper_cell = row > 0 ? &cell_at((u8)row - 1, (u8)column) : &null_cell;
-  auto lower_cell =
-      row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
-  auto left_cell = column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
-  auto right_cell =
-      column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
-
-  TOP_0 = upper_left_maze_tile[walls_to_index(
-      upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
-      left_cell->up_wall)];
-  TOP_1 = upper_right_maze_tile[walls_to_index(
-      upper_cell->right_wall, right_cell->up_wall, current_cell->right_wall,
-      current_cell->up_wall)];
-  BOTTOM_0 = lower_left_maze_tile[walls_to_index(
-      current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
-      left_cell->down_wall)];
-  BOTTOM_1 = lower_right_maze_tile[walls_to_index(
-      current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
-      current_cell->down_wall)];
-
-  if (row == 0) {
-    if (column > 0 && current_cell->left_wall) {
-      TOP_0 = MAZE_BASE_TILE + 0x0a;
-    }
-    if (column < WIDTH - 1 && current_cell->right_wall) {
-      TOP_1 = MAZE_BASE_TILE + 0x09;
-    }
-  } else if (row == HEIGHT - 1) {
-    if (column > 0 && current_cell->left_wall) {
-      BOTTOM_0 = MAZE_BASE_TILE + 0x1a;
-    }
-    if (column < WIDTH - 1 && current_cell->right_wall) {
-      BOTTOM_1 = MAZE_BASE_TILE + 0x19;
-    }
-  }
-
-  if (column == 0) {
-    if (row > 0 && current_cell->up_wall) {
-      TOP_0 = MAZE_BASE_TILE + 0x1b;
-    }
-    if (row < HEIGHT - 1 && current_cell->down_wall) {
-      BOTTOM_0 = MAZE_BASE_TILE + 0x0b;
-    }
-  } else if (column == WIDTH - 1) {
-    if (row > 0 && current_cell->up_wall) {
-      TOP_1 = MAZE_BASE_TILE + 0x1c;
-    }
-    if (row < HEIGHT - 1 && current_cell->down_wall) {
-      BOTTOM_1 = MAZE_BASE_TILE + 0x0c;
-    }
-  }
-
-  // unrolled equivalent of...
-  // multi_vram_buffer_horz(metatile_top, 2, position);
-  // multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
-
-  VRAM_BUF[VRAM_INDEX] = (u8)(position >> 8) | 0x40;
-  VRAM_BUF[VRAM_INDEX + 1] = (u8)position;
-  VRAM_BUF[VRAM_INDEX + 2] = 2;
-  // 3, 4 = tiles already set
-  VRAM_BUF[VRAM_INDEX + 5] = (u8)((position + 0x20) >> 8) | 0x40;
-  VRAM_BUF[VRAM_INDEX + 6] = (u8)(position + 0x20);
-  VRAM_BUF[VRAM_INDEX + 7] = 2;
-  // 8, 9 = tiles already set
-  VRAM_BUF[VRAM_INDEX + 10] = 0xff;
-  VRAM_INDEX += 10;
-
-  // end of unrolled
-
-  Attributes::set((u8)(origin_column + column), (u8)(origin_row + row),
-                  WALL_ATTRIBUTE);
-
-  free(row, column);
 }
 
 bool Board::row_filled(s8 row) {
@@ -550,7 +561,7 @@ bool Board::ongoing_line_clearing(bool jiggling) {
   for (erasing_row = HEIGHT - 1; erasing_row >= 0; erasing_row--) {
     if (deleted[erasing_row]) {
       for (erasing_column = 0; erasing_column < WIDTH; erasing_column++) {
-        restore_maze_cell(erasing_row, erasing_column);
+        set_maze_cell(erasing_row, erasing_column, CellType::Maze);
         CORO_YIELD(true);
       }
     }
@@ -574,17 +585,17 @@ bool Board::ongoing_line_clearing(bool jiggling) {
 
         if (source_occupied) {
           if (!occupied(erasing_row, erasing_column)) {
-            block_maze_cell(erasing_row, erasing_column);
+            set_maze_cell(erasing_row, erasing_column, CellType::Marshmallow);
             occupy(erasing_row, erasing_column);
             changed = true;
           }
           if (erasing_row_source >= 0 &&
               occupied(erasing_row_source, erasing_column)) {
-            restore_maze_cell(erasing_row_source, erasing_column);
+            set_maze_cell(erasing_row_source, erasing_column, CellType::Maze);
             changed = true;
           }
         } else if (occupied(erasing_row, erasing_column)) {
-          restore_maze_cell(erasing_row, erasing_column);
+          set_maze_cell(erasing_row, erasing_column, CellType::Maze);
           changed = true;
         }
       }
@@ -631,4 +642,31 @@ u8 Board::random_free_column(u8 row) {
     bits >>= 1;
   }
   return possible_columns[RAND_UP_TO(max_possible_columns)];
+}
+
+__attribute__((noinline)) void
+Board::add_animation(BoardAnimation new_animation) {
+  for (auto &animation : animations) {
+    if (animation.finished) {
+      animation = new_animation;
+      break;
+    }
+  }
+}
+
+void Board::animate() {
+  active_animations = false;
+  for (auto &animation : animations) {
+    if (animation.finished) {
+      continue;
+    }
+    active_animations = true;
+    if (animation.current_frame == 0) {
+      set_maze_cell((s8)animation.row, (s8)animation.column,
+                    animation.current_cell->cell_type);
+    }
+    animation.update();
+  }
+  putchar('Z');
+  putchar('\n');
 }
