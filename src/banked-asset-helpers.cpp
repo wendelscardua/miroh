@@ -35,9 +35,7 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_title_assets() {
     vram_read(donut_block_buffer, 64);
     vram_adr(NAMETABLE_B + i);
     vram_write(donut_block_buffer, 64);
-  }
-  for (u16 i = 0; i < 1024; i += 64) {
-    vram_adr(1024 + i);
+    vram_adr(1024 | i);
     vram_read(donut_block_buffer, 64);
     vram_adr(NAMETABLE_A + i);
     vram_write(donut_block_buffer, 64);
@@ -76,9 +74,7 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
     vram_read(donut_block_buffer, 64);
     vram_adr(NAMETABLE_A + i);
     vram_write(donut_block_buffer, 64);
-  }
-  for (u16 i = 0; i < 1024; i += 64) {
-    vram_adr(1024 + i);
+    vram_adr(1024 | i);
     vram_read(donut_block_buffer, 64);
     vram_adr(NAMETABLE_C + i);
     vram_write(donut_block_buffer, 64);

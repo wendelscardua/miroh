@@ -632,7 +632,8 @@ void Gameplay::gameplay_handler() {
   }
 
   if (lines_cleared) {
-    u16 points = 10 * (2 * lines_cleared - 1);
+    const u8 points_per_lines[] = {0, 10, 30, 50, 70};
+    u8 points = points_per_lines[lines_cleared];
     unicorn.score += points;
     if (unicorn.score > 9999) {
       unicorn.score = 9999;
@@ -962,7 +963,7 @@ void Gameplay::loop() {
   }
 }
 
-void Gameplay::add_experience(u16 exp) {
+void Gameplay::add_experience(u8 exp) {
   if (current_level < MAX_LEVEL) {
     experience += exp;
     while (experience >= LEVEL_UP_POINTS && current_level < MAX_LEVEL) {

@@ -20,7 +20,7 @@ private:
   Direction moving;
   fixed_point target_x, target_y;
   u8 energy;
-  s16 energy_timer;
+  u8 energy_timer;
   u8 original_energy;
   u8 sprite_offset;
 
