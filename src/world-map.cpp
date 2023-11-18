@@ -114,7 +114,7 @@ void WorldMap::loop() {
       current_game_state = GameState::Gameplay;
       banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
     } else if (pressed & (PAD_B)) {
-      // TODO: maybe back to title?
+      current_game_state = GameState::TitleScreen;
     } else if (pressed & (PAD_UP | PAD_LEFT)) {
       Stage new_stage = current_stage;
 
