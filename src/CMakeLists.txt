@@ -152,10 +152,10 @@ set_property(
   GlitteryGrottoBG.suffix.chr.donut
   GlitteryGrotto.nam.zx02
   
-  MarshmallowMountainBG.pal
-  MarshmallowMountainSPR.pal
-  MarshmallowMountainBG.suffix.chr.donut
-  MarshmallowMountain.nam.zx02
+  # MarshmallowMountainBG.pal
+  # MarshmallowMountainSPR.pal
+  # MarshmallowMountainBG.suffix.chr.donut
+  # MarshmallowMountain.nam.zx02
 
   MapBG.pal
   Map.nam.zx02
@@ -190,10 +190,10 @@ add_raw_asset(SOURCE "GlitteryGrottoSPR.pal")
 add_donut_asset(SOURCE "GlitteryGrottoBG.suffix.chr")
 add_zx02_asset(SOURCE "GlitteryGrotto.nam" ALT "GlitteryGrottoAlt.nam")
 
-add_raw_asset(SOURCE "MarshmallowMountainBG.pal")
-add_raw_asset(SOURCE "MarshmallowMountainSPR.pal")
-add_donut_asset(SOURCE "MarshmallowMountainBG.suffix.chr")
-add_zx02_asset(SOURCE "MarshmallowMountain.nam" ALT "MarshmallowMountainAlt.nam")
+# add_raw_asset(SOURCE "MarshmallowMountainBG.pal")
+# add_raw_asset(SOURCE "MarshmallowMountainSPR.pal")
+# add_donut_asset(SOURCE "MarshmallowMountainBG.suffix.chr")
+# add_zx02_asset(SOURCE "MarshmallowMountain.nam" ALT "MarshmallowMountainAlt.nam")
 
 add_raw_asset(SOURCE "MapBG.pal")
 add_zx02_asset(SOURCE "Map.nam")
