@@ -32,10 +32,6 @@ WorldMap::WorldMap(Board &board) : board(board) {
 
   pal_bright(0);
 
-  oam_clear();
-
-  render_sprites();
-
   scroll(0, 0);
 
   switch (current_game_mode) {
@@ -67,12 +63,25 @@ WorldMap::WorldMap(Board &board) : board(board) {
     }
   }
 
-  for (u8 i = 0; i < NUM_STAGES; i++) {
+  for (u8 i = (u8)current_stage; i < NUM_STAGES; i++) {
     if (available_stages[i]) {
       current_stage = (Stage)i;
       break;
     }
   }
+
+  if (!available_stages[(u8)current_stage]) {
+    for (u8 i = 0; i < NUM_STAGES; i++) {
+      if (available_stages[i]) {
+        current_stage = (Stage)i;
+        break;
+      }
+    }
+  }
+
+  oam_clear();
+
+  render_sprites();
 
   change_uni_palette();
 
