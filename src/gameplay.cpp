@@ -781,6 +781,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       multi_vram_buffer_horz(continue_text, sizeof(continue_text),
                              PAUSE_MENU_OPTIONS_POSITION);
       gameplay_state = GameplayState::ConfirmContinue;
+      story_completion[(u8)current_stage] = true;
       banked_play_song(Song::Victory);
       break;
     }
