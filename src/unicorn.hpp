@@ -48,6 +48,7 @@ public:
   u8 row;
   u8 column;
   u8 roll_distance;
+  bool roll_into_block;
   u16 score;
 
   u8 buffered_input;

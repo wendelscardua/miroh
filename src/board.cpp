@@ -236,7 +236,7 @@ void Board::render() {
   }
 }
 
-bool Board::occupied(s8 row, s8 column) {
+__attribute__((noinline)) bool Board::occupied(s8 row, s8 column) {
   if (column < 0 || column > WIDTH - 1 || row > HEIGHT - 1)
     return true;
 
@@ -644,7 +644,8 @@ u8 Board::random_free_column(u8 row) {
   return possible_columns[RAND_UP_TO(max_possible_columns)];
 }
 
-void Board::add_animation(BoardAnimation new_animation) {
+__attribute__((noinline)) void
+Board::add_animation(BoardAnimation new_animation) {
   for (auto &animation : animations) {
     if (animation.finished) {
       animation = new_animation;
