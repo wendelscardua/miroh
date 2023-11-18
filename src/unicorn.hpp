@@ -14,6 +14,7 @@ class Unicorn {
   static constexpr fixed_point TIRED_MOVE_SPEED = fixed_point(0, 0x92);
   static constexpr u8 MAX_ENERGY = 12;
   static constexpr u8 STARTING_ENERGY = 9;
+  static constexpr u8 CHARGE_COST = 3;
 
 private:
   Direction facing;

@@ -131,6 +131,11 @@ Unicorn::update(u8 pressed, u8 held) {
 
     // begins roll action
     if (pressed & (PAD_A | PAD_B)) {
+      if (energy < CHARGE_COST) {
+        banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
+        break;
+      }
+      energy -= CHARGE_COST;
       set_state(State::Roll);
       roll_distance = 0;
       if (facing == Direction::Right) {
