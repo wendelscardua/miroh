@@ -71,6 +71,24 @@ Unicorn::set_state(State new_state) {
     generic_animation =
         Animation{&trapped_cells, sizeof(trapped_cells) / sizeof(AnimCell)};
     break;
+  case State::Roll:
+    generic_animation =
+        (facing == Direction::Right)
+            ? Animation{&roll_right_cells,
+                        sizeof(roll_right_cells) / sizeof(AnimCell)}
+            : Animation{&roll_left_cells,
+                        sizeof(roll_left_cells) / sizeof(AnimCell)};
+
+    break;
+  case State::Impact:
+    generic_animation =
+        (facing == Direction::Right)
+            ? Animation{&impact_right_cells,
+                        sizeof(impact_right_cells) / sizeof(AnimCell)}
+            : Animation{&impact_left_cells,
+                        sizeof(impact_left_cells) / sizeof(AnimCell)};
+
+    break;
   }
 }
 
@@ -108,6 +126,26 @@ Unicorn::update(u8 pressed, u8 held) {
     // check if unicorn is trapped
     if (board.occupied((s8)row, (s8)column)) {
       set_state(State::Trapped);
+      break;
+    }
+
+    // begins roll action
+    if (pressed & (PAD_A | PAD_B)) {
+      set_state(State::Roll);
+      roll_distance = 0;
+      if (facing == Direction::Right) {
+        while (roll_distance < 3 &&
+               !board.occupied((s8)row, column + roll_distance + 1) &&
+               !board.cell_at(row, column + roll_distance).right_wall) {
+          roll_distance++;
+        }
+      } else {
+        while (roll_distance < 3 &&
+               !board.occupied((s8)row, column - roll_distance - 1) &&
+               !board.cell_at(row, column - roll_distance).left_wall) {
+          roll_distance++;
+        }
+      }
       break;
     }
 
@@ -229,6 +267,36 @@ Unicorn::update(u8 pressed, u8 held) {
       banked_play_sfx(SFX::Marshmallow, GGSound::SFXPriority::Two);
     }
     break;
+  case State::Roll:
+    if (generic_animation.finished) {
+      set_state(State::Idle);
+      break;
+    }
+    if (generic_animation.current_frame == 0 &&
+        (generic_animation.current_cell_index == 3 ||
+         generic_animation.current_cell_index == 4 ||
+         generic_animation.current_cell_index == 5)) {
+      // would have started Roll B, C or D
+      if (roll_distance == 0) {
+        set_state(State::Impact);
+        break;
+      }
+      roll_distance--;
+      if (facing == Direction::Right) {
+        column++;
+        x += GRID_SIZE;
+      } else {
+        column--;
+        x -= GRID_SIZE;
+      }
+    }
+    break;
+  case State::Impact:
+    if (generic_animation.finished) {
+      set_state(State::Idle);
+    }
+    // TODO: push block
+    break;
   }
 }
 
@@ -261,10 +329,12 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
     return;
   }
 
-  if (state == State::Trapped) {
+  if (state == State::Trapped || state == State::Roll ||
+      state == State::Impact) {
     generic_animation.update(board.origin_x + x.whole, reference_y + y.whole);
     return;
   }
+
   sprite_offset = SPRID;
 
   Animation &animation =

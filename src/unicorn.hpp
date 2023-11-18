@@ -36,6 +36,8 @@ public:
     Yawning,
     Sleeping,
     Trapped,
+    Roll,
+    Impact,
   };
 
   State state;
@@ -44,6 +46,7 @@ public:
   fixed_point y;
   u8 row;
   u8 column;
+  u8 roll_distance;
   u16 score;
 
   u8 buffered_input;

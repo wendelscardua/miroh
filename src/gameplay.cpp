@@ -718,7 +718,8 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
 }
 
 bool Gameplay::game_is_over() {
-  return unicorn.generic_animation.finished &&
+  return unicorn.state == Unicorn::State::Trapped &&
+         unicorn.generic_animation.finished &&
          (gameplay_state != GameplayState::MarshmallowOverflow ||
           (gameplay_state == GameplayState::MarshmallowOverflow &&
            overflow_state == OverflowState::GameOver));
