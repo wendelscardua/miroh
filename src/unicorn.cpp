@@ -108,7 +108,7 @@ void Unicorn::energy_upkeep() {
 }
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
-Unicorn::update(u8 pressed, u8 held) {
+Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
   energy_upkeep();
 
   switch (state) {
@@ -132,7 +132,7 @@ Unicorn::update(u8 pressed, u8 held) {
 
     // begins roll action
     if (pressed & (PAD_A | PAD_B)) {
-      if (energy < CHARGE_COST) {
+      if (energy < CHARGE_COST && !roll_disabled) {
         banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
         break;
       }

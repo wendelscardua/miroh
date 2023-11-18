@@ -614,8 +614,9 @@ void Gameplay::gameplay_handler() {
                      failed_to_place, lines_cleared);
   });
 
-  banked_lambda(PLAYER_BANK,
-                [this]() { unicorn.update(unicorn_pressed, unicorn_held); });
+  banked_lambda(PLAYER_BANK, [this, line_clearing_in_progress]() {
+    unicorn.update(unicorn_pressed, unicorn_held, line_clearing_in_progress);
+  });
 
   fruits.update(unicorn, snack_was_eaten);
 
