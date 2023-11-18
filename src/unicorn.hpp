@@ -20,39 +20,9 @@ private:
   Direction moving;
   fixed_point target_x, target_y;
   u8 energy;
-  s16 energy_timer;
+  u8 energy_timer;
   u8 original_energy;
   u8 sprite_offset;
-
-  Animation idle_right_animation{idle_right_cells,
-                                 sizeof(idle_right_cells) / sizeof(AnimCell)};
-  Animation idle_left_animation{idle_left_cells,
-                                sizeof(idle_left_cells) / sizeof(AnimCell)};
-
-  Animation tired_right_animation{tired_right_cells,
-                                  sizeof(tired_right_cells) / sizeof(AnimCell)};
-  Animation tired_left_animation{tired_left_cells,
-                                 sizeof(tired_left_cells) / sizeof(AnimCell)};
-
-  Animation yawn_right_animation{yawn_right_cells,
-                                 sizeof(yawn_right_cells) / sizeof(AnimCell)};
-  Animation yawn_left_animation{yawn_left_cells,
-                                sizeof(yawn_left_cells) / sizeof(AnimCell)};
-
-  Animation sleep_right_animation{sleep_right_cells,
-                                  sizeof(sleep_right_cells) / sizeof(AnimCell)};
-  Animation sleep_left_animation{sleep_left_cells,
-                                 sizeof(sleep_left_cells) / sizeof(AnimCell)};
-
-  Animation moving_right_animation{
-      moving_right_cells, sizeof(moving_right_cells) / sizeof(AnimCell)};
-  Animation moving_left_animation{moving_left_cells,
-                                  sizeof(moving_left_cells) / sizeof(AnimCell)};
-
-  Animation trudging_right_animation{
-      trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
-  Animation trudging_left_animation{
-      trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
 
   // fixes priority flags for bottom sprites
   void fix_uni_priority(bool left_wall, bool right_wall);
@@ -66,20 +36,29 @@ public:
     Yawning,
     Sleeping,
     Trapped,
+    Roll,
+    Impact,
   };
 
   State state;
   Board &board;
   fixed_point x;
   fixed_point y;
+  u8 row;
+  u8 column;
+  u8 roll_distance;
   u16 score;
 
   u8 buffered_input;
 
   bool statue;
 
-  Animation trapped_animation{trapped_cells,
-                              sizeof(trapped_cells) / sizeof(AnimCell)};
+  Animation left_animation{NULL, 0};
+  Animation right_animation{NULL, 0};
+  Animation left_tired_animation{NULL, 0};
+  Animation right_tired_animation{NULL, 0};
+
+  Animation generic_animation{NULL, 0};
 
   Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y);
 

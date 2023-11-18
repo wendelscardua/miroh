@@ -97,7 +97,7 @@ class Gameplay {
       6   // 9
   };
 
-  u16 experience;
+  u8 experience;
   u8 current_level;
   u16 spawn_timer;
 
@@ -192,7 +192,7 @@ public:
   Gameplay(Board &board);
   ~Gameplay();
   void loop();
-  void add_experience(u16 exp);
+  void add_experience(u8 exp);
 
 private:
   void render();

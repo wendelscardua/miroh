@@ -109,7 +109,7 @@ class Fruits {
   Board &board;
   u16 spawn_timer;
 
-  Animation splash_animation{splash_cells,
+  Animation splash_animation{&splash_cells,
                              sizeof(splash_cells) / sizeof(AnimCell)};
 
 public:

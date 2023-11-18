@@ -171,6 +171,9 @@ void Drops::add_random_drop() {
   }
 
   drops[index].row = board.random_free_row();
+  if (drops[index].row > HEIGHT) {
+    return;
+  }
   drops[index].column = board.random_free_column(drops[index].row);
   drops[index].x = (u8)(drops[index].column << 4) + board.origin_x;
   drops[index].target_y = (u8)(drops[index].row << 4) + board.origin_y;
@@ -297,8 +300,8 @@ void Gameplay::render() {
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {
-    u8 row = (u8)(unicorn.y.round() >> 4) + 1;
-    u8 col = (u8)(unicorn.x.round() >> 4);
+    u8 row = unicorn.row + 1;
+    u8 col = unicorn.column;
     if (row < HEIGHT) {
       auto cell = board.cell_at(row, col);
       left_wall = cell.left_wall;
@@ -629,7 +632,8 @@ void Gameplay::gameplay_handler() {
   }
 
   if (lines_cleared) {
-    u16 points = 10 * (2 * lines_cleared - 1);
+    const u8 points_per_lines[] = {0, 10, 30, 50, 70};
+    u8 points = points_per_lines[lines_cleared];
     unicorn.score += points;
     if (unicorn.score > 9999) {
       unicorn.score = 9999;
@@ -714,7 +718,8 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
 }
 
 bool Gameplay::game_is_over() {
-  return unicorn.trapped_animation.finished &&
+  return unicorn.state == Unicorn::State::Trapped &&
+         unicorn.generic_animation.finished &&
          (gameplay_state != GameplayState::MarshmallowOverflow ||
           (gameplay_state == GameplayState::MarshmallowOverflow &&
            overflow_state == OverflowState::GameOver));
@@ -891,9 +896,6 @@ void Gameplay::loop() {
 
     Attributes::enable_vram_buffer();
 
-    pad_poll(0);
-    pad_poll(1);
-
     switch (gameplay_state) {
     case GameplayState::MarshmallowOverflow:
       Gameplay::marshmallow_overflow_handler();
@@ -962,7 +964,7 @@ void Gameplay::loop() {
   }
 }
 
-void Gameplay::add_experience(u16 exp) {
+void Gameplay::add_experience(u8 exp) {
   if (current_level < MAX_LEVEL) {
     experience += exp;
     while (experience >= LEVEL_UP_POINTS && current_level < MAX_LEVEL) {
