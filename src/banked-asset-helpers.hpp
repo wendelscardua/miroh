@@ -22,3 +22,6 @@ void load_map_assets();
 
 // [assets bank] loads game assets
 void load_gameplay_assets();
+
+// loads palette for uni map
+void change_uni_palette();

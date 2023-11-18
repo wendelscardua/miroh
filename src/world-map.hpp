@@ -10,8 +10,11 @@ public:
 
   Board &board;
 
+  bool available_stages[NUM_STAGES];
+
   WorldMap(Board &board);
   ~WorldMap();
   void render_sprites();
+  void stage_change(Stage new_stage);
   void loop();
 };

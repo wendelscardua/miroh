@@ -83,3 +83,10 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
   pal_bg(level_bg_palettes[(u8)current_stage]);
   pal_spr(level_spr_palettes[(u8)current_stage]);
 }
+
+__attribute__((noinline, section(".prg_rom_last"))) void change_uni_palette() {
+  ScopedBank scopedBank(ASSETS_BANK);
+  for (u8 i = 0; i < 8; i++) {
+    pal_col(0x10 | i, level_spr_palettes[(u8)current_stage][i]);
+  }
+}
