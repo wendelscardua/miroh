@@ -7,7 +7,6 @@
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
-#include "maze-defs.hpp"
 #include "metasprites.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
@@ -34,6 +33,10 @@ const fixed_point &Unicorn::move_speed() {
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
 Unicorn::set_state(State new_state) {
+  if (state == new_state) {
+    // avoid resetting animation when reinforcing a current state
+    return;
+  }
   state = new_state;
   switch (state) {
   case State::Idle:
