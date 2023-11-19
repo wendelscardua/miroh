@@ -389,8 +389,22 @@ void Gameplay::initialize_goal() {
   }
 }
 
+const u8 ease_deltas[] = {1, 2, 3, 4, 255};
 void Gameplay::ease_scroll(const int target) {
-  y_scroll += (target - y_scroll + 1) / 2;
+  static u8 ease_index = 0;
+  if (target == y_scroll)
+    return;
+  if (target > y_scroll) {
+    while (y_scroll + ease_deltas[ease_index] > target) {
+      ease_index--;
+    }
+    y_scroll += ease_deltas[ease_index++];
+  } else {
+    while (y_scroll - ease_deltas[ease_index] < target) {
+      ease_index--;
+    }
+    y_scroll -= ease_deltas[ease_index++];
+  }
 }
 
 void Gameplay::pause_handler() {
