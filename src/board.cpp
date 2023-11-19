@@ -82,70 +82,69 @@ Board::generate_maze() {
 
     Maze maze = stage_mazes[(u8)current_stage];
     // read required walls from template
-    for (u8 i = 0; i < HEIGHT; i++) {
+    for (u8 i = 0, index = 0; i < HEIGHT; i++) {
       for (u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell =
-            mazes[(u8)maze]->template_cells[board_index(i, j)];
+        TemplateCell template_cell = mazes[(u8)maze]->template_cells[index];
         if (template_cell.value != 0xff) {
-          cell_at(i, j).walls = template_cell.walls;
+          cell[index].walls = template_cell.walls;
         }
+        index++;
       }
     }
 
     // read "maybe" walls from template
-    for (u8 i = 0; i < HEIGHT; i++) {
+    for (u8 i = 0, index = 0; i < HEIGHT; i++) {
       for (u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell =
-            mazes[(u8)maze]->template_cells[board_index(i, j)];
+        TemplateCell template_cell = mazes[(u8)maze]->template_cells[index];
 
         if (template_cell.value == 0xff) {
           // use the old berzerk algorithm
           // assumes the cell is on the valid range
           switch (RAND_UP_TO_POW2(2)) {
           case 0:
-            cell_at(i, j).right_wall = true;
-            cell_at(i, j + 1).left_wall = true;
+            cell[index].right_wall = true;
+            cell[index + 1].left_wall = true;
             break;
           case 1:
-            cell_at(i, j + 1).down_wall = true;
-            cell_at(i + 1, j + 1).up_wall = true;
+            cell[index + 1].down_wall = true;
+            cell[index + WIDTH + 1].up_wall = true;
             break;
           case 2:
-            cell_at(i + 1, j).right_wall = true;
-            cell_at(i + 1, j + 1).left_wall = true;
+            cell[index + WIDTH].right_wall = true;
+            cell[index + WIDTH + 1].left_wall = true;
             break;
           case 3:
-            cell_at(i, j).down_wall = true;
-            cell_at(i + 1, j).up_wall = true;
+            cell[index].down_wall = true;
+            cell[index + WIDTH].up_wall = true;
             break;
           }
-          continue;
-        }
-
-        if (NEED_WALL(up)) {
-          cell_at(i, j).up_wall = true;
-          if (i > 0) {
-            cell_at(i - 1, j).down_wall = true;
+        } else {
+          if (NEED_WALL(up)) {
+            cell[index].up_wall = true;
+            if (i > 0) {
+              cell[index - WIDTH].down_wall = true;
+            }
+          }
+          if (NEED_WALL(down)) {
+            cell[index].down_wall = true;
+            if (i < HEIGHT - 1) {
+              cell[index + WIDTH].up_wall = true;
+            }
+          }
+          if (NEED_WALL(left)) {
+            cell[index].left_wall = true;
+            if (j > 0) {
+              cell[index - 1].right_wall = true;
+            }
+          }
+          if (NEED_WALL(right)) {
+            cell[index].right_wall = true;
+            if (j < WIDTH - 1) {
+              cell[index + 1].left_wall = true;
+            }
           }
         }
-        if (NEED_WALL(down)) {
-          cell_at(i, j).down_wall = true;
-          if (i < HEIGHT - 1) {
-            cell_at(i + 1, j).up_wall = true;
-          }
-        }
-        if (NEED_WALL(left)) {
-          cell_at(i, j).left_wall = true;
-          if (j > 0) {
-            cell_at(i, j - 1).right_wall = true;
-          }
-        }
-        if (NEED_WALL(right)) {
-          cell_at(i, j).right_wall = true;
-          if (j < WIDTH - 1) {
-            cell_at(i, j + 1).left_wall = true;
-          }
-        }
+        index++;
       }
     }
   }
@@ -164,15 +163,16 @@ Board::generate_maze() {
   Set disjoint_set[HEIGHT * WIDTH];
 
   // union-find-ish-ly ensure all cells are reachable
-  for (u8 i = 0; i < HEIGHT; i++) {
+  for (u8 i = 0, index = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
-      auto current_element = &disjoint_set[board_index(i, j)];
-      if (j < WIDTH - 1 && !cell_at(i, j).right_wall) {
-        current_element->join(&disjoint_set[board_index(i, j + 1)]);
+      auto current_element = &disjoint_set[index];
+      if (j < WIDTH - 1 && !cell[index].right_wall) {
+        current_element->join(&disjoint_set[index + 1]);
       }
-      if (i < HEIGHT - 1 && !cell_at(i, j).down_wall) {
-        current_element->join(&disjoint_set[board_index(i + 1, j)]);
+      if (i < HEIGHT - 1 && !cell[index].down_wall) {
+        current_element->join(&disjoint_set[index + WIDTH]);
       }
+      index++;
     }
   }
 
@@ -192,33 +192,33 @@ Board::generate_maze() {
     u8 i = row_bag.take();
     for (u8 columns = 0; columns < WIDTH; columns++) {
       u8 j = column_bag.take();
-      auto current_element = &disjoint_set[board_index(i, j)];
-      auto right_element =
-          j < WIDTH - 1 ? &disjoint_set[board_index(i, j + 1)] : NULL;
-      auto down_element =
-          i < HEIGHT - 1 ? &disjoint_set[board_index(i + 1, j)] : NULL;
+      u8 index = board_index(i, j);
+
+      auto current_element = &disjoint_set[index];
+      auto right_element = j < WIDTH - 1 ? &disjoint_set[index + 1] : NULL;
+      auto down_element = i < HEIGHT - 1 ? &disjoint_set[index + WIDTH] : NULL;
 
       // randomize if we are looking first horizontally or vertically
       bool down_first = rand8() & 0b1;
 
       if (down_first && down_element &&
           current_element->representative() != down_element->representative()) {
-        cell_at(i, j).down_wall = false;
-        cell_at(i + 1, j).up_wall = false;
+        cell[index].down_wall = false;
+        cell[index + WIDTH].up_wall = false;
         down_element->join(current_element);
       }
 
       if (right_element && current_element->representative() !=
                                right_element->representative()) {
-        cell_at(i, j).right_wall = false;
-        cell_at(i, j + 1).left_wall = false;
+        cell[index].right_wall = false;
+        cell[index + 1].left_wall = false;
         right_element->join(current_element);
       }
 
       if (!down_first && down_element &&
           current_element->representative() != down_element->representative()) {
-        cell_at(i, j).down_wall = false;
-        cell_at(i + 1, j).up_wall = false;
+        cell[index].down_wall = false;
+        cell[index + WIDTH].up_wall = false;
         down_element->join(current_element);
       }
     }
