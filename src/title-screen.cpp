@@ -89,8 +89,6 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
 
   scroll((u16)x_scroll, 0);
 
-  one_vram_buffer(bgm_test_labels[0], TRACK_ID_POSITION);
-
   ppu_on_all();
 
   if (ending_triggered) {
@@ -98,6 +96,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
   } else {
     banked_play_song(current_track);
   }
+  one_vram_buffer(bgm_test_labels[(u8)current_track], TRACK_ID_POSITION);
 
   pal_fade_to(0, 4);
 }
