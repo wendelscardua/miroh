@@ -650,7 +650,7 @@ void Gameplay::gameplay_handler() {
       gameplay_state == GameplayState::Swapping ||
       gameplay_state == GameplayState::MarshmallowOverflow) {
     game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
-                     polyomino.state != Polyomino::State::Inactive);
+                     board.active_animations);
   }
 }
 
