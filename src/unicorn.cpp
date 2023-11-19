@@ -270,8 +270,7 @@ Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     }
     break;
   case State::Trapped:
-    if ((generic_animation.current_cell_index == 1 ||
-         generic_animation.current_cell_index == 3) &&
+    if (generic_animation.current_cell_index == 1 &&
         generic_animation.current_frame == 0) {
       banked_play_sfx(SFX::Marshmallow, GGSound::SFXPriority::Two);
     }
