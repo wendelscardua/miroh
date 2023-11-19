@@ -38,6 +38,7 @@ public:
   Song current_track;
   u8 next_track_delay;
   s16 x_scroll;
+  u8 bgm_test_index;
 
   TitleScreen();
   ~TitleScreen();

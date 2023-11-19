@@ -89,15 +89,16 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
 
   scroll((u16)x_scroll, 0);
 
-  one_vram_buffer(bgm_test_labels[0], TRACK_ID_POSITION);
-
   ppu_on_all();
 
   if (ending_triggered) {
     current_track = Song::Ending;
+    bgm_test_index = 8;
   } else {
+    bgm_test_index = 0;
     banked_play_song(current_track);
   }
+  one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
 
   pal_fade_to(0, 4);
 }
@@ -139,7 +140,6 @@ void TitleScreen::render_sprites() {
 __attribute__((noinline)) void TitleScreen::loop() {
   bool how_to_players_switched = false;
   u8 how_to_select_timer = 0;
-  u8 bgm_test_index = 0;
 
   while (current_game_state == GameState::TitleScreen) {
     ppu_wait_nmi();

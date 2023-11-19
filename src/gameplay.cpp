@@ -235,15 +235,12 @@ bool Drops::random_hard_drop() {
 }
 
 __attribute__((noinline)) Gameplay::Gameplay(Board &board)
-    : experience(0), current_level(0), spawn_timer(SPAWN_DELAY_PER_LEVEL[0]),
-      board(board),
+    : experience(0), current_level(0), spawn_timer(0), board(board),
       unicorn(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
-      input_mode(current_controller_scheme == ControllerScheme::OnePlayer
-                     ? InputMode::Unicorn
-                     : InputMode::Polyomino),
-      yes_no_option(false), pause_option(PauseOption::Resume),
-      drops(Drops(board)), y_scroll(INTRO_SCROLL_Y), goal_counter(0) {
+      input_mode(InputMode::Polyomino), yes_no_option(false),
+      pause_option(PauseOption::Resume), drops(Drops(board)),
+      y_scroll(INTRO_SCROLL_Y), goal_counter(0) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_HORIZONTAL);
@@ -610,7 +607,7 @@ void Gameplay::gameplay_handler() {
   banked_lambda(GET_BANK(polyominos), [this, line_clearing_in_progress]() {
     // we only spawn when there's no line clearing going on
     if (polyomino.state == Polyomino::State::Inactive &&
-        !line_clearing_in_progress && --spawn_timer == 0) {
+        !line_clearing_in_progress && spawn_timer-- == 0) {
       polyomino.spawn();
       spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
     }
