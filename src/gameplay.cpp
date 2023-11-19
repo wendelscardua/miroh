@@ -187,6 +187,7 @@ void Drops::update() {
       continue;
     }
     if (drop.current_y == drop.target_y) {
+      banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
       board.set_maze_cell((s8)drop.row, (s8)drop.column, CellType::Marshmallow);
       drop.row = 0xff;
       active_drops--;
@@ -625,6 +626,8 @@ void Gameplay::gameplay_handler() {
     gameplay_state = GameplayState::MarshmallowOverflow;
     overflow_state = OverflowState::FlashOutsideBlocks;
     marshmallow_overflow_counter = 0xff;
+    GGSound::stop();
+    banked_play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::Two);
   }
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&

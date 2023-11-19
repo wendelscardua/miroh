@@ -149,7 +149,6 @@ void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
     blocks_placed = true;
   } else {
     failed_to_place = true;
-    banked_play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::One);
   }
 }
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
