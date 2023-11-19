@@ -248,6 +248,8 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   vram_adr(NAMETABLE_A);
 
+  board.reset();
+
   board.render();
 
   pal_bright(0);

@@ -120,6 +120,9 @@ public:
   // (re)generates the maze
   void generate_maze();
 
+  // reset for a new run
+  void reset();
+
   // draws board tiles (with rendering disabled)
   void render();
 

@@ -218,13 +218,21 @@ __attribute__((noinline, section(".prg_rom_0"))) void Board::generate_maze() {
       }
     }
   }
+}
 
+void Board::reset() {
   // make all cells free
   for (s8 i = 0; i < HEIGHT; i++) {
     for (s8 j = 0; j < WIDTH; j++) {
       free(i, j);
     }
   }
+
+  // reset animations
+  for (auto animation : animations) {
+    animation.finished = true;
+  }
+  active_animations = false;
 }
 
 void Board::render() {
