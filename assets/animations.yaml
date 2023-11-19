@@ -59,7 +59,7 @@ trudging_left:
   - [UniLeftTrudge3, 10]
   - [UniLeftTrudge4, 18]
 roll_right:
-  - [UniRightCharge1, 24]
+  - [UniRightCharge1, 6]
   - [UniRightCharge2, 3]
   - [UniRightRoll1, 3]
   - [UniRightRoll2, 3]
@@ -67,7 +67,7 @@ roll_right:
   - [UniRightRoll4, 3]
   - [UniRightCharge2, 18]
 roll_left:
-  - [UniLeftCharge1, 24]
+  - [UniLeftCharge1, 6]
   - [UniLeftCharge2, 3]
   - [UniLeftRoll1, 3]
   - [UniLeftRoll2, 3]
