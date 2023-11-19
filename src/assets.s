@@ -71,9 +71,9 @@ level_label_tiles: .incbin "Level.chr.donut"
 time_label_tiles: .incbin "Time.chr.donut"
 
 .global starlit_level_label_tiles
-starlit_level_label_tiles: ;.incbin "LevelStarlit.chr.donut"
+starlit_level_label_tiles: .incbin "LevelStarlit.chr.donut"
 .global starlit_time_label_tiles
-starlit_time_label_tiles: ;.incbin "TimeStarlit.chr.donut"
+starlit_time_label_tiles: .incbin "TimeStarlit.chr.donut"
 
 .global time_trial_prompt
 time_trial_prompt:
