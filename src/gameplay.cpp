@@ -228,6 +228,9 @@ bool Drops::random_hard_drop() {
   }
   u8 column = board.random_free_column(row);
   board.set_maze_cell((s8)row, (s8)column, CellType::Marshmallow);
+  if ((get_frame_count() & 0b1111) == 0) {
+    banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+  }
   return true;
 }
 
@@ -661,7 +664,7 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
   marshmallow_overflow_counter++;
   switch (overflow_state) {
   case OverflowState::FlashOutsideBlocks:
-    if (marshmallow_overflow_counter ==
+    if (marshmallow_overflow_counter >=
         19) { // enough for blocks to blink {off, on, off, on, off}
       overflow_state = OverflowState::SwallowNextPiece;
       marshmallow_overflow_counter = 0xff;
@@ -672,7 +675,7 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
     break;
   case OverflowState::SwallowNextPiece:
     // wait without doing anything
-    if (marshmallow_overflow_counter == 20) {
+    if (marshmallow_overflow_counter >= 20) {
       overflow_state = OverflowState::ShootBlockStream;
       marshmallow_overflow_counter = 0xff;
       multi_vram_buffer_horz(CLOSED_MOUTH, 2, NTADR_A(5, 5));
@@ -681,14 +684,14 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
   case OverflowState::ShootBlockStream:
     multi_vram_buffer_vert(STREAM[marshmallow_overflow_counter >> 2], 4,
                            NTADR_A(6, 1));
-    if (marshmallow_overflow_counter >> 2 == 20) {
+    if (marshmallow_overflow_counter >> 2 >= 20) {
       overflow_state = OverflowState::ShadowBeforeRaining;
       marshmallow_overflow_counter = 0xff;
       color_emphasis(COL_EMP_DARK);
     }
     break;
   case OverflowState::ShadowBeforeRaining:
-    if (marshmallow_overflow_counter == 20) {
+    if (marshmallow_overflow_counter >= 180) {
       overflow_state = OverflowState::FewDrops;
       marshmallow_overflow_counter = 0xff;
     }
