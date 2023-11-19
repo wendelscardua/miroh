@@ -67,10 +67,8 @@ __attribute__((section(".prg_rom_0.data"))) const Maze stage_mazes[] = {
 __attribute__((noinline, section(".prg_rom_0.text"))) void
 Board::generate_maze() {
   // reset walls
-  for (u8 i = 0; i < HEIGHT; i++) {
-    for (u8 j = 0; j < WIDTH; j++) {
-      cell_at(i, j).walls = 0;
-    }
+  for (auto &one_cell : cell) {
+    one_cell.walls = 0;
   }
 
 #define NEED_WALL(direction)                                                   \
@@ -227,10 +225,8 @@ Board::generate_maze() {
 
 void Board::reset() {
   // make all cells free
-  for (s8 i = 0; i < HEIGHT; i++) {
-    for (s8 j = 0; j < WIDTH; j++) {
-      free(i, j);
-    }
+  for (u8 i = 0; i < HEIGHT; i++) {
+    occupied_bitset[i] = 0;
   }
 
   // reset animations
