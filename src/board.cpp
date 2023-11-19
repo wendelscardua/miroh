@@ -174,51 +174,48 @@ Board::generate_maze() {
     }
   }
 
-  Bag<u8, HEIGHT> row_bag([](auto *bag) {
-    for (u8 i = 0; i < HEIGHT; i++) {
-      bag->insert(i);
+  // temporarily using bitset to mark visited cells
+  for (u8 i = 0; i < HEIGHT; i++) {
+    occupied_bitset[i] = 0;
+  }
+
+  // randomize visit order of cells
+
+  u8 random_row;
+  while ((random_row = random_free_row()) != 0xff) {
+    u8 random_column = random_free_column(random_row);
+    u8 index = board_index(random_row, random_column);
+
+    occupy((s8)random_row, (s8)random_column);
+
+    auto current_element = &disjoint_set[index];
+    auto right_element =
+        random_column < WIDTH - 1 ? &disjoint_set[index + 1] : NULL;
+    auto down_element =
+        random_row < HEIGHT - 1 ? &disjoint_set[index + WIDTH] : NULL;
+
+    // randomize if we are looking first horizontally or vertically
+    bool down_first = rand8() & 0b1;
+
+    if (down_first && down_element &&
+        current_element->representative() != down_element->representative()) {
+      cell[index].down_wall = false;
+      cell[index + WIDTH].up_wall = false;
+      down_element->join(current_element);
     }
-  });
-  Bag<u8, WIDTH> column_bag([](auto *bag) {
-    for (u8 j = 0; j < WIDTH; j++) {
-      bag->insert(j);
+
+    if (right_element &&
+        current_element->representative() != right_element->representative()) {
+      cell[index].right_wall = false;
+      cell[index + 1].left_wall = false;
+      right_element->join(current_element);
     }
-  });
 
-  // randomize order of rows, then within a row, the order of columns
-  for (u8 rows = 0; rows < HEIGHT; rows++) {
-    u8 i = row_bag.take();
-    for (u8 columns = 0; columns < WIDTH; columns++) {
-      u8 j = column_bag.take();
-      u8 index = board_index(i, j);
-
-      auto current_element = &disjoint_set[index];
-      auto right_element = j < WIDTH - 1 ? &disjoint_set[index + 1] : NULL;
-      auto down_element = i < HEIGHT - 1 ? &disjoint_set[index + WIDTH] : NULL;
-
-      // randomize if we are looking first horizontally or vertically
-      bool down_first = rand8() & 0b1;
-
-      if (down_first && down_element &&
-          current_element->representative() != down_element->representative()) {
-        cell[index].down_wall = false;
-        cell[index + WIDTH].up_wall = false;
-        down_element->join(current_element);
-      }
-
-      if (right_element && current_element->representative() !=
-                               right_element->representative()) {
-        cell[index].right_wall = false;
-        cell[index + 1].left_wall = false;
-        right_element->join(current_element);
-      }
-
-      if (!down_first && down_element &&
-          current_element->representative() != down_element->representative()) {
-        cell[index].down_wall = false;
-        cell[index + WIDTH].up_wall = false;
-        down_element->join(current_element);
-      }
+    if (!down_first && down_element &&
+        current_element->representative() != down_element->representative()) {
+      cell[index].down_wall = false;
+      cell[index + WIDTH].up_wall = false;
+      down_element->join(current_element);
     }
   }
 }
