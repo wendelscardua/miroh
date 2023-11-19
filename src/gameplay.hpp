@@ -118,10 +118,10 @@ public:
       {4, true, false}, {4, true, true},
   };
   static constexpr u8 TIME_TRIAL_DURATION = 90;
-  static constexpr u8 LINES_GOAL = 2;
-  static constexpr u8 SNACKS_GOAL = 5;
-  static constexpr u8 BLOCKS_GOAL = 4;
-  static constexpr u16 SCORE_GOAL = 10;
+  static constexpr u8 LINES_GOAL = 12;
+  static constexpr u8 SNACKS_GOAL = 24;
+  static constexpr u8 BLOCKS_GOAL = 60;
+  static constexpr u16 SCORE_GOAL = 200;
   Board &board;
   Unicorn unicorn;
   Polyomino polyomino;
