@@ -801,7 +801,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   case GameMode::TimeTrial:
     if (gameplay_state != GameplayState::MarshmallowOverflow) {
       time_trial_frames++;
-      if (time_trial_frames == 60) {
+      if (time_trial_frames == TIME_TRIAL_FPS) {
         time_trial_frames = 0;
         time_trial_seconds--;
         u8_to_text(goal_counter_text, time_trial_seconds);

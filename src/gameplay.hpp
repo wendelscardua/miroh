@@ -117,6 +117,7 @@ public:
       {4, false, true}, {4, true, false}, {4, false, true},
       {4, true, false}, {4, true, true},
   };
+  static constexpr u8 TIME_TRIAL_FPS = 120; // frame per "second"
 #ifdef NDEBUG
   static constexpr u8 TIME_TRIAL_DURATION = 90;
   static constexpr u8 LINES_GOAL = 12;
