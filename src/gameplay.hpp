@@ -68,13 +68,6 @@ class Gameplay {
 
   static constexpr u8 MAX_LEVEL = 20;
 
-  static constexpr u16 SINGLE_PLAYER_ARE_PER_LEVEL[] = {
-      150, 135, 135, 120, 120, 105, 105, 90, 75, 60,
-      45,  30,  30,  30,  30,  30,  30,  30, 30, 30,
-  };
-
-  static constexpr u8 TWO_PLAYERS_ARE = 6;
-
   static constexpr u8 DROP_FRAMES_PER_LEVEL[] = {
       120, 95, 74, 57, 43, 31, 23, 16, 11, 8, 5, 3, 2, 1, 1, 1, 0, 0, 0, 0};
 
@@ -116,7 +109,6 @@ public:
 private:
   u8 experience;
   u8 current_level;
-  u16 spawn_timer;
 
   Unicorn unicorn;
   Polyomino polyomino;

@@ -140,7 +140,7 @@ bool Drops::random_hard_drop() {
 }
 
 Gameplay::Gameplay()
-    : experience(0), current_level(1), spawn_timer(0),
+    : experience(0), current_level(1),
       unicorn(banked_lambda(Unicorn::BANK,
                             []() { return Unicorn(board, 80.0_fp, 80.0_fp); })),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
@@ -551,13 +551,14 @@ void Gameplay::gameplay_handler() {
   START_MESEN_WATCH("pol");
   START_MESEN_WATCH("spn");
   // we only spawn when there's no line clearing going on
-  if (polyomino.state == Polyomino::State::Inactive &&
-      !line_clearing_in_progress && spawn_timer-- == 0) {
-    banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
-    spawn_timer = current_controller_scheme == ControllerScheme::OnePlayer
-                      ? SINGLE_PLAYER_ARE_PER_LEVEL[current_level - 1]
-                      : TWO_PLAYERS_ARE;
-    if (current_controller_scheme == ControllerScheme::OnePlayer) {
+  if (!line_clearing_in_progress) {
+    polyomino.spawn_speed_tier = current_level * 4 / MAX_LEVEL;
+    bool was_inactive = polyomino.state == Polyomino::State::Inactive;
+
+    banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn_update(); });
+
+    if (was_inactive && polyomino.state == Polyomino::State::Active &&
+        current_controller_scheme == ControllerScheme::OnePlayer) {
       if (select_reminder == SelectReminder::NeedToRemind) {
         select_reminder = SelectReminder::WaitingBlockToRemind;
       } else if (select_reminder == SelectReminder::WaitingBlockToRemind) {

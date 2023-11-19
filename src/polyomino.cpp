@@ -5,6 +5,7 @@
 #include "common.hpp"
 #include "ggsound.hpp"
 #include "log.hpp"
+#include "mountain-tiles.hpp"
 #include "polyomino-defs.hpp"
 #include <cstdio>
 #include <nesdoug.h>
@@ -22,10 +23,22 @@ auto Polyomino::pentominos = Bag<u8, 17>();
 // NOTE: source file defines indices [4, 11) as tetrominos
 auto Polyomino::pieces = Bag<u8, 10>();
 
+static constexpr u8 SINGLE_PLAYER_ARE_PER_LEVEL[] = {
+    150,
+    105,
+    45,
+    30,
+};
+
+static constexpr u8 TWO_PLAYERS_ARE = 6;
+
 Polyomino::Polyomino(Board &board)
     : state(State::Inactive), board(board), definition(NULL) {}
 
 void Polyomino::init() {
+  spawn_state = SpawnState::WaitToSpawn;
+  spawn_state_timer = 0;
+  spawn_speed_tier = 0;
 
   // initialize littleminos bag
   littleminos.reset();
@@ -60,8 +73,6 @@ void Polyomino::init() {
   pentominos.insert(pentomino);
 
   next = polyominos[take_piece()];
-
-  render_next();
 }
 
 u8 Polyomino::take_piece() {
@@ -92,8 +103,6 @@ void Polyomino::spawn() {
 
   definition = next;
   next = polyominos[take_piece()];
-
-  render_next();
 
   update_bitmask();
 
@@ -309,6 +318,88 @@ void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
     blocks_placed = true;
   } else {
     failed_to_place = true;
+  }
+}
+
+// For each of 4 speed tiers, tells how many frames each spawn state lasts;
+// usually spawn states do their main "thing" on their first frame
+static const soa::Array<Polyomino::SpawnStateTransition, 6>
+    spawn_state_frames[4] = {
+        {{Polyomino::SpawnState::OpenToPushPreview, 12}, // WaitToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 20},    // OpenToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 4},     // PreviewFliesUp
+         {Polyomino::SpawnState::SpawnAndPrepareToSpit, 32}, // WaitToSpawn
+         {Polyomino::SpawnState::SpitNewPreview, 20}, // SpawnAndPrepareToSpit
+         {Polyomino::SpawnState::WaitToPushPreview, 1}}, // SpitNewPreview
+        {{Polyomino::SpawnState::OpenToPushPreview, 9},  // WaitToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 15},    // OpenToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 3},     // PreviewFliesUp
+         {Polyomino::SpawnState::SpawnAndPrepareToSpit, 24}, // WaitToSpawn
+         {Polyomino::SpawnState::SpitNewPreview, 15}, // SpawnAndPrepareToSpit
+         {Polyomino::SpawnState::WaitToPushPreview, 1}}, // SpitNewPreview
+        {{Polyomino::SpawnState::OpenToPushPreview, 6},  // WaitToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 10},    // OpenToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 2},     // PreviewFliesUp
+         {Polyomino::SpawnState::SpawnAndPrepareToSpit, 16}, // WaitToSpawn
+         {Polyomino::SpawnState::SpitNewPreview, 10}, // SpawnAndPrepareToSpit
+         {Polyomino::SpawnState::WaitToPushPreview, 1}}, // SpitNewPreview
+};
+
+void Polyomino::spawn_update() {
+  if (spawn_state_timer == 0) {
+    switch (spawn_state) {
+    case SpawnState::WaitToPushPreview:
+      if (state == State::Active) {
+        // we wait until the polyomino is inactive to start the spawn sequence
+        return;
+      }
+      break;
+    case SpawnState::OpenToPushPreview:
+      multi_vram_buffer_horz(MountainTiles::OPEN_MOUTH, 2, NTADR_A(5, 5));
+      preview_row = 3;
+      break;
+    case SpawnState::PreviewFliesUp:
+      multi_vram_buffer_horz(MountainTiles::CLOSED_MOUTH, 2, NTADR_A(5, 5));
+      if (preview_row == 0) {
+        spawn_state = SpawnState::WaitToSpawn;
+        multi_vram_buffer_horz(MountainTiles::EMPTY_PREVIEW, 2, NTADR_A(5, 0));
+        multi_vram_buffer_horz(MountainTiles::EMPTY_PREVIEW, 2, NTADR_A(5, 1));
+      } else {
+        preview_row--;
+        next->chibi_render(preview_row, 5);
+        multi_vram_buffer_horz(MountainTiles::EMPTY_PREVIEW, 2,
+                               NTADR_A(5, preview_row + 2));
+      }
+      break;
+    case SpawnState::WaitToSpawn:
+      break;
+    case SpawnState::SpawnAndPrepareToSpit:
+      spawn();
+      multi_vram_buffer_horz(MountainTiles::OPEN_MOUTH, 2, NTADR_A(5, 5));
+      break;
+    case SpawnState::SpitNewPreview:
+      next->chibi_render(3, 5);
+      multi_vram_buffer_horz(MountainTiles::CLOSED_MOUTH, 2, NTADR_A(5, 5));
+      break;
+    }
+  }
+  spawn_state_timer++;
+  if (spawn_state == SpawnState::WaitToPushPreview) {
+    // TODO: balance ARE with spawn animation (maybe)
+    u8 ARE = current_controller_scheme == ControllerScheme::OnePlayer
+                 ? SINGLE_PLAYER_ARE_PER_LEVEL[spawn_speed_tier]
+                 : TWO_PLAYERS_ARE;
+    if (spawn_state_timer >= ARE) {
+      spawn_state = SpawnState::OpenToPushPreview;
+      spawn_state_timer = 0;
+    }
+  } else {
+    if (spawn_state_timer >=
+        spawn_state_frames[spawn_speed_tier][(u8)spawn_state]->duration) {
+      spawn_state =
+          spawn_state_frames[spawn_speed_tier][(u8)spawn_state]->next_state;
+      spawn_state_timer = 0;
+    }
   }
 }
 
