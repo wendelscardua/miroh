@@ -42,10 +42,10 @@ level_bg_tiles:
     .global level_bg_tile_blocks
 level_bg_tile_blocks:
     .byte 41
-    .byte 41
+    .byte 37
     .byte 0
+    .byte 37
     .byte 41
-    .byte 0
 
     .global level_nametables
 level_nametables:
