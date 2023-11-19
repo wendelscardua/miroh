@@ -62,7 +62,7 @@ Board::Board() : animations({}), active_animations(false) {}
 Board::~Board() {}
 
 __attribute__((section(".prg_rom_0.data"))) const Maze stage_mazes[] = {
-    Maze::Normal, Maze::Onion, Maze::NewNormal, Maze::Shelves, Maze::Normal};
+    Maze::NewNormal, Maze::Onion, Maze::Shelves, Maze::Normal, Maze::Normal};
 
 __attribute__((noinline, section(".prg_rom_0.text"))) void
 Board::generate_maze() {
