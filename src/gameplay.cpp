@@ -582,18 +582,18 @@ void Gameplay::gameplay_handler() {
   lines_cleared = 0;
   snack_was_eaten = false;
 
-  unicorn.statue = false;
-  if (current_controller_scheme == ControllerScheme::OnePlayer &&
-      input_mode == InputMode::Polyomino &&
-      unicorn.state == Unicorn::State::Idle) {
-    unicorn.statue = true;
-  }
-
   if (any_pressed & PAD_START) {
     pause_game();
     return;
   } else if (any_pressed & PAD_SELECT) {
     swap_inputs();
+  }
+
+  unicorn.statue = false;
+  if (current_controller_scheme == ControllerScheme::OnePlayer &&
+      input_mode == InputMode::Polyomino &&
+      unicorn.state == Unicorn::State::Idle) {
+    unicorn.statue = true;
   }
 
   // XXX: if we say line clearing is in progress during overflow, it will make
