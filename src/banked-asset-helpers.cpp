@@ -1,6 +1,7 @@
 #include "banked-asset-helpers.hpp"
 #include "assets.hpp"
 #include "bank-helper.hpp"
+#include "common.hpp"
 #include "donut.hpp"
 #include "ggsound.hpp"
 #include "soundtrack.hpp"
@@ -18,6 +19,12 @@ void banked_play_sfx(SFX sfx, GGSound::SFXPriority priority) {
   GGSound::play_sfx(sfx, priority);
 }
 
+__attribute__((noinline, section(".prg_rom_last"))) void load_title_palette() {
+  ScopedBank scopedBank(PALETTES_BANK);
+  pal_bg(title_bg_palette);
+  pal_spr(title_spr_palette);
+}
+
 __attribute__((noinline, section(".prg_rom_1"))) void load_title_assets() {
   vram_adr(PPU_PATTERN_TABLE_0);
   Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64 - 56);
@@ -28,9 +35,7 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_title_assets() {
 
   vram_adr(NAMETABLE_B);
   zx02_decompress_to_vram((void *)title_nametable, NAMETABLE_B);
-
-  pal_bg(title_bg_palette);
-  pal_spr(title_spr_palette);
+  load_title_palette();
 }
 
 __attribute__((noinline, section(".prg_rom_1"))) void load_map_assets() {
@@ -40,8 +45,13 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_map_assets() {
   vram_adr(NAMETABLE_A);
   zx02_decompress_to_vram((void *)map_nametable, NAMETABLE_A);
 
-  pal_bg(title_bg_palette);
-  pal_spr(title_spr_palette);
+  load_title_palette();
+}
+
+__attribute__((noinline, section(".prg_rom_last"))) void load_stage_palette() {
+  ScopedBank scopedBank(PALETTES_BANK);
+  pal_bg(level_bg_palettes[(u8)current_stage]);
+  pal_spr(level_spr_palettes[(u8)current_stage]);
 }
 
 __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
@@ -52,19 +62,16 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
     Donut::decompress_to_ppu(level_bg_tiles[(u8)current_stage], bg_blocks);
   }
 
-  // mode labels start at tile $84, both require 1 donut block (64 bytes)
-  if (current_game_mode == GameMode::TimeTrial) {
-    vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
-    Donut::decompress_to_ppu((void *)time_label_tiles, 1);
-  } else if (current_game_mode == GameMode::Endless) {
-    vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
-    Donut::decompress_to_ppu((void *)level_label_tiles, 1);
-  }
-
   vram_adr(NAMETABLE_B);
   zx02_decompress_to_vram(level_nametables[(u8)current_stage], NAMETABLE_B);
 
+  // mode labels start at tile $84, both require 1 donut block (64 bytes)
   if (current_game_mode == GameMode::TimeTrial) {
+    vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
+    Donut::decompress_to_ppu((void *)(current_stage == Stage::StarlitStables
+                                          ? starlit_time_label_tiles
+                                          : time_label_tiles),
+                             1);
     vram_adr(NTADR_C(6, 21));
     vram_write(time_trial_prompt[0], 20);
     vram_adr(NTADR_C(6, 23));
@@ -72,6 +79,11 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
     vram_adr(NTADR_C(6, 25));
     vram_write(time_trial_prompt[2], 20);
   } else if (current_game_mode == GameMode::Endless) {
+    vram_adr(PPU_PATTERN_TABLE_0 + 0x84 * 0x10);
+    Donut::decompress_to_ppu((void *)(current_stage == Stage::StarlitStables
+                                          ? starlit_level_label_tiles
+                                          : level_label_tiles),
+                             1);
     vram_adr(NTADR_C(6, 21));
     vram_write(endless_prompt[0], 20);
     vram_adr(NTADR_C(6, 23));
@@ -80,12 +92,11 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
     vram_write(endless_prompt[2], 20);
   }
 
-  pal_bg(level_bg_palettes[(u8)current_stage]);
-  pal_spr(level_spr_palettes[(u8)current_stage]);
+  load_stage_palette();
 }
 
 __attribute__((noinline, section(".prg_rom_last"))) void change_uni_palette() {
-  ScopedBank scopedBank(ASSETS_BANK);
+  ScopedBank scopedBank(PALETTES_BANK);
   for (u8 i = 0; i < 16; i++) {
     pal_col(0x10 | i, level_spr_palettes[(u8)current_stage][i]);
   }

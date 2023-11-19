@@ -6,8 +6,10 @@
 const int PPU_PATTERN_TABLE_0 = 0x0000;
 const int PPU_PATTERN_TABLE_1 = 0x1000;
 
-// prg bank index where all assets are stored
+// prg bank index where most assets are stored
 const u8 ASSETS_BANK = 1;
+// prg bank for palettes
+const u8 PALETTES_BANK = 2;
 
 // various base tiles
 static constexpr u8 MAZE_BASE_TILE = 0x20;
@@ -34,7 +36,6 @@ extern "C" const char title_bg_tiles[];
 extern "C" const char title_nametable[];
 
 // map
-extern "C" const char map_bg_palette[];
 extern "C" const char map_nametable[];
 
 // base tiles, other tiles are replacement suffixes of this one
@@ -47,6 +48,11 @@ extern "C" const char spr_tiles[];
 extern "C" const char level_label_tiles[];
 // replace story mode's goal with "time"
 extern "C" const char time_label_tiles[];
+
+// replace story mode's goal with "level" on Starlit Stables stage
+extern "C" const char starlit_level_label_tiles[];
+// replace story mode's goal with "time" on Starlit Stables stage
+extern "C" const char starlit_time_label_tiles[];
 
 // replaces story mode prompt with time trial one
 extern "C" const char time_trial_prompt[3][20];
