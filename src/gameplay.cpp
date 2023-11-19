@@ -242,7 +242,7 @@ bool Drops::random_hard_drop() {
 }
 
 Gameplay::Gameplay()
-    : experience(0), current_level(0), spawn_timer(0),
+    : experience(0), current_level(0),
       unicorn(banked_lambda(Unicorn::BANK,
                             []() {
                               return Unicorn(board, fixed_point(0x50, 0x00),
@@ -652,10 +652,8 @@ void Gameplay::gameplay_handler() {
       });
 
   // we only spawn when there's no line clearing going on
-  if (polyomino.state == Polyomino::State::Inactive &&
-      !line_clearing_in_progress && spawn_timer-- == 0) {
-    polyomino.spawn();
-    spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
+  if (!line_clearing_in_progress) {
+    polyomino.spawn_update();
   }
   polyomino.handle_input(polyomino_pressed, polyomino_held);
   polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
@@ -680,7 +678,7 @@ void Gameplay::gameplay_handler() {
   }
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
-      polyomino.state != Polyomino::State::Active &&
+      polyomino.state == Polyomino::State::Inactive &&
       input_mode == InputMode::Polyomino) {
     swap_inputs();
   }
