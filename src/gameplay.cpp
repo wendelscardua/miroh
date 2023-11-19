@@ -684,7 +684,7 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
     if (marshmallow_overflow_counter >> 2 == 20) {
       overflow_state = OverflowState::ShadowBeforeRaining;
       marshmallow_overflow_counter = 0xff;
-      color_emphasis(COL_EMP_RED);
+      color_emphasis(COL_EMP_DARK);
     }
     break;
   case OverflowState::ShadowBeforeRaining:
