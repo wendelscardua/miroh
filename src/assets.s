@@ -86,7 +86,7 @@ GlitteryGrotto_nam: .incbin "GlitteryGrotto.nam.zx02"
 
     ; Marshmallow Mountain
 MarshmallowMountainBG_pal: ;.incbin "MarshmallowMountainBG.pal"
-MarshmallowMountainSPR_pal: ;.incbin "MarshmallowMountainSPR.pal"
+MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 MarshmallowMountainBG_chr: ;.incbin "MarshmallowMountainBG.suffix.chr.donut"
 MarshmallowMountain_nam: ;.incbin "MarshmallowMountain.nam.zx02"
 
@@ -101,7 +101,6 @@ title_nametable: .incbin "Title.nam.zx02"
     ; Map
 .global map_bg_palette, map_nametable
 
-map_bg_palette: .incbin "MapBG.pal"
 map_nametable: .incbin "Map.nam.zx02"
 
     ; Generic

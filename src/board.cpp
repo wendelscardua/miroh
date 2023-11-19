@@ -667,6 +667,4 @@ void Board::animate() {
     }
     animation.update();
   }
-  putchar('Z');
-  putchar('\n');
 }

@@ -71,10 +71,10 @@ __attribute__((
 
 static_assert(bgm_test_songs[0] == Song::Marshmallow_mountain);
 
-__attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
+__attribute__((noinline)) TitleScreen::TitleScreen()
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
       current_track(Song::Marshmallow_mountain), next_track_delay(0),
-      board(board), x_scroll(TITLE_SCROLL) {
+      x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
 
   set_mirroring(MIRROR_VERTICAL);
@@ -93,7 +93,11 @@ __attribute__((noinline)) TitleScreen::TitleScreen(Board &board)
 
   ppu_on_all();
 
-  banked_play_song(current_track);
+  if (ending_triggered) {
+    current_track = Song::Ending;
+  } else {
+    banked_play_song(current_track);
+  }
 
   pal_fade_to(0, 4);
 }
@@ -198,10 +202,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
         banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_START | PAD_A)) {
         banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
-        current_game_state = GameState::Gameplay;
-        // TODO: select stage on world map
+        current_game_state = GameState::WorldMap;
         current_stage = Stage::StarlitStables;
-        banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
       }
       break;
     case State::HowToPlay:
