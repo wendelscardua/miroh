@@ -634,7 +634,8 @@ void Gameplay::gameplay_handler() {
     unicorn.update(unicorn_pressed, unicorn_held, line_clearing_in_progress);
   });
 
-  fruits.update(unicorn, snack_was_eaten);
+  fruits.update(unicorn, snack_was_eaten,
+                gameplay_state != GameplayState::MarshmallowOverflow);
 
   if (failed_to_place) {
     gameplay_state = GameplayState::MarshmallowOverflow;

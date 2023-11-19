@@ -64,7 +64,7 @@ Fruits::Fruits(Board &board) : board(board) {
   active_fruits = 0;
 }
 
-void Fruits::update(Unicorn &player, bool &snack_was_eaten) {
+void Fruits::update(Unicorn &player, bool &snack_was_eaten, bool can_spawn) {
   for (auto fruit : fruits) {
     switch (fruit.state) {
     case Fruit::State::Inactive:
@@ -110,6 +110,10 @@ void Fruits::update(Unicorn &player, bool &snack_was_eaten) {
       }
       break;
     }
+  }
+
+  if (!can_spawn) {
+    return;
   }
 
   if (spawn_timer >= SPAWN_DELAY) {
