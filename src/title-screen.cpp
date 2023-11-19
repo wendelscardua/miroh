@@ -123,8 +123,10 @@ void TitleScreen::render_sprites() {
                                  bobbing_flag ? metasprite_AvocadoHigh
                                               : metasprite_AvocadoLow);
 
+#ifdef NDEBUG
   banked_oam_meta_spr_horizontal(JR_X_POSITION - x_scroll, JR_Y_POSITION,
                                  metasprite_TitleJR);
+#endif
 
   banked_oam_meta_spr_horizontal(HOW_TO_LEFT_X_POSITION - x_scroll,
                                  HOW_TO_LEFT_Y_POSITION, metasprite_HowtoLeft);
