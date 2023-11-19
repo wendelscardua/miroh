@@ -34,8 +34,11 @@ struct MazeDef {
   const TemplateCell template_cells[HEIGHT * WIDTH];
 };
 
-typedef u8 Maze;
+enum class Maze : u8 {
+  Normal,
+  NewNormal,
+  Shelves,
+  Onion,
+};
 
 extern "C" const soa::Array<MazeDef *, NUM_MAZES> mazes;
-
-extern Maze maze;

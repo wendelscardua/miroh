@@ -61,7 +61,11 @@ Board::Board() : animations({}), active_animations(false) {}
 
 Board::~Board() {}
 
-__attribute__((noinline, section(".prg_rom_0"))) void Board::generate_maze() {
+__attribute__((section(".prg_rom_0.data"))) const Maze stage_mazes[] = {
+    Maze::Normal, Maze::Onion, Maze::NewNormal, Maze::Shelves, Maze::Normal};
+
+__attribute__((noinline, section(".prg_rom_0.text"))) void
+Board::generate_maze() {
   // reset walls
   for (u8 i = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
@@ -76,11 +80,12 @@ __attribute__((noinline, section(".prg_rom_0"))) void Board::generate_maze() {
     ScopedBank scopedBank(GET_BANK(mazes));
     static_assert(sizeof(TemplateCell) == 1, "TemplateCell is too big");
 
+    Maze maze = stage_mazes[(u8)current_stage];
     // read required walls from template
     for (u8 i = 0; i < HEIGHT; i++) {
       for (u8 j = 0; j < WIDTH; j++) {
         TemplateCell template_cell =
-            mazes[maze]->template_cells[board_index(i, j)];
+            mazes[(u8)maze]->template_cells[board_index(i, j)];
         if (template_cell.value != 0xff) {
           cell_at(i, j).walls = template_cell.walls;
         }
@@ -91,7 +96,7 @@ __attribute__((noinline, section(".prg_rom_0"))) void Board::generate_maze() {
     for (u8 i = 0; i < HEIGHT; i++) {
       for (u8 j = 0; j < WIDTH; j++) {
         TemplateCell template_cell =
-            mazes[maze]->template_cells[board_index(i, j)];
+            mazes[(u8)maze]->template_cells[board_index(i, j)];
 
         if (template_cell.value == 0xff) {
           // use the old berzerk algorithm
