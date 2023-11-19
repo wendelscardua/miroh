@@ -36,8 +36,31 @@ public:
     Inactive,
     Active,
   };
+
+  enum class SpawnState {
+    WaitToPushPreview,
+    OpenToPushPreview,
+    PreviewFliesUp,
+    WaitToSpawn,
+    SpawnAndPrepareToSpit,
+    SpitNewPreview,
+  };
+
+  // For each of 4 speed tiers, tells how many frames each spawn state lasts;
+  // usually spawn states do their main "thing" on their first frame
+  static constexpr u8 spawn_state_frames[4][6] = {
+      {12, 20, 4, 32, 20, 1},
+      {9, 15, 3, 24, 15, 1},
+      {6, 10, 2, 16, 10, 1},
+      {3, 5, 1, 8, 5, 3},
+  };
+
   u8 grounded_timer;
   State state;
+  SpawnState spawn_state;
+  u8 spawn_state_timer; // goes up to spawn_state_frames[tier][state]
+  u8 spawn_speed_tier;  // goes from 0 to 3 as the game progresses
+
   Polyomino(Board &board);
 
   void spawn();
@@ -46,6 +69,8 @@ public:
 
   void freezing_handler(bool &blocks_placed, bool &failed_to_place,
                         u8 &lines_cleared);
+
+  void spawn_update();
   void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
               u8 &lines_filled);
 

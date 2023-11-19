@@ -71,19 +71,6 @@ class Gameplay {
 
   static constexpr u8 MAX_LEVEL = 9;
 
-  static constexpr u16 SPAWN_DELAY_PER_LEVEL[] = {
-      150, // 0
-      135, // 1
-      135, // 2
-      120, // 3
-      120, // 4
-      105, // 5
-      105, // 6
-      90,  // 7
-      75,  // 8
-      60   // 9
-  };
-
   static constexpr u8 DROP_FRAMES_PER_LEVEL[] = {
       60, // 0
       54, // 1
@@ -99,7 +86,6 @@ class Gameplay {
 
   u8 experience;
   u8 current_level;
-  u16 spawn_timer;
 
 public:
   static constexpr u8 BANK = 0;

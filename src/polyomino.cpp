@@ -47,7 +47,8 @@ auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
 
 Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), next(polyominos[pieces.take()]),
-      state(State::Inactive) {
+      state(State::Inactive), spawn_state(SpawnState::WaitToPushPreview),
+      spawn_state_timer(0), spawn_speed_tier(0) {
   render_next();
 }
 
@@ -219,6 +220,39 @@ void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
     blocks_placed = true;
   } else {
     failed_to_place = true;
+  }
+}
+
+void Polyomino::spawn_update() {
+  if (spawn_state_timer == 0) {
+    switch (spawn_state) {
+    case SpawnState::WaitToPushPreview:
+      if (state == State::Active) {
+        return;
+      }
+      break;
+    case SpawnState::OpenToPushPreview:
+      break;
+    case SpawnState::PreviewFliesUp:
+      break;
+    case SpawnState::WaitToSpawn:
+      break;
+    case SpawnState::SpawnAndPrepareToSpit:
+      spawn();
+      break;
+    case SpawnState::SpitNewPreview:
+      break;
+    }
+  }
+  spawn_state_timer++;
+  if (spawn_state_timer >=
+      spawn_state_frames[spawn_speed_tier][(u8)spawn_state]) {
+    spawn_state_timer = 0;
+    if (spawn_state == SpawnState::SpitNewPreview) {
+      spawn_state = SpawnState::WaitToPushPreview;
+    } else {
+      spawn_state = (SpawnState)(1 + (u8)spawn_state);
+    }
   }
 }
 
