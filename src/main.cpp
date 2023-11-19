@@ -21,7 +21,6 @@ Stage current_stage;
 
 u16 high_score[NUM_STAGES];
 bool story_completion[NUM_STAGES];
-Maze maze;
 bool ending_triggered;
 
 static void main_init() {
@@ -40,8 +39,6 @@ static void main_init() {
   }
 
   ending_triggered = false;
-
-  maze = 0;
 
   ppu_off();
 
