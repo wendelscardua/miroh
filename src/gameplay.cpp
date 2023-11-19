@@ -628,6 +628,9 @@ void Gameplay::gameplay_handler() {
     marshmallow_overflow_counter = 0xff;
     GGSound::stop();
     banked_play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::Two);
+  } else if (blocks_were_placed &&
+             current_controller_scheme == ControllerScheme::TwoPlayers) {
+    banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
   }
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
@@ -870,6 +873,13 @@ void Gameplay::swap_inputs() {
     input_mode = InputMode::Unicorn;
   }
 
+  if (current_controller_scheme == ControllerScheme::OnePlayer &&
+      blocks_were_placed) {
+    banked_play_sfx(SFX::Number1pblockdrop, GGSound::SFXPriority::Two);
+  } else {
+    banked_play_sfx(SFX::Unicornon, GGSound::SFXPriority::Two);
+  }
+
   gameplay_state = GameplayState::Swapping;
 
   swap_frame_counter = 0;
@@ -929,13 +939,6 @@ void Gameplay::loop() {
       // state this is equivalent to retrying under the same conditions
       return;
     case GameplayState::Swapping:
-      if (swap_frame_counter == 0) {
-        if (swap_frames[swap_index].display_unicorn) {
-          banked_play_sfx(SFX::Unicornon, GGSound::SFXPriority::One);
-        } else {
-          banked_play_sfx(SFX::Unicornoff, GGSound::SFXPriority::One);
-        }
-      }
       swap_frame_counter++;
       if (swap_frame_counter >= swap_frames[swap_index].duration) {
         swap_frame_counter = 0;

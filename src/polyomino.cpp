@@ -224,8 +224,6 @@ void Polyomino::render_next() {
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) s8
 Polyomino::freeze_blocks() {
-  banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
-
   state = State::Inactive;
   grounded_timer = 0;
   s8 filled_lines = 0;
