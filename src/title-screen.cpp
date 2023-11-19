@@ -93,7 +93,11 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
 
   ppu_on_all();
 
-  banked_play_song(current_track);
+  if (ending_triggered) {
+    current_track = Song::Ending;
+  } else {
+    banked_play_song(current_track);
+  }
 
   pal_fade_to(0, 4);
 }

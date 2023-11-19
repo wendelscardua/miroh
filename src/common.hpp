@@ -38,6 +38,7 @@ extern ControllerScheme current_controller_scheme;
 extern Stage current_stage;
 extern bool story_completion[];
 extern u16 high_score[];
+extern bool ending_triggered;
 
 // neslib/nesdoug internal stuff
 

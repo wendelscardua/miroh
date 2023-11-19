@@ -22,6 +22,7 @@ Stage current_stage;
 u16 high_score[NUM_STAGES];
 bool story_completion[NUM_STAGES];
 Maze maze;
+bool ending_triggered;
 
 static void main_init() {
   previous_game_state = GameState::None;
@@ -37,6 +38,8 @@ static void main_init() {
   for (u8 i = 0; i < NUM_STAGES; i++) {
     story_completion[i] = false;
   }
+
+  ending_triggered = false;
 
   maze = 0;
 
