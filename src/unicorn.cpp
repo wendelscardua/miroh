@@ -136,6 +136,7 @@ Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
         banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
         break;
       }
+      banked_play_sfx(SFX::Headbutt, GGSound::SFXPriority::Two);
       energy -= CHARGE_COST;
       set_state(State::Roll);
       roll_distance = 0;
@@ -305,6 +306,7 @@ Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     }
     if (roll_into_block && generic_animation.current_cell_index == 0 &&
         generic_animation.current_frame == 3) {
+      banked_play_sfx(SFX::Blockhit, GGSound::SFXPriority::Two);
       if (facing == Direction::Right) {
         if (board.occupied((s8)row, column + 2)) {
           board.add_animation(
