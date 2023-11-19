@@ -346,6 +346,9 @@ Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
                              row, column - 2));
         }
       }
+    } else if (generic_animation.current_cell_index == 5 &&
+               generic_animation.current_frame == 0) {
+      banked_play_sfx(SFX::Butt, GGSound::SFXPriority::One);
     }
     break;
   }
