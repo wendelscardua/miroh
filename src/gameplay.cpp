@@ -710,6 +710,7 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
       overflow_state = OverflowState::FewDrops;
       marshmallow_overflow_counter = 0xff;
     }
+    break;
   case OverflowState::FewDrops:
     if (marshmallow_overflow_counter == 255) {
       overflow_state = OverflowState::FasterDrops;
