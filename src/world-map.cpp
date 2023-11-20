@@ -194,9 +194,6 @@ void WorldMap::loop() {
       banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
       if (current_stage == Stage::MarshmallowMountain) {
         // TODO: change this when we have MM
-        ending_triggered = true;
-        banked_play_song(Song::Ending);
-
         oam_hide_rest();
 
         scroll(0x100, 0);
@@ -204,7 +201,6 @@ void WorldMap::loop() {
           ppu_wait_nmi();
           pad_poll(0);
           pad_poll(1);
-          tick_ending();
         } while (get_pad_new(0) == 0 && get_pad_new(1) == 0);
 
         for (u8 i = 0; i < 32; i++) {
@@ -213,13 +209,10 @@ void WorldMap::loop() {
         for (u8 y = 9; y <= 18; y++) {
           ppu_wait_nmi();
           multi_vram_buffer_horz(donut_block_buffer, 32, NTADR_B(0, y));
-          tick_ending();
         }
 
-        while (ending_frame_counter != 0) {
-          ppu_wait_nmi();
-          tick_ending();
-        }
+        ending_triggered = true;
+        banked_play_song(Song::Ending);
 
         do {
           ppu_wait_nmi();
@@ -246,7 +239,8 @@ void WorldMap::loop() {
               }
               for (u8 i = 0; i < 16; i++) {
                 pal_col(0x10 | i,
-                        i == 9 ? 1 : level_spr_palettes[(u8)ending_palette][i]);
+                        i == 9 ? 0x11
+                               : level_spr_palettes[(u8)ending_palette][i]);
               }
             }
           }
