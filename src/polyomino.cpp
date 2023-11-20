@@ -4,6 +4,7 @@
 #include "common.hpp"
 #include "direction.hpp"
 #include "ggsound.hpp"
+#include "log.hpp"
 #include "polyomino-defs.hpp"
 #include <cstdio>
 #include <nesdoug.h>
@@ -68,6 +69,13 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
       max_delta = delta.delta_row;
   }
   row -= (max_delta + 1);
+
+  START_MESEN_WATCH(4);
+  shadow_row = row;
+  while (!definition->collide(board, shadow_row + 1, column)) {
+    shadow_row++;
+  }
+  STOP_MESEN_WATCH(4);
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) bool
@@ -204,6 +212,9 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
+  definition->shadow(board.origin_x + (u8)(column << 4),
+                     (board.origin_y - y_scroll + (shadow_row << 4)),
+                     (u8)(shadow_row - row));
   definition->render(board.origin_x + (u8)(column << 4),
                      (board.origin_y - y_scroll + (row << 4)));
 }

@@ -24,6 +24,7 @@ class Polyomino {
   u16 drop_timer;
   s8 move_timer;
   Direction movement_direction;
+  s8 shadow_row;
 
   bool able_to_kick(auto kick_deltas);
 
