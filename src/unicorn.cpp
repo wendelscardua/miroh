@@ -482,7 +482,7 @@ void render_energy_hud(int y_scroll, u8 value) {
 }
 
 void Unicorn::refresh_energy_hud(int y_scroll) {
-  static u8 animation_frames;
+  static u8 animation_frames, step = 0;
 
   CORO_INIT;
 
@@ -492,24 +492,11 @@ void Unicorn::refresh_energy_hud(int y_scroll) {
     return;
   }
 
-  for (animation_frames = 0; animation_frames < 4; animation_frames++) {
-    render_energy_hud(y_scroll, energy);
-    CORO_YIELD();
-  }
-
-  for (animation_frames = 0; animation_frames < 4; animation_frames++) {
-    render_energy_hud(y_scroll, original_energy);
-    CORO_YIELD();
-  }
-
-  for (animation_frames = 0; animation_frames < 4; animation_frames++) {
-    render_energy_hud(y_scroll, energy);
-    CORO_YIELD();
-  }
-
-  for (animation_frames = 0; animation_frames < 4; animation_frames++) {
-    render_energy_hud(y_scroll, original_energy);
-    CORO_YIELD();
+  for (step = 0; step < 4; step++) {
+    for (animation_frames = 0; animation_frames < 4; animation_frames++) {
+      render_energy_hud(y_scroll, (step & 0b1) == 0 ? energy : original_energy);
+      CORO_YIELD();
+    }
   }
 
   original_energy = energy;

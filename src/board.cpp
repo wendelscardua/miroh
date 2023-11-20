@@ -207,7 +207,7 @@ Board::generate_maze() {
       right_element->join(current_element);
     }
 
-    if (!down_first && down_element &&
+    if (down_element &&
         current_element->representative() != down_element->representative()) {
       cell[index].down_wall = false;
       cell[index + WIDTH].up_wall = false;
