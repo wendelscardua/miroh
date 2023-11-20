@@ -8,7 +8,6 @@ public:
   Set *representative() {
     Set *temp = this;
     while (temp != temp->parent) {
-      temp->parent = temp->parent->parent;
       temp = temp->parent;
     }
     return temp;
