@@ -24,19 +24,6 @@ const unsigned char stage_labels[][20] = {
     {0xf2, 0x04, 0x14, 0x15, 0x0b, 0x0f, 0x04, 0x0e, 0x0e, 0x11,
      0x19, 0x02, 0xf2, 0x11, 0x17, 0x10, 0x16, 0x04, 0x0c, 0x10}};
 
-const unsigned char thanks_text[19 * 1] = {
-    0x8c, 0x0b, 0x04, 0x10, 0x0d, 0x15, 0x02, 0x09, 0x11, 0x14,
-    0x02, 0x12, 0x0e, 0x04, 0x1b, 0x0c, 0x10, 0x0a, 0x2f};
-
-const unsigned char soon_text[25 * 1] = {
-    0x6f, 0x17, 0x0e, 0x0e, 0x02, 0x18, 0x08, 0x14, 0x15,
-    0x0c, 0x11, 0x10, 0x02, 0x06, 0x11, 0x0f, 0x0c, 0x10,
-    0x0a, 0x02, 0x15, 0x11, 0x11, 0x10, 0x2f};
-
-const unsigned char erase_text[20 * 1] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
 const u8 stage_label_y[] = {
     0x3b, 0x53, 0x6b, 0x83, 0x9b,
 };
@@ -45,8 +32,6 @@ WorldMap::WorldMap(Board &board) : board(board) {
   set_mirroring(MIRROR_VERTICAL);
 
   banked_lambda(ASSETS_BANK, []() { load_map_assets(); });
-
-  zx02_decompress_to_vram((void *)intro_text_nametable, NAMETABLE_B);
 
   vram_adr(NAMETABLE_A);
 
@@ -112,9 +97,15 @@ WorldMap::WorldMap(Board &board) : board(board) {
   oam_clear();
 
   if (show_intro) {
+    vram_adr(NAMETABLE_B);
+    zx02_decompress_to_vram((void *)intro_text_nametable, NAMETABLE_B);
     scroll(0x100, 0);
   } else {
     render_sprites();
+  }
+  if (story_mode_beaten) {
+    vram_adr(NAMETABLE_B);
+    zx02_decompress_to_vram((void *)ending_text_nametable, NAMETABLE_B);
   }
   change_uni_palette();
 
@@ -144,17 +135,8 @@ void WorldMap::stage_change(Stage new_stage) {
 }
 
 void WorldMap::loop() {
-  u8 ending_cutscene_counter = 0;
   while (current_game_state == GameState::WorldMap) {
     ppu_wait_nmi();
-
-    if (ending_cutscene_counter > 0) {
-      ending_cutscene_counter--;
-      if (ending_cutscene_counter == 0) {
-        current_game_state = GameState::TitleScreen;
-        break;
-      }
-    }
 
     pad_poll(0);
     pad_poll(1);
@@ -176,12 +158,8 @@ void WorldMap::loop() {
       if (current_stage == Stage::MarshmallowMountain) {
         // TODO: change this when we have MM
         ending_triggered = true;
-        ending_cutscene_counter = 240;
         banked_play_song(Song::Ending);
-        multi_vram_buffer_horz(erase_text, sizeof(erase_text), NTADR_A(9, 20));
-        multi_vram_buffer_horz(thanks_text, sizeof(thanks_text),
-                               NTADR_A(7, 24));
-        multi_vram_buffer_horz(soon_text, sizeof(soon_text), NTADR_A(4, 26));
+        scroll(0x100, 0);
       } else {
         current_game_state = GameState::Gameplay;
         banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
