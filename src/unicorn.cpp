@@ -20,7 +20,15 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
       x(starting_x), y(starting_y), row(starting_y.whole >> 4),
       column(starting_x.whole >> 4), score(0), statue(false) {
-  set_state(State::Idle);
+  left_animation = Animation{&moving_left_cells,
+                             sizeof(moving_left_cells) / sizeof(AnimCell)};
+  right_animation = Animation{&moving_right_cells,
+                              sizeof(moving_right_cells) / sizeof(AnimCell)};
+  left_tired_animation = Animation{
+      &trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
+  right_tired_animation = Animation{
+      &trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
+  set_state(state);
 }
 
 const fixed_point &Unicorn::move_speed() {
@@ -33,42 +41,30 @@ const fixed_point &Unicorn::move_speed() {
 
 __attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
 Unicorn::set_state(State new_state) {
-  if (state == new_state) {
-    // avoid resetting animation when reinforcing a current state
-    return;
-  }
   state = new_state;
   switch (state) {
   case State::Idle:
-    left_animation =
+    idle_left_animation =
         Animation{&idle_left_cells, sizeof(idle_left_cells) / sizeof(AnimCell)};
-    right_animation = Animation{&idle_right_cells,
-                                sizeof(idle_right_cells) / sizeof(AnimCell)};
-    left_tired_animation = Animation{
+    idle_right_animation = Animation{
+        &idle_right_cells, sizeof(idle_right_cells) / sizeof(AnimCell)};
+    idle_left_tired_animation = Animation{
         &tired_left_cells, sizeof(tired_left_cells) / sizeof(AnimCell)};
-    right_tired_animation = Animation{
+    idle_right_tired_animation = Animation{
         &tired_right_cells, sizeof(tired_right_cells) / sizeof(AnimCell)};
     break;
   case State::Moving:
-    left_animation = Animation{&moving_left_cells,
-                               sizeof(moving_left_cells) / sizeof(AnimCell)};
-    right_animation = Animation{&moving_right_cells,
-                                sizeof(moving_right_cells) / sizeof(AnimCell)};
-    left_tired_animation = Animation{
-        &trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
-    right_tired_animation = Animation{
-        &trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
     break;
   case State::Yawning:
-    left_animation = left_tired_animation =
+    idle_left_animation = idle_left_tired_animation =
         Animation{&yawn_left_cells, sizeof(yawn_left_cells) / sizeof(AnimCell)};
-    right_animation = right_tired_animation = Animation{
+    idle_right_animation = idle_right_tired_animation = Animation{
         &yawn_right_cells, sizeof(yawn_right_cells) / sizeof(AnimCell)};
     break;
   case State::Sleeping:
-    left_animation = left_tired_animation = Animation{
+    idle_left_animation = idle_left_tired_animation = Animation{
         &sleep_left_cells, sizeof(sleep_left_cells) / sizeof(AnimCell)};
-    right_animation = right_tired_animation = Animation{
+    idle_right_animation = idle_right_tired_animation = Animation{
         &sleep_right_cells, sizeof(sleep_right_cells) / sizeof(AnimCell)};
     break;
   case State::Trapped:
@@ -395,9 +391,16 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
   sprite_offset = SPRID;
 
   Animation &animation =
-      (facing == Direction::Right
-           ? (energy > 0 ? right_animation : right_tired_animation)
-           : (energy > 0 ? left_animation : left_tired_animation));
+      (state == State::Idle || state == State::Yawning ||
+       state == State::Sleeping)
+          ? (facing == Direction::Right
+                 ? (energy > 0 ? idle_right_animation
+                               : idle_right_tired_animation)
+                 : (energy > 0 ? idle_left_animation
+                               : idle_left_tired_animation))
+          : (facing == Direction::Right
+                 ? (energy > 0 ? right_animation : right_tired_animation)
+                 : (energy > 0 ? left_animation : left_tired_animation));
   animation.update(board.origin_x + x.whole, reference_y + y.whole);
 
   switch (state) {

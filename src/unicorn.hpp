@@ -55,6 +55,10 @@ public:
 
   bool statue;
 
+  Animation idle_left_animation{NULL, 0};
+  Animation idle_right_animation{NULL, 0};
+  Animation idle_left_tired_animation{NULL, 0};
+  Animation idle_right_tired_animation{NULL, 0};
   Animation left_animation{NULL, 0};
   Animation right_animation{NULL, 0};
   Animation left_tired_animation{NULL, 0};
