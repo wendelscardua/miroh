@@ -16,7 +16,6 @@ void Animation::reset() {
 }
 
 void Animation::update(char x, int y) {
-  START_MESEN_WATCH(3);
   banked_oam_meta_spr(x, y, current_cell->metasprite);
   if (paused)
     goto exit;
@@ -33,5 +32,4 @@ void Animation::update(char x, int y) {
     }
   }
 exit:
-  STOP_MESEN_WATCH(3);
 }

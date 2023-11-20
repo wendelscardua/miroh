@@ -36,7 +36,6 @@ BoardAnimation::BoardAnimation(const BoardAnimFrame (*cells)[], u8 length,
       finished(false) {}
 
 void BoardAnimation::update() {
-  START_MESEN_WATCH(13);
   if (paused || finished)
     goto exit;
   current_frame++;
@@ -50,7 +49,6 @@ void BoardAnimation::update() {
     }
   }
 exit:
-  STOP_MESEN_WATCH(13);
 }
 
 Cell &Board::cell_at(u8 row, u8 column) {
