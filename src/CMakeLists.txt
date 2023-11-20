@@ -162,6 +162,7 @@ set_property(
 
   Map.nam.zx02
   IntroText.nam.zx02
+  EndingText.nam.zx02
 )
 
 add_donut_asset(SOURCE "SPR.chr")
@@ -204,6 +205,7 @@ add_raw_asset(SOURCE "MarshmallowMountainSPR.pal")
 add_zx02_asset(SOURCE "Map.nam")
 
 add_zx02_asset(SOURCE "IntroText.nam")
+add_zx02_asset(SOURCE "EndingText.nam")
 
 find_program(
   ANIMATOR_TOOL

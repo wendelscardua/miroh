@@ -139,3 +139,5 @@ title_spr_palette: .incbin "TitleSPR.pal"
 
 .global intro_text_nametable
 intro_text_nametable: .incbin "IntroText.nam.zx02"
+.global ending_text_nametable
+ending_text_nametable: .incbin "EndingText.nam.zx02"
