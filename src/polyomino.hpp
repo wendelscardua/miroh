@@ -57,7 +57,6 @@ public:
 
   void render_next();
 
-  bool collide(s8 row);
   bool collide(s8 row, s8 column);
 
   void update_bitmask();

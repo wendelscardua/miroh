@@ -104,29 +104,21 @@ Polyomino::update_bitmask() {
 __attribute__((noinline)) void Polyomino::update_shadow() {
   START_MESEN_WATCH(4);
   shadow_row = row;
-  while (!collide(shadow_row + 1)) {
+  while (!collide(shadow_row + 1, column)) {
     shadow_row++;
   }
   STOP_MESEN_WATCH(4);
 }
 
-bool Polyomino::collide(s8 new_row) {
-  for (u8 i = 0; i < 4; i++) {
-    if (new_row + i - 1 < 0) {
-      continue;
-    }
-    if (bitmask[i] &&
-        (new_row + i - 1 >= HEIGHT ||
-         (bitmask[i] & board.occupied_bitset[(u8)(new_row + i - 1)]))) {
-      return true;
-    }
+inline u16 signed_shift(u16 value, s8 shift) {
+  if (shift == 0) {
+    return value;
+  } else if (shift > 0) {
+    return value << 1;
+  } else {
+    return value >> 1;
   }
-
-  return false;
 }
-
-#define SIGNED_SHIFT(VALUE, SHIFT)                                             \
-  ((SHIFT) > 0 ? (VALUE) << (SHIFT) : (VALUE) >> (-(SHIFT)))
 
 bool Polyomino::collide(s8 new_row, s8 new_column) {
   if (left_limit + new_column < 0 || right_limit + new_column >= WIDTH) {
@@ -138,7 +130,7 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
       continue;
     }
     if (bitmask[i] &&
-        (mod_row >= HEIGHT || (SIGNED_SHIFT(bitmask[i], (new_column - column)) &
+        (mod_row >= HEIGHT || (signed_shift(bitmask[i], (new_column - column)) &
                                board.occupied_bitset[(u8)(new_row + i - 1)]))) {
       return true;
     }
@@ -237,7 +229,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
-    if (collide(row + 1)) {
+    if (collide(row + 1, column)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
         drop_timer = 0;
@@ -277,7 +269,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     movement_direction = Direction::None;
     break;
   case Direction::Down:
-    if (collide(row + 1)) {
+    if (collide(row + 1, column)) {
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
