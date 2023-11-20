@@ -57,8 +57,8 @@ public:
 
   void render_next();
 
-  bool collide(Board &board, s8 row);
-  bool collide(Board &board, s8 row, s8 column);
+  bool collide(s8 row);
+  bool collide(s8 row, s8 column);
 
   void update_bitmask();
   void update_shadow();

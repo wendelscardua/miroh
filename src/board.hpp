@@ -17,12 +17,16 @@ enum class CellType : u8 {
 class Cell {
 public:
   union {
-    u8 walls : 4;
+    struct {
+      u8 walls : 4;
+      u8 walls_padding : 4;
+    };
     struct {
       bool up_wall : 1;
       bool right_wall : 1;
       bool down_wall : 1;
       bool left_wall : 1;
+      u8 unused_padding : 4;
     };
   };
 

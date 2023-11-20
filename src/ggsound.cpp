@@ -255,15 +255,15 @@ namespace GGSound {
     _ggsound_sound_disable_update = false;
   }
 
-  __attribute__((noinline)) void init(Region region, Track *song_list[],
-                                      Track *sfx_list[], void *instruments[],
-                                      u8 bank) {
+  __attribute__((noinline)) void init(Region arg_region, Track *arg_song_list[],
+                                      Track *arg_sfx_list[],
+                                      void *arg_instruments[], u8 arg_bank) {
     _ggsound_sound_disable_update = true;
-    _ggsound_sound_bank = bank;
-    GGSound::region = region;
-    GGSound::song_list = song_list;
-    GGSound::sfx_list = sfx_list;
-    _ggsound_base_address_instruments = instruments;
+    _ggsound_sound_bank = arg_bank;
+    GGSound::region = arg_region;
+    GGSound::song_list = arg_song_list;
+    GGSound::sfx_list = arg_sfx_list;
+    _ggsound_base_address_instruments = arg_instruments;
 
     // Load PAL note table for PAL, NTSC for any other region.
     switch (region) {

@@ -44,9 +44,11 @@ void PolyominoDef::render(u8 x, int y) const {
 }
 
 static const char *shadows[] = {
-    (char *)metasprite_BlockShadow1, (char *)metasprite_BlockShadow2,
-    (char *)metasprite_BlockShadow3, (char *)metasprite_BlockShadow4,
-    (char *)metasprite_BlockShadow5,
+    (const char *)metasprite_BlockShadow1,
+    (const char *)metasprite_BlockShadow2,
+    (const char *)metasprite_BlockShadow3,
+    (const char *)metasprite_BlockShadow4,
+    (const char *)metasprite_BlockShadow5,
 };
 
 // TODO: avoid overlap with render
@@ -58,7 +60,7 @@ void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
   }
 
   const char *metasprite =
-      dist >= 5 ? (char *)metasprite_BlockShadow5 : shadows[dist - 1];
+      dist >= 5 ? (const char *)metasprite_BlockShadow5 : shadows[dist - 1];
 
   for (u8 j = 0; j < 5; j++) {
     u8 i = polyomino_start_index + j;

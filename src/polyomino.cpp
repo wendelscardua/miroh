@@ -104,13 +104,13 @@ Polyomino::update_bitmask() {
 __attribute__((noinline)) void Polyomino::update_shadow() {
   START_MESEN_WATCH(4);
   shadow_row = row;
-  while (!collide(board, shadow_row + 1)) {
+  while (!collide(shadow_row + 1)) {
     shadow_row++;
   }
   STOP_MESEN_WATCH(4);
 }
 
-bool Polyomino::collide(Board &board, s8 new_row) {
+bool Polyomino::collide(s8 new_row) {
   for (u8 i = 0; i < 4; i++) {
     if (new_row + i - 1 < 0) {
       continue;
@@ -128,7 +128,7 @@ bool Polyomino::collide(Board &board, s8 new_row) {
 #define SIGNED_SHIFT(VALUE, SHIFT)                                             \
   ((SHIFT) > 0 ? (VALUE) << (SHIFT) : (VALUE) >> (-(SHIFT)))
 
-bool Polyomino::collide(Board &board, s8 new_row, s8 new_column) {
+bool Polyomino::collide(s8 new_row, s8 new_column) {
   if (left_limit + new_column < 0 || right_limit + new_column >= WIDTH) {
     return true;
   }
@@ -237,7 +237,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
-    if (collide(board, row + 1)) {
+    if (collide(row + 1)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
         drop_timer = 0;
@@ -257,7 +257,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
 
   switch (movement_direction) {
   case Direction::Left:
-    if (!collide(board, row, column - 1)) {
+    if (!collide(row, column - 1)) {
       column--;
       for (u8 i = 0; i < 4; i++) {
         bitmask[i] = bitmask[i] >> 1;
@@ -267,7 +267,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     movement_direction = Direction::None;
     break;
   case Direction::Right:
-    if (!collide(board, row, column + 1)) {
+    if (!collide(row, column + 1)) {
       column++;
       for (u8 i = 0; i < 4; i++) {
         bitmask[i] = bitmask[i] << 1;
@@ -277,13 +277,14 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     movement_direction = Direction::None;
     break;
   case Direction::Down:
-    if (collide(board, row + 1)) {
+    if (collide(row + 1)) {
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
       movement_direction = Direction::None;
     }
-  default:
+  case Direction::Up:
+  case Direction::None:
     break;
   }
 }

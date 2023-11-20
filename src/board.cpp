@@ -498,7 +498,8 @@ void Board::set_maze_cell(s8 row, s8 column, CellType cell_type) {
       TOP_0 = 0x4e;
       TOP_1 = 0x4f;
       break;
-    default:
+    case CellType::Maze:
+    case CellType::Marshmallow:
       break;
     }
   }

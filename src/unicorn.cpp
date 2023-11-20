@@ -417,7 +417,10 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
       set_state(State::Sleeping);
     }
     break;
-  default:
+  case State::Sleeping:
+  case State::Impact:
+  case State::Trapped:
+  case State::Roll:
     break;
   }
 }
