@@ -444,40 +444,16 @@ void render_energy_hud(int y_scroll, u8 value) {
     return;
   }
 
-  if (value == 0) {
-  } else if (value == 1) {
-    oam_spr(ENERGY_HUD_X, (u8)(ENERGY_HUD_Y - y_scroll), 0x31, 0);
-  } else if (value == 2) {
-    oam_spr(ENERGY_HUD_X, (u8)(ENERGY_HUD_Y - y_scroll), 0x32, 0);
-  } else {
-    oam_spr(ENERGY_HUD_X, (u8)(ENERGY_HUD_Y - y_scroll), 0x33, 0);
+  u8 x = ENERGY_HUD_X;
+  u8 y = (u8)(ENERGY_HUD_Y - y_scroll);
 
-    if (value == 3) {
-    } else if (value == 4) {
-      oam_spr(ENERGY_HUD_X + 8, (u8)(ENERGY_HUD_Y - y_scroll), 0x31, 0);
-    } else if (value == 5) {
-      oam_spr(ENERGY_HUD_X + 8, (u8)(ENERGY_HUD_Y - y_scroll), 0x32, 0);
-    } else {
-      oam_spr(ENERGY_HUD_X + 8, (u8)(ENERGY_HUD_Y - y_scroll), 0x33, 0);
-
-      if (value == 6) {
-      } else if (value == 7) {
-        oam_spr(ENERGY_HUD_X + 16, (u8)(ENERGY_HUD_Y - y_scroll), 0x31, 0);
-      } else if (value == 8) {
-        oam_spr(ENERGY_HUD_X + 16, (u8)(ENERGY_HUD_Y - y_scroll), 0x32, 0);
-      } else {
-        oam_spr(ENERGY_HUD_X + 16, (u8)(ENERGY_HUD_Y - y_scroll), 0x33, 0);
-
-        if (value == 9) {
-        } else if (value == 10) {
-          oam_spr(ENERGY_HUD_X + 24, (u8)(ENERGY_HUD_Y - y_scroll), 0x31, 0);
-        } else if (value == 11) {
-          oam_spr(ENERGY_HUD_X + 24, (u8)(ENERGY_HUD_Y - y_scroll), 0x32, 0);
-        } else {
-          oam_spr(ENERGY_HUD_X + 24, (u8)(ENERGY_HUD_Y - y_scroll), 0x33, 0);
-        }
-      }
-    }
+  for (u8 i = 0; i < 4; i++) {
+    if (value == 0)
+      break;
+    u8 delta = value > 3 ? 3 : value;
+    oam_spr(x, y, 0x30 + delta, 0);
+    value -= delta;
+    x += 8;
   }
 }
 
