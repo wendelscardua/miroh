@@ -277,6 +277,9 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     }
   case Direction::Up:
   case Direction::None:
+    if (board.active_animations) {
+      update_shadow();
+    }
     break;
   }
 }
