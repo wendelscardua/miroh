@@ -1,10 +1,11 @@
 #include "polyomino.hpp"
 #include "bag.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "board.hpp"
 #include "common.hpp"
 #include "direction.hpp"
 #include "ggsound.hpp"
+#include "log.hpp"
 #include "polyomino-defs.hpp"
 #include <cstdio>
 #include <nesdoug.h>
@@ -63,12 +64,87 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
 
   render_next();
 
+  for (u8 i = 0; i < 4; i++) {
+    bitmask[i] = 0;
+  }
+
   s8 max_delta = 0;
   for (auto delta : definition->deltas) {
-    if (delta.delta_row > max_delta)
+    if (delta.delta_row > max_delta) {
       max_delta = delta.delta_row;
+    }
   }
   row -= (max_delta + 1);
+
+  update_bitmask();
+}
+
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void
+Polyomino::update_bitmask() {
+  for (u8 i = 0; i < 4; i++) {
+    bitmask[i] = 0;
+  }
+
+  left_limit = 2;
+  right_limit = -2;
+  for (u8 i = 0; i < definition->size; i++) {
+    auto delta = definition->deltas[i];
+    if (delta.delta_column > right_limit) {
+      right_limit = delta.delta_column;
+    }
+    if (delta.delta_column < left_limit) {
+      left_limit = delta.delta_column;
+    }
+    bitmask[(u8)(delta.delta_row + 1)] |=
+        Board::OCCUPIED_BITMASK[(u8)(column + delta.delta_column)];
+  }
+  update_shadow();
+}
+
+__attribute__((noinline)) void Polyomino::update_shadow() {
+  START_MESEN_WATCH(4);
+  shadow_row = row;
+  while (!collide(board, shadow_row + 1)) {
+    shadow_row++;
+  }
+  STOP_MESEN_WATCH(4);
+}
+
+bool Polyomino::collide(Board &board, s8 new_row) {
+  for (u8 i = 0; i < 4; i++) {
+    if (new_row + i - 1 < 0) {
+      continue;
+    }
+    if (bitmask[i] &&
+        (new_row + i - 1 >= HEIGHT ||
+         (bitmask[i] & board.occupied_bitset[(u8)(new_row + i - 1)]))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+#define SIGNED_SHIFT(VALUE, SHIFT)                                             \
+  ((SHIFT) > 0 ? (VALUE) << (SHIFT) : (VALUE) >> (-(SHIFT)))
+
+bool Polyomino::collide(Board &board, s8 new_row, s8 new_column) {
+  if (left_limit + new_column < 0 || right_limit + new_column >= WIDTH) {
+    return true;
+  }
+  for (u8 i = 0; i < 4; i++) {
+    s8 mod_row = (s8)(new_row + i - 1);
+    if (mod_row < 0) {
+      continue;
+    }
+    if (bitmask[i] &&
+        (mod_row >= HEIGHT || (SIGNED_SHIFT(bitmask[i], (new_column - column)) &
+                               board.occupied_bitset[(u8)(new_row + i - 1)]))) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) bool
@@ -127,6 +203,7 @@ Polyomino::handle_input(u8 pressed, u8 held) {
 
     if (able_to_kick(definition->right_kick->deltas)) {
       banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      update_bitmask();
     } else {
       definition = definition->left_rotation; // undo rotation
     }
@@ -135,6 +212,7 @@ Polyomino::handle_input(u8 pressed, u8 held) {
 
     if (able_to_kick(definition->left_kick->deltas)) {
       banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      update_bitmask();
     } else {
       definition = definition->right_rotation; // undo rotation
     }
@@ -151,15 +229,15 @@ void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
     failed_to_place = true;
   }
 }
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
-                  u8 &lines_cleared) {
+
+void Polyomino::update(u8 drop_frames, bool &blocks_placed,
+                       bool &failed_to_place, u8 &lines_cleared) {
   if (state == State::Inactive) {
     return;
   }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
-    if (definition->collide(board, row + 1, column)) {
+    if (collide(board, row + 1)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
         drop_timer = 0;
@@ -179,19 +257,27 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
 
   switch (movement_direction) {
   case Direction::Left:
-    if (!definition->collide(board, row, column - 1)) {
+    if (!collide(board, row, column - 1)) {
       column--;
+      for (u8 i = 0; i < 4; i++) {
+        bitmask[i] = bitmask[i] >> 1;
+      }
+      update_shadow();
     }
     movement_direction = Direction::None;
     break;
   case Direction::Right:
-    if (!definition->collide(board, row, column + 1)) {
+    if (!collide(board, row, column + 1)) {
       column++;
+      for (u8 i = 0; i < 4; i++) {
+        bitmask[i] = bitmask[i] << 1;
+      }
+      update_shadow();
     }
     movement_direction = Direction::None;
     break;
   case Direction::Down:
-    if (definition->collide(board, row + 1, column)) {
+    if (collide(board, row + 1)) {
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
@@ -205,22 +291,20 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
-  ScopedBank bank(GET_BANK(polyominos));
   definition->render(board.origin_x + (u8)(column << 4),
                      (board.origin_y - y_scroll + (row << 4)));
+  definition->shadow(board.origin_x + (u8)(column << 4),
+                     (board.origin_y - y_scroll + (shadow_row << 4)),
+                     (u8)(shadow_row - row));
 }
 
 void Polyomino::outside_render(int y_scroll) {
-  ScopedBank bank(GET_BANK(polyominos));
   definition->outside_render(board.origin_x + (u8)(column << 4),
                              (board.origin_y - y_scroll + (row << 4)),
                              board.origin_y - y_scroll);
 }
 
-void Polyomino::render_next() {
-  ScopedBank iban(GET_BANK(polyominos));
-  next->chibi_render(3, 5);
-}
+void Polyomino::render_next() { next->chibi_render(3, 5); }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) s8
 Polyomino::freeze_blocks() {

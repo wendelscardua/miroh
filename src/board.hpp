@@ -56,10 +56,6 @@ public:
 };
 
 class Board {
-  // convert column into its bitmask
-  static constexpr soa::Array<const u16, WIDTH> OCCUPIED_BITMASK = {
-      0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
-      0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800};
 
   static constexpr u16 FULL_ROW_BITMASK = 0x0fff;
 
@@ -68,6 +64,11 @@ class Board {
   s8 erasing_row_source;
 
 public:
+  // convert column into its bitmask
+  static constexpr soa::Array<const u16, WIDTH> OCCUPIED_BITMASK = {
+      0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
+      0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800};
+
   static constexpr u8 origin_x = 0x20;
   static constexpr u8 origin_y = 0x30;
 

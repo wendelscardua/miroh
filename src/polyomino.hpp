@@ -24,6 +24,10 @@ class Polyomino {
   u16 drop_timer;
   s8 move_timer;
   Direction movement_direction;
+  s8 shadow_row;
+  s8 left_limit;
+  s8 right_limit;
+  std::array<u16, 4> bitmask;
 
   bool able_to_kick(auto kick_deltas);
 
@@ -52,6 +56,12 @@ public:
   void outside_render(int y_scroll);
 
   void render_next();
+
+  bool collide(Board &board, s8 row);
+  bool collide(Board &board, s8 row, s8 column);
+
+  void update_bitmask();
+  void update_shadow();
 
   // returns number of filled lines aftter blocks were frozen, or -1 if
   // polyomino didn't fit

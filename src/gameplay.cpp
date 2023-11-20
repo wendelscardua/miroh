@@ -325,7 +325,9 @@ void Gameplay::render() {
               swap_frames[swap_index].display_polyomino) ||
              (gameplay_state != GameplayState::Swapping &&
               gameplay_state != GameplayState::MarshmallowOverflow)) {
+    START_MESEN_WATCH(3);
     polyomino.render(y_scroll);
+    STOP_MESEN_WATCH(3);
   }
   if (Drops::active_drops) {
     drops.render(y_scroll);
@@ -618,17 +620,15 @@ void Gameplay::gameplay_handler() {
       gameplay_state == GameplayState::MarshmallowOverflow ||
       board.ongoing_line_clearing(board.active_animations);
 
-  banked_lambda(GET_BANK(polyominos), [this, line_clearing_in_progress]() {
-    // we only spawn when there's no line clearing going on
-    if (polyomino.state == Polyomino::State::Inactive &&
-        !line_clearing_in_progress && spawn_timer-- == 0) {
-      polyomino.spawn();
-      spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
-    }
-    polyomino.handle_input(polyomino_pressed, polyomino_held);
-    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
-                     failed_to_place, lines_cleared);
-  });
+  // we only spawn when there's no line clearing going on
+  if (polyomino.state == Polyomino::State::Inactive &&
+      !line_clearing_in_progress && spawn_timer-- == 0) {
+    polyomino.spawn();
+    spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
+  }
+  polyomino.handle_input(polyomino_pressed, polyomino_held);
+  polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
+                   failed_to_place, lines_cleared);
 
   banked_lambda(PLAYER_BANK, [this, line_clearing_in_progress]() {
     unicorn.update(unicorn_pressed, unicorn_held, line_clearing_in_progress);
