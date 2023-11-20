@@ -1,6 +1,5 @@
 #include "polyomino.hpp"
 #include "bag.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "direction.hpp"
@@ -151,9 +150,9 @@ void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
     failed_to_place = true;
   }
 }
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
-                  u8 &lines_cleared) {
+
+void Polyomino::update(u8 drop_frames, bool &blocks_placed,
+                       bool &failed_to_place, u8 &lines_cleared) {
   if (state == State::Inactive) {
     return;
   }
@@ -205,22 +204,17 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
-  ScopedBank bank(GET_BANK(polyominos));
   definition->render(board.origin_x + (u8)(column << 4),
                      (board.origin_y - y_scroll + (row << 4)));
 }
 
 void Polyomino::outside_render(int y_scroll) {
-  ScopedBank bank(GET_BANK(polyominos));
   definition->outside_render(board.origin_x + (u8)(column << 4),
                              (board.origin_y - y_scroll + (row << 4)),
                              board.origin_y - y_scroll);
 }
 
-void Polyomino::render_next() {
-  ScopedBank iban(GET_BANK(polyominos));
-  next->chibi_render(3, 5);
-}
+void Polyomino::render_next() { next->chibi_render(3, 5); }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) s8
 Polyomino::freeze_blocks() {
