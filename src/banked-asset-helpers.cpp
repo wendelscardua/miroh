@@ -41,6 +41,8 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_title_assets() {
 __attribute__((noinline, section(".prg_rom_1"))) void load_map_assets() {
   vram_adr(PPU_PATTERN_TABLE_0);
   Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64);
+  vram_adr(PPU_PATTERN_TABLE_0 + 0xf0 * 0x10);
+  Donut::decompress_to_ppu((void *)spare_characters, 3);
 
   vram_adr(NAMETABLE_A);
   zx02_decompress_to_vram((void *)map_nametable, NAMETABLE_A);

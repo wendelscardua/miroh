@@ -38,6 +38,9 @@ extern "C" const char title_nametable[];
 // map
 extern "C" const char map_nametable[];
 
+// intro [bank 2]
+extern "C" const char intro_text_nametable[];
+
 // base tiles, other tiles are replacement suffixes of this one
 // except for Fairy Forest, which is actually the same one
 extern "C" const char base_bg_tiles[];
@@ -53,6 +56,9 @@ extern "C" const char time_label_tiles[];
 extern "C" const char starlit_level_label_tiles[];
 // replace story mode's goal with "time" on Starlit Stables stage
 extern "C" const char starlit_time_label_tiles[];
+
+// uppercase and stuff
+extern "C" const char spare_characters[];
 
 // replaces story mode prompt with time trial one
 extern "C" const char time_trial_prompt[3][20];
