@@ -239,7 +239,7 @@ void WorldMap::loop() {
               }
               for (u8 i = 0; i < 16; i++) {
                 pal_col(0x10 | i,
-                        i == 9 ? 0x11
+                        i == 9 ? 0x22
                                : level_spr_palettes[(u8)ending_palette][i]);
               }
             }
