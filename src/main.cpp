@@ -22,6 +22,8 @@ Stage current_stage;
 u16 high_score[NUM_STAGES];
 bool story_completion[NUM_STAGES];
 bool ending_triggered;
+bool story_mode_beaten;
+bool show_intro;
 
 static void main_init() {
   previous_game_state = GameState::None;
@@ -39,6 +41,9 @@ static void main_init() {
   }
 
   ending_triggered = false;
+
+  show_intro = false;
+  story_mode_beaten = false;
 
   ppu_off();
 

@@ -12,8 +12,6 @@ public:
 
   bool available_stages[NUM_STAGES];
 
-  bool story_mode_beaten;
-
   WorldMap(Board &board);
   ~WorldMap();
   void render_sprites();

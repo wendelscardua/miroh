@@ -111,8 +111,11 @@ WorldMap::WorldMap(Board &board) : board(board) {
 
   oam_clear();
 
-  render_sprites();
-
+  if (show_intro) {
+    scroll(0x100, 0);
+  } else {
+    render_sprites();
+  }
   change_uni_palette();
 
   ppu_on_all();
@@ -159,6 +162,14 @@ void WorldMap::loop() {
     rand16();
 
     u8 pressed = get_pad_new(0) | get_pad_new(1);
+
+    if (show_intro) {
+      if (pressed) {
+        show_intro = false;
+        scroll(0x0, 0);
+      }
+      continue;
+    }
 
     if (pressed & (PAD_A | PAD_START)) {
       banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
