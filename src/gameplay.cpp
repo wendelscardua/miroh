@@ -918,11 +918,17 @@ void Gameplay::loop() {
       unicorn_held = pad_state(0);
       polyomino_pressed = get_pad_new(1);
       polyomino_held = pad_state(1);
+      if (polyomino_pressed) {
+        current_controller_scheme = ControllerScheme::TwoPlayers;
+      }
     } else {
       unicorn_pressed = get_pad_new(1);
       unicorn_held = pad_state(1);
       polyomino_pressed = get_pad_new(0);
       polyomino_held = pad_state(0);
+      if (unicorn_pressed) {
+        current_controller_scheme = ControllerScheme::TwoPlayers;
+      }
     }
     any_pressed = unicorn_pressed | polyomino_pressed;
     any_held = unicorn_held | polyomino_held;
