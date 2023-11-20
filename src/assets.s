@@ -75,6 +75,9 @@ starlit_level_label_tiles: .incbin "LevelStarlit.chr.donut"
 .global starlit_time_label_tiles
 starlit_time_label_tiles: .incbin "TimeStarlit.chr.donut"
 
+.global spare_characters
+spare_characters: .incbin "SpareCharacters.chr.donut"
+
 .global time_trial_prompt
 time_trial_prompt:
 	.byte $1d,$11,$19,$02,$0f,$04,$10,$1b,$02,$12,$11,$0c,$10,$16,$15,$02,$06,$04,$10,$02

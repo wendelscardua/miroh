@@ -128,6 +128,7 @@ set_property(
   Time.chr.donut
   LevelStarlit.chr.donut
   TimeStarlit.chr.donut
+  SpareCharacters.chr.donut
 
   TitleBG.pal
   TitleSPR.pal
@@ -167,6 +168,7 @@ add_donut_asset(SOURCE "Level.chr")
 add_donut_asset(SOURCE "Time.chr")
 add_donut_asset(SOURCE "LevelStarlit.chr")
 add_donut_asset(SOURCE "TimeStarlit.chr")
+add_donut_asset(SOURCE "SpareCharacters.chr")
 
 add_raw_asset(SOURCE "TitleBG.pal")
 add_raw_asset(SOURCE "TitleSPR.pal")

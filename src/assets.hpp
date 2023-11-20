@@ -54,6 +54,9 @@ extern "C" const char starlit_level_label_tiles[];
 // replace story mode's goal with "time" on Starlit Stables stage
 extern "C" const char starlit_time_label_tiles[];
 
+// uppercase and stuff
+extern "C" const char spare_characters[];
+
 // replaces story mode prompt with time trial one
 extern "C" const char time_trial_prompt[3][20];
 // replaces story mode prompt with endless mode one
