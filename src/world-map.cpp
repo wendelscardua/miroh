@@ -5,6 +5,7 @@
 #include "common.hpp"
 #include "metasprites.hpp"
 #include "soundtrack.hpp"
+#include "zx02.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -41,7 +42,13 @@ const u8 stage_label_y[] = {
 };
 
 WorldMap::WorldMap(Board &board) : board(board) {
+  set_mirroring(MIRROR_VERTICAL);
+
   banked_lambda(ASSETS_BANK, []() { load_map_assets(); });
+
+  zx02_decompress_to_vram((void *)intro_text_nametable, NAMETABLE_B);
+
+  vram_adr(NAMETABLE_A);
 
   pal_bright(0);
 

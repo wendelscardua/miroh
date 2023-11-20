@@ -136,3 +136,6 @@ MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 .global title_bg_palette, title_spr_palette
 title_bg_palette: .incbin "TitleBG.pal"
 title_spr_palette: .incbin "TitleSPR.pal"
+
+.global intro_text_nametable
+intro_text_nametable: .incbin "IntroText.nam.zx02"

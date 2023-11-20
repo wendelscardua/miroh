@@ -161,6 +161,7 @@ set_property(
   # MarshmallowMountain.nam.zx02
 
   Map.nam.zx02
+  IntroText.nam.zx02
 )
 
 add_donut_asset(SOURCE "SPR.chr")
@@ -201,6 +202,8 @@ add_raw_asset(SOURCE "MarshmallowMountainSPR.pal")
 # add_zx02_asset(SOURCE "MarshmallowMountain.nam" ALT "MarshmallowMountainAlt.nam")
 
 add_zx02_asset(SOURCE "Map.nam")
+
+add_zx02_asset(SOURCE "IntroText.nam")
 
 find_program(
   ANIMATOR_TOOL

@@ -38,6 +38,9 @@ extern "C" const char title_nametable[];
 // map
 extern "C" const char map_nametable[];
 
+// intro [bank 2]
+extern "C" const char intro_text_nametable[];
+
 // base tiles, other tiles are replacement suffixes of this one
 // except for Fairy Forest, which is actually the same one
 extern "C" const char base_bg_tiles[];
