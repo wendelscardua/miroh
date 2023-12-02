@@ -40,25 +40,10 @@ class Mazer < Thor
         f.puts ".byte #{label}@mos16hi"
       end
 
-      f.puts <<~ASM
-        .global maze_names
-         maze_names:
-      ASM
-      maze_data.mazes.each do |maze|
-        f.puts ".byte #{maze.name_bytes.map { |byte| format('$%02x', byte) }.join(', ')}"
-      end
-
-
       maze_data.mazes.each do |maze|
         f.puts "#{maze.label}:"
         maze.array.each do |row|
           f.puts ".byte #{row.map { |byte| format('$%02x', byte) }.join(', ')}"
-        end
-        f.puts ".byte #{maze.special_array.nil? ? 0 : 1}"
-        unless maze.special_array.nil?
-          maze.special_array.each do |row|
-            f.puts ".byte #{row.map { |byte| format('$%02x', byte) }.join(', ')}"
-          end
         end
       end
     end
@@ -83,16 +68,11 @@ class Mazer < Thor
     DOWN = 0x4
     LEFT = 0x8
 
-    attr_reader :name, :array, :special_array
+    attr_reader :name, :array
 
-    def initialize(name, array, special_array)
+    def initialize(name, array)
       @name = name
       @array = array
-      @special_array = special_array
-    end
-
-    def name_bytes
-      format("%-#{NAME_WIDTH}s", @name).bytes.map { |b| b - 0x20 }
     end
 
     def label
@@ -105,9 +85,6 @@ class Mazer < Thor
       name = lines.shift
 
       array = Array.new(HEIGHT) { Array.new(WIDTH) { 0 } }
-
-      special_array = Array.new(HEIGHT) { Array.new(WIDTH) { 0 } }
-      used_special = false
 
       (0...HEIGHT).each do |i|
         (0...WIDTH).each do |j|
@@ -131,14 +108,9 @@ class Mazer < Thor
           maybe_walls |= LEFT if left == '#'
           maybe_walls |= RIGHT if right == '#'
           array[i][j] = (maybe_walls << 4) | walls
-
-          if lines[2 * i + 1][2 * j + 1] != ' '
-            used_special = true
-            special_array[i][j] = 1
-          end
         end
       end
-      Maze.new(name, array, used_special ? special_array : nil)
+      Maze.new(name, array)
     end
   end
 end

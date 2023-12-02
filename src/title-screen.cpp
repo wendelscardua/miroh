@@ -1,151 +1,104 @@
-#include <bank.h>
+#include <mapper.h>
 #include <nesdoug.h>
 #include <neslib.h>
 
+#include "assets.hpp"
 #include "bank-helper.hpp"
 
 #include "banked-asset-helpers.hpp"
-#include "chr-data.hpp"
 #include "common.hpp"
-#include "donut.hpp"
 #include "ggsound.hpp"
-#include "maze-defs.hpp"
 #include "metasprites.hpp"
-#include "nametables.hpp"
-#include "palettes.hpp"
 #include "soundtrack.hpp"
 #include "title-screen.hpp"
 
-#pragma clang section text = ".prg_rom_0.text"
-#pragma clang section rodata = ".prg_rom_0.rodata"
+#pragma clang section text = ".prg_rom_2.text"
+#pragma clang section rodata = ".prg_rom_2.rodata"
 
-const unsigned char menu_text[24 * 3] = {
-    0x00, 0x00, 0x00, 0x00, 0x30, 0x4c, 0x41, 0x59, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x2f, 0x50, 0x54, 0x49, 0x4f, 0x4e, 0x53, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x28, 0x45, 0x4c, 0x50, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x23, 0x52, 0x45, 0x44, 0x49, 0x54, 0x53, 0x00, 0x00, 0x00, 0x00};
-
-const unsigned char settings_text[24 * 3] = {
-    0x00, 0x00, 0x00, 0x2c, 0x49, 0x4e, 0x45, 0x00, 0x47, 0x52, 0x41, 0x56,
-    0x49, 0x54, 0x59, 0x1a, 0x1c, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x2d, 0x41, 0x5a, 0x45, 0x1a, 0x00, 0x1c, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x32, 0x45, 0x54, 0x55, 0x52, 0x4e, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-const TitleScreen::MenuOption left_of[] = {
-    TitleScreen::MenuOption::Start,    // Start
-    TitleScreen::MenuOption::Controls, // Controls
-    TitleScreen::MenuOption::Start,    // Settings
-    TitleScreen::MenuOption::Controls, // Credits
+__attribute__((section(".prg_rom_2.rodata")))
+const TitleScreen::MenuOption previous_option[] = {
+    TitleScreen::MenuOption::HowToPlay,  // OnePlayer
+    TitleScreen::MenuOption::OnePlayer,  // TwoPlayers
+    TitleScreen::MenuOption::TwoPlayers, // HowToPlay
 };
 
-const TitleScreen::MenuOption right_of[] = {
-    TitleScreen::MenuOption::Settings, // Start
-    TitleScreen::MenuOption::Credits,  // Controls
-    TitleScreen::MenuOption::Settings, // Settings
-    TitleScreen::MenuOption::Credits,  // Credits
+__attribute__((section(".prg_rom_2.rodata")))
+const TitleScreen::MenuOption next_option[] = {
+    TitleScreen::MenuOption::TwoPlayers, // OnePlayer
+    TitleScreen::MenuOption::HowToPlay,  // TwoPlayers
+    TitleScreen::MenuOption::OnePlayer,  // HowToPlay
 };
 
-const TitleScreen::MenuOption above_of[] = {
-    TitleScreen::MenuOption::Start,    // Start
-    TitleScreen::MenuOption::Start,    // Controls
-    TitleScreen::MenuOption::Settings, // Settings
-    TitleScreen::MenuOption::Settings, // Credits
+__attribute__((section(".prg_rom_2.rodata"))) const u8 menu_y_position[] = {
+    0x96, // OnePlayer
+    0xa6, // TwoPlayers
+    0xb6, // HowToPlay
 };
 
-const TitleScreen::MenuOption below_of[] = {
-    TitleScreen::MenuOption::Controls, // Start
-    TitleScreen::MenuOption::Controls, // Controls
-    TitleScreen::MenuOption::Credits,  // Settings
-    TitleScreen::MenuOption::Credits,  // Credits
-};
+__attribute__((section(".prg_rom_2.rodata"))) const GameMode previous_mode[] = {
+    GameMode::TimeTrial, GameMode::Story, GameMode::Endless};
 
-const TitleScreen::MenuOption next[] = {
-    TitleScreen::MenuOption::Controls, // Start
-    TitleScreen::MenuOption::Settings, // Controls
-    TitleScreen::MenuOption::Credits,  // Settings
-    TitleScreen::MenuOption::Start,    // Credits
-};
+__attribute__((section(".prg_rom_2.rodata"))) const GameMode next_mode[] = {
+    GameMode::Endless, GameMode::TimeTrial, GameMode::Story};
 
-const u8 option_mino_x[] = {
-    0x30, // Start
-    0x30, // Controls
-    0x78, // Settings
-    0x78, // Credits
-};
+__attribute__((section(".prg_rom_2.rodata")))
+const unsigned char story_label[12 * 1] = {0x02, 0x02, 0x15, 0x16, 0x11, 0x14,
+                                           0x1b, 0x00, 0x00, 0x00, 0x00, 0x00};
+__attribute__((section(".prg_rom_2.rodata")))
+const unsigned char endless_label[12 * 1] = {
+    0x00, 0x02, 0x08, 0x10, 0x07, 0x0e, 0x08, 0x15, 0x15, 0x00, 0x00, 0x00};
+__attribute__((section(".prg_rom_2.rodata")))
+const unsigned char time_trial_label[12 * 1] = {
+    0x00, 0x00, 0x16, 0x0c, 0x0f, 0x08, 0x00, 0x16, 0x14, 0x0c, 0x04, 0x0e};
 
-const u8 option_mino_y[] = {
-    0x70, // Start
-    0x80, // Controls
-    0x70, // Settings
-    0x80, // Credits
-};
+__attribute__((section(".prg_rom_2.rodata")))
+const unsigned char bgm_test_labels[11 * 1] = {
+    0x15, 0x12, 0x04, 0x06, 0x08, 0x09, 0x0e, 0x0c, 0x0a, 0x0b, 0x16};
 
-const u8 option_mino_frame_mod[] = {
-    0x08, // Start
-    0x10, // Controls
-    0x20, // Settings
-    0x10, // Credits
-};
+__attribute__((
+    section(".prg_rom_2.rodata"))) constexpr Song bgm_test_songs[] = {
+    Song::Marshmallow_mountain,
+    Song::Sting_plus_drums,
+    Song::Intro_music,
+    Song::Starlit_stables,
+    Song::Rainbow_retreat,
+    Song::Fairy_flight,
+    Song::Glitter_grotto,
+    Song::Baby_bullhead_title,
+    Song::Ending,
+    Song::Failure,
+    Song::Victory};
 
-const u8 setting_mino_y[] = {
-    0x70, // Line gravity
-    0x78, // Maze
-    0x80, // Return
-};
-
-const TitleScreen::SettingsOption setting_above[] = {
-    TitleScreen::SettingsOption::Return,
-    TitleScreen::SettingsOption::LineGravity,
-    TitleScreen::SettingsOption::Maze,
-};
-
-const TitleScreen::SettingsOption setting_below[] = {
-    TitleScreen::SettingsOption::Maze,
-    TitleScreen::SettingsOption::Return,
-    TitleScreen::SettingsOption::LineGravity,
-};
+static_assert(bgm_test_songs[0] == Song::Marshmallow_mountain);
 
 __attribute__((noinline)) TitleScreen::TitleScreen()
-    : state(State::PressStart), current_option(MenuOption::Start) {
+    : state(State::MainMenu), current_option(MenuOption::OnePlayer),
+      current_track(Song::Marshmallow_mountain), next_track_delay(0),
+      x_scroll(TITLE_SCROLL) {
   set_chr_bank(0);
 
-  banked_lambda(GET_BANK(bg_chr), []() {
-    // assume all chr are on same bank
-    vram_adr(PPU_PATTERN_TABLE_0);
-    Donut::decompress_to_ppu((void *)&bg_chr, PPU_PATTERN_TABLE_SIZE / 64);
+  set_mirroring(MIRROR_VERTICAL);
 
-    vram_adr(PPU_PATTERN_TABLE_1);
-    Donut::decompress_to_ppu((void *)&sprites_chr, PPU_PATTERN_TABLE_SIZE / 64);
-  });
-
-  banked_lambda(GET_BANK(title_nam), []() {
-    // idem nametables
-    vram_adr(NAMETABLE_D);
-    vram_write(how_to_nam, 1024);
-
-    vram_adr(NAMETABLE_A);
-    vram_write(title_nam, 1024);
-  });
-
-  banked_lambda(GET_BANK(bg_palette), []() {
-    // idem palettes
-    pal_bg(bg_palette);
-    pal_spr(sprites_player_palette);
-  });
+  banked_lambda(ASSETS_BANK, []() { load_title_assets(); });
 
   pal_bright(0);
 
   oam_clear();
 
-  scroll(0, 0);
+  render_sprites();
+
+  scroll((u16)x_scroll, 0);
 
   ppu_on_all();
 
-  banked_lambda(GET_BANK(song_list), []() { GGSound::play_song(Song::Miroh); });
+  if (ending_triggered) {
+    current_track = Song::Ending;
+    bgm_test_index = 8;
+  } else {
+    bgm_test_index = 0;
+    banked_play_song(current_track);
+  }
+  one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
 
   pal_fade_to(0, 4);
 }
@@ -155,364 +108,166 @@ __attribute__((noinline)) TitleScreen::~TitleScreen() {
   ppu_off();
 }
 
+void TitleScreen::render_sprites() {
+  bool bobbing_flag = get_frame_count() & 0b10000;
+
+  s16 cursor_x;
+  u8 cursor_y;
+  if (state == State::ModeMenu) {
+    cursor_x = MODE_MENU_CURSOR_X_POSITION;
+    cursor_y = menu_y_position[(u8)current_game_mode];
+  } else {
+    cursor_x = MAIN_MENU_CURSOR_X_POSITION;
+    cursor_y = menu_y_position[(u8)current_option];
+  }
+  banked_oam_meta_spr_horizontal(cursor_x - x_scroll, cursor_y,
+                                 bobbing_flag ? metasprite_AvocadoHigh
+                                              : metasprite_AvocadoLow);
+
+#ifdef NDEBUG
+  banked_oam_meta_spr_horizontal(JR_X_POSITION - x_scroll, JR_Y_POSITION,
+                                 metasprite_TitleJR);
+#endif
+
+  banked_oam_meta_spr_horizontal(HOW_TO_LEFT_X_POSITION - x_scroll,
+                                 HOW_TO_LEFT_Y_POSITION, metasprite_HowtoLeft);
+  banked_oam_meta_spr_horizontal(HOW_TO_RIGHT_X_POSITION - x_scroll,
+                                 HOW_TO_RIGHT_Y_POSITION,
+                                 metasprite_HowtoRight);
+  oam_hide_rest();
+}
+
 __attribute__((noinline)) void TitleScreen::loop() {
-  while (current_mode == GameMode::TitleScreen) {
+  bool how_to_players_switched = false;
+  u8 how_to_select_timer = 0;
+
+  while (current_game_state == GameState::TitleScreen) {
     ppu_wait_nmi();
 
-    oam_clear();
-
     pad_poll(0);
+    pad_poll(1);
 
     rand16();
 
-    u8 pressed = get_pad_new(0);
+    u8 pressed = get_pad_new(0) | get_pad_new(1);
+
+    if (next_track_delay > 0) {
+      next_track_delay--;
+      if (next_track_delay == 0) {
+        banked_play_song(current_track);
+      }
+    }
 
     switch (state) {
-    case State::PressStart:
-      if (pressed & (PAD_START | PAD_A)) {
-        multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
-        multi_vram_buffer_horz(menu_text + 24, 24, NTADR_A(4, 16));
-        multi_vram_buffer_horz(menu_text + 48, 24, NTADR_A(4, 17));
-
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-        });
-        state = State::Options;
-        current_option = MenuOption::Start;
+    case State::MainMenu:
+      if (x_scroll != TITLE_SCROLL) {
+        // TODO: easing
+        x_scroll += 16;
+        set_scroll_x((u16)x_scroll);
+        if (x_scroll == PALETTE_SWAP_POINT) {
+          pal_col(0x11, 0x15);
+          pal_col(0x13, 0x35);
+        }
       }
-      break;
-    case State::Options:
-      if (pressed & (PAD_START | PAD_A)) {
+      if (pressed & (PAD_UP | PAD_LEFT)) {
+        current_option = previous_option[(u8)current_option];
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+      } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
+        current_option = next_option[(u8)current_option];
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+      } else if (pressed & (PAD_START | PAD_A)) {
+        banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
         switch (current_option) {
-        case MenuOption::Controls:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-          });
+        case MenuOption::OnePlayer:
+        case MenuOption::TwoPlayers:
+          current_controller_scheme = current_option == MenuOption::OnePlayer
+                                          ? ControllerScheme::OnePlayer
+                                          : ControllerScheme::TwoPlayers;
+          current_game_mode = GameMode::Story;
+          state = State::ModeMenu;
+          multi_vram_buffer_horz(story_label, 12, NTADR_B(11, 19));
+          multi_vram_buffer_horz(endless_label, 12, NTADR_B(11, 21));
+          multi_vram_buffer_horz(time_trial_label, 12, NTADR_B(11, 23));
+          break;
+        case MenuOption::HowToPlay:
           state = State::HowToPlay;
-          how_to_animation_framecount = 60;
-          how_to_animation_step = 0;
-          scroll(0, 240);
-          break;
-        case MenuOption::Credits:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-          });
-          state = State::Credits;
-          pal_fade_to(4, 0);
-          ppu_off();
-
-          banked_lambda(GET_BANK(credits_nam), []() {
-            vram_adr(NAMETABLE_D);
-            vram_write(credits_nam, 1024);
-          });
-
-          scroll(0, 240);
-
-          ppu_on_all();
-          pal_fade_to(0, 4);
-          break;
-        case MenuOption::Start:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-          });
-          state = State::PressStart;
-          current_mode = GameMode::Gameplay;
-          break;
-        case MenuOption::Settings:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-          });
-          state = State::Settings;
-          current_setting = SettingsOption::LineGravity;
-          multi_vram_buffer_horz(settings_text, 24, NTADR_A(4, 15));
-          multi_vram_buffer_horz(settings_text + 24, 24, NTADR_A(4, 16));
-          multi_vram_buffer_horz(settings_text + 48, 24, NTADR_A(4, 17));
           break;
         }
-        break;
-      } else if (pressed & PAD_UP) {
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
-        });
-        current_option = above_of[(u8)current_option];
-      } else if (pressed & PAD_DOWN) {
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-        });
-        current_option = below_of[(u8)current_option];
-      } else if (pressed & PAD_LEFT) {
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
-        });
-        current_option = left_of[(u8)current_option];
-      } else if (pressed & PAD_RIGHT) {
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-        });
-        current_option = right_of[(u8)current_option];
-      } else if (pressed & (PAD_SELECT | PAD_B)) {
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-        });
-        current_option = next[(u8)current_option];
       }
-
-      if (get_frame_count() & option_mino_frame_mod[(u8)current_option]) {
-        banked_oam_meta_spr(option_mino_x[(u8)current_option],
-                            option_mino_y[(u8)current_option],
-                            metasprite_Menutaur1);
-      } else {
-        banked_oam_meta_spr(option_mino_x[(u8)current_option],
-                            option_mino_y[(u8)current_option],
-                            metasprite_Menutaur2);
+      break;
+    case State::ModeMenu:
+      if (pressed & (PAD_UP | PAD_LEFT)) {
+        current_game_mode = previous_mode[(u8)current_game_mode];
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+      } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
+        current_game_mode = next_mode[(u8)current_game_mode];
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+      } else if (pressed & (PAD_START | PAD_A)) {
+        banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+        current_game_state = GameState::WorldMap;
+        current_stage = Stage::StarlitStables;
+        show_intro =
+            (current_game_mode == GameMode::Story) && (!story_mode_beaten);
       }
       break;
     case State::HowToPlay:
-      if (pressed & (PAD_START | PAD_A)) {
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-        });
-        scroll(0, 0);
-        banked_lambda(GET_BANK(bg_palette),
-                      []() { pal_spr(sprites_player_palette); });
-        state = State::Options;
-        break;
-      }
-      if (--how_to_animation_framecount <= 0) {
-        how_to_animation_framecount = 0;
-        how_to_animation_step++;
-      }
-      switch (how_to_animation_step) {
-      case 0: // show player selected
-      case 2:
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 90;
-        }
-        banked_lambda(GET_BANK(bg_palette),
-                      []() { pal_spr(sprites_player_palette); });
-        break;
-      case 1: // show polyomino selected
-      case 3:
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 90;
-        }
-        banked_lambda(GET_BANK(bg_palette),
-                      []() { pal_spr(sprites_polyomino_palette); });
-        break;
-      case 4: // rotating minos
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 256;
-        }
-        break;
-      case 5: // hard drop
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 60;
-        }
-        if (how_to_animation_framecount > 48) {
-          banked_oam_meta_spr(0x48, 0x70, metasprite_Menumino0);
-        } else if (how_to_animation_framecount > 16) {
-          banked_oam_meta_spr(
-              0x48, (u8)(0xb0 - (how_to_animation_framecount - 16) * 2) & 0xf8,
-              metasprite_Menumino0);
+      if (pressed & (PAD_B)) {
+        state = State::MainMenu;
+        banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
+      } else if (pressed & (PAD_LEFT | PAD_UP)) {
+        if ((u8)bgm_test_index == 0) {
+          bgm_test_index = sizeof(bgm_test_songs) - 1;
         } else {
-          banked_oam_meta_spr(0x48, 0xb0, metasprite_Menumino0);
+          bgm_test_index--;
         }
-        break;
-      case 6: // soft drop
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 256;
-        }
-        {
-          s8 delta_x = 0;
-          if (how_to_animation_framecount < 200 &&
-              how_to_animation_framecount > 160) {
-            delta_x = -4;
-          } else if (how_to_animation_framecount < 100 &&
-                     how_to_animation_framecount > 90) {
-            delta_x = 8;
-          } else if (how_to_animation_framecount < 120 &&
-                     how_to_animation_framecount > 75) {
-            delta_x = 4;
-          }
-          if (how_to_animation_framecount < 60) {
-            how_to_animation_framecount--;
-          }
-          banked_oam_meta_spr((u8)(0xa8 + delta_x),
-                              (u8)(0xb0 - how_to_animation_framecount / 4) &
-                                  0xf8,
-                              metasprite_Menumino2);
-        }
-        break;
-      case 7: // idle before loop
-        if (how_to_animation_framecount == 0) {
-          how_to_animation_framecount = 60;
-        }
-        break;
-      default:
-        how_to_animation_step = -1;
-      }
-
-      // always show minotaur
-      if (how_to_animation_framecount & 0b10000) {
-        banked_oam_meta_spr(0x48, 0x1e, metasprite_MinoRight1);
-      } else {
-        banked_oam_meta_spr(0x48, 0x1e, metasprite_MinoRight2);
-      }
-
-      // also show the switcheable polyomino
-      banked_oam_meta_spr(0xa8, 0x1e, metasprite_Menumino0);
-
-      // the rotating minos
-      {
-        if (how_to_animation_step == 4) {
-          switch (how_to_animation_framecount & 0b11000000) {
-          case 0b00000000:
-            banked_oam_meta_spr(0x38, 0x48, metasprite_Menumino0);
-            banked_oam_meta_spr(0xb8, 0x48, metasprite_Menumino0);
-            break;
-          case 0b01000000:
-            banked_oam_meta_spr(0x38, 0x48, metasprite_MenuminoL);
-            banked_oam_meta_spr(0xb8, 0x48, metasprite_MenuminoR);
-            break;
-          case 0b10000000:
-            banked_oam_meta_spr(0x38, 0x48, metasprite_Menumino2);
-            banked_oam_meta_spr(0xb8, 0x48, metasprite_Menumino2);
-            break;
-          case 0b11000000:
-            banked_oam_meta_spr(0x38, 0x48, metasprite_MenuminoR);
-            banked_oam_meta_spr(0xb8, 0x48, metasprite_MenuminoL);
-            break;
-          }
+        current_track = bgm_test_songs[bgm_test_index];
+        next_track_delay = NEXT_TRACK_DELAY;
+        GGSound::stop();
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+        one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
+      } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_A)) {
+        if ((u8)bgm_test_index == sizeof(bgm_test_songs) - 1) {
+          bgm_test_index = 0;
         } else {
-          banked_oam_meta_spr(0x38, 0x48, metasprite_Menumino0);
-          banked_oam_meta_spr(0xb8, 0x48, metasprite_Menumino0);
+          bgm_test_index++;
         }
+        current_track = bgm_test_songs[bgm_test_index];
+        next_track_delay = NEXT_TRACK_DELAY;
+        GGSound::stop();
+        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+        one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
       }
-
-      // idle hard drop
-      if (how_to_animation_step < 5) {
-        banked_oam_meta_spr(0x48, 0x70, metasprite_Menumino0);
-      } else if (how_to_animation_step > 5) {
-        banked_oam_meta_spr(0x48, 0xb0, metasprite_Menumino0);
-      }
-
-      // idle soft drop
-      if (how_to_animation_step < 6) {
-        banked_oam_meta_spr(0xa8, 0x70, metasprite_Menumino2);
-      } else if (how_to_animation_step > 6) {
-        banked_oam_meta_spr(0xa8, 0xb0, metasprite_Menumino2);
-      }
-
-      break;
-    case State::Credits:
-      if (pressed & (PAD_START | PAD_A)) {
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-        });
-        state = State::Options;
-        pal_fade_to(4, 0);
-        ppu_off();
-
-        banked_lambda(GET_BANK(credits_nam), []() {
-          vram_adr(NAMETABLE_D);
-          vram_write(how_to_nam, 1024);
-        });
-        scroll(0, 0);
-
-        ppu_on_all();
-        pal_fade_to(0, 4);
-      }
-      break;
-    case State::Settings:
-      if (pressed & PAD_UP) {
-        current_setting = setting_above[(u8)current_setting];
-      } else if (pressed & (PAD_DOWN | PAD_SELECT)) {
-        banked_lambda(GET_BANK(sfx_list), []() {
-          GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-        });
-        current_setting = setting_below[(u8)current_setting];
-      } else if (pressed & PAD_LEFT) {
-        switch (current_setting) {
-        case SettingsOption::LineGravity:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
-          });
-          line_gravity_enabled = !line_gravity_enabled;
-          break;
-        case SettingsOption::Maze:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
-          });
-          if (maze > 0) {
-            maze--;
-          }
-          break;
-        case SettingsOption::Return:
-          break;
-        }
-      } else if (pressed & PAD_RIGHT) {
-        switch (current_setting) {
-        case SettingsOption::LineGravity:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-          });
-          line_gravity_enabled = !line_gravity_enabled;
-          break;
-        case SettingsOption::Maze:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-          });
-          if (maze < NUM_MAZES - 1) {
-            maze++;
-          }
-          break;
-        case SettingsOption::Return:
-          break;
-        }
-      } else if (pressed & (PAD_A | PAD_START)) {
-        switch (current_setting) {
-        case SettingsOption::LineGravity:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-          });
-          line_gravity_enabled = !line_gravity_enabled;
-          break;
-        case SettingsOption::Maze:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-          });
-          if (maze < NUM_MAZES - 1) {
-            maze++;
-          }
-          break;
-        case SettingsOption::Return:
-          banked_lambda(GET_BANK(sfx_list), []() {
-            GGSound::play_sfx(SFX::Toggle_input, GGSound::SFXPriority::One);
-          });
-          state = State::Options;
-          multi_vram_buffer_horz(menu_text, 24, NTADR_A(4, 15));
-          multi_vram_buffer_horz(menu_text + 24, 24, NTADR_A(4, 16));
-          multi_vram_buffer_horz(menu_text + 48, 24, NTADR_A(4, 17));
-          break;
-        }
-      } else {
-        if (line_gravity_enabled) {
-          multi_vram_buffer_horz((const u8[]){0x2f, 0x4e, 0x00}, 3,
-                                 NTADR_A(21, 15));
+      how_to_select_timer++;
+      if (how_to_select_timer == 90) {
+        how_to_players_switched = !how_to_players_switched;
+        const u8 pressed_button[] = {SELECT_BUTTON_BASE_TILE + 2,
+                                     SELECT_BUTTON_BASE_TILE + 3};
+        multi_vram_buffer_horz(pressed_button, 2, NTADR_A(15, 5));
+        if (how_to_players_switched) {
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_A(10, 6));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE, NTADR_A(28, 6));
         } else {
-          multi_vram_buffer_horz((const u8[]){0x2f, 0x46, 0x46}, 3,
-                                 NTADR_A(21, 15));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE, NTADR_A(10, 6));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_A(28, 6));
         }
-        multi_vram_buffer_horz(maze_names[(u8)maze], 10, NTADR_A(14, 16));
-
-        u8 setting_y = setting_mino_y[(u8)current_setting];
-        if (get_frame_count() & 0b1000) {
-          banked_oam_meta_spr(0x24, setting_y, metasprite_Menutaur1);
-        } else {
-          banked_oam_meta_spr(0x24, setting_y, metasprite_Menutaur2);
+      } else if (how_to_select_timer == 100) {
+        how_to_select_timer = 0;
+        const u8 released_button[] = {SELECT_BUTTON_BASE_TILE,
+                                      SELECT_BUTTON_BASE_TILE + 1};
+        multi_vram_buffer_horz(released_button, 2, NTADR_A(15, 5));
+      }
+      if (x_scroll != HOW_TO_SCROLL) {
+        // TODO: easing
+        x_scroll -= 16;
+        set_scroll_x((u16)x_scroll);
+        if (x_scroll == PALETTE_SWAP_POINT) {
+          pal_col(0x11, 0x13);
+          pal_col(0x13, 0x20);
         }
       }
       break;
     }
+
+    render_sprites();
   }
 }

@@ -13,7 +13,7 @@ set(CMAKE_ASM_FLAGS_RELWITHDEBINFO "-Os -flto")
 set(LLVM_MOS_PLATFORM nes-action53)
 find_package(llvm-mos-sdk REQUIRED)
 
-project(miroh CXX ASM)
+project(miroh-jr CXX ASM)
 
 add_compile_options(
   -g -gdwarf-4
@@ -23,7 +23,8 @@ add_compile_options(
 
 add_link_options(
   -g -gdwarf-4
-  -mreserve-zp=58
+  -mreserve-zp=67
+  # donut: 18, ggsound: 40, zx02: 7
 
   # make functions non-recursive by default
   -fnonreentrant

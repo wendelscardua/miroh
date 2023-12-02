@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+
+  gem 'thor'
+end
+
+require 'thor'
+
+# Tool for cutting chr file as a suffix of another
+class CHRSuffixer < Thor
+  def self.exit_on_failure?
+    true
+  end
+
+  desc 'cut CHR_FILE', 'Cuts a suffix out of a CHR file'
+  method_option :output, type: :string, required: true, desc: 'Output file'
+  method_option :base, type: :string, required: true, desc: 'Base CHR file, which the input will be compared with'
+  method_option :block_size, type: :numeric, required: false, default: 64, desc: 'Size of the blocks; output is aligned to this value'
+  def cut(input_chr_file)
+    block_size = options[:block_size]
+    input_blocks = File.open(input_chr_file, 'rb', &:read).unpack('C*').each_slice(block_size).to_a
+    base_blocks = File.open(options[:base], 'rb', &:read).unpack('C*').each_slice(block_size).to_a
+    input_size = block_size * input_blocks.size
+    while input_blocks.size.positive? && input_blocks.first == base_blocks.first
+      input_blocks.shift
+      base_blocks.shift
+    end
+    output_blocks = input_blocks.size
+    output_size = block_size * output_blocks
+    offset = input_size - output_size
+    puts "Offset: #{offset}"
+    puts "Suffix size: #{output_size} (#{output_blocks} blocks)"
+    File.open(options[:output], 'wb') do |f|
+      input_blocks.each { |block| f.write block.pack('C*') }
+    end
+  end
+end
+
+CHRSuffixer.start

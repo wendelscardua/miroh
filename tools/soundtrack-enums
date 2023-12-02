@@ -37,6 +37,8 @@ class SoundtrackEnums < Thor
       f.puts 'enum class SFX : u8 {'
       effects.each { |effect| f.puts "  #{effect}," }
       f.puts '};'
+      f.puts "const u8 NUM_SONGS = #{songs.size};"
+      f.puts "const u8 NUM_SFXS = #{effects.size};"
     end
   end
 
@@ -47,6 +49,13 @@ class SoundtrackEnums < Thor
         .sub(/\A_+/, '')
         .sub(/_+\z/, '')
         .capitalize
+        .then do |label|
+          if label =~ /^[A-Z]/
+            label
+          else
+            "Number#{label}"
+          end
+        end
   end
 end
 

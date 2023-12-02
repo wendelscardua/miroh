@@ -46,6 +46,7 @@ class Polyomino < Thor
         values => { rotateTo: rotate_to }
         pieces[rotate_to.to_sym][:leftRotateTo] = key
       end
+      canon.select! {|key| pieces.has_key?(key.to_sym) }
       canon.each do |key|
         f.puts ".byte piece_#{key}@mos16lo"
       end
@@ -93,33 +94,72 @@ class Polyomino < Thor
                       else 'kick_type_jR0'
                       end
                     end
-
+        # pointers to lists of kick deltas for counterclockwise and clockwise rotations
         f.puts ".word #{left_kick}, #{right_kick}"
+
+        # array [5] of (delta row, delta column), padded with zeroes
+        # each pair of deltas fit in a byte
         f.puts ".byte #{blocks.size}"
-        blocks.each do |delta_row, _delta_column|
-          f.puts "  .byte #{delta_row}"
+        blocks.sort_by! { |delta_row, delta_column| [delta_row, delta_column] }
+        blocks.each do |delta_row, delta_column|
+          delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
+          f.puts "  .byte #{delta}"
         end
+
+        # alignment is only important for canon pieces
+        next unless canon.include?(key.to_s)
+
         (5 - blocks.size).times do
           f.puts '  .byte 0'
         end
-        blocks.each do |_delta_row, delta_column|
-          f.puts "  .byte #{delta_column}"
-        end
-        (5 - blocks.size).times do
-          f.puts '  .byte 0'
-        end
+
+        # tiles for the nametable preview of the next piece
+        f.puts "  .byte #{preview_bytes(blocks).join(', ')}"
       end
 
+      used_kicks = {};
+
       kicks.each do |key, values|
-        f.puts "kick_type_#{key}:"
-        values.each do |_delta_x, delta_y|
-          f.puts ".byte #{-delta_y}"
+        if (used_key = used_kicks[values])
+          f.puts "kick_type_#{key} = kick_type_#{used_key}"
+          next
         end
-        values.each do |delta_x, _delta_y|
-          f.puts ".byte #{delta_x}"
+        used_kicks[values] = key
+        f.puts "kick_type_#{key}:"
+        values.each do |delta_x, delta_y|
+          delta_row = -delta_y
+          delta_column = delta_x
+          delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
+          f.puts ".byte #{delta}"
         end
       end
     end
+  end
+
+  private
+
+  PREVIEW_BASE_TILE = 0x70
+
+  def preview_byte(block_matrix, row_offset, column_offset)
+    block_matrix[row_offset + 1][column_offset + 1] * 1 +
+    block_matrix[row_offset + 1][column_offset + 0] * 2 +
+    block_matrix[row_offset + 0][column_offset + 1] * 4 +
+    block_matrix[row_offset + 0][column_offset + 0] * 8 +
+    PREVIEW_BASE_TILE
+  end
+
+  def preview_bytes(blocks)
+    block_matrix = Array.new(4) { Array.new(4) { 0 } }
+    blocks.each do |delta_row, delta_column|
+      block_matrix[delta_row + 1][delta_column + 1] = 1
+    end
+
+    [
+      preview_byte(block_matrix, 0, 0),
+      preview_byte(block_matrix, 0, 2),
+      preview_byte(block_matrix, 2, 0),
+      preview_byte(block_matrix, 2, 2)
+    ]
   end
 end
 

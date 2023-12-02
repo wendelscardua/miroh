@@ -4,16 +4,16 @@
 
 struct fixed_point {
   union {
-    s32 value;
+    u16 value;
     struct {
-      u16 frac;
-      s16 whole;
+      u8 frac;
+      u8 whole;
     };
   };
 
   constexpr fixed_point() : value(0) {}
-  constexpr fixed_point(s32 v) : value(v) {}
-  constexpr fixed_point(s16 w, u16 f) : frac(f), whole(w) {}
+  constexpr fixed_point(u16 v) : value(v) {}
+  constexpr fixed_point(u8 w, u8 f) : frac(f), whole(w) {}
 
   constexpr fixed_point operator+(const fixed_point rhs) const {
     return fixed_point(value + rhs.value);
@@ -54,19 +54,11 @@ struct fixed_point {
     return !(*this < rhs);
   }
 
-  constexpr s16 round() {
-    if (whole >= 0) {
-      if (frac >= 0x8000) {
-        return whole + 1;
-      } else {
-        return whole;
-      }
+  constexpr u8 round() {
+    if (frac >= 0x80) {
+      return whole + 1;
     } else {
-      if (frac >= 0x8000) {
-        return whole - 1;
-      } else {
-        return whole;
-      }
+      return whole;
     }
   }
 };

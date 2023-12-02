@@ -1,12 +1,12 @@
 #include "polyomino.hpp"
-#include "attributes.hpp"
 #include "bag.hpp"
-#include "bank-helper.hpp"
+#include "banked-asset-helpers.hpp"
+#include "board.hpp"
+#include "common.hpp"
 #include "direction.hpp"
 #include "ggsound.hpp"
-#include "input-mode.hpp"
+#include "log.hpp"
 #include "polyomino-defs.hpp"
-#include <bank.h>
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
@@ -21,7 +21,7 @@ static auto littleminos = Bag<u8, 5>([](auto *bag) {
   }
 });
 
-static auto pentominos = Bag<u8, 32>([](auto *bag) {
+static auto pentominos = Bag<u8, 18>([](auto *bag) {
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
     if (polyominos[i]->size == 5) {
       bag->insert(i);
@@ -29,7 +29,7 @@ static auto pentominos = Bag<u8, 32>([](auto *bag) {
   }
 });
 
-auto Polyomino::pieces = Bag<u8, 32>([](auto *bag) {
+auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
   // add all tetrominos to the bag
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
     if (polyominos[i]->size == 4) {
@@ -47,10 +47,12 @@ auto Polyomino::pieces = Bag<u8, 32>([](auto *bag) {
 
 Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), next(polyominos[pieces.take()]),
-      second_next(polyominos[pieces.take()]), active(false) {}
+      state(State::Inactive) {
+  render_next();
+}
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
-  active = true;
+  state = State::Active;
   grounded_timer = 0;
   move_timer = 0;
   movement_direction = Direction::None;
@@ -58,15 +60,83 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   row = 0;
 
   definition = next;
-  next = second_next;
-  second_next = polyominos[pieces.take()];
+  next = polyominos[pieces.take()];
+
+  render_next();
+
+  for (u8 i = 0; i < 4; i++) {
+    bitmask[i] = 0;
+  }
 
   s8 max_delta = 0;
   for (auto delta : definition->deltas) {
-    if (delta.delta_row > max_delta)
+    if (delta.delta_row > max_delta) {
       max_delta = delta.delta_row;
+    }
   }
   row -= (max_delta + 1);
+
+  update_bitmask();
+}
+
+__attribute__((noinline, section(POLYOMINOS_TEXT))) void
+Polyomino::update_bitmask() {
+  for (u8 i = 0; i < 4; i++) {
+    bitmask[i] = 0;
+  }
+
+  left_limit = 2;
+  right_limit = -2;
+  for (u8 i = 0; i < definition->size; i++) {
+    auto delta = definition->deltas[i];
+    if (delta.delta_column > right_limit) {
+      right_limit = delta.delta_column;
+    }
+    if (delta.delta_column < left_limit) {
+      left_limit = delta.delta_column;
+    }
+    bitmask[(u8)(delta.delta_row + 1)] |=
+        Board::OCCUPIED_BITMASK[(u8)(column + delta.delta_column)];
+  }
+  update_shadow();
+}
+
+__attribute__((noinline)) void Polyomino::update_shadow() {
+  START_MESEN_WATCH(4);
+  shadow_row = row;
+  while (!collide(shadow_row + 1, column)) {
+    shadow_row++;
+  }
+  STOP_MESEN_WATCH(4);
+}
+
+inline u16 signed_shift(u16 value, s8 shift) {
+  if (shift == 0) {
+    return value;
+  } else if (shift > 0) {
+    return value << 1;
+  } else {
+    return value >> 1;
+  }
+}
+
+bool Polyomino::collide(s8 new_row, s8 new_column) {
+  if (left_limit + new_column < 0 || right_limit + new_column >= WIDTH) {
+    return true;
+  }
+  for (u8 i = 0; i < 4; i++) {
+    s8 mod_row = (s8)(new_row + i - 1);
+    if (mod_row < 0) {
+      continue;
+    }
+    if (bitmask[i] &&
+        (mod_row >= HEIGHT || (signed_shift(bitmask[i], (new_column - column)) &
+                               board.occupied_bitset[(u8)(new_row + i - 1)]))) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) bool
@@ -85,19 +155,13 @@ Polyomino::able_to_kick(auto kick_deltas) {
 }
 
 __attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
-  if (!active) {
-    if (input_mode == InputMode::Polyomino) {
-      input_mode = InputMode::Player;
-    }
-  }
-  if (input_mode != InputMode::Polyomino) {
+Polyomino::handle_input(u8 pressed, u8 held) {
+  if (state != State::Active) {
     return;
   }
-
   if (pressed & PAD_UP) {
     // just some high enough value for the drop to proceed until the end
-    drop_timer = HEIGHT * 60;
+    drop_timer = HEIGHT * 70;
     grounded_timer = MAX_GROUNDED_TIMER;
     movement_direction = Direction::Up;
   } else if (pressed & PAD_LEFT) {
@@ -130,9 +194,8 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
     definition = definition->right_rotation;
 
     if (able_to_kick(definition->right_kick->deltas)) {
-      banked_lambda(GET_BANK(sfx_list), []() {
-        GGSound::play_sfx(SFX::Turn_right, GGSound::SFXPriority::One);
-      });
+      banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      update_bitmask();
     } else {
       definition = definition->left_rotation; // undo rotation
     }
@@ -140,35 +203,38 @@ Polyomino::handle_input(InputMode &input_mode, u8 pressed, u8 held) {
     definition = definition->left_rotation;
 
     if (able_to_kick(definition->left_kick->deltas)) {
-      banked_lambda(GET_BANK(sfx_list), []() {
-        GGSound::play_sfx(SFX::Turn_left, GGSound::SFXPriority::One);
-      });
+      banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      update_bitmask();
     } else {
       definition = definition->right_rotation; // undo rotation
     }
   }
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
-                  u8 &lines_filled) {
-  if (!active)
+void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
+                                 u8 &lines_cleared) {
+  s8 lines = freeze_blocks();
+  if (lines >= 0) {
+    lines_cleared = (u8)lines;
+    blocks_placed = true;
+  } else {
+    failed_to_place = true;
+  }
+}
+
+void Polyomino::update(u8 drop_frames, bool &blocks_placed,
+                       bool &failed_to_place, u8 &lines_cleared) {
+  if (state == State::Inactive) {
     return;
+  }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
-    if (definition->collide(board, row + 1, column)) {
+    if (collide(row + 1, column)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
         drop_timer = 0;
         movement_direction = Direction::None;
-        if (can_be_frozen()) {
-          lines_filled = freeze_blocks();
-          blocks_placed = true;
-          return;
-        } else {
-          failed_to_place = true;
-          return;
-        }
+        freezing_handler(blocks_placed, failed_to_place, lines_cleared);
       } else {
         grounded_timer++;
       }
@@ -178,99 +244,79 @@ Polyomino::update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
         grounded_timer = 0;
       }
     }
+    return;
   }
 
   switch (movement_direction) {
   case Direction::Left:
-    if (!definition->collide(board, row, column - 1)) {
+    if (!collide(row, column - 1)) {
       column--;
+      for (u8 i = 0; i < 4; i++) {
+        bitmask[i] = bitmask[i] >> 1;
+      }
+      update_shadow();
     }
     movement_direction = Direction::None;
     break;
   case Direction::Right:
-    if (!definition->collide(board, row, column + 1)) {
+    if (!collide(row, column + 1)) {
       column++;
+      for (u8 i = 0; i < 4; i++) {
+        bitmask[i] = bitmask[i] << 1;
+      }
+      update_shadow();
     }
     movement_direction = Direction::None;
     break;
   case Direction::Down:
-    if (definition->collide(board, row + 1, column)) {
-      if (can_be_frozen()) {
-        lines_filled = freeze_blocks();
-        blocks_placed = true;
-      } else {
-        failed_to_place = true;
-      }
+    if (collide(row + 1, column)) {
+      freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
       movement_direction = Direction::None;
     }
-  default:
+  case Direction::Up:
+  case Direction::None:
+    if (board.active_animations) {
+      update_shadow();
+    }
     break;
   }
 }
 
-void Polyomino::render() {
-  if (!active)
+void Polyomino::render(int y_scroll) {
+  if (state != State::Active)
     return;
-
-  banked_lambda(GET_BANK(polyominos), [this]() {
-    definition->render(board.origin_x + (u8)(column << 4),
-                       board.origin_y + (u8)(row << 4));
-  });
+  definition->render(board.origin_x + (u8)(column << 4),
+                     (board.origin_y - y_scroll + (row << 4)));
+  definition->shadow(board.origin_x + (u8)(column << 4),
+                     (board.origin_y - y_scroll + (shadow_row << 4)),
+                     (u8)(shadow_row - row));
 }
 
-void Polyomino::render_next() {
-  banked_lambda(GET_BANK(polyominos), [this]() {
-    u8 next_x = board.origin_x + 0x10 * (WIDTH / 2);
-    u8 next_y = board.origin_y - 0x20;
-    if (active && row < 0) {
-      next->chibi_render(next_x + 0x40, next_y);
-    } else {
-      next->chibi_render(next_x, next_y);
-      second_next->chibi_render(next_x + 0x40, next_y);
-    }
-  });
+void Polyomino::outside_render(int y_scroll) {
+  definition->outside_render(board.origin_x + (u8)(column << 4),
+                             (board.origin_y - y_scroll + (row << 4)),
+                             board.origin_y - y_scroll);
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) bool
-Polyomino::can_be_frozen() {
-  s8 min_y_delta = 2;
+void Polyomino::render_next() { next->chibi_render(3, 5); }
 
-  for (u8 i = 0; i < definition->size; i++) {
-    auto delta = definition->deltas[i];
-    if (delta.delta_row < min_y_delta)
-      min_y_delta = delta.delta_row;
-  }
-  return row + min_y_delta >= 0;
-}
-
-__attribute__((noinline, section(POLYOMINOS_TEXT))) u8
+__attribute__((noinline, section(POLYOMINOS_TEXT))) s8
 Polyomino::freeze_blocks() {
-  banked_lambda(GET_BANK(sfx_list), []() {
-    GGSound::play_sfx(SFX::Click, GGSound::SFXPriority::Two);
-  });
+  state = State::Inactive;
+  grounded_timer = 0;
+  s8 filled_lines = 0;
+  if (!definition->board_render(board, row, column)) {
+    return -1;
+  }
 
-  active = false;
-  u8 filled_lines = 0;
-  for (u8 i = 0; i < definition->size; i++) {
-    auto delta = definition->deltas[i];
-    s8 block_row = row + delta.delta_row;
-    s8 block_column = column + delta.delta_column;
-    if (!board.occupied(block_row, block_column)) {
-      if (block_row >= 0) {
-        board.occupy(block_row, block_column);
-        if (board.tally[block_row] == WIDTH) {
-          filled_lines++;
-        }
-      }
-      int position = NTADR_A((board.origin_x >> 3) + (block_column << 1),
-                             (board.origin_y >> 3) + (block_row << 1));
-      multi_vram_buffer_horz((const u8[2]){0x74, 0x75}, 2, position);
-      multi_vram_buffer_horz((const u8[2]){0x84, 0x85}, 2, position + 0x20);
-      Attributes::set((board.origin_x >> 4) + (u8)block_column,
-                      (board.origin_y >> 4) + (u8)block_row,
-                      FROZEN_BLOCK_ATTRIBUTE);
+  // XXX: checking the range of possible rows that could have been filled by a
+  // polyomino
+  for (s8 delta_row = -1; delta_row <= 2; delta_row++) {
+    s8 block_row = row + delta_row;
+    if (board.row_filled(block_row)) {
+      filled_lines++;
     }
   }
 

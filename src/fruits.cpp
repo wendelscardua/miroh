@@ -1,126 +1,191 @@
 #include "fruits.hpp"
-#include "bag.hpp"
 #include "banked-asset-helpers.hpp"
 #include "metasprites.hpp"
-#include "player.hpp"
+#include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
-static Bag<s8, HEIGHT> row_bag([](auto *bag) {
-  for (s8 i = 0; i < HEIGHT; i++) {
-    bag->insert(i);
-  }
-});
+const Fruit::Type fruit_types_per_stage[][4] = {
+    // Starlit Stables
+    {Fruit::Type::Apple, Fruit::Type::Corn, Fruit::Type::Pear,
+     Fruit::Type::Avocado},
+    // Rainbow Retreat
+    {Fruit::Type::Eggplant, Fruit::Type::Kiwi, Fruit::Type::Broccoli,
+     Fruit::Type::GreenPeas},
+    // Fairy Forest
+    {Fruit::Type::Strawberry, Fruit::Type::Cherries, Fruit::Type::Grapes,
+     Fruit::Type::Cucumber},
+    // Glittery Grotto
+    {Fruit::Type::Clementine, Fruit::Type::Hallabong, Fruit::Type::Carrot,
+     Fruit::Type::Berries},
+    // Marshmallow Mountain
+    {Fruit::Type::Berries, Fruit::Type::BlueCorn, Fruit::Type::Bananas,
+     Fruit::Type::SweetPotato},
+};
 
-static Bag<s8, WIDTH> column_bag([](auto *bag) {
-  for (s8 j = 0; j < WIDTH; j++) {
-    bag->insert(j);
-  }
-});
-
-void Fruits::spawn_on_board(soa::Ptr<Fruit> fruit) {
+void Fruits::spawn_on_board(u8 fruit_index) {
+  auto fruit = fruits[fruit_index];
   fruit.row = -1;
   fruit.column = -1;
 
+  Fruit::Type type = fruit_types_per_stage[(u8)current_stage][RAND_UP_TO(
+      sizeof(fruit_types_per_stage[(u8)current_stage]))];
+
+  fruit.low_metasprite = low_fruits[(u8)type];
+  fruit.high_metasprite = high_fruits[(u8)type];
+
   // pick a random row
-  for (u8 tries = 0; tries < 4; tries++) {
-    s8 candidate_row = row_bag.take();
-    if (board.tally[candidate_row] < WIDTH) {
-      fruit.row = candidate_row;
-      break;
-    }
-  }
-
-  if (fruit.row < 0) {
-    // no good row? give up for now, we'll try next frame
+  static_assert(sizeof(fruit_rows[0]) == 4);
+  fruit.row = fruit_rows[fruit_index][RAND_UP_TO_POW2(2)]; // see assert above
+  if (board.row_filled(fruit.row)) {
+    // if row is bad, give up for now, we try next frame
     return;
   }
 
-  // now we do the same for column
-  for (u8 tries = 0; tries < 4; tries++) {
-    s8 candidate_column = column_bag.take();
-    if (!board.cell[fruit.row][candidate_column].occupied) {
-      fruit.column = candidate_column;
-      break;
-    }
-  }
-  if (fruit.column < 0) {
-    // no good column? give up for now, we'll try next frame
-    return;
-  }
+  fruit.column = (s8)board.random_free_column((u8)fruit.row);
 
-  // avoid placing on other fruits
-  for (auto other : fruits) {
-    if (!other.active)
-      continue;
-
-    if (other.row == fruit.row && other.column == fruit.column) {
-      return;
-    }
-  }
-
-  fruit.active = true;
+  fruit.state = Fruit::State::Dropping;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
   fruit.y = (u8)((fruit.row << 4) + board.origin_y);
+  fruit.raindrop_y = fruit.y.get();
+  while (fruit.raindrop_y >= DROP_SPEED) {
+    fruit.raindrop_y -= DROP_SPEED;
+  }
   fruit.life = EXPIRATION_TIME;
+  splash_animation.reset();
 }
 
 Fruits::Fruits(Board &board) : board(board) {
-  fruit_credits = INITIAL_CREDITS;
   spawn_timer = SPAWN_DELAY /
                 2; // just so player don't wait too much to see the first fruit
   for (auto fruit : fruits) {
-    fruit.active = false;
+    fruit.state = Fruit::State::Inactive;
   }
   active_fruits = 0;
 }
 
-void Fruits::update(Player &player, bool blocks_placed, u8 lines_filled) {
-  if (lines_filled) {
-    spawn_timer += SPAWN_DELAY / 2 * lines_filled;
-    fruit_credits += lines_filled;
-  } else if (blocks_placed) {
-    fruit_credits++;
-  }
-
+void Fruits::update(Unicorn &player, bool &snack_was_eaten, bool can_spawn) {
   for (auto fruit : fruits) {
-    if (fruit.active) {
+    switch (fruit.state) {
+    case Fruit::State::Inactive:
+      break;
+    case Fruit::State::Dropping:
+      if (fruit.raindrop_y == fruit.y) {
+        if (splash_animation.current_cell_index == 13 &&
+            splash_animation.current_frame == 0) {
+          // near splash 14
+          // TODO: check if this is ok
+          banked_play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
+        }
+        if (splash_animation.finished) {
+          fruit.state = Fruit::State::Active;
+          fruit.bobbing_counter = 0;
+        }
+      } else {
+        fruit.raindrop_y += DROP_SPEED;
+      }
+      break;
+    case Fruit::State::Active:
+    case Fruit::State::Despawning:
       if (board.occupied(fruit.row, fruit.column)) {
-        fruit.active = false;
+        fruit.state = Fruit::State::Inactive;
         active_fruits--;
-      } else if (player.state == Player::State::Idle &&
-                 player.x.whole >> 4 == fruit.column &&
-                 player.y.whole >> 4 == fruit.row) {
-        fruit.active = false;
+      } else if ((player.state == Unicorn::State::Idle ||
+                  player.state == Unicorn::State::Moving) &&
+                 (player.x.whole + 8) >> 4 == fruit.column &&
+                 (player.y.whole + 8) >> 4 == fruit.row) {
+        fruit.state = Fruit::State::Inactive;
         active_fruits--;
         player.feed(FRUIT_NUTRITION);
-      } else if (--fruit.life == 0) {
-        fruit.active = false;
+        snack_was_eaten = true;
+      } else if (fruit.state == Fruit::State::Active && --fruit.life == 0) {
+        fruit.state = Fruit::State::Despawning;
+        fruit.despawn_counter = DESPAWN_DELAY;
+      } else if (fruit.state == Fruit::State::Despawning &&
+                 --fruit.despawn_counter == 0) {
+        fruit.state = Fruit::State::Inactive;
         active_fruits--;
+      } else {
+        fruit.bobbing_counter++;
       }
+      break;
     }
   }
 
-  if (fruit_credits > 0 && active_fruits < NUM_FRUITS &&
-      ++spawn_timer > SPAWN_DELAY) {
-    for (auto fruit : fruits) {
-      if (!fruit.active) {
-        spawn_on_board(fruit);
-        if (fruit.active) {
+  if (!can_spawn) {
+    return;
+  }
+
+  if (spawn_timer >= SPAWN_DELAY) {
+    for (u8 fruit_index = 0; fruit_index < NUM_FRUITS; fruit_index++) {
+      if (fruits[fruit_index].state == Fruit::State::Inactive) {
+        spawn_on_board(fruit_index);
+        if (fruits[fruit_index].state == Fruit::State::Dropping) {
           active_fruits++;
-          fruit_credits--;
           spawn_timer -= SPAWN_DELAY;
         }
         break;
       }
     }
+  } else if (active_fruits < NUM_FRUITS) {
+    spawn_timer++;
   }
 }
 
-void Fruits::render() {
-  for (auto fruit : fruits) {
-    if (fruit.active) {
-      banked_oam_meta_spr(fruit.x, fruit.y, metasprite_fruit);
+void Fruits::render_fruit(Fruit fruit, int y_scroll) {
+  switch (fruit.state) {
+  case Fruit::State::Despawning:
+    if ((fruit.despawn_counter & 0b111) == 0b100) {
+      break;
+    }
+  case Fruit::State::Active:
+    banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
+                        (fruit.bobbing_counter & 0b10000)
+                            ? fruit.high_metasprite
+                            : fruit.low_metasprite);
+    break;
+  case Fruit::State::Dropping:
+    if (fruit.y == fruit.raindrop_y) {
+      if (splash_animation.current_cell_index == 13 ||
+          splash_animation.current_cell_index == 14) {
+        // splash anim 14 & 15
+        banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.high_metasprite);
+      } else if (splash_animation.current_cell_index >= 15) {
+        // splash anim 16 & 17
+        banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
+      }
+      splash_animation.update(fruit.x, fruit.y - y_scroll);
+    } else {
+      auto &metasprite = (fruit.y - fruit.raindrop_y <= 48)
+                             ? metasprite_RainShadowB
+                             : metasprite_RainShadowA;
+
+      if (fruit.raindrop_y - y_scroll > 0 &&
+          fruit.raindrop_y - y_scroll < 0xe0) {
+        u8 drop_tile = (fruit.y - fruit.raindrop_y <= 48) ? 0xb2 : 0xb1;
+
+        oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), drop_tile, 0);
+      }
+      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite);
+    }
+    break;
+  case Fruit::State::Inactive:
+    break;
+  }
+}
+
+void Fruits::render_below_player(int y_scroll, int y_player) {
+  for (Fruit fruit : fruits) {
+    if (fruit.y > y_player) {
+      render_fruit(fruit, y_scroll);
+    };
+  }
+}
+
+void Fruits::render_above_player(int y_scroll, int y_player) {
+  for (Fruit fruit : fruits) {
+    if (fruit.y <= y_player) {
+      render_fruit(fruit, y_scroll);
     };
   }
 }

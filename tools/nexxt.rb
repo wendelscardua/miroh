@@ -85,7 +85,7 @@ module NEXXT
                      .to_a
                      .map do |meta_bytes|
         meta_bytes.each_slice(4)
-                  .reject { |row| row == [255, 255, 255, 255] }
+                  .reject { |row| row[0] == 255 && row[2] == 255 && row[3] == 255 } # tile can be different from $ff
                   .map do |y, tile, attribute, x|
           raise "Invalid bytes #{bytes}" if y.nil? || tile.nil? || attribute.nil? || x.nil?
 

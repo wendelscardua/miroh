@@ -26,16 +26,16 @@
 ;;; 2022-09-13: Don't use fixed memory locations, add support for C code
 
         .global _asm_donut_decompress_to_ppu
+        .global donut_block_buffer
 
         .section .bss
-_donut_block_buffer: .zero 64
-        donut_block_buffer = _donut_block_buffer + $100 - $40
+donut_block_buffer: .zero 64
 
         .section .zp
 donut_stream_ptr:       .zero 2
 temp: .zero 16
 
-        .section .prg_rom_last,"a"
+        .section .prg_rom_1,"a" ; ASSETS bank
 
         ;; void _asm_donut_decompress_to_ppu(void *stream_ptr, char num_blocks)
         ;; decompress num_blocks * 64 bytes from stream_ptr to the PPU
@@ -75,7 +75,7 @@ block_loop:
         bcs end_block_upload  ; bail on error.
         ldx #64
 upload_loop:
-        lda donut_block_buffer, x
+        lda donut_block_buffer-64, x
         sta PPU_DATA
         inx
         bpl upload_loop
@@ -145,7 +145,7 @@ do_raw_block:
 raw_block_loop:
         lda (donut_stream_ptr), y
         iny
-        sta donut_block_buffer, x
+        sta donut_block_buffer-64, x
         inx
         cpy #65  ; size of a raw block
         bcc raw_block_loop
@@ -249,7 +249,7 @@ pb8_loop:
         iny
 pb8_use_prev:
         dex
-        sta donut_block_buffer, x
+        sta donut_block_buffer-64, x
         asl pb8_ctrl
         bne pb8_loop
         sty temp_y
@@ -261,9 +261,9 @@ xor_m_onto_l:
         ldy #8
 xor_m_onto_l_loop:
         dex
-        lda donut_block_buffer, x
-        eor donut_block_buffer+8, x
-        sta donut_block_buffer, x
+        lda donut_block_buffer-64, x
+        eor donut_block_buffer-64+8, x
+        sta donut_block_buffer-64, x
         dey
         bne xor_m_onto_l_loop
 not_xor_m_onto_l:
@@ -273,9 +273,9 @@ xor_l_onto_m:
         ldy #8
 xor_l_onto_m_loop:
         dex
-        lda donut_block_buffer, x
-        eor donut_block_buffer+8, x
-        sta donut_block_buffer+8, x
+        lda donut_block_buffer-64, x
+        eor donut_block_buffer-64+8, x
+        sta donut_block_buffer-64+8, x
         dey
         bne xor_l_onto_m_loop
 not_xor_l_onto_m:
@@ -293,7 +293,7 @@ do_zero_plane:
         ldy #8
 fill_plane_loop:
         dex
-        sta donut_block_buffer, x
+        sta donut_block_buffer-64, x
         dey
         bne fill_plane_loop
         beq end_plane  ;,; jmp end_plane
@@ -330,7 +330,7 @@ flip_bits_loop:
         asl plane_buffer+7
         ror
         dex
-        sta donut_block_buffer, x
+        sta donut_block_buffer-64, x
         dey
         bne flip_bits_loop
         beq end_plane  ;,; jmp end_plane

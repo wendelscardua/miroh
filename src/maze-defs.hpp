@@ -4,8 +4,7 @@
 
 #include "board.hpp"
 
-#define NUM_MAZES 10
-#define MAZE_NAME_WIDTH 10
+#define NUM_MAZES 4
 
 struct TemplateCell {
   union {
@@ -32,15 +31,14 @@ struct TemplateCell {
 };
 
 struct MazeDef {
-  const TemplateCell template_cells[HEIGHT][WIDTH];
-  const bool has_special_cells;
-  const bool is_special[HEIGHT][WIDTH];
+  const TemplateCell template_cells[HEIGHT * WIDTH];
 };
 
-typedef u8 Maze;
+enum class Maze : u8 {
+  Normal,
+  NewNormal,
+  Shelves,
+  Onion,
+};
 
 extern "C" const soa::Array<MazeDef *, NUM_MAZES> mazes;
-
-extern "C" const char maze_names[NUM_MAZES][MAZE_NAME_WIDTH];
-
-extern Maze maze;

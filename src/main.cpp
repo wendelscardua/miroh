@@ -1,4 +1,4 @@
-#include <bank.h>
+#include <mapper.h>
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -10,26 +10,42 @@
 #include "title-screen.hpp"
 
 #include "soundtrack-ptr.hpp"
+#include "world-map.hpp"
 
-GameMode current_mode;
-GameMode previous_mode;
-u16 high_score[NUM_MAZES];
-bool line_gravity_enabled;
-Maze maze;
+GameState current_game_state;
+GameState previous_game_state;
+
+GameMode current_game_mode;
+ControllerScheme current_controller_scheme;
+Stage current_stage;
+
+u16 high_score[NUM_STAGES];
+bool story_completion[NUM_STAGES];
+bool ending_triggered;
+bool story_mode_beaten;
+bool show_intro;
 
 static void main_init() {
-  previous_mode = GameMode::None;
-  current_mode = GameMode::TitleScreen;
+  previous_game_state = GameState::None;
+  current_game_state = GameState::TitleScreen;
+  current_game_mode = GameMode::Story;
+  current_controller_scheme = ControllerScheme::OnePlayer;
+
+  set_prg_bank(0);
+
   for (u8 i = 0; i < NUM_MAZES; i++) {
     high_score[i] = 0;
   }
+  for (u8 i = 0; i < NUM_STAGES; i++) {
+    story_completion[i] = false;
+  }
 
-  line_gravity_enabled = true;
-  maze = 0;
+  ending_triggered = false;
+
+  show_intro = false;
+  story_mode_beaten = false;
 
   ppu_off();
-
-  set_mirroring(MIRROR_HORIZONTAL);
 
   // set 8x8 sprite mode
   oam_size(0);
@@ -41,28 +57,36 @@ static void main_init() {
 
   set_vram_buffer();
 
-  set_prg_bank(GET_BANK(song_list));
-  GGSound::init(GGSound::Region::NTSC, song_list, sfx_list, instrument_list,
-                GET_BANK(song_list));
+  {
+    ScopedBank scopedBank(GET_BANK(song_list));
+    GGSound::init(GGSound::Region::NTSC, song_list, sfx_list, instrument_list,
+                  GET_BANK(song_list));
+  }
 }
 
 int main() {
   main_init();
 
+  Board board;
+
   while (true) {
-    switch (current_mode) {
-    case GameMode::TitleScreen:
-      banked_lambda(0, []() {
-        TitleScreen titleScreen;
-        titleScreen.loop();
-      });
-      break;
-    case GameMode::Gameplay:
-      banked_lambda(0, []() {
-        Gameplay gameplay;
-        gameplay.loop();
-      });
-    default:
+    switch (current_game_state) {
+    case GameState::TitleScreen: {
+      ScopedBank scopedBank(TitleScreen::BANK);
+      TitleScreen title_screen;
+      title_screen.loop();
+    }; break;
+    case GameState::Gameplay: {
+      ScopedBank scopedBank(Gameplay::BANK);
+      Gameplay gameplay(board);
+      gameplay.loop();
+    }; break;
+    case GameState::WorldMap: {
+      ScopedBank scopedBank(WorldMap::BANK);
+      WorldMap world_map(board);
+      world_map.loop();
+    } break;
+    case GameState::None:
       break;
     }
   }

@@ -1,473 +1,673 @@
 #include "board.hpp"
-#include "attributes.hpp"
-#include "bag.hpp"
+#include "assets.hpp"
 #include "bank-helper.hpp"
+#include "banked-asset-helpers.hpp"
 #include "common.hpp"
+#include "coroutine.hpp"
 #include "maze-defs.hpp"
+#include "soundtrack.hpp"
+#include "union-find.hpp"
+#include "utils.hpp"
 #include <cstdio>
 #include <nesdoug.h>
 #include <neslib.h>
 
-Cell::Cell() : walls(0), occupied(false), parent(NULL) {}
+Cell::Cell() : walls(0) {}
 
-void Cell::reset() {
-  this->walls = 0;
+static constexpr u8 CELL_ROW_START[] = {
+    0,         WIDTH,     2 * WIDTH, 3 * WIDTH, 4 * WIDTH,
+    5 * WIDTH, 6 * WIDTH, 7 * WIDTH, 8 * WIDTH, 9 * WIDTH};
 
-  this->occupied = false;
+static_assert(sizeof(CELL_ROW_START) == HEIGHT,
+              "CELL_ROW_START does not have HEIGHT entries");
 
-  this->empty_bottom_right = false;
-  this->empty_bottom_left = false;
-  this->empty_top_right = false;
-  this->empty_top_left = false;
+u8 board_index(u8 row, u8 column) { return CELL_ROW_START[row] + column; }
 
-  this->parent = this;
-}
+bool BoardAnimation::paused = false;
 
-Cell *Cell::representative() {
-  Cell *temp = this;
-  while(temp != temp->parent) {
-    temp->parent = temp->parent->parent;
-    temp = temp->parent;
-  }
-  return temp;
-}
+BoardAnimation::BoardAnimation() : cells(NULL), length(0), finished(true) {}
 
-void Cell::join(Cell *other) {
-  Cell *x = this->representative();
-  Cell *y = other->representative();
-  if (x != y) y->parent = x;
-}
+BoardAnimation::BoardAnimation(const BoardAnimFrame (*cells)[], u8 length,
+                               u8 row, u8 column)
+    : cells(cells), current_cell(&(*cells)[0]), current_frame(0),
+      current_cell_index(0), length(length), row(row), column(column),
+      finished(false) {}
 
-Board::Board(u8 origin_x, u8 origin_y) : origin_x(origin_x), origin_y(origin_y) {
-  // reset tally
-  for(u8 i = 0; i < HEIGHT; i++) {
-    tally[i] = 0;
-    deleted[i] = 0;
-  }
-  cracking_row = -1;
-  cracking_column = -1;
-  erasing_row = -1;
-  erasing_column = -1;
-  dropping_column = -1;
-  dropping_row = -1;
-
-  // reset walls
-  for(u8 i = 0; i < HEIGHT; i++) {
-    for(u8 j = 0; j < WIDTH; j++) {
-      cell[i][j].reset();
+void BoardAnimation::update() {
+  if (paused || finished)
+    goto exit;
+  current_frame++;
+  if (current_frame >= current_cell->duration) {
+    current_frame = 0;
+    current_cell_index++;
+    if (current_cell_index == length) {
+      finished = true;
+    } else {
+      current_cell++;
     }
   }
+exit:
+}
 
-#define NEED_WALL(direction) (template_cell.maybe_##direction##_wall && ((rand8() & 0b11) == 0))
-  banked_lambda(GET_BANK(mazes), [this]() {
+Cell &Board::cell_at(u8 row, u8 column) {
+  return this->cell[board_index(row, column)];
+}
+
+Board::Board() : animations({}), active_animations(false) {}
+
+Board::~Board() {}
+
+__attribute__((section(".prg_rom_0.data"))) const Maze stage_mazes[] = {
+    Maze::NewNormal, Maze::Onion, Maze::Shelves, Maze::Normal, Maze::Normal};
+
+__attribute__((noinline, section(".prg_rom_0.text"))) void
+Board::generate_maze() {
+  // reset walls
+  for (auto &one_cell : cell) {
+    one_cell.walls = 0;
+  }
+
+#define NEED_WALL(direction)                                                   \
+  (template_cell.maybe_##direction##_wall && (RAND_UP_TO_POW2(2) == 0))
+
+  {
+    ScopedBank scopedBank(GET_BANK(mazes));
     static_assert(sizeof(TemplateCell) == 1, "TemplateCell is too big");
 
+    Maze maze = stage_mazes[(u8)current_stage];
     // read required walls from template
-    for(u8 i = 0; i < HEIGHT; i++) {
-      for(u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+    for (u8 i = 0, index = 0; i < HEIGHT; i++) {
+      for (u8 j = 0; j < WIDTH; j++) {
+        TemplateCell template_cell = mazes[(u8)maze]->template_cells[index];
         if (template_cell.value != 0xff) {
-          cell[i][j].walls = template_cell.walls;
+          cell[index].walls = template_cell.walls;
         }
+        index++;
       }
     }
 
     // read "maybe" walls from template
-    for(u8 i = 0; i < HEIGHT; i++) {
-      for(u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell = mazes[maze]->template_cells[i][j];
+    for (u8 i = 0, index = 0; i < HEIGHT; i++) {
+      for (u8 j = 0; j < WIDTH; j++) {
+        TemplateCell template_cell = mazes[(u8)maze]->template_cells[index];
 
         if (template_cell.value == 0xff) {
           // use the old berzerk algorithm
           // assumes the cell is on the valid range
-          switch(rand8() & 0b11) {
+          switch (RAND_UP_TO_POW2(2)) {
           case 0:
-            cell[i][j].right_wall = true;
-            cell[i][j + 1].left_wall = true;
+            cell[index].right_wall = true;
+            cell[index + 1].left_wall = true;
             break;
           case 1:
-            cell[i][j + 1].down_wall = true;
-            cell[i + 1][j + 1].up_wall = true;
+            cell[index + 1].down_wall = true;
+            cell[index + WIDTH + 1].up_wall = true;
             break;
           case 2:
-            cell[i + 1][j].right_wall = true;
-            cell[i + 1][j + 1].left_wall = true;
+            cell[index + WIDTH].right_wall = true;
+            cell[index + WIDTH + 1].left_wall = true;
             break;
           case 3:
-            cell[i][j].down_wall = true;
-            cell[i + 1][j].up_wall = true;
+            cell[index].down_wall = true;
+            cell[index + WIDTH].up_wall = true;
             break;
           }
-          continue;
+        } else {
+          if (NEED_WALL(up)) {
+            cell[index].up_wall = true;
+            if (i > 0) {
+              cell[index - WIDTH].down_wall = true;
+            }
+          }
+          if (NEED_WALL(down)) {
+            cell[index].down_wall = true;
+            if (i < HEIGHT - 1) {
+              cell[index + WIDTH].up_wall = true;
+            }
+          }
+          if (NEED_WALL(left)) {
+            cell[index].left_wall = true;
+            if (j > 0) {
+              cell[index - 1].right_wall = true;
+            }
+          }
+          if (NEED_WALL(right)) {
+            cell[index].right_wall = true;
+            if (j < WIDTH - 1) {
+              cell[index + 1].left_wall = true;
+            }
+          }
         }
-
-        if (NEED_WALL(up)) {
-          cell[i][j].up_wall = true;
-          if (i > 0) { cell[i - 1][j].down_wall = true; }
-        }
-        if (NEED_WALL(down)) {
-          cell[i][j].down_wall = true;
-          if (i < HEIGHT - 1) { cell[i + 1][j].up_wall = true; }
-        }
-        if (NEED_WALL(left)) {
-          cell[i][j].left_wall = true;
-          if (j > 0) { cell[i][j - 1].right_wall = true; }
-        }
-        if (NEED_WALL(right)) {
-          cell[i][j].right_wall = true;
-          if (j < WIDTH - 1) { cell[i][j + 1].left_wall = true; }
-        }
+        index++;
       }
     }
-  });
+  }
 
   // border walls
-  for(u8 i = 0; i < HEIGHT; i++) {
-    cell[i][0].left_wall = true;
-    cell[i][WIDTH - 1].right_wall = true;
+  for (u8 i = 0; i < HEIGHT; i++) {
+    cell_at(i, 0).left_wall = true;
+    cell_at(i, WIDTH - 1).right_wall = true;
   }
 
-  for(u8 j = 0; j < WIDTH; j++) {
-    cell[0][j].up_wall = true;
-    cell[HEIGHT - 1][j].down_wall = true;
+  for (u8 j = 0; j < WIDTH; j++) {
+    cell_at(0, j).up_wall = true;
+    cell_at(HEIGHT - 1, j).down_wall = true;
   }
+
+  Set disjoint_set[HEIGHT * WIDTH];
 
   // union-find-ish-ly ensure all cells are reachable
-  for(u8 i = 0; i < HEIGHT; i++) {
-    for(u8 j = 0; j < WIDTH; j++) {
-      auto current_cell = &cell[i][j];
-      if (j < WIDTH - 1 && !current_cell->right_wall) {
-        current_cell->join(&cell[i][j+1]);
+  for (u8 i = 0, index = 0; i < HEIGHT; i++) {
+    for (u8 j = 0; j < WIDTH; j++) {
+      auto current_element = &disjoint_set[index];
+      if (j < WIDTH - 1 && !cell[index].right_wall) {
+        current_element->join(&disjoint_set[index + 1]);
       }
-      if (i < HEIGHT - 1 && !current_cell->down_wall) {
-        current_cell->join(&cell[i+1][j]);
+      if (i < HEIGHT - 1 && !cell[index].down_wall) {
+        current_element->join(&disjoint_set[index + WIDTH]);
       }
+      index++;
     }
   }
 
-  Bag<u8, HEIGHT> row_bag([](auto * bag){
-    for(u8 i = 0; i < HEIGHT; i++) { bag->insert(i); }
-  });
-  Bag<u8, WIDTH> column_bag([](auto * bag){
-    for(u8 j = 0; j < WIDTH; j++) { bag->insert(j); }
-  });
-
-  // randomize order of rows, then within a row, the order of columns
-  for(u8 rows = 0; rows < HEIGHT; rows++) {
-    u8 i = row_bag.take();
-    for(u8 columns = 0; columns < WIDTH; columns++) {
-      u8 j = column_bag.take();
-      auto current_cell = &cell[i][j];
-      auto right_cell = j < WIDTH - 1 ? &cell[i][j + 1] : NULL;
-      auto down_cell = i < HEIGHT -1 ? &cell[i + 1][j] : NULL;
-
-      // randomize if we are looking first horizontally or vertically
-      bool down_first = rand8() & 0b1;
-
-      if (down_first && down_cell && current_cell->representative() != down_cell->representative()) {
-        current_cell->down_wall = false;
-        down_cell->up_wall = false;
-        down_cell->join(current_cell);
-      }
-
-      if (right_cell && current_cell->representative() != right_cell->representative()) {
-        current_cell->right_wall = false;
-        right_cell->left_wall = false;
-        right_cell->join(current_cell);
-      }
-
-      if (!down_first && down_cell && current_cell->representative() != down_cell->representative()) {
-        current_cell->down_wall = false;
-        down_cell->up_wall = false;
-        down_cell->join(current_cell);
-      }
-    }
+  // temporarily using bitset to mark visited cells
+  for (u8 i = 0; i < HEIGHT; i++) {
+    occupied_bitset[i] = 0;
   }
 
-  // maze is done, let's precompute empty corners
-  //
-  //  +-+-+
-  //  |   | This is an example of the 4 cells we are checking
-  //  + + + We want to mark on each of them that they don't
-  //  |   | need that "+" in the middle
-  //  +-+-+
-  for(u8 row = 0; row < HEIGHT - 1; row++) {
-    for(u8 column = 0; column < WIDTH - 1; column++) {
-      auto current_cell = &cell[row][column];
-      if (!current_cell->right_wall && !current_cell->down_wall) {
-        auto right_down_cell = &cell[row + 1][column + 1];
-        if (!right_down_cell->up_wall && !right_down_cell->left_wall) {
-          auto right_cell = &cell[row][column + 1];
-          auto down_cell = &cell[row + 1][column];
+  // randomize visit order of cells
 
-          current_cell->empty_bottom_right = true;
-          right_cell->empty_bottom_left = true;
-          down_cell->empty_top_right = true;
-          right_down_cell->empty_top_left = true;
-        }
-      }
+  u8 random_row;
+  while ((random_row = random_free_row()) != 0xff) {
+    u8 random_column = random_free_column(random_row);
+    u8 index = board_index(random_row, random_column);
+
+    occupy((s8)random_row, (s8)random_column);
+
+    auto current_element = &disjoint_set[index];
+    auto right_element =
+        random_column < WIDTH - 1 ? &disjoint_set[index + 1] : NULL;
+    auto down_element =
+        random_row < HEIGHT - 1 ? &disjoint_set[index + WIDTH] : NULL;
+
+    // randomize if we are looking first horizontally or vertically
+    bool down_first = rand8() & 0b1;
+
+    if (down_first && down_element &&
+        current_element->representative() != down_element->representative()) {
+      cell[index].down_wall = false;
+      cell[index + WIDTH].up_wall = false;
+      down_element->join(current_element);
+    }
+
+    if (right_element &&
+        current_element->representative() != right_element->representative()) {
+      cell[index].right_wall = false;
+      cell[index + 1].left_wall = false;
+      right_element->join(current_element);
+    }
+
+    if (down_element &&
+        current_element->representative() != down_element->representative()) {
+      cell[index].down_wall = false;
+      cell[index + WIDTH].up_wall = false;
+      down_element->join(current_element);
     }
   }
 }
 
-Board::~Board() {}
+void Board::reset() {
+  // make all cells free
+  for (u8 i = 0; i < HEIGHT; i++) {
+    occupied_bitset[i] = 0;
+  }
+
+  // reset animations
+  for (auto animation : animations) {
+    animation.finished = true;
+  }
+  active_animations = false;
+}
 
 void Board::render() {
-  for(s8 i = 0; i < HEIGHT; i++) {
-    for(s8 j = 0; j < WIDTH; j++) {
-      restore_maze_cell(i, j);
+  for (s8 i = 0; i < HEIGHT; i++) {
+    for (s8 j = 0; j < WIDTH; j++) {
+      set_maze_cell(i, j, CellType::Maze);
       flush_vram_update2();
     }
   }
-  for(u8 meta_x = origin_x >> 4; meta_x < ((origin_x >> 4) + WIDTH); meta_x++) {
-    for(u8 meta_y = origin_y >> 4; meta_y < ((origin_y >> 4) + HEIGHT); meta_y++) {
-      Attributes::set(meta_x, meta_y, WALL_ATTRIBUTE);
-    }
-  }
-  Attributes::update_vram();
 }
 
-bool Board::occupied(s8 row, s8 column) {
-  if (column < 0 ||
-      column > WIDTH - 1 ||
-      row > HEIGHT - 1)
+__attribute__((noinline)) bool Board::occupied(s8 row, s8 column) {
+  if (column < 0 || column > WIDTH - 1 || row > HEIGHT - 1)
     return true;
 
-  if (row < 0) return false;
+  if (row < 0)
+    return false;
 
-  return cell[row][column].occupied;
+  return occupied_bitset[(u8)row] & OCCUPIED_BITMASK[(u8)column];
 }
 
 void Board::occupy(s8 row, s8 column) {
-  if (!cell[row][column].occupied) { // just to be safe
-    cell[row][column].occupied = true;
-    tally[row]++;
-  }
+  occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
 }
 
 void Board::free(s8 row, s8 column) {
-  if (cell[row][column].occupied) { // just to be safe
-    cell[row][column].occupied = false;
-    tally[row]--;
-  }
+  occupied_bitset[(u8)row] &= ~OCCUPIED_BITMASK[(u8)column];
 }
 
-void Board::block_maze_cell(s8 row, s8 column) {
-  int position = NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
-  multi_vram_buffer_horz((const u8[2]){0x74, 0x75}, 2, position);
-  multi_vram_buffer_horz((const u8[2]){0x84, 0x85}, 2, position+0x20);
-  Attributes::set((u8) ((origin_x >> 4) + column), (u8) ((origin_y >> 4) + row), BLOCK_ATTRIBUTE);
-  occupy(row, column);
+static const Cell null_cell;
+
+static constexpr u8 upper_left_maze_tile[] = {0x00,
+                                              MAZE_BASE_TILE + 0x18,
+                                              MAZE_BASE_TILE + 0x16,
+                                              MAZE_BASE_TILE + 0x16,
+                                              MAZE_BASE_TILE + 0x14,
+                                              MAZE_BASE_TILE + 0x0e,
+                                              MAZE_BASE_TILE + 0x11,
+                                              MAZE_BASE_TILE + 0x11,
+                                              MAZE_BASE_TILE + 0x18,
+                                              MAZE_BASE_TILE + 0x18,
+                                              MAZE_BASE_TILE + 0x12,
+                                              MAZE_BASE_TILE + 0x16,
+                                              MAZE_BASE_TILE + 0x14,
+                                              MAZE_BASE_TILE + 0x14,
+                                              MAZE_BASE_TILE + 0x11,
+                                              MAZE_BASE_TILE + 0x11};
+
+static constexpr u8 upper_right_maze_tile[] = {0x00,
+                                               MAZE_BASE_TILE + 0x15,
+                                               MAZE_BASE_TILE + 0x15,
+                                               MAZE_BASE_TILE + 0x15,
+                                               MAZE_BASE_TILE + 0x10,
+                                               MAZE_BASE_TILE + 0x0d,
+                                               MAZE_BASE_TILE + 0x10,
+                                               MAZE_BASE_TILE + 0x10,
+                                               MAZE_BASE_TILE + 0x17,
+                                               MAZE_BASE_TILE + 0x17,
+                                               MAZE_BASE_TILE + 0x12,
+                                               MAZE_BASE_TILE + 0x17,
+                                               MAZE_BASE_TILE + 0x13,
+                                               MAZE_BASE_TILE + 0x13,
+                                               MAZE_BASE_TILE + 0x13,
+                                               MAZE_BASE_TILE + 0x13};
+
+static constexpr u8 lower_left_maze_tile[] = {0x00,
+                                              MAZE_BASE_TILE + 0x08,
+                                              MAZE_BASE_TILE + 0x01,
+                                              MAZE_BASE_TILE + 0x06,
+                                              MAZE_BASE_TILE + 0x04,
+                                              MAZE_BASE_TILE + 0x0e,
+                                              MAZE_BASE_TILE + 0x01,
+                                              MAZE_BASE_TILE + 0x06,
+                                              MAZE_BASE_TILE + 0x04,
+                                              MAZE_BASE_TILE + 0x08,
+                                              MAZE_BASE_TILE + 0x02,
+                                              MAZE_BASE_TILE + 0x06,
+                                              MAZE_BASE_TILE + 0x04,
+                                              MAZE_BASE_TILE + 0x08,
+                                              MAZE_BASE_TILE + 0x01,
+                                              MAZE_BASE_TILE + 0x06};
+
+static constexpr u8 lower_right_maze_tile[] = {0x00,
+                                               MAZE_BASE_TILE + 0x05,
+                                               MAZE_BASE_TILE + 0x00,
+                                               MAZE_BASE_TILE + 0x05,
+                                               MAZE_BASE_TILE + 0x00,
+                                               MAZE_BASE_TILE + 0x0d,
+                                               MAZE_BASE_TILE + 0x00,
+                                               MAZE_BASE_TILE + 0x05,
+                                               MAZE_BASE_TILE + 0x03,
+                                               MAZE_BASE_TILE + 0x07,
+                                               MAZE_BASE_TILE + 0x02,
+                                               MAZE_BASE_TILE + 0x07,
+                                               MAZE_BASE_TILE + 0x03,
+                                               MAZE_BASE_TILE + 0x07,
+                                               MAZE_BASE_TILE + 0x03,
+                                               MAZE_BASE_TILE + 0x07};
+
+static constexpr u8 lower_left_block_tile[] = {
+    MARSHMALLOW_BASE_TILE + 0x02, MARSHMALLOW_BASE_TILE + 0x06,
+    MARSHMALLOW_BASE_TILE + 0x08, MARSHMALLOW_BASE_TILE + 0x08,
+    MARSHMALLOW_BASE_TILE + 0x06, MARSHMALLOW_BASE_TILE + 0x04,
+    MARSHMALLOW_BASE_TILE + 0x08, MARSHMALLOW_BASE_TILE + 0x08,
+    MARSHMALLOW_BASE_TILE + 0x06, MARSHMALLOW_BASE_TILE + 0x06,
+    MARSHMALLOW_BASE_TILE + 0x0a, MARSHMALLOW_BASE_TILE + 0x08,
+    MARSHMALLOW_BASE_TILE + 0x06, MARSHMALLOW_BASE_TILE + 0x06,
+    MARSHMALLOW_BASE_TILE + 0x08, MARSHMALLOW_BASE_TILE + 0x08};
+
+static constexpr u8 lower_right_block_tile[] = {
+    MARSHMALLOW_BASE_TILE + 0x03, MARSHMALLOW_BASE_TILE + 0x07,
+    MARSHMALLOW_BASE_TILE + 0x07, MARSHMALLOW_BASE_TILE + 0x07,
+    MARSHMALLOW_BASE_TILE + 0x07, MARSHMALLOW_BASE_TILE + 0x05,
+    MARSHMALLOW_BASE_TILE + 0x07, MARSHMALLOW_BASE_TILE + 0x07,
+    MARSHMALLOW_BASE_TILE + 0x09, MARSHMALLOW_BASE_TILE + 0x09,
+    MARSHMALLOW_BASE_TILE + 0x0b, MARSHMALLOW_BASE_TILE + 0x09,
+    MARSHMALLOW_BASE_TILE + 0x09, MARSHMALLOW_BASE_TILE + 0x09,
+    MARSHMALLOW_BASE_TILE + 0x09, MARSHMALLOW_BASE_TILE + 0x09};
+
+// converts 4 boolean walls into a integer value between 0 and 15
+u8 walls_to_index(bool wall_going_up, bool wall_going_right,
+                  bool wall_going_down, bool wall_going_left) {
+  u8 value = 0;
+  if (wall_going_up) {
+    value |= 0b0001;
+  }
+  if (wall_going_right) {
+    value |= 0b0010;
+  }
+  if (wall_going_down) {
+    value |= 0b0100;
+  }
+  if (wall_going_left) {
+    value |= 0b1000;
+  }
+  return value;
 }
 
-void Board::restore_maze_cell(s8 row, s8 column) {
-  auto current_cell = &cell[row][column];
-  int position = NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
-  char metatile_top[2];
-  char metatile_bottom[2];
+/*
+ VRAM BUFFER layout:
+ 0: address.h + horizontal (top)
+ 1: address.l
+ 2: length (2)
+ 3: tile (top 0)
+ 4: tile (top 1)
+ 5: address.h + horizontal (bottom)
+ 6: address.l
+ 7: length (2)
+ 8: tile (bottom 0)
+ 9: tile (bottom 1)
+ 10: eof (0xff)
+ */
 
-  if (current_cell->up_wall) {
-    if (current_cell->left_wall) { // up left
-      metatile_top[0] = TILE_BASE + 7;
-    } else { // up !left
-      metatile_top[0] = TILE_BASE + 1;
+#define TOP_0 VRAM_BUF[VRAM_INDEX + 3]
+#define TOP_1 VRAM_BUF[VRAM_INDEX + 4]
+#define BOTTOM_0 VRAM_BUF[VRAM_INDEX + 8]
+#define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
+
+void Board::set_maze_cell(s8 row, s8 column, CellType cell_type) {
+  auto current_cell = &cell_at((u8)row, (u8)column);
+  int position =
+      NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
+
+  if (cell_type == CellType::Maze) {
+    free(row, column);
+    auto upper_cell = row > 0 ? &cell_at((u8)row - 1, (u8)column) : &null_cell;
+    auto lower_cell =
+        row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
+    auto left_cell =
+        column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
+    auto right_cell =
+        column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
+
+    TOP_0 = upper_left_maze_tile[walls_to_index(
+        upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
+        left_cell->up_wall)];
+    TOP_1 = upper_right_maze_tile[walls_to_index(
+        upper_cell->right_wall, right_cell->up_wall, current_cell->right_wall,
+        current_cell->up_wall)];
+    BOTTOM_0 = lower_left_maze_tile[walls_to_index(
+        current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
+        left_cell->down_wall)];
+    BOTTOM_1 = lower_right_maze_tile[walls_to_index(
+        current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
+        current_cell->down_wall)];
+
+    if (row == 0) {
+      if (column > 0 && current_cell->left_wall) {
+        TOP_0 = MAZE_BASE_TILE + 0x0a;
+      }
+      if (column < WIDTH - 1 && current_cell->right_wall) {
+        TOP_1 = MAZE_BASE_TILE + 0x09;
+      }
+    } else if (row == HEIGHT - 1) {
+      if (column > 0 && current_cell->left_wall) {
+        BOTTOM_0 = MAZE_BASE_TILE + 0x1a;
+      }
+      if (column < WIDTH - 1 && current_cell->right_wall) {
+        BOTTOM_1 = MAZE_BASE_TILE + 0x19;
+      }
     }
+
+    if (column == 0) {
+      if (row > 0 && current_cell->up_wall) {
+        TOP_0 = MAZE_BASE_TILE + 0x1b;
+      }
+      if (row < HEIGHT - 1 && current_cell->down_wall) {
+        BOTTOM_0 = MAZE_BASE_TILE + 0x0b;
+      }
+    } else if (column == WIDTH - 1) {
+      if (row > 0 && current_cell->up_wall) {
+        TOP_1 = MAZE_BASE_TILE + 0x1c;
+      }
+      if (row < HEIGHT - 1 && current_cell->down_wall) {
+        BOTTOM_1 = MAZE_BASE_TILE + 0x0c;
+      }
+    }
+
   } else {
-    if (current_cell->left_wall) { // !up left
-      metatile_top[0] = TILE_BASE + 6;
-    } else { // !up !left
-      if (row == 0 || column == 0 || current_cell->empty_top_left)
-        metatile_top[0] = TILE_BASE + 0;
-      else
-        metatile_top[0] = TILE_BASE + 9;
+    occupy(row, column);
+    auto lower_cell =
+        row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
+    auto left_cell =
+        column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
+    auto right_cell =
+        column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
+
+    TOP_0 = MARSHMALLOW_BASE_TILE;
+    TOP_1 = MARSHMALLOW_BASE_TILE + 1;
+
+    BOTTOM_0 = lower_left_block_tile[walls_to_index(
+        current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
+        left_cell->down_wall)];
+    BOTTOM_1 = lower_right_block_tile[walls_to_index(
+        current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
+        current_cell->down_wall)];
+
+    if (row == HEIGHT - 1) {
+      if (column > 0 && current_cell->left_wall) {
+        BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
+      }
+      if (column < WIDTH - 1 && current_cell->right_wall) {
+        BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
+      }
+    }
+
+    if (column == 0) {
+      if (row < HEIGHT - 1 && current_cell->down_wall) {
+        BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
+      }
+    } else if (column == WIDTH - 1) {
+      if (row < HEIGHT - 1 && current_cell->down_wall) {
+        BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
+      }
+    }
+
+    switch (cell_type) {
+    case CellType::Jiggling:
+      TOP_0 += 0x10;
+      TOP_1 += 0x10;
+      BOTTOM_0 += 0x10;
+      BOTTOM_1 += 0x10;
+      break;
+    case CellType::LeanLeft:
+      TOP_0 = 0x4c;
+      TOP_1 = 0x4d;
+      break;
+    case CellType::LeanRight:
+      TOP_0 = 0x4e;
+      TOP_1 = 0x4f;
+      break;
+    case CellType::Maze:
+    case CellType::Marshmallow:
+      break;
     }
   }
 
-  // top right tile
-  if (current_cell->up_wall) {
-    if (current_cell->right_wall) { // up right
-      metatile_top[1] = TILE_BASE + 3;
-    } else { // up !right
-      metatile_top[1] = TILE_BASE + 1;
-    }
-  } else {
-    if (current_cell->right_wall) { // !up right
-      metatile_top[1] = TILE_BASE + 2;
-    } else { // !up !right
-      if (row == 0 || column == WIDTH - 1 || current_cell->empty_top_right)
-        metatile_top[1] = TILE_BASE + 0;
-      else
-        metatile_top[1] = TILE_BASE + 10;
-    }
-  }
+  // unrolled equivalent of...
+  // multi_vram_buffer_horz(metatile_top, 2, position);
+  // multi_vram_buffer_horz(metatile_bottom, 2, position + 0x20);
 
-  // bottom left tile
-  if (current_cell->down_wall) {
-    if (current_cell->left_wall) { // down left
-      metatile_bottom[0] = TILE_BASE + 8;
-    } else { // down !left
-      metatile_bottom[0] = TILE_BASE + 4;
-    }
-  } else {
-    if (current_cell->left_wall) { // !down left
-      metatile_bottom[0] = TILE_BASE + 6;
-    } else { // !down !left
-      if (row == HEIGHT - 1 || column == 0 || current_cell->empty_bottom_left)
-        metatile_bottom[0] = TILE_BASE + 0;
-      else
-        metatile_bottom[0] = TILE_BASE + 12;
-    }
-  }
+  VRAM_BUF[VRAM_INDEX] = (u8)(position >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 1] = (u8)position;
+  VRAM_BUF[VRAM_INDEX + 2] = 2;
+  // 3, 4 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 5] = (u8)((position + 0x20) >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 6] = (u8)(position + 0x20);
+  VRAM_BUF[VRAM_INDEX + 7] = 2;
+  // 8, 9 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 10] = 0xff;
+  VRAM_INDEX += 10;
 
-  // bottom right tile (vram_adr auto advanced)
-  if (current_cell->down_wall) {
-    if (current_cell->right_wall) { // down right
-      metatile_bottom[1] = TILE_BASE + 5;
-    } else { // down !right
-      metatile_bottom[1] = TILE_BASE + 4;
-    }
-  } else {
-    if (current_cell->right_wall) { // !down right
-      metatile_bottom[1] = TILE_BASE + 2;
-    } else { // !down !right
-      if (row == HEIGHT - 1 || column == WIDTH - 1 || current_cell->empty_bottom_right)
-        metatile_bottom[1] = TILE_BASE + 0;
-      else
-        metatile_bottom[1] = TILE_BASE + 11;
-    }
-  }
-
-  if (mazes[maze]->has_special_cells && mazes[maze]->is_special[row][column]) {
-    metatile_top[0] += SPECIAL_DELTA;
-    metatile_top[1] += SPECIAL_DELTA;
-    metatile_bottom[0] += SPECIAL_DELTA;
-    metatile_bottom[1] += SPECIAL_DELTA;
-  }
-
-  multi_vram_buffer_horz(metatile_top, 2, position);
-  multi_vram_buffer_horz(metatile_bottom, 2, position+0x20);
-
-  Attributes::set((u8) ((origin_x >> 4) + column), (u8) ((origin_y >> 4) + row), WALL_ATTRIBUTE);
-
-  free(row, column);
+  // end of unrolled
 }
 
-bool Board::ongoing_line_clearing() {
-  bool ongoing = false;
+bool Board::row_filled(s8 row) {
+  return occupied_bitset[(u8)row] == FULL_ROW_BITMASK;
+}
 
-  if (cracking_row < 0) {
-    for(s8 i = erasing_row + 1; i < HEIGHT; i++) {
-      if (tally[i] == WIDTH) {
-        deleted[i] = true;
-        cracking_row = i;
-        cracking_column = 0;
-        ongoing = true;
-        break;
-      }
-    }
-  } else {
-    ongoing = true;
-    Attributes::set((u8) ((origin_x >> 4) + cracking_column), (u8) ((origin_y >> 4) + cracking_row), FLASH_ATTRIBUTE);
-    int position = NTADR_A((origin_x >> 3) + (cracking_column << 1), (origin_y >> 3) + (cracking_row << 1));
-    multi_vram_buffer_horz((const u8[2]){0x76, 0x77}, 2, position);
-    multi_vram_buffer_horz((const u8[2]){0x86, 0x87}, 2, position+0x20);
+const SFX sfx_per_lines_cleared[] = {SFX::Lineclear1, SFX::Lineclear2,
+                                     SFX::Lineclear3, SFX::Lineclear4};
 
-    cracking_column++;
-    if (cracking_column == WIDTH) {
-      if (erasing_row < 0) {
-        erasing_row = cracking_row;
-        erasing_column = 0;
-      }
-      cracking_row = -1;
+bool Board::ongoing_line_clearing(bool jiggling) {
+  bool any_deleted = false;
+  bool changed = false;
+  u8 lines_cleared_for_sfx;
+
+  CORO_INIT;
+
+  for (s8 i = 0; i < HEIGHT; i++) {
+    if (row_filled(i)) {
+      deleted[i] = true;
+      any_deleted = true;
     }
   }
 
-  if (erasing_row >= 0) {
-    ongoing = true;
+  if (!any_deleted) {
+    CORO_FINISH(false);
+  }
 
-    restore_maze_cell(erasing_row, erasing_column);
+  while (jiggling) {
+    CORO_YIELD(true);
+  }
 
-    erasing_column++;
-    if (erasing_column == WIDTH) {
-      erasing_column = 0;
+  lines_cleared_for_sfx = 0xff;
+  for (u8 i = 0; i < HEIGHT; i++) {
+    if (deleted[i]) {
+      lines_cleared_for_sfx++;
+    }
+  }
 
-      for(erasing_row++; erasing_row < HEIGHT; erasing_row++) {
-        if (tally[erasing_row] == WIDTH) break;
-      }
+  banked_play_sfx(sfx_per_lines_cleared[lines_cleared_for_sfx],
+                  GGSound::SFXPriority::Two);
 
-      if (erasing_row == HEIGHT) {
-        erasing_row = -1;
+  for (erasing_row = HEIGHT - 1; erasing_row >= 0; erasing_row--) {
+    if (deleted[erasing_row]) {
+      for (erasing_column = 0; erasing_column < WIDTH; erasing_column++) {
+        set_maze_cell(erasing_row, erasing_column, CellType::Maze);
+        CORO_YIELD(true);
       }
     }
   }
 
-  if (dropping_column < 0) {
-    if (!ongoing && erasing_row < 0 && cracking_row < 0 && line_gravity_enabled) {
-      // dropping column will only start doing stuff if it ever becomes zero
-      for(auto deleted_row : deleted) {
-        if (deleted_row) {
-          dropping_column = 0;
-          dropping_row = -1;
-          ongoing = true;
-          break;
-        }
+  for (erasing_column = 0; erasing_column < WIDTH; erasing_column++) {
+    erasing_row = HEIGHT - 1;
+    erasing_row_source = HEIGHT - 1;
+
+    while (erasing_row >= 0) {
+      while (erasing_row_source >= 0 && deleted[erasing_row_source]) {
+        erasing_row_source--;
       }
-    }
-  } else if (dropping_row < 0) {
-    ongoing = true;
 
-    for(s8 i = 0; i < HEIGHT; i++) {
-      dropping_column_new_states[i] = occupied(i, dropping_column);
-    }
-
-    s8 current_row = HEIGHT - 1;
-    s8 source_row = current_row;
-
-    while(current_row >= 0) {
-      while (source_row >= 0 && deleted[source_row]) {
-        source_row--;
-      }
-      if (source_row < current_row) {
-        bool source_occupied = source_row < 0 ? false : dropping_column_new_states[source_row];
+      changed = false;
+      if (erasing_row_source < erasing_row) {
+        bool source_occupied =
+            erasing_row_source < 0
+                ? false
+                : occupied(erasing_row_source, erasing_column);
 
         if (source_occupied) {
-          dropping_column_new_states[current_row] = true;
-          if (source_row >= 0) dropping_column_new_states[source_row] = false;
-        } else {
-          dropping_column_new_states[current_row] = false;
+          if (!occupied(erasing_row, erasing_column)) {
+            set_maze_cell(erasing_row, erasing_column, CellType::Marshmallow);
+            occupy(erasing_row, erasing_column);
+            changed = true;
+          }
+          if (erasing_row_source >= 0 &&
+              occupied(erasing_row_source, erasing_column)) {
+            set_maze_cell(erasing_row_source, erasing_column, CellType::Maze);
+            changed = true;
+          }
+        } else if (occupied(erasing_row, erasing_column)) {
+          set_maze_cell(erasing_row, erasing_column, CellType::Maze);
+          changed = true;
         }
       }
+      erasing_row--;
+      erasing_row_source--;
 
-      current_row--;
-      source_row--;
-    }
-
-    dropping_row = HEIGHT - 1;
-  } else { // dropping row and column >= 0
-
-    // we don't have budget to do too many changes per frame
-    // so we arbitrarily limit them
-    for(u8 changes = 0; dropping_row >= 0 && changes < LINE_CLEARING_BUDGET; dropping_row--) {
-      if (dropping_column_new_states[dropping_row] != occupied(dropping_row, dropping_column)) {
-        changes++;
-        if (dropping_column_new_states[dropping_row]) {
-          block_maze_cell(dropping_row, dropping_column);
-        } else {
-          restore_maze_cell(dropping_row, dropping_column);
-        }
+      if (!changed) {
+        continue;
       }
-    }
 
-    if (dropping_row < 0) {
-      dropping_column++;
-      if (dropping_column == WIDTH) {
-        for(s8 i = 0; i < HEIGHT; i++) {
-          deleted[i] = false;
-        }
-        dropping_column = -1;
-      }
+      CORO_YIELD(true);
     }
   }
 
-  return ongoing;
+  for (s8 i = 0; i < HEIGHT; i++) {
+    deleted[i] = false;
+  }
+
+  CORO_FINISH(false);
+}
+
+u8 Board::random_free_row() {
+  u8 possible_rows[HEIGHT];
+  u8 max_possible_rows = 0;
+  for (u8 i = 0; i < HEIGHT; i++) {
+    if (!row_filled((s8)i)) {
+      possible_rows[max_possible_rows++] = i;
+    }
+  }
+  if (max_possible_rows == 0) {
+    return 0xff;
+  }
+  return possible_rows[RAND_UP_TO(max_possible_rows)];
+}
+
+u8 Board::random_free_column(u8 row) {
+  u8 possible_columns[WIDTH];
+  u8 max_possible_columns = 0;
+  u16 bits = occupied_bitset[row];
+  for (u8 j = 0; j < WIDTH; j++) {
+    if (!(bits & 0b1)) {
+      possible_columns[max_possible_columns++] = j;
+    }
+    bits >>= 1;
+  }
+  return possible_columns[RAND_UP_TO(max_possible_columns)];
+}
+
+__attribute__((noinline)) void
+Board::add_animation(BoardAnimation new_animation) {
+  for (auto &animation : animations) {
+    if (animation.finished) {
+      animation = new_animation;
+      break;
+    }
+  }
+}
+
+void Board::animate() {
+  active_animations = false;
+  for (auto &animation : animations) {
+    if (animation.finished) {
+      continue;
+    }
+    active_animations = true;
+    if (animation.current_frame == 0) {
+      set_maze_cell((s8)animation.row, (s8)animation.column,
+                    animation.current_cell->cell_type);
+    }
+    animation.update();
+  }
 }
