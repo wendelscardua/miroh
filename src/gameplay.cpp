@@ -599,6 +599,10 @@ void Gameplay::gameplay_handler() {
   lines_cleared = 0;
   snack_was_eaten = false;
 
+  if (gameplay_state == GameplayState::MarshmallowOverflow) {
+    any_pressed &= ~(PAD_START | PAD_SELECT | PAD_A | PAD_B);
+  }
+
   if (any_pressed & PAD_START) {
     pause_game();
     return;
