@@ -37,12 +37,12 @@ auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
     }
   }
 
-  // also add two random pentominos
-  bag->insert(pentominos.take());
-  bag->insert(pentominos.take());
-
-  // ... and a random 1-2-or-3-mino
+  // also add two random "littleminos" (1,2, or 3 blocks)
   bag->insert(littleminos.take());
+  bag->insert(littleminos.take());
+
+  // ... and a random pentomino
+  bag->insert(pentominos.take());
 });
 
 Polyomino::Polyomino(Board &board)
