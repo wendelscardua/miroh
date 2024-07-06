@@ -71,8 +71,16 @@ function recursive_display(subtable, x, y, width)
   return rect.height
 end
 
+prev_left_button = false
+display_active = false
+
 function display_times()
-  if emu.getMouseState().left ~= true then
+  current_left_button = emu.getMouseState().left
+  if current_left_button and not prev_left_button then
+    display_active = not display_active
+  end
+  prev_left_button = current_left_button
+  if not display_active then
     return
   end
   display_stack = {}
