@@ -5,6 +5,8 @@
 #define RAND_UP_TO_POW2(n) (rand8() & ((1 << n) - 1))
 
 // [bank 0]
-void u8_to_text(u8 score_text[], u8 value);
+__attribute__((section(".prg_rom_fixed.text"))) void u8_to_text(u8 score_text[],
+                                                                u8 value);
 // [bank 0]
-void int_to_text(u8 score_text[], u16 value);
+__attribute__((section(".prg_rom_fixed.text"))) void
+int_to_text(u8 score_text[], u16 value);

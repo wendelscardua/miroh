@@ -24,7 +24,7 @@ class GenerateMetasprites < Thor
   def generate(s_file, h_file, session_file)
     label_prefix = options[:label_prefix] || 'metasprite'
 
-    bank = options[:bank] || '.prg_rom_last'
+    bank = options[:bank] || '.prg_rom_fixed'
 
     session = NEXXT::Session.read(session_file)
 

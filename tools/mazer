@@ -21,7 +21,7 @@ class Mazer < Thor
   method_option :bank, type: :string, required: false
 
   def generate(s_file, maze_folder)
-    bank = options[:bank] || '.prg_rom_last'
+    bank = options[:bank] || '.prg_rom_fixed'
     max_size = options[:max_size] || 256
 
     maze_data = MazeData.new(Dir["#{maze_folder}/*.txt"])
