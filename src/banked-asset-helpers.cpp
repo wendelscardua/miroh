@@ -9,6 +9,9 @@
 #include <mapper.h>
 #include <neslib.h>
 
+#pragma clang section text = ".prg_rom_fixed.text.bah"
+#pragma clang section rodata = ".prg_rom_fixed.rodata.bah"
+
 void banked_play_song(Song song) {
   ScopedBank scoopedBank(GET_BANK(song_list));
   GGSound::play_song(song);
@@ -19,13 +22,14 @@ void banked_play_sfx(SFX sfx, GGSound::SFXPriority priority) {
   GGSound::play_sfx(sfx, priority);
 }
 
-__attribute__((noinline, section(".prg_rom_fixed"))) void load_title_palette() {
+void load_title_palette() {
   ScopedBank scopedBank(PALETTES_BANK);
   pal_bg(title_bg_palette);
   pal_spr(title_spr_palette);
 }
 
-__attribute__((noinline, section(".prg_rom_1"))) void load_title_assets() {
+void load_title_assets() {
+  ScopedBank scopedBank(ASSETS_BANK);
   vram_adr(PPU_PATTERN_TABLE_0);
   Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64 - 56);
   Donut::decompress_to_ppu((void *)title_bg_tiles, 56);
@@ -33,12 +37,12 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_title_assets() {
   vram_adr(PPU_PATTERN_TABLE_1);
   Donut::decompress_to_ppu((void *)spr_tiles, 4096 / 64);
 
-  vram_adr(NAMETABLE_B);
-  zx02_decompress_to_vram((void *)title_nametable, NAMETABLE_B);
+  zx02_decompress_to_vram((void *)title_nametable, NAMETABLE_D);
   load_title_palette();
 }
 
-__attribute__((noinline, section(".prg_rom_1"))) void load_map_assets() {
+void load_map_assets() {
+  ScopedBank scopedBank(ASSETS_BANK);
   vram_adr(PPU_PATTERN_TABLE_0);
   Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64);
   vram_adr(PPU_PATTERN_TABLE_0 + 0xf0 * 0x10);
@@ -50,13 +54,14 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_map_assets() {
   load_title_palette();
 }
 
-__attribute__((noinline, section(".prg_rom_fixed"))) void load_stage_palette() {
+void load_stage_palette() {
   ScopedBank scopedBank(PALETTES_BANK);
   pal_bg(level_bg_palettes[(u8)current_stage]);
   pal_spr(level_spr_palettes[(u8)current_stage]);
 }
 
-__attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
+void load_gameplay_assets() {
+  ScopedBank scopedBank(ASSETS_BANK);
   vram_adr(PPU_PATTERN_TABLE_0);
   u8 bg_blocks = level_bg_tile_blocks[(u8)current_stage];
   Donut::decompress_to_ppu((void *)base_bg_tiles, 4096 / 64 - bg_blocks);
@@ -97,7 +102,7 @@ __attribute__((noinline, section(".prg_rom_1"))) void load_gameplay_assets() {
   load_stage_palette();
 }
 
-__attribute__((noinline, section(".prg_rom_fixed"))) void change_uni_palette() {
+void change_uni_palette() {
   ScopedBank scopedBank(PALETTES_BANK);
   for (u8 i = 0; i < 16; i++) {
     pal_col(0x10 | i, level_spr_palettes[(u8)current_stage][i]);

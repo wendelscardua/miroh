@@ -27,9 +27,8 @@
 
         .global _asm_donut_decompress_to_ppu
         .global donut_block_buffer
-
-        .section .bss
-donut_block_buffer: .zero 64
+        .global VRAM_BUF
+        donut_block_buffer = VRAM_BUF + 0x40
 
         .section .zp
 donut_stream_ptr:       .zero 2

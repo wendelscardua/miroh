@@ -10,7 +10,7 @@ set(CMAKE_ASM_FLAGS_DEBUG "-Os")
 set(CMAKE_ASM_FLAGS_MINSIZEREL "-Os -flto")
 set(CMAKE_ASM_FLAGS_RELWITHDEBINFO "-Os -flto")
 
-set(LLVM_MOS_PLATFORM nes-action53)
+set(LLVM_MOS_PLATFORM nes-unrom)
 find_package(llvm-mos-sdk REQUIRED)
 
 project(miroh-jr CXX ASM)
@@ -23,8 +23,8 @@ add_compile_options(
 
 add_link_options(
   -g -gdwarf-4
-  -mreserve-zp=67
-  # donut: 18, ggsound: 40, zx02: 7
+  -mreserve-zp=85
+  # donut: 18, ggsound: 58 ?, zx02: 7
 
   # make functions non-recursive by default
   -fnonreentrant
@@ -42,9 +42,11 @@ set(ROM ${CMAKE_PROJECT_NAME}.nes)
 
 include(Assets)
 
-add_executable(${ROM} "")
+# include ca65 objects directly as a workaround - it doesn't work if they are missing, though
+add_executable(${ROM} "${CMAKE_BINARY_DIR}/ca65src/ggsound.o" "${CMAKE_BINARY_DIR}/ca65src/soundtrack.o")
 
 add_subdirectory(src)
+add_subdirectory(ca65src)
 
 target_link_libraries(${ROM} PRIVATE
   # Second-party, included in llvm-mos
@@ -52,4 +54,5 @@ target_link_libraries(${ROM} PRIVATE
   nesdoug
   # subdirectory stuff
   SourceObj
+  Ca65Obj
 )

@@ -49,3 +49,13 @@ extern "C" char SPRID;
 
 extern u8 VRAM_INDEX;
 extern char VRAM_BUF[256];
+
+typedef union {
+  struct {
+    s8 x;
+    s8 y;
+    u8 tile;
+    u8 attribute;
+  } spr;
+  u8 terminator;
+} Sprite;

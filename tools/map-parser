@@ -20,7 +20,7 @@ class MapParser < Thor
   desc 'usage MAP_FILE', 'Display memory usage per section'
   method_option :mapper,
                 type: :string,
-                enum: %w[action53],
+                enum: %w[action53 unrom mmc3],
                 default: 'action53',
                 required: false
   method_option :mapper_options,
@@ -38,9 +38,13 @@ class MapParser < Thor
                 required: false
   def usage(map_file)
     layout = case options[:mapper]
-             when 'action53'
+             when 'action53', 'unrom'
                banks = options[:mapper_options].fetch('banks', '1').to_i
                Layout.build_action53(banks:)
+             when 'mmc3'
+               banks = options[:mapper_options].fetch('banks', '1').to_i
+               chr_banks = options[:mapper_options].fetch('chr_banks', '1').to_i
+               Layout.build_mmc3(banks:, chr_banks:)
              else
                raise NotImplementedError
              end
@@ -53,6 +57,8 @@ class MapParser < Thor
       used = area.out_sections
                  .map { |out| out.usage }
                  .sum
+      next if used.zero? && !options[:verbose]
+
       total = area.range.end - area.range.begin
       printf "%<name>12s %<used>8x %<total>8x %<free>8x\n",
              name: area.name,
@@ -101,7 +107,7 @@ class MapParser < Thor
     def self.build_action53(banks:)
       areas = [
         Area.new('Zero Page', 0x00...0x100),
-        Area.new('RAM', 0x100...0x800)
+        Area.new('RAM', 0x200...0x800)
       ]
 
       (0..banks - 2).each do |bank|
@@ -111,6 +117,27 @@ class MapParser < Thor
       end
 
       areas << Area.new('PRG ROM Last', 0xc000...0x10000)
+
+      new(areas)
+    end
+
+    def self.build_mmc3(banks:, chr_banks:)
+      areas = [
+        Area.new('Zero Page', 0x00...0x100),
+        Area.new('RAM', 0x100...0x800),
+        Area.new('WRAM', 0x6000...0x8000)
+      ]
+
+      (0...banks - 2).each do |bank|
+        areas << Area.new("PRG ROM #{bank}",
+                          (0x8000 + 0x10000 * bank)...
+                          (0xa000 + 0x10000 * bank))
+      end
+
+      areas << Area.new('PRG ROM Fix', 0xa000...0xc000)
+      areas << Area.new('PRG ROM Last', 0xc000...0x10000)
+
+      areas << Area.new('CHR ROM', 0x1000000...0x1000000 + 0x2000 * chr_banks)
 
       new(areas)
     end
@@ -157,14 +184,15 @@ class MapParser < Thor
         size = match['size'].to_i(16)
 
         if (out_name = match['out'])
-          break if out_name =~ /__stack/
+          next if out_name =~ / = / || out_name =~ /\A\s*\z/
 
           current_vma_area = areas.find { |area| area.range.include? vma }
           next unless current_vma_area
 
           current_vma_out_section = OutSection.new(name: out_name,
                                                    used_range: vma...vma + size)
-          current_vma_area.out_sections << current_vma_out_section
+
+          current_vma_area.out_sections << current_vma_out_section unless out_name =~ /\A\.(?:debug|symtab|shstrtab|strtab|comment)/
 
           if lma != vma
             current_lma_area = areas.find { |area| area.range.include? lma }

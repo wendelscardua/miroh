@@ -3,13 +3,7 @@
 #include "common.hpp"
 #include "soundtrack.hpp"
 
-#define DEFAULT_TEMPO (256 * 15)
-#define STREAM_ACTIVE_SET  0b00000001
-#define STREAM_PAUSE_SET   0b00000100
-#define STREAM_PAUSE_CLEAR 0b11111011
-
-#define MAX_STREAMS (6)
-#define MAX_MUSIC_STREAMS (4)
+// #define FEATURE_DPCM
 
 namespace GGSound {
   struct Track {
@@ -19,7 +13,7 @@ namespace GGSound {
     void *square_2_stream;
     void *triangle_stream;
     void *noise_stream;
-    void *dpcm_stream; // unused
+    void *dpcm_stream;
   };
 
   enum class Region : u8 {
@@ -29,33 +23,39 @@ namespace GGSound {
   };
 
   enum class Channel : u8 {
-    Square_1 = 0,
-    Square_2 = 1,
-    Triangle = 2,
-    Noise = 3
-  };
-
-   // doubles as a "stream" index
-  enum class SFXPriority : u8 {
-    One = 4,
-    Two = 5,
+    Square_1,
+    Square_2,
+    Triangle,
+    Noise,
+#ifdef FEATURE_DPCM
+    DPCM,
+#endif
   };
 
   enum class Stream : u8 {
-    Square_1 = 0,
-    Square_2 = 1,
-    Triangle = 2,
-    Noise = 3,
-    SFX1 = 4,
-    SFX2 = 5
+    Square_1,
+    Square_2,
+    Triangle,
+    Noise,
+#ifdef FEATURE_DPCM
+    DPCM,
+#endif
+    SFX1,
+    SFX2
   };
 
+  // doubles as a "stream" index
+  enum class SFXPriority : u8 {
+    One = (u8)Stream::SFX1,
+    Two = (u8)Stream::SFX2,
+  };
 
   // Initialize sound engine
-  void init(Region region,
-            Track *song_list[],
-            Track *sfx_list[],
-            void *instruments[],
+  void init(Region region, const Track *song_list[], const Track *sfx_list[],
+            const void *instruments[],
+#ifdef FEATURE_DPCM
+            const void *dpcm_pointers[],
+#endif
             u8 bank);
 
   // Kill all active streams and halt sound
@@ -72,4 +72,4 @@ namespace GGSound {
 
   // Resumes a song
   void resume();
-}
+} // namespace GGSound

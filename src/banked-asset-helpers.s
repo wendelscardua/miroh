@@ -16,7 +16,7 @@ banked_oam_meta_spr:
 
   jsr get_prg_bank
   pha
-  lda #mos24bank(metasprite_block)
+  lda #mos24bank(_ZN11Metasprites5blockE)
   jsr set_prg_bank
 
   ldx SPRID
@@ -97,7 +97,7 @@ banked_oam_meta_spr_horizontal:
 
   jsr get_prg_bank
   pha
-  lda #mos24bank(metasprite_block)
+  lda #mos24bank(_ZN11Metasprites5blockE)
   jsr set_prg_bank
 
   ldx SPRID

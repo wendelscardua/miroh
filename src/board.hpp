@@ -68,6 +68,8 @@ class Board {
   s8 erasing_row_source;
 
 public:
+  static constexpr u8 BANK = 4;
+
   // convert column into its bitmask
   static constexpr soa::Array<const u16, WIDTH> OCCUPIED_BITMASK = {
       0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
@@ -86,8 +88,6 @@ public:
       origin_y >> 4; // origin in metatile space (y)
   static constexpr u8 origin_column =
       origin_x >> 4; // origin in metatile space (x)
-
-  static constexpr u8 MAZE_BANK = 0;
 
   static constexpr BoardAnimFrame block_jiggle[] = {{CellType::Jiggling, 8},
                                                     {CellType::Marshmallow, 8},
@@ -123,45 +123,46 @@ public:
   ~Board();
 
   // (re)generates the maze
-  void generate_maze();
+  __attribute__((noinline)) void generate_maze();
 
   // reset for a new run
-  void reset();
+  __attribute__((noinline)) void reset();
 
   // draws board tiles (with rendering disabled)
-  void render();
+  __attribute__((noinline)) void render();
 
   // tells if a cell is occupied by a solid block
-  bool occupied(s8 row, s8 column);
+  __attribute__((section(".prg_rom_fixed"))) bool occupied(s8 row, s8 column);
 
   // tells if a row if filled
-  bool row_filled(s8 row);
+  __attribute__((section(".prg_rom_fixed"))) bool row_filled(s8 row);
 
   // marks a position as occupied by a solid block
-  void occupy(s8 row, s8 column);
+  __attribute__((section(".prg_rom_fixed"))) void occupy(s8 row, s8 column);
 
   // marks a position as not occupied by a solid block
-  void free(s8 row, s8 column);
+  __attribute__((section(".prg_rom_fixed"))) void free(s8 row, s8 column);
 
   // change a cell at these coordinates and with a given style
-  void set_maze_cell(s8 row, s8 column, CellType type);
+  __attribute__((noinline)) void set_maze_cell(s8 row, s8 column,
+                                               CellType type);
 
   // advances the process of clearing a filled line
   // returns true if such process is still ongoing
-  bool ongoing_line_clearing(bool jiggling);
+  __attribute__((noinline)) bool ongoing_line_clearing(bool jiggling);
 
   // returns index of a row with free space (or 0xff in case of failure)
-  u8 random_free_row();
+  __attribute__((noinline)) u8 random_free_row();
 
   // returns index of a column with free space
   // (you passed a valid row so it should always succeed)
-  u8 random_free_column(u8 row);
+  __attribute__((noinline)) u8 random_free_column(u8 row);
 
-  Cell &cell_at(u8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed"))) Cell &cell_at(u8 row, u8 column);
 
   // enqueues a new animation
-  void add_animation(BoardAnimation animation);
+  __attribute__((noinline)) void add_animation(BoardAnimation animation);
 
   // animate cells
-  void animate();
+  __attribute__((noinline)) void animate();
 };

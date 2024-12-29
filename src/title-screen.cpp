@@ -74,11 +74,7 @@ static_assert(bgm_test_songs[0] == Song::Marshmallow_mountain);
 __attribute__((noinline)) TitleScreen::TitleScreen()
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
       current_track(Song::Marshmallow_mountain), next_track_delay(0),
-      x_scroll(TITLE_SCROLL) {
-  set_chr_bank(0);
-
-  set_mirroring(MIRROR_VERTICAL);
-
+      y_scroll(TITLE_SCROLL) {
   banked_lambda(ASSETS_BANK, []() { load_title_assets(); });
 
   pal_bright(0);
@@ -87,7 +83,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
 
   render_sprites();
 
-  scroll((u16)x_scroll, 0);
+  scroll(0, (u16)y_scroll);
 
   ppu_on_all();
 
@@ -111,7 +107,7 @@ __attribute__((noinline)) TitleScreen::~TitleScreen() {
 void TitleScreen::render_sprites() {
   bool bobbing_flag = get_frame_count() & 0b10000;
 
-  s16 cursor_x;
+  u8 cursor_x;
   u8 cursor_y;
   if (state == State::ModeMenu) {
     cursor_x = MODE_MENU_CURSOR_X_POSITION;
@@ -120,20 +116,20 @@ void TitleScreen::render_sprites() {
     cursor_x = MAIN_MENU_CURSOR_X_POSITION;
     cursor_y = menu_y_position[(u8)current_option];
   }
-  banked_oam_meta_spr_horizontal(cursor_x - x_scroll, cursor_y,
-                                 bobbing_flag ? metasprite_AvocadoHigh
-                                              : metasprite_AvocadoLow);
+  banked_oam_meta_spr(cursor_x, cursor_y - y_scroll,
+                      bobbing_flag ? Metasprites::AvocadoHigh
+                                   : Metasprites::AvocadoLow);
 
 #ifdef NDEBUG
-  banked_oam_meta_spr_horizontal(JR_X_POSITION - x_scroll, JR_Y_POSITION,
-                                 metasprite_TitleJR);
+  banked_oam_meta_spr(JR_X_POSITION, JR_Y_POSITION - y_scroll,
+                      Metasprites::TitleJR);
 #endif
 
-  banked_oam_meta_spr_horizontal(HOW_TO_LEFT_X_POSITION - x_scroll,
-                                 HOW_TO_LEFT_Y_POSITION, metasprite_HowtoLeft);
-  banked_oam_meta_spr_horizontal(HOW_TO_RIGHT_X_POSITION - x_scroll,
-                                 HOW_TO_RIGHT_Y_POSITION,
-                                 metasprite_HowtoRight);
+  banked_oam_meta_spr(HOW_TO_LEFT_X_POSITION, HOW_TO_LEFT_Y_POSITION - y_scroll,
+                      Metasprites::HowtoLeft);
+  banked_oam_meta_spr(HOW_TO_RIGHT_X_POSITION,
+                      HOW_TO_RIGHT_Y_POSITION - y_scroll,
+                      Metasprites::HowtoRight);
   oam_hide_rest();
 }
 
@@ -160,11 +156,13 @@ __attribute__((noinline)) void TitleScreen::loop() {
 
     switch (state) {
     case State::MainMenu:
-      if (x_scroll != TITLE_SCROLL) {
+      if (y_scroll != TITLE_SCROLL) {
         // TODO: easing
-        x_scroll += 16;
-        set_scroll_x((u16)x_scroll);
-        if (x_scroll == PALETTE_SWAP_POINT) {
+        y_scroll -= 16;
+        if (y_scroll == 240)
+          y_scroll = 224;
+        set_scroll_y((u16)y_scroll);
+        if (y_scroll == PALETTE_SWAP_POINT) {
           pal_col(0x11, 0x15);
           pal_col(0x13, 0x35);
         }
@@ -242,25 +240,27 @@ __attribute__((noinline)) void TitleScreen::loop() {
         how_to_players_switched = !how_to_players_switched;
         const u8 pressed_button[] = {SELECT_BUTTON_BASE_TILE + 2,
                                      SELECT_BUTTON_BASE_TILE + 3};
-        multi_vram_buffer_horz(pressed_button, 2, NTADR_A(15, 5));
+        multi_vram_buffer_horz(pressed_button, 2, NTADR_D(15, 5));
         if (how_to_players_switched) {
-          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_A(10, 6));
-          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE, NTADR_A(28, 6));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_D(10, 6));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE, NTADR_D(28, 6));
         } else {
-          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE, NTADR_A(10, 6));
-          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_A(28, 6));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE, NTADR_D(10, 6));
+          one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_D(28, 6));
         }
       } else if (how_to_select_timer == 100) {
         how_to_select_timer = 0;
         const u8 released_button[] = {SELECT_BUTTON_BASE_TILE,
                                       SELECT_BUTTON_BASE_TILE + 1};
-        multi_vram_buffer_horz(released_button, 2, NTADR_A(15, 5));
+        multi_vram_buffer_horz(released_button, 2, NTADR_D(15, 5));
       }
-      if (x_scroll != HOW_TO_SCROLL) {
+      if (y_scroll != HOW_TO_SCROLL) {
         // TODO: easing
-        x_scroll -= 16;
-        set_scroll_x((u16)x_scroll);
-        if (x_scroll == PALETTE_SWAP_POINT) {
+        y_scroll += 16;
+        if (y_scroll == 240)
+          y_scroll = 256;
+        set_scroll_y((u16)y_scroll);
+        if (y_scroll == PALETTE_SWAP_POINT) {
           pal_col(0x11, 0x13);
           pal_col(0x13, 0x20);
         }

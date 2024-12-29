@@ -67,25 +67,28 @@ static void main_init() {
 int main() {
   main_init();
 
-  Board board;
+  Board *board = new Board();
 
   while (true) {
     switch (current_game_state) {
-    case GameState::TitleScreen: {
-      ScopedBank scopedBank(TitleScreen::BANK);
-      TitleScreen title_screen;
-      title_screen.loop();
-    }; break;
-    case GameState::Gameplay: {
-      ScopedBank scopedBank(Gameplay::BANK);
-      Gameplay gameplay(board);
-      gameplay.loop();
-    }; break;
-    case GameState::WorldMap: {
-      ScopedBank scopedBank(WorldMap::BANK);
-      WorldMap world_map(board);
-      world_map.loop();
-    } break;
+    case GameState::TitleScreen:
+      banked_lambda(TitleScreen::BANK, []() {
+        TitleScreen *title_screen = new TitleScreen();
+        title_screen->loop();
+      });
+      break;
+    case GameState::Gameplay:
+      banked_lambda(Gameplay::BANK, [&board]() {
+        Gameplay *gameplay = new Gameplay(*board);
+        gameplay->loop();
+      });
+      break;
+    case GameState::WorldMap:
+      banked_lambda(WorldMap::BANK, [&board]() {
+        WorldMap *world_map = new WorldMap(*board);
+        world_map->loop();
+      });
+      break;
     case GameState::None:
       break;
     }

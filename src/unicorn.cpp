@@ -1,5 +1,6 @@
 #include "unicorn.hpp"
 #include "animation.hpp"
+#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "common.hpp"
@@ -11,6 +12,9 @@
 #include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
+
+#pragma clang section text = ".prg_rom_5.text.unicorn"
+#pragma clang section rodata = ".prg_rom_5.rodata.unicorn"
 
 #define GRID_SIZE fixed_point(0x10, 0)
 
@@ -39,8 +43,7 @@ const fixed_point &Unicorn::move_speed() {
   }
 }
 
-__attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
-Unicorn::set_state(State new_state) {
+void Unicorn::set_state(State new_state) {
   state = new_state;
   switch (state) {
   case State::Idle:
@@ -106,8 +109,7 @@ void Unicorn::energy_upkeep() {
   }
 }
 
-__attribute__((noinline, section(PLAYER_TEXT_SECTION))) void
-Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
+void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
   energy_upkeep();
 
   switch (state) {
@@ -141,24 +143,30 @@ Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       roll_distance = 0;
       bool occ, wall;
       if (facing == Direction::Right) {
-        while (
-            roll_distance < 3 &&
-            !(wall = board.cell_at(row, column + roll_distance).right_wall) &&
-            !(occ = board.occupied((s8)row, column + roll_distance + 1))) {
-          roll_distance++;
-        }
+        banked_lambda(Board::BANK, [this, &wall, &occ]() {
+          while (
+              roll_distance < 3 &&
+              !(wall = board.cell_at(row, column + roll_distance).right_wall) &&
+              !(occ = board.occupied((s8)row, column + roll_distance + 1))) {
+            roll_distance++;
+          }
+        });
       } else {
-        while (roll_distance < 3 &&
-               !(wall = board.cell_at(row, column - roll_distance).left_wall) &&
-               !(occ = board.occupied((s8)row, column - roll_distance - 1))) {
-          roll_distance++;
-        }
+        banked_lambda(Board::BANK, [this, &wall, &occ]() {
+          while (
+              roll_distance < 3 &&
+              !(wall = board.cell_at(row, column - roll_distance).left_wall) &&
+              !(occ = board.occupied((s8)row, column - roll_distance - 1))) {
+            roll_distance++;
+          }
+        });
       }
       roll_into_block = (roll_distance < 3 && occ);
       break;
     }
 
-    auto current_cell = board.cell_at(row, column);
+    auto current_cell = banked_lambda(
+        Board::BANK, [this]() { return board.cell_at(row, column); });
 
 #define PRESS_HELD(button)                                                     \
   ((pressed & (button)) ||                                                     \
@@ -308,41 +316,49 @@ Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       banked_play_sfx(SFX::Blockhit, GGSound::SFXPriority::Two);
       if (facing == Direction::Right) {
         if (board.occupied((s8)row, column + 2)) {
-          board.add_animation(
-              BoardAnimation(&Board::block_break_right,
-                             sizeof(Board::block_break_right) /
-                                 sizeof(Board::block_break_right[0]),
-                             row, column + 1));
+          banked_lambda(Board::BANK, [this]() {
+            board.add_animation(
+                BoardAnimation(&Board::block_break_right,
+                               sizeof(Board::block_break_right) /
+                                   sizeof(Board::block_break_right[0]),
+                               row, column + 1));
+          });
         } else {
-          board.add_animation(
-              BoardAnimation(&Board::block_move_right,
-                             sizeof(Board::block_move_right) /
-                                 sizeof(Board::block_move_right[0]),
-                             row, column + 1));
-          board.add_animation(
-              BoardAnimation(&Board::block_arrive_right,
-                             sizeof(Board::block_arrive_right) /
-                                 sizeof(Board::block_arrive_right[0]),
-                             row, column + 2));
+          banked_lambda(Board::BANK, [this]() {
+            board.add_animation(
+                BoardAnimation(&Board::block_move_right,
+                               sizeof(Board::block_move_right) /
+                                   sizeof(Board::block_move_right[0]),
+                               row, column + 1));
+            board.add_animation(
+                BoardAnimation(&Board::block_arrive_right,
+                               sizeof(Board::block_arrive_right) /
+                                   sizeof(Board::block_arrive_right[0]),
+                               row, column + 2));
+          });
         }
       } else {
         if (board.occupied((s8)row, column - 2)) {
-          board.add_animation(
-              BoardAnimation(&Board::block_break_left,
-                             sizeof(Board::block_break_left) /
-                                 sizeof(Board::block_break_left[0]),
-                             row, column - 1));
+          banked_lambda(Board::BANK, [this]() {
+            board.add_animation(
+                BoardAnimation(&Board::block_break_left,
+                               sizeof(Board::block_break_left) /
+                                   sizeof(Board::block_break_left[0]),
+                               row, column - 1));
+          });
         } else {
-          board.add_animation(
-              BoardAnimation(&Board::block_move_left,
-                             sizeof(Board::block_move_left) /
-                                 sizeof(Board::block_move_left[0]),
-                             row, column - 1));
-          board.add_animation(
-              BoardAnimation(&Board::block_arrive_left,
-                             sizeof(Board::block_arrive_left) /
-                                 sizeof(Board::block_arrive_left[0]),
-                             row, column - 2));
+          banked_lambda(Board::BANK, [this]() {
+            board.add_animation(
+                BoardAnimation(&Board::block_move_left,
+                               sizeof(Board::block_move_left) /
+                                   sizeof(Board::block_move_left[0]),
+                               row, column - 1));
+            board.add_animation(
+                BoardAnimation(&Board::block_arrive_left,
+                               sizeof(Board::block_arrive_left) /
+                                   sizeof(Board::block_arrive_left[0]),
+                               row, column - 2));
+          });
         }
       }
     } else if (generic_animation.current_cell_index == 5 &&
@@ -377,8 +393,9 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
 
   if (statue) {
     banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                        facing == Direction::Right ? metasprite_UniRightStatue
-                                                   : metasprite_UniLeftStatue);
+                        facing == Direction::Right
+                            ? Metasprites::UniRightStatue
+                            : Metasprites::UniLeftStatue);
     return;
   }
 

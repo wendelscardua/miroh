@@ -1,6 +1,8 @@
 #include "fruits.hpp"
+#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "metasprites.hpp"
+#include "unicorn.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -42,7 +44,9 @@ void Fruits::spawn_on_board(u8 fruit_index) {
     return;
   }
 
-  fruit.column = (s8)board.random_free_column((u8)fruit.row);
+  fruit.column = (s8)banked_lambda(Board::BANK, [this, &fruit]() {
+    return board.random_free_column((u8)fruit.row);
+  });
 
   fruit.state = Fruit::State::Dropping;
   fruit.x = (u8)((fruit.column << 4) + board.origin_x);
@@ -64,7 +68,7 @@ Fruits::Fruits(Board &board) : board(board) {
   active_fruits = 0;
 }
 
-void Fruits::update(Unicorn &player, bool &snack_was_eaten, bool can_spawn) {
+void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
   for (auto fruit : fruits) {
     switch (fruit.state) {
     case Fruit::State::Inactive:
@@ -90,13 +94,14 @@ void Fruits::update(Unicorn &player, bool &snack_was_eaten, bool can_spawn) {
       if (board.occupied(fruit.row, fruit.column)) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
-      } else if ((player.state == Unicorn::State::Idle ||
-                  player.state == Unicorn::State::Moving) &&
-                 (player.x.whole + 8) >> 4 == fruit.column &&
-                 (player.y.whole + 8) >> 4 == fruit.row) {
+      } else if ((unicorn.state == Unicorn::State::Idle ||
+                  unicorn.state == Unicorn::State::Moving) &&
+                 (unicorn.x.whole + 8) >> 4 == fruit.column &&
+                 (unicorn.y.whole + 8) >> 4 == fruit.row) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
-        player.feed(FRUIT_NUTRITION);
+        banked_lambda(Unicorn::BANK,
+                      [&unicorn]() { unicorn.feed(FRUIT_NUTRITION); });
         snack_was_eaten = true;
       } else if (fruit.state == Fruit::State::Active && --fruit.life == 0) {
         fruit.state = Fruit::State::Despawning;
@@ -157,8 +162,8 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
       splash_animation.update(fruit.x, fruit.y - y_scroll);
     } else {
       auto &metasprite = (fruit.y - fruit.raindrop_y <= 48)
-                             ? metasprite_RainShadowB
-                             : metasprite_RainShadowA;
+                             ? Metasprites::RainShadowB
+                             : Metasprites::RainShadowA;
 
       if (fruit.raindrop_y - y_scroll > 0 &&
           fruit.raindrop_y - y_scroll < 0xe0) {

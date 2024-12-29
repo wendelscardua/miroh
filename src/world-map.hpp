@@ -6,7 +6,7 @@
 
 class WorldMap {
 public:
-  static constexpr u8 BANK = 2;
+  static constexpr u8 BANK = 3;
 
   Board &board;
 

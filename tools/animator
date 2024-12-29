@@ -29,10 +29,15 @@ class Animator < Thor
       animations.each do |label, cells|
         f.puts ".global #{label}_cells"
         f.puts "#{label}_cells:"
-        cells.map {|metasprite, duration| ["metasprite_#{metasprite}@mos16lo", "metasprite_#{metasprite}@mos16hi", duration] }
-             .each do |values|
-               f.puts ".byte #{values.join(', ')}"
-             end
+        cells.map {|metasprite, duration|
+          [
+            "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16lo",
+            "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16hi",
+             duration
+          ]
+        }.each do |values|
+          f.puts ".byte #{values.join(', ')}"
+        end
       end
     end
 

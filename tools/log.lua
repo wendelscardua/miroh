@@ -6,9 +6,12 @@ watch_table = {
 current_watch = {}
 label_stack = {}
 
+display_toggle = false
+left_mouse_prev_state = false
+
 function putchar_cb(address, value)
-  c = string.char(value)
-  if (c == '\n') then
+   c = string.char(value)
+   if (c == '\n') then
     emu.log(str)
     str = ""
   else
@@ -45,19 +48,22 @@ function stop_watch(_address, label)
   end
 
   removed_label = table.remove(label_stack)
-  
+
   if removed_label ~= label then
     emu.log("Warning: closing label " .. label .. " doesn't match opening label " .. removed_label)
   end
-  
+
   local new_cycles = emu.getState()['cpu.cycleCount'] - current_watch.start
+  if emu.getMouseState().right then
+    current_watch.cycles = 0
+  end
   if new_cycles > current_watch.cycles then
     current_watch.cycles = new_cycles
-  end 
+  end
 end
 
 display_stack = {}
-  
+
 function recursive_display(subtable, x, y, width)
   local rect = { x = x, y = y, width = width, height = 2 }
   if subtable.cycles ~= nil then
@@ -71,31 +77,33 @@ function recursive_display(subtable, x, y, width)
   return rect.height
 end
 
-prev_left_button = false
-display_active = false
-
 function display_times()
-  current_left_button = emu.getMouseState().left
-  if current_left_button and not prev_left_button then
-    display_active = not display_active
-  end
-  prev_left_button = current_left_button
-  if not display_active then
-    return
-  end
-  display_stack = {}
-  recursive_display(watch_table, 8, 8, 128)
-  while #display_stack ~= 0 do
-    rect = table.remove(display_stack)
-    bgColor = 0x302060FF
-    fgColor = 0x30FF4040
+   left_mouse_state = emu.getMouseState().left
+   if left_mouse_state ~= left_mouse_prev_state then
+      if left_mouse_state then
+         display_toggle = not display_toggle
+      end
+      left_mouse_prev_state = left_mouse_state
+   end
 
-    emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, bgColor, true, 1)
-    emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, fgColor, false, 1)
-    if rect.label ~= nil then
-      emu.drawString(rect.x + 2, rect.y + 2, rect.label, 0xFFFFFF, 0xFF000000)
-    end
-  end
+   if not display_toggle then
+      return
+   end
+
+   display_stack = {}
+   recursive_display(watch_table, 8, 8, 128)
+
+   while #display_stack ~= 0 do
+      rect = table.remove(display_stack)
+      bgColor = 0x302060FF
+      fgColor = 0x30FF4040
+
+      emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, bgColor, true, 1)
+      emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, fgColor, false, 1)
+      if rect.label ~= nil then
+         emu.drawString(rect.x + 2, rect.y + 2, rect.label, 0xFFFFFF, 0xFF000000)
+      end
+   end
 end
 
 emu.addMemoryCallback(putchar_cb, emu.callbackType.write, 0x4018)
