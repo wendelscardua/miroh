@@ -121,7 +121,6 @@ public:
       {CellType::Maze, 1}};
 
   __attribute__((section(".prg_rom_fixed.text.board"))) Board();
-  __attribute__((section(".prg_rom_fixed.text.board"))) ~Board();
 
   // (re)generates the maze
   __attribute__((noinline)) void generate_maze();

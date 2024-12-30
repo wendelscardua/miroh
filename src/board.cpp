@@ -59,8 +59,6 @@ Cell &Board::cell_at(u8 row, u8 column) {
 
 Board::Board() : animations({}), active_animations(false) {}
 
-Board::~Board() {}
-
 const Maze stage_mazes[] = {Maze::NewNormal, Maze::Onion, Maze::Shelves,
                             Maze::Normal, Maze::Normal};
 
