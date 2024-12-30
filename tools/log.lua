@@ -106,8 +106,14 @@ function display_times()
    end
 end
 
+function break_point(_address, value)
+	emu.log("Breakpoint #" .. value)
+	emu.breakExecution()
+end
+
 emu.addMemoryCallback(putchar_cb, emu.callbackType.write, 0x4018)
 emu.addMemoryCallback(putchar_cb, emu.callbackType.write, 0x401b)
+emu.addMemoryCallback(break_point, emu.callbackType.write, 0x4019)
 emu.addMemoryCallback(start_watch, emu.callbackType.write, 0x4020)
 emu.addMemoryCallback(stop_watch, emu.callbackType.write, 0x4021)
 emu.addEventCallback(display_times, emu.eventType.endFrame);

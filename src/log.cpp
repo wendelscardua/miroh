@@ -19,3 +19,4 @@ void put_hex(u16 h) {
 }
 void start_mesen_watch(u8 label) { POKE(0x4020, label); }
 void stop_mesen_watch(u8 label) { POKE(0x4021, label); }
+void break_mesen(u8 label) { POKE(0x4019, label); }
