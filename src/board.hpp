@@ -119,8 +119,9 @@ public:
       {CellType::LeanLeft, 4},
       {CellType::LeanRight, 4},
       {CellType::Maze, 1}};
-  Board();
-  ~Board();
+
+  __attribute__((section(".prg_rom_fixed.text.board"))) Board();
+  __attribute__((section(".prg_rom_fixed.text.board"))) ~Board();
 
   // (re)generates the maze
   __attribute__((noinline)) void generate_maze();

@@ -2,6 +2,7 @@
 #include "assets.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "board.hpp"
 #include "common.hpp"
 #include "metasprites.hpp"
 #include "soundtrack.hpp"
@@ -54,7 +55,7 @@ const u8 *showcase_sprites[] = {(const u8 *)Metasprites::MirohMap,
                                 (const u8 *)Metasprites::CarrotHigh,
                                 (const u8 *)Metasprites::BerriesHigh};
 
-WorldMap::WorldMap(Board &board) : board(board) {
+WorldMap::WorldMap() {
   load_map_assets();
 
   vram_adr(NAMETABLE_A);
@@ -250,7 +251,7 @@ __attribute__((noinline)) void WorldMap::loop() {
         return;
       } else {
         current_game_state = GameState::Gameplay;
-        banked_lambda(Board::BANK, [this]() { board.generate_maze(); });
+        banked_lambda(Board::BANK, []() { board.generate_maze(); });
       }
     } else if (pressed & (PAD_B)) {
       current_game_state = GameState::TitleScreen;

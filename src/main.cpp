@@ -19,6 +19,8 @@ GameMode current_game_mode;
 ControllerScheme current_controller_scheme;
 Stage current_stage;
 
+Board board;
+
 u16 high_score[NUM_STAGES];
 bool story_completion[NUM_STAGES];
 bool ending_triggered;
@@ -67,31 +69,23 @@ static void main_init() {
 int main() {
   main_init();
 
-  Board *board = new Board();
-
   while (true) {
     switch (current_game_state) {
-    case GameState::TitleScreen:
-      banked_lambda(TitleScreen::BANK, []() {
-        TitleScreen *title_screen = new TitleScreen();
-        title_screen->loop();
-        delete title_screen;
-      });
-      break;
-    case GameState::Gameplay:
-      banked_lambda(Gameplay::BANK, [&board]() {
-        Gameplay *gameplay = new Gameplay(*board);
-        gameplay->loop();
-        delete gameplay;
-      });
-      break;
-    case GameState::WorldMap:
-      banked_lambda(WorldMap::BANK, [&board]() {
-        WorldMap *world_map = new WorldMap(*board);
-        world_map->loop();
-        delete world_map;
-      });
-      break;
+    case GameState::TitleScreen: {
+      ScopedBank bank(TitleScreen::BANK);
+      TitleScreen title_screen;
+      title_screen.loop();
+    }; break;
+    case GameState::Gameplay: {
+      ScopedBank bank(Gameplay::BANK);
+      Gameplay gameplay;
+      gameplay.loop();
+    }; break;
+    case GameState::WorldMap: {
+      ScopedBank bank(WorldMap::BANK);
+      WorldMap world_map;
+      world_map.loop();
+    }; break;
     case GameState::None:
       break;
     }

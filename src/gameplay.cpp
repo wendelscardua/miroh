@@ -149,7 +149,7 @@ const u8 STREAM[][4] = {{PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
                         {PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10,
                          PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10}};
 
-Drops::Drops(Board &board) : board(board) {
+Drops::Drops() {
   for (auto drop : drops) {
     drop.row = 0xff;
   }
@@ -169,7 +169,7 @@ void Drops::add_random_drop() {
     return;
   }
   drops[index].row =
-      banked_lambda(Board::BANK, [this]() { return board.random_free_row(); });
+      banked_lambda(Board::BANK, []() { return board.random_free_row(); });
   if (drops[index].row > HEIGHT) {
     return;
   }
@@ -190,7 +190,7 @@ void Drops::update() {
     }
     if (drop.current_y == drop.target_y) {
       banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
-      banked_lambda(Board::BANK, [this, &drop]() {
+      banked_lambda(Board::BANK, [&drop]() {
         board.set_maze_cell((s8)drop.row, (s8)drop.column,
                             CellType::Marshmallow);
       });
@@ -228,7 +228,7 @@ void Drops::render(int y_scroll) {
 }
 
 bool Drops::random_hard_drop() {
-  return banked_lambda(Board::BANK, [this]() {
+  return banked_lambda(Board::BANK, []() {
     u8 row = board.random_free_row();
     if (row > HEIGHT) {
       return false;
@@ -242,18 +242,18 @@ bool Drops::random_hard_drop() {
   });
 }
 
-Gameplay::Gameplay(Board &board)
-    : experience(0), current_level(0), spawn_timer(0), board(board),
+Gameplay::Gameplay()
+    : experience(0), current_level(0), spawn_timer(0),
       unicorn(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
       input_mode(InputMode::Polyomino), yes_no_option(false),
-      pause_option(PauseOption::Resume), drops(Drops(board)),
-      y_scroll(INTRO_SCROLL_Y), goal_counter(0) {
+      pause_option(PauseOption::Resume), drops(), y_scroll(INTRO_SCROLL_Y),
+      goal_counter(0) {
   load_gameplay_assets();
 
   vram_adr(NAMETABLE_A);
 
-  banked_lambda(Board::BANK, [&board]() {
+  banked_lambda(Board::BANK, []() {
     board.reset();
     board.render();
   });
@@ -350,7 +350,7 @@ void Gameplay::render() {
     oam_hide_rest();
   }
 
-  banked_lambda(Board::BANK, [this]() { board.animate(); });
+  banked_lambda(Board::BANK, []() { board.animate(); });
 }
 
 void Gameplay::initialize_goal() {
@@ -630,7 +630,7 @@ void Gameplay::gameplay_handler() {
   // trigger, not even the line clearing itself will run)
   bool line_clearing_in_progress =
       gameplay_state == GameplayState::MarshmallowOverflow ||
-      banked_lambda(Board::BANK, [this]() {
+      banked_lambda(Board::BANK, []() {
         return board.ongoing_line_clearing(board.active_animations);
       });
 

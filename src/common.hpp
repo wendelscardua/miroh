@@ -36,6 +36,9 @@ extern GameState current_game_state;
 extern GameMode current_game_mode;
 extern ControllerScheme current_controller_scheme;
 extern Stage current_stage;
+
+class Board;
+extern Board board;
 extern bool story_completion[];
 extern u16 high_score[];
 extern bool ending_triggered;

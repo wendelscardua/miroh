@@ -1,6 +1,5 @@
 #include "board.hpp"
 #include "assets.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
