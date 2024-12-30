@@ -242,14 +242,14 @@ bool Drops::random_hard_drop() {
   });
 }
 
-__attribute__((noinline)) Gameplay::Gameplay(Board &board)
+Gameplay::Gameplay(Board &board)
     : experience(0), current_level(0), spawn_timer(0), board(board),
       unicorn(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
       input_mode(InputMode::Polyomino), yes_no_option(false),
       pause_option(PauseOption::Resume), drops(Drops(board)),
       y_scroll(INTRO_SCROLL_Y), goal_counter(0) {
-  banked_lambda(ASSETS_BANK, []() { load_gameplay_assets(); });
+  load_gameplay_assets();
 
   vram_adr(NAMETABLE_A);
 
@@ -293,7 +293,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
   }
 }
 
-__attribute__((noinline)) Gameplay::~Gameplay() {
+Gameplay::~Gameplay() {
   pal_fade_to(4, 0);
   color_emphasis(COL_EMP_NORMAL);
   ppu_off();
@@ -916,7 +916,7 @@ void Gameplay::swap_inputs() {
   swap_index = 0;
 }
 
-__attribute__((noinline)) void Gameplay::loop() {
+void Gameplay::loop() {
   static bool no_lag_frame = true;
   extern volatile char FRAME_CNT1;
 

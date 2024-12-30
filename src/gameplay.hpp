@@ -198,9 +198,9 @@ public:
   u8 lines_cleared;
   bool snack_was_eaten;
 
-  Gameplay(Board &board);
-  ~Gameplay();
-  void loop();
+  __attribute__((noinline)) Gameplay(Board &board);
+  __attribute__((noinline)) ~Gameplay();
+  __attribute__((noinline)) void loop();
   void add_experience(u8 exp);
 
 private:

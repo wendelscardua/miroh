@@ -121,15 +121,15 @@ WorldMap::WorldMap(Board &board) : board(board) {
   oam_clear();
 
   if (show_intro) {
-    vram_adr(NAMETABLE_B);
-    zx02_decompress_to_vram((void *)intro_text_nametable, NAMETABLE_B);
-    scroll(0x100, 0);
+    vram_adr(NAMETABLE_C);
+    zx02_decompress_to_vram((void *)intro_text_nametable, NAMETABLE_C);
+    scroll(0, 0xf0);
   } else {
     render_sprites();
   }
   if (story_mode_beaten) {
-    vram_adr(NAMETABLE_B);
-    zx02_decompress_to_vram((void *)ending_text_nametable, NAMETABLE_B);
+    vram_adr(NAMETABLE_C);
+    zx02_decompress_to_vram((void *)ending_text_nametable, NAMETABLE_C);
   }
   change_uni_palette();
 
