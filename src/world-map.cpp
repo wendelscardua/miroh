@@ -55,7 +55,7 @@ const u8 *showcase_sprites[] = {(const u8 *)Metasprites::MirohMap,
                                 (const u8 *)Metasprites::BerriesHigh};
 
 WorldMap::WorldMap(Board &board) : board(board) {
-  banked_lambda(ASSETS_BANK, []() { load_map_assets(); });
+  load_map_assets();
 
   vram_adr(NAMETABLE_A);
 

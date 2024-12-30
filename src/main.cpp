@@ -75,18 +75,21 @@ int main() {
       banked_lambda(TitleScreen::BANK, []() {
         TitleScreen *title_screen = new TitleScreen();
         title_screen->loop();
+        delete title_screen;
       });
       break;
     case GameState::Gameplay:
       banked_lambda(Gameplay::BANK, [&board]() {
         Gameplay *gameplay = new Gameplay(*board);
         gameplay->loop();
+        delete gameplay;
       });
       break;
     case GameState::WorldMap:
       banked_lambda(WorldMap::BANK, [&board]() {
         WorldMap *world_map = new WorldMap(*board);
         world_map->loop();
+        delete world_map;
       });
       break;
     case GameState::None:
