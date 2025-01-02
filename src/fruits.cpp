@@ -56,7 +56,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
     fruit.raindrop_y -= DROP_SPEED;
   }
   fruit.life = EXPIRATION_TIME;
-  splash_animation.reset();
+  banked_lambda(Animation::BANK, [this]() { splash_animation.reset(); });
 }
 
 Fruits::Fruits(Board &board) : board(board) {
@@ -159,7 +159,9 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
         // splash anim 16 & 17
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
       }
-      splash_animation.update(fruit.x, fruit.y - y_scroll);
+      banked_lambda(Animation::BANK, [this, &fruit, &y_scroll]() {
+        splash_animation.update(fruit.x, fruit.y - y_scroll);
+      });
     } else {
       auto &metasprite = (fruit.y - fruit.raindrop_y <= 48)
                              ? Metasprites::RainShadowB

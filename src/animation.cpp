@@ -1,6 +1,9 @@
 #include "animation.hpp"
 #include "banked-asset-helpers.hpp"
-#include "log.hpp"
+
+// same as Unicorn
+#pragma clang section text = ".prg_rom_5.text.animation"
+#pragma clang section rodata = ".prg_rom_5.rodata.animation"
 
 bool Animation::paused = false;
 
