@@ -1,8 +1,8 @@
 #include "utils.hpp"
 #include "assets.hpp"
 
-__attribute__((section(".prg_rom_0.text"))) void u8_to_text(u8 score_text[],
-                                                            u8 value) {
+__attribute__((section(".prg_rom_fixed.text"))) void u8_to_text(u8 score_text[],
+                                                                u8 value) {
   score_text[0] = 0;
   if (value >= 80) {
     score_text[0] |= 8;
@@ -28,8 +28,8 @@ __attribute__((section(".prg_rom_0.text"))) void u8_to_text(u8 score_text[],
   score_text[1] = DIGITS_BASE_TILE + (u8)value;
 }
 
-__attribute__((section(".prg_rom_0.text"))) void int_to_text(u8 score_text[],
-                                                             u16 value) {
+__attribute__((section(".prg_rom_fixed.text"))) void
+int_to_text(u8 score_text[], u16 value) {
   score_text[0] = 0;
   if (value >= 8000) {
     score_text[0] |= 8;

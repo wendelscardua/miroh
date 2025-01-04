@@ -11,7 +11,7 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define POLYOMINOS_TEXT ".prg_rom_0.text"
+#define POLYOMINOS_TEXT ".prg_rom_0.text.polyominos"
 
 static auto littleminos = Bag<u8, 5>([](auto *bag) {
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {

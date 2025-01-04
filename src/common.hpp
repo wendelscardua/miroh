@@ -36,6 +36,9 @@ extern GameState current_game_state;
 extern GameMode current_game_mode;
 extern ControllerScheme current_controller_scheme;
 extern Stage current_stage;
+
+class Board;
+extern Board board;
 extern bool story_completion[];
 extern u16 high_score[];
 extern bool ending_triggered;
@@ -49,3 +52,13 @@ extern "C" char SPRID;
 
 extern u8 VRAM_INDEX;
 extern char VRAM_BUF[256];
+
+typedef union {
+  struct {
+    s8 x;
+    s8 y;
+    u8 tile;
+    u8 attribute;
+  } spr;
+  u8 terminator;
+} Sprite;

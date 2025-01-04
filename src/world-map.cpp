@@ -2,16 +2,16 @@
 #include "assets.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "board.hpp"
 #include "common.hpp"
-#include "donut.hpp"
 #include "metasprites.hpp"
 #include "soundtrack.hpp"
 #include "zx02.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
-#pragma clang section text = ".prg_rom_2.text"
-#pragma clang section rodata = ".prg_rom_2.rodata"
+#pragma clang section text = ".prg_rom_3.text.world"
+#pragma clang section rodata = ".prg_rom_3.rodata.world"
 
 const unsigned char stage_labels[][20] = {
     {0xf0, 0x16, 0x04, 0x14, 0x0e, 0x0c, 0x16, 0x02, 0xf0, 0x16,
@@ -29,36 +29,34 @@ const u8 stage_label_y[] = {
     0x3b, 0x53, 0x6b, 0x83, 0x9b,
 };
 
-const u8 *showcase_sprites[] = {(const u8 *)metasprite_MirohMap,
-                                (const u8 *)metasprite_BerriesHigh,
-                                (const u8 *)metasprite_BlueCornHigh,
-                                (const u8 *)metasprite_BananasHigh,
-                                (const u8 *)metasprite_SweetPotatoHigh,
-                                (const u8 *)metasprite_UniLeftIdle,
-                                (const u8 *)metasprite_AppleHigh,
-                                (const u8 *)metasprite_CornHigh,
-                                (const u8 *)metasprite_PearHigh,
-                                (const u8 *)metasprite_AvocadoHigh,
-                                (const u8 *)metasprite_UniLeftCharge2,
-                                (const u8 *)metasprite_EggplantHigh,
-                                (const u8 *)metasprite_KiwiHigh,
-                                (const u8 *)metasprite_BroccoliHigh,
-                                (const u8 *)metasprite_GreenPeasHigh,
-                                (const u8 *)metasprite_UniLeftBreath1,
-                                (const u8 *)metasprite_StrawberryHigh,
-                                (const u8 *)metasprite_CherriesHigh,
-                                (const u8 *)metasprite_GrapesHigh,
-                                (const u8 *)metasprite_CucumberHigh,
-                                (const u8 *)metasprite_UniLeftSleep2,
-                                (const u8 *)metasprite_ClementineHigh,
-                                (const u8 *)metasprite_HallabongHigh,
-                                (const u8 *)metasprite_CarrotHigh,
-                                (const u8 *)metasprite_BerriesHigh};
+const u8 *showcase_sprites[] = {(const u8 *)Metasprites::MirohMap,
+                                (const u8 *)Metasprites::BerriesHigh,
+                                (const u8 *)Metasprites::BlueCornHigh,
+                                (const u8 *)Metasprites::BananasHigh,
+                                (const u8 *)Metasprites::SweetPotatoHigh,
+                                (const u8 *)Metasprites::UniLeftIdle,
+                                (const u8 *)Metasprites::AppleHigh,
+                                (const u8 *)Metasprites::CornHigh,
+                                (const u8 *)Metasprites::PearHigh,
+                                (const u8 *)Metasprites::AvocadoHigh,
+                                (const u8 *)Metasprites::UniLeftCharge2,
+                                (const u8 *)Metasprites::EggplantHigh,
+                                (const u8 *)Metasprites::KiwiHigh,
+                                (const u8 *)Metasprites::BroccoliHigh,
+                                (const u8 *)Metasprites::GreenPeasHigh,
+                                (const u8 *)Metasprites::UniLeftBreath1,
+                                (const u8 *)Metasprites::StrawberryHigh,
+                                (const u8 *)Metasprites::CherriesHigh,
+                                (const u8 *)Metasprites::GrapesHigh,
+                                (const u8 *)Metasprites::CucumberHigh,
+                                (const u8 *)Metasprites::UniLeftSleep2,
+                                (const u8 *)Metasprites::ClementineHigh,
+                                (const u8 *)Metasprites::HallabongHigh,
+                                (const u8 *)Metasprites::CarrotHigh,
+                                (const u8 *)Metasprites::BerriesHigh};
 
-WorldMap::WorldMap(Board &board) : board(board) {
-  set_mirroring(MIRROR_VERTICAL);
-
-  banked_lambda(ASSETS_BANK, []() { load_map_assets(); });
+WorldMap::WorldMap() {
+  load_map_assets();
 
   vram_adr(NAMETABLE_A);
 
@@ -124,15 +122,15 @@ WorldMap::WorldMap(Board &board) : board(board) {
   oam_clear();
 
   if (show_intro) {
-    vram_adr(NAMETABLE_B);
-    zx02_decompress_to_vram((void *)intro_text_nametable, NAMETABLE_B);
-    scroll(0x100, 0);
+    vram_adr(NAMETABLE_C);
+    zx02_decompress_to_vram((void *)intro_text_nametable, NAMETABLE_C);
+    scroll(0, 0xf0);
   } else {
     render_sprites();
   }
   if (story_mode_beaten) {
-    vram_adr(NAMETABLE_B);
-    zx02_decompress_to_vram((void *)ending_text_nametable, NAMETABLE_B);
+    vram_adr(NAMETABLE_C);
+    zx02_decompress_to_vram((void *)ending_text_nametable, NAMETABLE_C);
   }
   change_uni_palette();
 
@@ -168,7 +166,7 @@ void WorldMap::tick_ending() {
   }
 }
 
-void WorldMap::loop() {
+__attribute__((noinline)) void WorldMap::loop() {
   u8 ending_sprite = 0;
   u8 ending_palette_counter = 0;
   u8 ending_palette = 4;
@@ -203,12 +201,14 @@ void WorldMap::loop() {
           pad_poll(1);
         } while (get_pad_new(0) == 0 && get_pad_new(1) == 0);
 
+        u8 temp[32];
+
         for (u8 i = 0; i < 32; i++) {
-          donut_block_buffer[i] = 0;
+          temp[i] = 0;
         }
         for (u8 y = 9; y <= 18; y++) {
           ppu_wait_nmi();
-          multi_vram_buffer_horz(donut_block_buffer, 32, NTADR_B(0, y));
+          multi_vram_buffer_horz(temp, 32, NTADR_B(0, y));
         }
 
         ending_triggered = true;
@@ -251,7 +251,7 @@ void WorldMap::loop() {
         return;
       } else {
         current_game_state = GameState::Gameplay;
-        banked_lambda(Board::MAZE_BANK, [this]() { board.generate_maze(); });
+        banked_lambda(Board::BANK, []() { board.generate_maze(); });
       }
     } else if (pressed & (PAD_B)) {
       current_game_state = GameState::TitleScreen;
@@ -292,8 +292,8 @@ void WorldMap::render_sprites() {
     // TODO: maybe showcase sprites?
   } else {
     banked_oam_meta_spr(0x35, stage_label_y[(u8)current_stage],
-                        story_mode_beaten ? metasprite_MirohMap
-                                          : metasprite_UniMap);
+                        story_mode_beaten ? Metasprites::MirohMap
+                                          : Metasprites::UniMap);
   }
   oam_hide_rest();
 }

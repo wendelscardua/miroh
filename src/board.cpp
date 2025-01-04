@@ -1,6 +1,5 @@
 #include "board.hpp"
 #include "assets.hpp"
-#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
@@ -12,6 +11,9 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
+#pragma clang section text = ".prg_rom_4.text.board"
+#pragma clang section rodata = ".prg_rom_4.rodata.board"
+
 Cell::Cell() : walls(0) {}
 
 static constexpr u8 CELL_ROW_START[] = {
@@ -21,7 +23,9 @@ static constexpr u8 CELL_ROW_START[] = {
 static_assert(sizeof(CELL_ROW_START) == HEIGHT,
               "CELL_ROW_START does not have HEIGHT entries");
 
-u8 board_index(u8 row, u8 column) { return CELL_ROW_START[row] + column; }
+__attribute__((section(".prg_rom_fixed"))) u8 board_index(u8 row, u8 column) {
+  return CELL_ROW_START[row] + column;
+}
 
 bool BoardAnimation::paused = false;
 
@@ -55,13 +59,10 @@ Cell &Board::cell_at(u8 row, u8 column) {
 
 Board::Board() : animations({}), active_animations(false) {}
 
-Board::~Board() {}
+const Maze stage_mazes[] = {Maze::NewNormal, Maze::Onion, Maze::Shelves,
+                            Maze::Normal, Maze::Normal};
 
-__attribute__((section(".prg_rom_0.data"))) const Maze stage_mazes[] = {
-    Maze::NewNormal, Maze::Onion, Maze::Shelves, Maze::Normal, Maze::Normal};
-
-__attribute__((noinline, section(".prg_rom_0.text"))) void
-Board::generate_maze() {
+void Board::generate_maze() {
   // reset walls
   for (auto &one_cell : cell) {
     one_cell.walls = 0;
@@ -70,76 +71,73 @@ Board::generate_maze() {
 #define NEED_WALL(direction)                                                   \
   (template_cell.maybe_##direction##_wall && (RAND_UP_TO_POW2(2) == 0))
 
-  {
-    ScopedBank scopedBank(GET_BANK(mazes));
-    static_assert(sizeof(TemplateCell) == 1, "TemplateCell is too big");
+  static_assert(sizeof(TemplateCell) == 1, "TemplateCell is too big");
 
-    Maze maze = stage_mazes[(u8)current_stage];
-    // read required walls from template
-    for (u8 i = 0, index = 0; i < HEIGHT; i++) {
-      for (u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell = mazes[(u8)maze]->template_cells[index];
-        if (template_cell.value != 0xff) {
-          cell[index].walls = template_cell.walls;
-        }
-        index++;
+  Maze maze = stage_mazes[(u8)current_stage];
+  // read required walls from template
+  for (u8 i = 0, index = 0; i < HEIGHT; i++) {
+    for (u8 j = 0; j < WIDTH; j++) {
+      TemplateCell template_cell = mazes[(u8)maze]->template_cells[index];
+      if (template_cell.value != 0xff) {
+        cell[index].walls = template_cell.walls;
       }
+      index++;
     }
+  }
 
-    // read "maybe" walls from template
-    for (u8 i = 0, index = 0; i < HEIGHT; i++) {
-      for (u8 j = 0; j < WIDTH; j++) {
-        TemplateCell template_cell = mazes[(u8)maze]->template_cells[index];
+  // read "maybe" walls from template
+  for (u8 i = 0, index = 0; i < HEIGHT; i++) {
+    for (u8 j = 0; j < WIDTH; j++) {
+      TemplateCell template_cell = mazes[(u8)maze]->template_cells[index];
 
-        if (template_cell.value == 0xff) {
-          // use the old berzerk algorithm
-          // assumes the cell is on the valid range
-          switch (RAND_UP_TO_POW2(2)) {
-          case 0:
-            cell[index].right_wall = true;
-            cell[index + 1].left_wall = true;
-            break;
-          case 1:
-            cell[index + 1].down_wall = true;
-            cell[index + WIDTH + 1].up_wall = true;
-            break;
-          case 2:
-            cell[index + WIDTH].right_wall = true;
-            cell[index + WIDTH + 1].left_wall = true;
-            break;
-          case 3:
-            cell[index].down_wall = true;
-            cell[index + WIDTH].up_wall = true;
-            break;
-          }
-        } else {
-          if (NEED_WALL(up)) {
-            cell[index].up_wall = true;
-            if (i > 0) {
-              cell[index - WIDTH].down_wall = true;
-            }
-          }
-          if (NEED_WALL(down)) {
-            cell[index].down_wall = true;
-            if (i < HEIGHT - 1) {
-              cell[index + WIDTH].up_wall = true;
-            }
-          }
-          if (NEED_WALL(left)) {
-            cell[index].left_wall = true;
-            if (j > 0) {
-              cell[index - 1].right_wall = true;
-            }
-          }
-          if (NEED_WALL(right)) {
-            cell[index].right_wall = true;
-            if (j < WIDTH - 1) {
-              cell[index + 1].left_wall = true;
-            }
+      if (template_cell.value == 0xff) {
+        // use the old berzerk algorithm
+        // assumes the cell is on the valid range
+        switch (RAND_UP_TO_POW2(2)) {
+        case 0:
+          cell[index].right_wall = true;
+          cell[index + 1].left_wall = true;
+          break;
+        case 1:
+          cell[index + 1].down_wall = true;
+          cell[index + WIDTH + 1].up_wall = true;
+          break;
+        case 2:
+          cell[index + WIDTH].right_wall = true;
+          cell[index + WIDTH + 1].left_wall = true;
+          break;
+        case 3:
+          cell[index].down_wall = true;
+          cell[index + WIDTH].up_wall = true;
+          break;
+        }
+      } else {
+        if (NEED_WALL(up)) {
+          cell[index].up_wall = true;
+          if (i > 0) {
+            cell[index - WIDTH].down_wall = true;
           }
         }
-        index++;
+        if (NEED_WALL(down)) {
+          cell[index].down_wall = true;
+          if (i < HEIGHT - 1) {
+            cell[index + WIDTH].up_wall = true;
+          }
+        }
+        if (NEED_WALL(left)) {
+          cell[index].left_wall = true;
+          if (j > 0) {
+            cell[index - 1].right_wall = true;
+          }
+        }
+        if (NEED_WALL(right)) {
+          cell[index].right_wall = true;
+          if (j < WIDTH - 1) {
+            cell[index + 1].left_wall = true;
+          }
+        }
       }
+      index++;
     }
   }
 
@@ -238,7 +236,7 @@ void Board::render() {
   }
 }
 
-__attribute__((noinline)) bool Board::occupied(s8 row, s8 column) {
+bool Board::occupied(s8 row, s8 column) {
   if (column < 0 || column > WIDTH - 1 || row > HEIGHT - 1)
     return true;
 
@@ -647,8 +645,7 @@ u8 Board::random_free_column(u8 row) {
   return possible_columns[RAND_UP_TO(max_possible_columns)];
 }
 
-__attribute__((noinline)) void
-Board::add_animation(BoardAnimation new_animation) {
+void Board::add_animation(BoardAnimation new_animation) {
   for (auto &animation : animations) {
     if (animation.finished) {
       animation = new_animation;

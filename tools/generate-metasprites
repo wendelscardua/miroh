@@ -18,43 +18,51 @@ class GenerateMetasprites < Thor
     true
   end
 
-  desc 'generate ASM_FILE HEADER SESSION_FILE', 'Generates asm file and header based on NEXXT session'
-  method_option :bank, type: :string, required: false
-  method_option :label_prefix, type: :string, required: false
-  def generate(s_file, h_file, session_file)
-    label_prefix = options[:label_prefix] || 'metasprite'
+  desc 'generate CPP HEADER SESSION_FILE', 'Generates C++ file and header based on NEXXT session'
+  method_option :bank, type: :string, required: true
+  method_option :namespace, type: :string, required: false
+  def generate(cpp_file, h_file, session_file)
+    namespace = options[:namespace] || 'Metasprite'
 
-    bank = options[:bank] || '.prg_rom_last'
+    bank = options[:bank]
+    rodata = %Q(__attribute__((section(".prg_rom_#{bank}.metasprites.rodata"))))
 
     session = NEXXT::Session.read(session_file)
 
-    File.open(s_file, 'w') do |f|
+    File.open(cpp_file, 'w') do |f|
       f.puts <<~PREAMBLE
-        .section #{bank},"aR",@progbits
+        #include "#{h_file}"
+
+        namespace #{namespace} {
       PREAMBLE
-      # rubocop:disable Style/CombinableLoops
+
       session.metasprites.each do |metasprite|
-        f.puts ".global #{label_prefix}_#{metasprite.name}"
-        f.puts "#{label_prefix}_#{metasprite.name}:"
+        f.puts "  #{namespace.upcase}_RODATA const Sprite #{metasprite.name.gsub(/\s+/,'')}[] = {"
         metasprite.sprites.each do |sprite|
-          f.puts ".byte #{sprite.x}, #{sprite.y}, #{format('$%02x', sprite.tile)}, #{sprite.attribute}"
+          f.puts "     { .spr = { #{sprite.x}, #{sprite.y}, #{format('0x%02x', sprite.tile)}, #{sprite.attribute} } },"
         end
-        f.puts '.byte $80'
+        f.puts '    { .terminator = 0x80 } };'
       end
-      # rubocop:enable Style/CombinableLoops
+      f.puts "}"
     end
 
     File.open(h_file, 'w') do |f|
-      f.puts '#pragma once'
-      f.puts '#include "common.hpp"'
+      f.puts <<~PREAMBLE
+        #pragma once
+        #include "common.hpp"
+        #define #{namespace.upcase}_RODATA #{rodata}
+        #define #{namespace.upcase}_BANK #{bank}
+        namespace #{namespace} {
+      PREAMBLE
       session.metasprites.each do |metasprite|
-        f.puts "extern \"C\" const u8 #{label_prefix}_#{metasprite.name}[];"
+        f.puts "  extern #{namespace.upcase}_RODATA const Sprite #{metasprite.name.gsub(/\s+/,'')}[];"
       end
-      f.puts "enum class #{label_prefix}_id : u8 {"
+      f.puts "  enum class Metasprite_Id : u8 {"
       session.metasprites.each do |metasprite|
-        f.puts "  #{metasprite.name},"
+        f.puts "    #{metasprite.name.gsub(/\s+/,'')},"
       end
-      f.puts '};'
+      f.puts "  };"
+      f.puts '}'
     end
   end
 end

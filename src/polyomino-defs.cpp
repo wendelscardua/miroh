@@ -1,4 +1,5 @@
 #include "polyomino-defs.hpp"
+#include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "common.hpp"
@@ -33,8 +34,8 @@ void PolyominoDef::render(u8 x, int y) const {
     int block_y = y + (delta.delta_row << 4);
     banked_oam_meta_spr(block_x, block_y,
                         current_stage == Stage::StarlitStables
-                            ? metasprite_block
-                            : metasprite_BlockB);
+                            ? Metasprites::block
+                            : Metasprites::BlockB);
   }
 
   polyomino_start_index += 2;
@@ -44,11 +45,11 @@ void PolyominoDef::render(u8 x, int y) const {
 }
 
 static const char *shadows[] = {
-    (const char *)metasprite_BlockShadow1,
-    (const char *)metasprite_BlockShadow2,
-    (const char *)metasprite_BlockShadow3,
-    (const char *)metasprite_BlockShadow4,
-    (const char *)metasprite_BlockShadow5,
+    (const char *)Metasprites::BlockShadow1,
+    (const char *)Metasprites::BlockShadow2,
+    (const char *)Metasprites::BlockShadow3,
+    (const char *)Metasprites::BlockShadow4,
+    (const char *)Metasprites::BlockShadow5,
 };
 
 // TODO: avoid overlap with render
@@ -60,7 +61,7 @@ void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
   }
 
   const char *metasprite =
-      dist >= 5 ? (const char *)metasprite_BlockShadow5 : shadows[dist - 1];
+      dist >= 5 ? (const char *)Metasprites::BlockShadow5 : shadows[dist - 1];
 
   for (u8 j = 0; j < 5; j++) {
     u8 i = polyomino_start_index + j;
@@ -93,8 +94,8 @@ void PolyominoDef::outside_render(u8 x, int y, int cutting_point_y) const {
     }
     banked_oam_meta_spr(block_x, block_y,
                         current_stage == Stage::StarlitStables
-                            ? metasprite_block
-                            : metasprite_BlockB);
+                            ? Metasprites::block
+                            : Metasprites::BlockB);
   }
 }
 
@@ -110,12 +111,14 @@ bool PolyominoDef::board_render(Board &board, s8 row, s8 column) const {
     s8 block_row = row + delta.delta_row;
     s8 block_column = column + delta.delta_column;
     if (block_row >= 0) {
-      board.add_animation(BoardAnimation(&Board::block_jiggle,
-                                         sizeof(Board::block_jiggle) /
-                                             sizeof(Board::block_jiggle[0]),
-                                         (u8)block_row, (u8)block_column));
-      // XXX: just so line clears can be counted
-      board.occupy(block_row, block_column);
+      banked_lambda(Board::BANK, [&board, block_row, block_column]() {
+        board.add_animation(BoardAnimation(&Board::block_jiggle,
+                                           sizeof(Board::block_jiggle) /
+                                               sizeof(Board::block_jiggle[0]),
+                                           (u8)block_row, (u8)block_column));
+        // XXX: just so line clears can be counted
+        board.occupy(block_row, block_column);
+      });
     } else {
       it_fits = false;
     }

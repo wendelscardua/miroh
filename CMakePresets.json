@@ -30,8 +30,7 @@
       "description": "User-defined presets for debug",
       "inherits": "default",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "ROM_PLATFORM": "nes"
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ],

@@ -50,8 +50,8 @@ struct Fruit {
     u8 despawn_counter;
   };
   u16 life;
-  const u8 *low_metasprite;
-  const u8 *high_metasprite;
+  const Sprite *low_metasprite;
+  const Sprite *high_metasprite;
   State state;
 };
 
@@ -78,29 +78,29 @@ class Fruits {
   static constexpr u8 DESPAWN_DELAY = 23;
   static constexpr s8 fruit_rows[][4] = {{1, 5, 5, 9}, {3, 7, 3, 7}};
 
-  static constexpr const u8 *high_fruits[] = {
-      metasprite_AppleHigh,      metasprite_CornHigh,
-      metasprite_PearHigh,       metasprite_AvocadoHigh,
-      metasprite_EggplantHigh,   metasprite_KiwiHigh,
-      metasprite_BroccoliHigh,   metasprite_GreenPeasHigh,
-      metasprite_StrawberryHigh, metasprite_CherriesHigh,
-      metasprite_GrapesHigh,     metasprite_CucumberHigh,
-      metasprite_ClementineHigh, metasprite_HallabongHigh,
-      metasprite_CarrotHigh,     metasprite_BerriesHigh,
-      metasprite_BlueCornHigh,   metasprite_BananasHigh,
-      metasprite_SweetPotatoHigh};
+  static constexpr const Sprite *high_fruits[] = {
+      Metasprites::AppleHigh,      Metasprites::CornHigh,
+      Metasprites::PearHigh,       Metasprites::AvocadoHigh,
+      Metasprites::EggplantHigh,   Metasprites::KiwiHigh,
+      Metasprites::BroccoliHigh,   Metasprites::GreenPeasHigh,
+      Metasprites::StrawberryHigh, Metasprites::CherriesHigh,
+      Metasprites::GrapesHigh,     Metasprites::CucumberHigh,
+      Metasprites::ClementineHigh, Metasprites::HallabongHigh,
+      Metasprites::CarrotHigh,     Metasprites::BerriesHigh,
+      Metasprites::BlueCornHigh,   Metasprites::BananasHigh,
+      Metasprites::SweetPotatoHigh};
 
-  static constexpr const u8 *low_fruits[] = {
-      metasprite_AppleLow,      metasprite_CornLow,
-      metasprite_PearLow,       metasprite_AvocadoLow,
-      metasprite_EggplantLow,   metasprite_KiwiLow,
-      metasprite_BroccoliLow,   metasprite_GreenPeasLow,
-      metasprite_StrawberryLow, metasprite_CherriesLow,
-      metasprite_GrapesLow,     metasprite_CucumberLow,
-      metasprite_ClementineLow, metasprite_HallabongLow,
-      metasprite_CarrotLow,     metasprite_BerriesLow,
-      metasprite_BlueCornLow,   metasprite_BananasLow,
-      metasprite_SweetPotatoLow};
+  static constexpr const Sprite *low_fruits[] = {
+      Metasprites::AppleLow,      Metasprites::CornLow,
+      Metasprites::PearLow,       Metasprites::AvocadoLow,
+      Metasprites::EggplantLow,   Metasprites::KiwiLow,
+      Metasprites::BroccoliLow,   Metasprites::GreenPeasLow,
+      Metasprites::StrawberryLow, Metasprites::CherriesLow,
+      Metasprites::GrapesLow,     Metasprites::CucumberLow,
+      Metasprites::ClementineLow, Metasprites::HallabongLow,
+      Metasprites::CarrotLow,     Metasprites::BerriesLow,
+      Metasprites::BlueCornLow,   Metasprites::BananasLow,
+      Metasprites::SweetPotatoLow};
 
   static_assert(sizeof(fruit_rows) == 4 * Fruits::NUM_FRUITS);
 
@@ -122,7 +122,7 @@ public:
 
   void spawn_on_board(u8 fruit_index);
 
-  void render_fruit(Fruit fruit, int y_scroll);
-  void render_below_player(int y_scroll, int y_player);
-  void render_above_player(int y_scroll, int y_player);
+  __attribute((noinline)) void render_fruit(Fruit fruit, int y_scroll);
+  __attribute((noinline)) void render_below_player(int y_scroll, int y_player);
+  __attribute((noinline)) void render_above_player(int y_scroll, int y_player);
 };

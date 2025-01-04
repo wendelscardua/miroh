@@ -1,6 +1,5 @@
 #pragma once
 
-#include "board.hpp"
 #include "fruits.hpp"
 #include "polyomino.hpp"
 #include "unicorn.hpp"
@@ -26,9 +25,7 @@ class Drops {
 public:
   static u8 active_drops;
 
-  Board &board;
-
-  Drops(Board &board);
+  Drops();
   void add_random_drop();
   void update();
   void render(int y_scroll);
@@ -131,7 +128,6 @@ public:
   static constexpr u8 BLOCKS_GOAL = 3;
   static constexpr u16 SCORE_GOAL = 10;
 #endif
-  Board &board;
   Unicorn unicorn;
   Polyomino polyomino;
   Fruits fruits;
@@ -198,9 +194,9 @@ public:
   u8 lines_cleared;
   bool snack_was_eaten;
 
-  Gameplay(Board &board);
-  ~Gameplay();
-  void loop();
+  __attribute__((noinline)) Gameplay();
+  __attribute__((noinline)) ~Gameplay();
+  __attribute__((noinline)) void loop();
   void add_experience(u8 exp);
 
 private:

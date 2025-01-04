@@ -19,7 +19,7 @@ ZX0_dst: .zero 2
 bitr: .zero 1
 pntr: .zero 2
 
-.section .prg_rom_last,"axR",@progbits
+.section .prg_rom_fixed,"axR",@progbits
 
 PPU_ADDR = $2006
 PPU_DATA = $2007

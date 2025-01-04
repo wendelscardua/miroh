@@ -21,8 +21,8 @@
 #include "ggsound.hpp"
 #include "unicorn.hpp"
 
-#pragma clang section text = ".prg_rom_0.text"
-#pragma clang section rodata = ".prg_rom_0.rodata"
+#pragma clang section text = ".prg_rom_0.text.gameplay"
+#pragma clang section rodata = ".prg_rom_0.rodata.gameplay"
 
 const unsigned char pause_menu_text[] = {
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
@@ -149,7 +149,7 @@ const u8 STREAM[][4] = {{PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
                         {PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10,
                          PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10}};
 
-Drops::Drops(Board &board) : board(board) {
+Drops::Drops() {
   for (auto drop : drops) {
     drop.row = 0xff;
   }
@@ -168,12 +168,14 @@ void Drops::add_random_drop() {
   if (index == drops.size()) {
     return;
   }
-
-  drops[index].row = board.random_free_row();
+  drops[index].row =
+      banked_lambda(Board::BANK, []() { return board.random_free_row(); });
   if (drops[index].row > HEIGHT) {
     return;
   }
-  drops[index].column = board.random_free_column(drops[index].row);
+  drops[index].column = banked_lambda(Board::BANK, [this, &index]() {
+    return board.random_free_column(drops[index].row);
+  });
   drops[index].x = (u8)(drops[index].column << 4) + board.origin_x;
   drops[index].target_y = (u8)(drops[index].row << 4) + board.origin_y;
   drops[index].current_y = 0;
@@ -188,7 +190,10 @@ void Drops::update() {
     }
     if (drop.current_y == drop.target_y) {
       banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
-      board.set_maze_cell((s8)drop.row, (s8)drop.column, CellType::Marshmallow);
+      banked_lambda(Board::BANK, [&drop]() {
+        board.set_maze_cell((s8)drop.row, (s8)drop.column,
+                            CellType::Marshmallow);
+      });
       drop.row = 0xff;
       active_drops--;
     } else {
@@ -198,9 +203,10 @@ void Drops::update() {
   }
 }
 
-const u8 *const shadows[] = {metasprite_BlockShadow1, metasprite_BlockShadow2,
-                             metasprite_BlockShadow3, metasprite_BlockShadow4,
-                             metasprite_BlockShadow5};
+const Sprite *const shadows[] = {
+    Metasprites::BlockShadow1, Metasprites::BlockShadow2,
+    Metasprites::BlockShadow3, Metasprites::BlockShadow4,
+    Metasprites::BlockShadow5};
 
 void Drops::render(int y_scroll) {
   for (auto drop : drops) {
@@ -209,11 +215,11 @@ void Drops::render(int y_scroll) {
     }
     banked_oam_meta_spr(drop.x, drop.current_y - y_scroll,
                         current_stage == Stage::StarlitStables
-                            ? metasprite_block
-                            : metasprite_BlockB);
+                            ? Metasprites::block
+                            : Metasprites::BlockB);
     if (drop.shadow > 5) {
       banked_oam_meta_spr(drop.x, drop.target_y - y_scroll,
-                          metasprite_BlockShadow5);
+                          Metasprites::BlockShadow5);
     } else if (drop.shadow > 0) {
       banked_oam_meta_spr(drop.x, drop.target_y - y_scroll,
                           shadows[drop.shadow - 1]);
@@ -222,36 +228,39 @@ void Drops::render(int y_scroll) {
 }
 
 bool Drops::random_hard_drop() {
-  u8 row = board.random_free_row();
-  if (row > HEIGHT) {
-    return false;
-  }
-  u8 column = board.random_free_column(row);
-  board.set_maze_cell((s8)row, (s8)column, CellType::Marshmallow);
-  if ((get_frame_count() & 0b1111) == 0) {
-    banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
-  }
-  return true;
+  return banked_lambda(Board::BANK, []() {
+    u8 row = board.random_free_row();
+    if (row > HEIGHT) {
+      return false;
+    }
+    u8 column = board.random_free_column(row);
+    board.set_maze_cell((s8)row, (s8)column, CellType::Marshmallow);
+    if ((get_frame_count() & 0b1111) == 0) {
+      banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+    }
+    return true;
+  });
 }
 
-__attribute__((noinline)) Gameplay::Gameplay(Board &board)
-    : experience(0), current_level(0), spawn_timer(0), board(board),
-      unicorn(board, fixed_point(0x50, 0x00), fixed_point(0x50, 0x00)),
+Gameplay::Gameplay()
+    : experience(0), current_level(0), spawn_timer(0),
+      unicorn(banked_lambda(Unicorn::BANK,
+                            []() {
+                              return Unicorn(board, fixed_point(0x50, 0x00),
+                                             fixed_point(0x50, 0x00));
+                            })),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
       input_mode(InputMode::Polyomino), yes_no_option(false),
-      pause_option(PauseOption::Resume), drops(Drops(board)),
-      y_scroll(INTRO_SCROLL_Y), goal_counter(0) {
-  set_chr_bank(0);
-
-  set_mirroring(MIRROR_HORIZONTAL);
-
-  banked_lambda(ASSETS_BANK, []() { load_gameplay_assets(); });
+      pause_option(PauseOption::Resume), drops(), y_scroll(INTRO_SCROLL_Y),
+      goal_counter(0) {
+  load_gameplay_assets();
 
   vram_adr(NAMETABLE_A);
 
-  board.reset();
-
-  board.render();
+  banked_lambda(Board::BANK, []() {
+    board.reset();
+    board.render();
+  });
 
   pal_bright(0);
 
@@ -259,7 +268,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
 
   scroll(0, (unsigned int)y_scroll);
 
-  unicorn.refresh_score_hud();
+  banked_lambda(Unicorn::BANK, [this]() { unicorn.refresh_score_hud(); });
 
   initialize_goal();
 
@@ -288,7 +297,7 @@ __attribute__((noinline)) Gameplay::Gameplay(Board &board)
   }
 }
 
-__attribute__((noinline)) Gameplay::~Gameplay() {
+Gameplay::~Gameplay() {
   pal_fade_to(4, 0);
   color_emphasis(COL_EMP_NORMAL);
   ppu_off();
@@ -313,7 +322,9 @@ void Gameplay::render() {
   fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
   if (gameplay_state != GameplayState::Swapping ||
       swap_frames[swap_index].display_unicorn) {
-    unicorn.render(y_scroll, left_wall, right_wall);
+    banked_lambda(Unicorn::BANK, [this, left_wall, right_wall]() {
+      unicorn.render(y_scroll, left_wall, right_wall);
+    });
   }
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
 
@@ -333,7 +344,8 @@ void Gameplay::render() {
     drops.render(y_scroll);
   }
 
-  unicorn.refresh_energy_hud(y_scroll);
+  banked_lambda(Unicorn::BANK,
+                [this]() { unicorn.refresh_energy_hud(y_scroll); });
 
   if (SPRID) {
     // if we rendered 64 sprites already, SPRID will have wrapped around back to
@@ -342,7 +354,7 @@ void Gameplay::render() {
     oam_hide_rest();
   }
 
-  board.animate();
+  banked_lambda(Board::BANK, []() { board.animate(); });
 }
 
 void Gameplay::initialize_goal() {
@@ -622,7 +634,9 @@ void Gameplay::gameplay_handler() {
   // trigger, not even the line clearing itself will run)
   bool line_clearing_in_progress =
       gameplay_state == GameplayState::MarshmallowOverflow ||
-      board.ongoing_line_clearing(board.active_animations);
+      banked_lambda(Board::BANK, []() {
+        return board.ongoing_line_clearing(board.active_animations);
+      });
 
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
@@ -634,7 +648,7 @@ void Gameplay::gameplay_handler() {
   polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
                    failed_to_place, lines_cleared);
 
-  banked_lambda(PLAYER_BANK, [this, line_clearing_in_progress]() {
+  banked_lambda(Unicorn::BANK, [this, line_clearing_in_progress]() {
     unicorn.update(unicorn_pressed, unicorn_held, line_clearing_in_progress);
   });
 
@@ -978,7 +992,7 @@ void Gameplay::loop() {
     }
 
     if (VRAM_INDEX + 16 < 64) {
-      unicorn.refresh_score_hud();
+      banked_lambda(Unicorn::BANK, [this]() { unicorn.refresh_score_hud(); });
     }
 
     if (no_lag_frame) {

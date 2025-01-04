@@ -137,6 +137,7 @@ MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 title_bg_palette: .incbin "TitleBG.pal"
 title_spr_palette: .incbin "TitleSPR.pal"
 
+    .section .prg_rom_3,"aR",@progbits
 .global intro_text_nametable
 intro_text_nametable: .incbin "IntroText.nam.zx02"
 .global ending_text_nametable

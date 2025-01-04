@@ -9,19 +9,20 @@ extern "C" void banked_oam_meta_spr(char x, int y, const void *data);
 extern "C" void banked_oam_meta_spr_horizontal(int x, char y, const void *data);
 
 // plays song from the song bank
-void banked_play_song(Song song);
+__attribute((noinline)) void banked_play_song(Song song);
 
 // plays sfx from the sfx bank
-void banked_play_sfx(SFX sfx, GGSound::SFXPriority priority);
+__attribute((noinline)) void banked_play_sfx(SFX sfx,
+                                             GGSound::SFXPriority priority);
 
-// [assets bank] loads title assets
-void load_title_assets();
+// loads title assets
+__attribute((noinline)) void load_title_assets();
 
-// [assets bank] loads map assets
-void load_map_assets();
+// loads map assets
+__attribute((noinline)) void load_map_assets();
 
-// [assets bank] loads game assets
-void load_gameplay_assets();
+// loads game assets
+__attribute((noinline)) void load_gameplay_assets();
 
 // loads palette for uni map
-void change_uni_palette();
+__attribute((noinline)) void change_uni_palette();
