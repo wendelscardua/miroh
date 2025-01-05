@@ -29,7 +29,7 @@ class Polyomino {
   s8 right_limit;
   std::array<u16, 4> bitmask;
 
-  bool able_to_kick(auto kick_deltas);
+  __attribute__((noinline)) bool able_to_kick(auto kick_deltas);
 
 public:
   enum class State {
@@ -40,9 +40,9 @@ public:
   State state;
   Polyomino(Board &board);
 
-  void spawn();
+  __attribute__((noinline)) void spawn();
 
-  void handle_input(u8 pressed, u8 held);
+  __attribute__((noinline)) void handle_input(u8 pressed, u8 held);
 
   void freezing_handler(bool &blocks_placed, bool &failed_to_place,
                         u8 &lines_cleared);
@@ -59,10 +59,11 @@ public:
 
   bool collide(s8 row, s8 column);
 
-  void update_bitmask();
-  void update_shadow();
+  __attribute__((noinline)) void update_bitmask();
+
+  __attribute__((noinline)) void update_shadow();
 
   // returns number of filled lines aftter blocks were frozen, or -1 if
   // polyomino didn't fit
-  s8 freeze_blocks();
+  __attribute__((noinline)) s8 freeze_blocks();
 };

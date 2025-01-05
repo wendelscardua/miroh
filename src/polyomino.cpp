@@ -11,7 +11,8 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define POLYOMINOS_TEXT ".prg_rom_0.text.polyominos"
+#pragma clang section text = ".prg_rom_0.text.polyominos"
+#pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
 
 static auto littleminos = Bag<u8, 5>([](auto *bag) {
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
@@ -51,7 +52,7 @@ Polyomino::Polyomino(Board &board)
   render_next();
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
+void Polyomino::spawn() {
   state = State::Active;
   grounded_timer = 0;
   move_timer = 0;
@@ -79,8 +80,7 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
   update_bitmask();
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::update_bitmask() {
+void Polyomino::update_bitmask() {
   for (u8 i = 0; i < 4; i++) {
     bitmask[i] = 0;
   }
@@ -101,7 +101,7 @@ Polyomino::update_bitmask() {
   update_shadow();
 }
 
-__attribute__((noinline)) void Polyomino::update_shadow() {
+void Polyomino::update_shadow() {
   START_MESEN_WATCH(4);
   shadow_row = row;
   while (!collide(shadow_row + 1, column)) {
@@ -139,8 +139,7 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
   return false;
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) bool
-Polyomino::able_to_kick(auto kick_deltas) {
+bool Polyomino::able_to_kick(auto kick_deltas) {
   for (auto kick : kick_deltas) {
     s8 new_row = row + kick.delta_row;
     s8 new_column = column + kick.delta_column;
@@ -154,8 +153,7 @@ Polyomino::able_to_kick(auto kick_deltas) {
   return false;
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::handle_input(u8 pressed, u8 held) {
+void Polyomino::handle_input(u8 pressed, u8 held) {
   if (state != State::Active) {
     return;
   }
@@ -287,11 +285,15 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
+  START_MESEN_WATCH(5);
   definition->render(board.origin_x + (u8)(column << 4),
                      (board.origin_y - y_scroll + (row << 4)));
+  STOP_MESEN_WATCH(5);
+  START_MESEN_WATCH(6);
   definition->shadow(board.origin_x + (u8)(column << 4),
                      (board.origin_y - y_scroll + (shadow_row << 4)),
                      (u8)(shadow_row - row));
+  STOP_MESEN_WATCH(6);
 }
 
 void Polyomino::outside_render(int y_scroll) {
@@ -302,8 +304,7 @@ void Polyomino::outside_render(int y_scroll) {
 
 void Polyomino::render_next() { next->chibi_render(3, 5); }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) s8
-Polyomino::freeze_blocks() {
+s8 Polyomino::freeze_blocks() {
   state = State::Inactive;
   grounded_timer = 0;
   s8 filled_lines = 0;
