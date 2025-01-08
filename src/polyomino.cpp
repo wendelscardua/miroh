@@ -121,7 +121,9 @@ inline u16 signed_shift(u16 value, s8 shift) {
 }
 
 bool Polyomino::collide(s8 new_row, s8 new_column) {
+  START_MESEN_WATCH(31);
   if (left_limit + new_column < 0 || right_limit + new_column >= WIDTH) {
+    STOP_MESEN_WATCH(31);
     return true;
   }
   for (u8 i = 0; i < 4; i++) {
@@ -132,10 +134,11 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     if (bitmask[i] &&
         (mod_row >= HEIGHT || (signed_shift(bitmask[i], (new_column - column)) &
                                board.occupied_bitset[(u8)(new_row + i - 1)]))) {
+      STOP_MESEN_WATCH(31);
       return true;
     }
   }
-
+  STOP_MESEN_WATCH(31);
   return false;
 }
 
