@@ -238,8 +238,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
       how_to_select_timer++;
       if (how_to_select_timer == 90) {
         how_to_players_switched = !how_to_players_switched;
-        const u8 pressed_button[] = {SELECT_BUTTON_BASE_TILE + 2,
-                                     SELECT_BUTTON_BASE_TILE + 3};
+        static const u8 pressed_button[] = {SELECT_BUTTON_BASE_TILE + 2,
+                                            SELECT_BUTTON_BASE_TILE + 3};
         multi_vram_buffer_horz(pressed_button, 2, NTADR_D(15, 5));
         if (how_to_players_switched) {
           one_vram_buffer(HOW_TO_PLAYER_LABELS_BASE_TILE + 1, NTADR_D(10, 6));
@@ -250,8 +250,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
         }
       } else if (how_to_select_timer == 100) {
         how_to_select_timer = 0;
-        const u8 released_button[] = {SELECT_BUTTON_BASE_TILE,
-                                      SELECT_BUTTON_BASE_TILE + 1};
+        static const u8 released_button[] = {SELECT_BUTTON_BASE_TILE,
+                                             SELECT_BUTTON_BASE_TILE + 1};
         multi_vram_buffer_horz(released_button, 2, NTADR_D(15, 5));
       }
       if (y_scroll != HOW_TO_SCROLL) {
