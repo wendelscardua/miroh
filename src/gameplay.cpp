@@ -310,6 +310,7 @@ void Gameplay::render() {
   BoardAnimation::paused = Animation::paused;
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
+  START_MESEN_WATCH(10);
   if (unicorn.state == Unicorn::State::Moving) {
     u8 row = unicorn.row + 1;
     u8 col = unicorn.column;
@@ -319,33 +320,46 @@ void Gameplay::render() {
       right_wall = cell.right_wall;
     }
   }
+  STOP_MESEN_WATCH(10);
+  START_MESEN_WATCH(11);
   fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
+  STOP_MESEN_WATCH(11);
+  START_MESEN_WATCH(12);
   if (gameplay_state != GameplayState::Swapping ||
       swap_frames[swap_index].display_unicorn) {
     banked_lambda(Unicorn::BANK, [this, left_wall, right_wall]() {
       unicorn.render(y_scroll, left_wall, right_wall);
     });
   }
+  STOP_MESEN_WATCH(12);
+  START_MESEN_WATCH(13);
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
+  STOP_MESEN_WATCH(13);
 
   if (gameplay_state == GameplayState::MarshmallowOverflow &&
       overflow_state == OverflowState::FlashOutsideBlocks &&
       marshmallow_overflow_counter & 0b100) {
+    START_MESEN_WATCH(14);
     polyomino.outside_render(y_scroll);
+    STOP_MESEN_WATCH(14);
   } else if ((gameplay_state == GameplayState::Swapping &&
               swap_frames[swap_index].display_polyomino) ||
              (gameplay_state != GameplayState::Swapping &&
               gameplay_state != GameplayState::MarshmallowOverflow)) {
-    START_MESEN_WATCH(3);
+    START_MESEN_WATCH(15);
     polyomino.render(y_scroll);
-    STOP_MESEN_WATCH(3);
+    STOP_MESEN_WATCH(15);
   }
+  START_MESEN_WATCH(16);
   if (Drops::active_drops) {
     drops.render(y_scroll);
   }
+  STOP_MESEN_WATCH(16);
 
+  START_MESEN_WATCH(17);
   banked_lambda(Unicorn::BANK,
                 [this]() { unicorn.refresh_energy_hud(y_scroll); });
+  STOP_MESEN_WATCH(17);
 
   if (SPRID) {
     // if we rendered 64 sprites already, SPRID will have wrapped around back to
