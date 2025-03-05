@@ -8,6 +8,7 @@
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
+#include "log.hpp"
 #include "metasprites.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
@@ -454,24 +455,31 @@ void Unicorn::feed(u8 nutrition) {
 }
 
 void render_energy_hud(int y_scroll, u8 value) {
+  if (value == 0) {
+    return;
+  }
+  START_MESEN_WATCH(41);
   static constexpr u8 ENERGY_HUD_X = 0x30;
   static constexpr u8 ENERGY_HUD_Y = 0xd7;
 
-  if ((u16)(ENERGY_HUD_Y - y_scroll) >> 8 != 0) {
-    return;
-  }
+  static const Sprite *sprites[] = {
+      NULL,
+      Metasprites::Energy1,
+      Metasprites::Energy2,
+      Metasprites::Energy3,
+      Metasprites::Energy4,
+      Metasprites::Energy5,
+      Metasprites::Energy6,
+      Metasprites::Energy7,
+      Metasprites::Energy8,
+      Metasprites::Energy9,
+      Metasprites::Energy10,
+      Metasprites::Energy11,
+      Metasprites::Energy12,
+  };
 
-  u8 x = ENERGY_HUD_X;
-  u8 y = (u8)(ENERGY_HUD_Y - y_scroll);
-
-  for (u8 i = 0; i < 4; i++) {
-    if (value == 0)
-      break;
-    u8 delta = value > 3 ? 3 : value;
-    oam_spr(x, y, 0x30 + delta, 0);
-    value -= delta;
-    x += 8;
-  }
+  banked_oam_meta_spr(ENERGY_HUD_X, ENERGY_HUD_Y - y_scroll, sprites[value]);
+  STOP_MESEN_WATCH(41);
 }
 
 void Unicorn::refresh_energy_hud(int y_scroll) {
