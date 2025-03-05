@@ -181,7 +181,7 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
   }
 }
 
-void Fruits::render_below_player(int y_scroll, int y_player) {
+void Fruits::render_below_player(int y_scroll, u8 y_player) {
   for (Fruit fruit : fruits) {
     if (fruit.y > y_player) {
       render_fruit(fruit, y_scroll);
@@ -189,7 +189,7 @@ void Fruits::render_below_player(int y_scroll, int y_player) {
   }
 }
 
-void Fruits::render_above_player(int y_scroll, int y_player) {
+void Fruits::render_above_player(int y_scroll, u8 y_player) {
   for (Fruit fruit : fruits) {
     if (fruit.y <= y_player) {
       render_fruit(fruit, y_scroll);
