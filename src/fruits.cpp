@@ -89,8 +89,9 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
         fruit.raindrop_y += DROP_SPEED;
       }
       break;
-    case Fruit::State::Active:
-    case Fruit::State::Despawning:
+    // case Fruit::State::Active:
+    // case Fruit::State::Despawning:
+    default:
       if (board.occupied(fruit.row, fruit.column)) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
