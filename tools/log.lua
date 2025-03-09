@@ -32,12 +32,15 @@ function start_watch(_address, label)
     current_watch.children[label] = {
       label = label,
       start = 0,
+      start_frame = 0,
       cycles = 0,
       children = {}
     }
   end
   current_watch = current_watch.children[label]
   current_watch.start = emu.getState()['cpu.cycleCount']
+  current_watch.start_frame = emu.getState()['frameCount']
+  emu.getState()
   table.insert(label_stack, label)
 end
 
@@ -54,10 +57,13 @@ function stop_watch(_address, label)
   end
 
   local new_cycles = emu.getState()['cpu.cycleCount'] - current_watch.start
+  local frames = emu.getState()['frameCount'] - current_watch.start_frame
   if emu.getMouseState().right then
     current_watch.cycles = 0
   end
-  if new_cycles > current_watch.cycles then
+  if frames > 0 then
+    emu.log("Warning: watch label " .. label .. " crossed " .. frames .. " frames (" .. new_cycles .. " cycles)")
+  elseif new_cycles > current_watch.cycles then
     current_watch.cycles = new_cycles
   end
 end
