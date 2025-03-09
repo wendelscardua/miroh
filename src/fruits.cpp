@@ -1,6 +1,7 @@
 #include "fruits.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "log.hpp"
 #include "metasprites.hpp"
 #include "unicorn.hpp"
 #include "utils.hpp"
@@ -111,7 +112,7 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
         } else {
           fruit.bobbing_counter++;
         }
-      } else if (fruit.state == Fruit::State::Despawning) {
+      } else { // if (fruit.state == Fruit::State::Despawning) {
         if (--fruit.despawn_counter == 0) {
           fruit.state = Fruit::State::Inactive;
           active_fruits--;
@@ -148,12 +149,15 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
       break;
     }
   case Fruit::State::Active:
+    START_MESEN_WATCH(100);
     banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
                         (fruit.bobbing_counter & 0b10000)
                             ? fruit.high_metasprite
                             : fruit.low_metasprite);
+    STOP_MESEN_WATCH(100);
     break;
   case Fruit::State::Dropping:
+    START_MESEN_WATCH(101);
     if (fruit.y == fruit.raindrop_y) {
       if (splash_animation.current_cell_index == 13 ||
           splash_animation.current_cell_index == 14) {
@@ -163,9 +167,11 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
         // splash anim 16 & 17
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
       }
+      START_MESEN_WATCH(127);
       banked_lambda(Animation::BANK, [this, &fruit, &y_scroll]() {
         splash_animation.update(fruit.x, fruit.y - y_scroll);
       });
+      STOP_MESEN_WATCH(127);
     } else {
       auto &metasprite = (fruit.y - fruit.raindrop_y <= 48)
                              ? Metasprites::RainShadowB
@@ -179,6 +185,7 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
       }
       banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite);
     }
+    STOP_MESEN_WATCH(101);
     break;
   case Fruit::State::Inactive:
     break;
