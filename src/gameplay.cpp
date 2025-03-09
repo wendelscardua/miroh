@@ -327,7 +327,7 @@ void Gameplay::render() {
   START_MESEN_WATCH(12);
   if (gameplay_state != GameplayState::Swapping ||
       swap_frames[swap_index].display_unicorn) {
-    banked_lambda(Unicorn::BANK, [this, left_wall, right_wall]() {
+    banked_lambda(Unicorn::BANK, [this, &left_wall, &right_wall]() {
       unicorn.render(y_scroll, left_wall, right_wall);
     });
   }

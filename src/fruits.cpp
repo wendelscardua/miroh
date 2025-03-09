@@ -156,7 +156,6 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
                             : fruit.low_metasprite);
     break;
   case Fruit::State::Dropping:
-    START_MESEN_WATCH(101);
     if (fruit.y == fruit.raindrop_y) {
       if (splash_animation.current_cell_index == 13 ||
           splash_animation.current_cell_index == 14) {
@@ -184,7 +183,6 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
       }
       banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite);
     }
-    STOP_MESEN_WATCH(101);
     break;
   case Fruit::State::Inactive:
     break;
