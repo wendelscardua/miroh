@@ -104,15 +104,18 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
         banked_lambda(Unicorn::BANK,
                       [&unicorn]() { unicorn.feed(FRUIT_NUTRITION); });
         snack_was_eaten = true;
-      } else if (fruit.state == Fruit::State::Active && --fruit.life == 0) {
-        fruit.state = Fruit::State::Despawning;
-        fruit.despawn_counter = DESPAWN_DELAY;
-      } else if (fruit.state == Fruit::State::Despawning &&
-                 --fruit.despawn_counter == 0) {
-        fruit.state = Fruit::State::Inactive;
-        active_fruits--;
-      } else {
-        fruit.bobbing_counter++;
+      } else if (fruit.state == Fruit::State::Active) {
+        if (--fruit.life == 0) {
+          fruit.state = Fruit::State::Despawning;
+          fruit.despawn_counter = DESPAWN_DELAY;
+        } else {
+          fruit.bobbing_counter++;
+        }
+      } else if (fruit.state == Fruit::State::Despawning) {
+        if (--fruit.despawn_counter == 0) {
+          fruit.state = Fruit::State::Inactive;
+          active_fruits--;
+        }
       }
       break;
     }

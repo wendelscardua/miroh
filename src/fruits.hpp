@@ -44,10 +44,10 @@ struct Fruit {
   u8 x;
   u8 y;
 
-  u8 bobbing_counter;
   union {
     u8 raindrop_y;
     u8 despawn_counter;
+    u8 bobbing_counter;
   };
   u16 life;
   const Sprite *low_metasprite;
