@@ -458,7 +458,6 @@ void render_energy_hud(int y_scroll, u8 value) {
   if (value == 0) {
     return;
   }
-  START_MESEN_WATCH(41);
   static constexpr u8 ENERGY_HUD_X = 0x30;
   static constexpr u8 ENERGY_HUD_Y = 0xd7;
 
@@ -479,7 +478,6 @@ void render_energy_hud(int y_scroll, u8 value) {
   };
 
   banked_oam_meta_spr(ENERGY_HUD_X, ENERGY_HUD_Y - y_scroll, sprites[value]);
-  STOP_MESEN_WATCH(41);
 }
 
 void Unicorn::refresh_energy_hud(int y_scroll) {
