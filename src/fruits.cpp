@@ -192,17 +192,21 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
 }
 
 void Fruits::render_below_player(int y_scroll, u8 y_player) {
-  for (Fruit fruit : fruits) {
-    if (fruit.y > y_player) {
-      render_fruit(fruit, y_scroll);
-    };
-  }
+  static_assert(NUM_FRUITS == 2, "Invalid unrolled loop");
+  if (fruits[0].y > y_player) {
+    render_fruit(fruits[0], y_scroll);
+  };
+  if (fruits[1].y > y_player) {
+    render_fruit(fruits[1], y_scroll);
+  };
 }
 
 void Fruits::render_above_player(int y_scroll, u8 y_player) {
-  for (Fruit fruit : fruits) {
-    if (fruit.y <= y_player) {
-      render_fruit(fruit, y_scroll);
-    };
-  }
+  static_assert(NUM_FRUITS == 2, "Invalid unrolled loop");
+  if (fruits[0].y <= y_player) {
+    render_fruit(fruits[0], y_scroll);
+  };
+  if (fruits[1].y <= y_player) {
+    render_fruit(fruits[1], y_scroll);
+  };
 }
