@@ -8,7 +8,6 @@
 #include "direction.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
-#include "log.hpp"
 #include "metasprites.hpp"
 #include "utils.hpp"
 #include <nesdoug.h>
@@ -25,14 +24,10 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
       x(starting_x), y(starting_y), row(starting_y.whole >> 4),
       column(starting_x.whole >> 4), score(0), statue(false) {
-  left_animation = Animation{&moving_left_cells,
-                             sizeof(moving_left_cells) / sizeof(AnimCell)};
-  right_animation = Animation{&moving_right_cells,
-                              sizeof(moving_right_cells) / sizeof(AnimCell)};
-  left_tired_animation = Animation{
-      &trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
-  right_tired_animation = Animation{
-      &trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
+  left_animation = Animation{&moving_left_cells};
+  right_animation = Animation{&moving_right_cells};
+  left_tired_animation = Animation{&trudging_left_cells};
+  right_tired_animation = Animation{&trudging_right_cells};
   set_state(state);
 }
 
@@ -48,49 +43,38 @@ void Unicorn::set_state(State new_state) {
   state = new_state;
   switch (state) {
   case State::Idle:
-    idle_left_animation =
-        Animation{&idle_left_cells, sizeof(idle_left_cells) / sizeof(AnimCell)};
-    idle_right_animation = Animation{
-        &idle_right_cells, sizeof(idle_right_cells) / sizeof(AnimCell)};
-    idle_left_tired_animation = Animation{
-        &tired_left_cells, sizeof(tired_left_cells) / sizeof(AnimCell)};
-    idle_right_tired_animation = Animation{
-        &tired_right_cells, sizeof(tired_right_cells) / sizeof(AnimCell)};
+    idle_left_animation = Animation{&idle_left_cells};
+    idle_right_animation = Animation{&idle_right_cells};
+    idle_left_tired_animation = Animation{&tired_left_cells};
+    idle_right_tired_animation = Animation{&tired_right_cells};
     break;
   case State::Moving:
     break;
   case State::Yawning:
     idle_left_animation = idle_left_tired_animation =
-        Animation{&yawn_left_cells, sizeof(yawn_left_cells) / sizeof(AnimCell)};
-    idle_right_animation = idle_right_tired_animation = Animation{
-        &yawn_right_cells, sizeof(yawn_right_cells) / sizeof(AnimCell)};
+        Animation{&yawn_left_cells};
+    idle_right_animation = idle_right_tired_animation =
+        Animation{&yawn_right_cells};
     break;
   case State::Sleeping:
-    idle_left_animation = idle_left_tired_animation = Animation{
-        &sleep_left_cells, sizeof(sleep_left_cells) / sizeof(AnimCell)};
-    idle_right_animation = idle_right_tired_animation = Animation{
-        &sleep_right_cells, sizeof(sleep_right_cells) / sizeof(AnimCell)};
+    idle_left_animation = idle_left_tired_animation =
+        Animation{&sleep_left_cells};
+    idle_right_animation = idle_right_tired_animation =
+        Animation{&sleep_right_cells};
     break;
   case State::Trapped:
-    generic_animation =
-        Animation{&trapped_cells, sizeof(trapped_cells) / sizeof(AnimCell)};
+    generic_animation = Animation{&trapped_cells};
     break;
   case State::Roll:
-    generic_animation =
-        (facing == Direction::Right)
-            ? Animation{&roll_right_cells,
-                        sizeof(roll_right_cells) / sizeof(AnimCell)}
-            : Animation{&roll_left_cells,
-                        sizeof(roll_left_cells) / sizeof(AnimCell)};
+    generic_animation = (facing == Direction::Right)
+                            ? Animation{&roll_right_cells}
+                            : Animation{&roll_left_cells};
 
     break;
   case State::Impact:
-    generic_animation =
-        (facing == Direction::Right)
-            ? Animation{&impact_right_cells,
-                        sizeof(impact_right_cells) / sizeof(AnimCell)}
-            : Animation{&impact_left_cells,
-                        sizeof(impact_left_cells) / sizeof(AnimCell)};
+    generic_animation = (facing == Direction::Right)
+                            ? Animation{&impact_right_cells}
+                            : Animation{&impact_left_cells};
 
     break;
   }

@@ -38,13 +38,14 @@ class Animator < Thor
         }.each do |values|
           f.puts ".byte #{values.join(', ')}"
         end
+        f.puts ".byte 0, 0, 0"
       end
     end
 
     File.open(options[:hpp_output], 'w') do |f|
       f.puts '#include "animation.hpp"'
       animations.each do |label, cells|
-        f.puts "extern \"C\" const AnimCell #{label}_cells[#{cells.size}];"
+        f.puts "extern \"C\" const AnimCell #{label}_cells[#{cells.size + 1}];"
       end
     end
   end

@@ -109,8 +109,7 @@ class Fruits {
   Board &board;
   u16 spawn_timer;
 
-  Animation splash_animation{&splash_cells,
-                             sizeof(splash_cells) / sizeof(AnimCell)};
+  Animation splash_animation{&splash_cells};
 
 public:
   static constexpr u16 SPAWN_DELAY = 5 * 60;
