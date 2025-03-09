@@ -1,4 +1,5 @@
 #include "fruits.hpp"
+#include "animation.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "log.hpp"
@@ -149,12 +150,10 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
       break;
     }
   case Fruit::State::Active:
-    START_MESEN_WATCH(100);
     banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
                         (fruit.bobbing_counter & 0b10000)
                             ? fruit.high_metasprite
                             : fruit.low_metasprite);
-    STOP_MESEN_WATCH(100);
     break;
   case Fruit::State::Dropping:
     START_MESEN_WATCH(101);
@@ -167,11 +166,11 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
         // splash anim 16 & 17
         banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
       }
-      START_MESEN_WATCH(127);
-      banked_lambda(Animation::BANK, [this, &fruit, &y_scroll]() {
+      // NOTE: assumes this runs on fixed bank
+      {
+        ScopedBank animationBank(Animation::BANK);
         splash_animation.update(fruit.x, fruit.y - y_scroll);
-      });
-      STOP_MESEN_WATCH(127);
+      }
     } else {
       auto &metasprite = (fruit.y - fruit.raindrop_y <= 48)
                              ? Metasprites::RainShadowB
