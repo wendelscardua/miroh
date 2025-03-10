@@ -21,6 +21,7 @@ bool PolyominoDef::collide(Board &board, s8 row, s8 column) const {
 void PolyominoDef::render(u8 x, int y) const {
   static u8 polyomino_start_index = 0;
 
+#pragma clang loop unroll(full)
   for (u8 j = 0; j < 5; j++) {
     u8 i = polyomino_start_index + j;
     if (i >= 5) {

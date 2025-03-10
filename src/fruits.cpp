@@ -71,6 +71,7 @@ Fruits::Fruits(Board &board) : board(board) {
 }
 
 void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
+#pragma clang loop unroll(enable)
   for (auto fruit : fruits) {
     switch (fruit.state) {
     case Fruit::State::Inactive:

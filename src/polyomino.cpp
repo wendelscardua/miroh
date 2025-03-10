@@ -261,6 +261,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     if (!collide(row, column - 1)) {
       column--;
       x -= 16;
+#pragma clang loop unroll(full)
       for (u8 i = 0; i < 4; i++) {
         bitmask[i] = bitmask[i] >> 1;
       }
@@ -272,6 +273,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     if (!collide(row, column + 1)) {
       column++;
       x += 16;
+#pragma clang loop unroll(full)
       for (u8 i = 0; i < 4; i++) {
         bitmask[i] = bitmask[i] << 1;
       }
@@ -321,8 +323,9 @@ s8 Polyomino::freeze_blocks() {
     return -1;
   }
 
-  // XXX: checking the range of possible rows that could have been filled by a
-  // polyomino
+// XXX: checking the range of possible rows that could have been filled by a
+// polyomino
+#pragma clang loop unroll(full)
   for (s8 delta_row = -1; delta_row <= 2; delta_row++) {
     s8 block_row = row + delta_row;
     if (board.row_filled(block_row)) {
