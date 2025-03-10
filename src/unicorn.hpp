@@ -20,10 +20,9 @@ private:
   u8 energy;
   u8 energy_timer;
   u8 original_energy;
-  u8 sprite_offset;
 
   // fixes priority flags for bottom sprites
-  void fix_uni_priority(bool left_wall, bool right_wall);
+  void fix_uni_priority(u8 sprite_offset, bool left_wall, bool right_wall);
 
 public:
   static constexpr u8 BANK = 5;
