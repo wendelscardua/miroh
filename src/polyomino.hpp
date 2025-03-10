@@ -21,10 +21,13 @@ class Polyomino {
   const PolyominoDef *next;
   s8 row;
   s8 column;
+  u8 x;
+  u8 y;
   u16 drop_timer;
   s8 move_timer;
   Direction movement_direction;
   s8 shadow_row;
+  u8 shadow_y;
   s8 left_limit;
   s8 right_limit;
   std::array<u16, 4> bitmask;

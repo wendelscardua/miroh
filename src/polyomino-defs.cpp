@@ -3,6 +3,7 @@
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "common.hpp"
+#include "log.hpp"
 #include "metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -30,8 +31,8 @@ void PolyominoDef::render(u8 x, int y) const {
     }
 
     auto delta = deltas[i];
-    u8 block_x = (u8)(x + (delta.delta_column << 4));
-    int block_y = y + (delta.delta_row << 4);
+    u8 block_x = (u8)(x + delta.delta_x());
+    int block_y = y + delta.delta_y();
     banked_oam_meta_spr(block_x, block_y,
                         current_stage == Stage::StarlitStables
                             ? Metasprites::block
@@ -72,10 +73,12 @@ void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
       continue;
     }
 
+    START_MESEN_WATCH(100);
     auto delta = deltas[i];
-    u8 block_x = (u8)(x + (delta.delta_column << 4));
-    int block_y = y + (delta.delta_row << 4);
+    u8 block_x = (u8)(x + delta.delta_x());
+    int block_y = y + delta.delta_y();
     banked_oam_meta_spr(block_x, block_y, metasprite);
+    STOP_MESEN_WATCH(100);
   }
 
   polyomino_start_index += 2;
@@ -87,8 +90,8 @@ void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
 void PolyominoDef::outside_render(u8 x, int y, int cutting_point_y) const {
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];
-    u8 block_x = (u8)(x + (delta.delta_column << 4));
-    int block_y = y + (delta.delta_row << 4);
+    u8 block_x = (u8)(x + delta.delta_x());
+    int block_y = y + delta.delta_y();
     if (block_y >= cutting_point_y) {
       continue;
     }

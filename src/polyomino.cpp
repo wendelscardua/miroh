@@ -59,6 +59,8 @@ void Polyomino::spawn() {
   movement_direction = Direction::None;
   column = 5;
   row = 0;
+  x = board.origin_x + (u8)(column << 4);
+  y = board.origin_y + (u8)(row << 4);
 
   definition = next;
   next = polyominos[pieces.take()];
@@ -76,6 +78,7 @@ void Polyomino::spawn() {
     }
   }
   row -= (max_delta + 1);
+  y -= (max_delta + 1) * 16;
 
   update_bitmask();
 }
@@ -104,8 +107,10 @@ void Polyomino::update_bitmask() {
 void Polyomino::update_shadow() {
   START_MESEN_WATCH(4);
   shadow_row = row;
+  shadow_y = y;
   while (!collide(shadow_row + 1, column)) {
     shadow_row++;
+    shadow_y += 16;
   }
   STOP_MESEN_WATCH(4);
 }
@@ -150,6 +155,8 @@ bool Polyomino::able_to_kick(auto kick_deltas) {
     if (!definition->collide(board, new_row, new_column)) {
       row = new_row;
       column = new_column;
+      x += 16 * kick.delta_column;
+      y += 16 * kick.delta_row;
       return true;
     }
   }
@@ -241,6 +248,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       }
     } else {
       row++;
+      y += 16;
       if (movement_direction != Direction::Up) {
         grounded_timer = 0;
       }
@@ -252,6 +260,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   case Direction::Left:
     if (!collide(row, column - 1)) {
       column--;
+      x -= 16;
       for (u8 i = 0; i < 4; i++) {
         bitmask[i] = bitmask[i] >> 1;
       }
@@ -262,6 +271,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   case Direction::Right:
     if (!collide(row, column + 1)) {
       column++;
+      x += 16;
       for (u8 i = 0; i < 4; i++) {
         bitmask[i] = bitmask[i] << 1;
       }
@@ -274,6 +284,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
+      y += 16;
       movement_direction = Direction::None;
     }
   case Direction::Up:
@@ -289,20 +300,15 @@ void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
   START_MESEN_WATCH(5);
-  definition->render(board.origin_x + (u8)(column << 4),
-                     (board.origin_y - y_scroll + (row << 4)));
+  definition->render(x, y - y_scroll);
   STOP_MESEN_WATCH(5);
   START_MESEN_WATCH(6);
-  definition->shadow(board.origin_x + (u8)(column << 4),
-                     (board.origin_y - y_scroll + (shadow_row << 4)),
-                     (u8)(shadow_row - row));
+  definition->shadow(x, shadow_y - y_scroll, (u8)(shadow_row - row));
   STOP_MESEN_WATCH(6);
 }
 
 void Polyomino::outside_render(int y_scroll) {
-  definition->outside_render(board.origin_x + (u8)(column << 4),
-                             (board.origin_y - y_scroll + (row << 4)),
-                             board.origin_y - y_scroll);
+  definition->outside_render(x, y - y_scroll, board.origin_y - y_scroll);
 }
 
 void Polyomino::render_next() { next->chibi_render(3, 5); }
