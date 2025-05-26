@@ -131,6 +131,7 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     STOP_MESEN_WATCH(31);
     return true;
   }
+#pragma clang loop unroll(full)
   for (u8 i = 0; i < 4; i++) {
     s8 mod_row = (s8)(new_row + i - 1);
     if (mod_row < 0) {
