@@ -57,7 +57,7 @@ void Polyomino::spawn() {
   grounded_timer = 0;
   move_timer = 0;
   movement_direction = Direction::None;
-  column = 5;
+  column = 4;
   row = 0;
   x = board.origin_x + (u8)(column << 4);
   y = board.origin_y + (u8)(row << 4);

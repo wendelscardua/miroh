@@ -2,7 +2,6 @@
 #include "animation.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
-#include "log.hpp"
 #include "metasprites.hpp"
 #include "unicorn.hpp"
 #include "utils.hpp"
@@ -30,7 +29,7 @@ const Fruit::Type fruit_types_per_stage[][4] = {
 void Fruits::spawn_on_board(u8 fruit_index) {
   auto fruit = fruits[fruit_index];
   fruit.row = -1;
-  fruit.column = -1;
+  fruit.column = 0;
 
   Fruit::Type type = fruit_types_per_stage[(u8)current_stage][RAND_UP_TO(
       sizeof(fruit_types_per_stage[(u8)current_stage]))];
@@ -46,7 +45,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
     return;
   }
 
-  fruit.column = (s8)banked_lambda(Board::BANK, [this, &fruit]() {
+  fruit.column = (u8)banked_lambda(Board::BANK, [this, &fruit]() {
     return board.random_free_column((u8)fruit.row);
   });
 

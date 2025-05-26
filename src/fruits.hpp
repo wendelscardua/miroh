@@ -40,7 +40,7 @@ struct Fruit {
   };
 
   s8 row;
-  s8 column;
+  u8 column;
   u8 x;
   u8 y;
 

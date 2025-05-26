@@ -180,7 +180,7 @@ void Board::generate_maze() {
     u8 random_column = random_free_column(random_row);
     u8 index = board_index(random_row, random_column);
 
-    occupy((s8)random_row, (s8)random_column);
+    occupy((s8)random_row, random_column);
 
     auto current_element = &disjoint_set[index];
     auto right_element =
@@ -229,15 +229,15 @@ void Board::reset() {
 
 void Board::render() {
   for (s8 i = 0; i < HEIGHT; i++) {
-    for (s8 j = 0; j < WIDTH; j++) {
+    for (u8 j = 0; j < WIDTH; j++) {
       set_maze_cell(i, j, CellType::Maze);
       flush_vram_update2();
     }
   }
 }
 
-bool Board::occupied(s8 row, s8 column) {
-  if (column < 0 || column > WIDTH - 1 || row > HEIGHT - 1)
+bool Board::occupied(s8 row, u8 column) {
+  if (column > WIDTH - 1 || row > HEIGHT - 1)
     return true;
 
   if (row < 0)
@@ -246,11 +246,11 @@ bool Board::occupied(s8 row, s8 column) {
   return occupied_bitset[(u8)row] & OCCUPIED_BITMASK[(u8)column];
 }
 
-void Board::occupy(s8 row, s8 column) {
+void Board::occupy(s8 row, u8 column) {
   occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
 }
 
-void Board::free(s8 row, s8 column) {
+void Board::free(s8 row, u8 column) {
   occupied_bitset[(u8)row] &= ~OCCUPIED_BITMASK[(u8)column];
 }
 
@@ -383,7 +383,7 @@ u8 walls_to_index(bool wall_going_up, bool wall_going_right,
 #define BOTTOM_0 VRAM_BUF[VRAM_INDEX + 8]
 #define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
 
-void Board::set_maze_cell(s8 row, s8 column, CellType cell_type) {
+void Board::set_maze_cell(s8 row, u8 column, CellType cell_type) {
   auto current_cell = &cell_at((u8)row, (u8)column);
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
@@ -662,7 +662,7 @@ void Board::animate() {
     }
     active_animations = true;
     if (animation.current_frame == 0) {
-      set_maze_cell((s8)animation.row, (s8)animation.column,
+      set_maze_cell((s8)animation.row, animation.column,
                     animation.current_cell->cell_type);
     }
     animation.update();

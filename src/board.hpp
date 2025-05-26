@@ -64,7 +64,7 @@ class Board {
   static constexpr u16 FULL_ROW_BITMASK = 0x0fff;
 
   s8 erasing_row;
-  s8 erasing_column;
+  u8 erasing_column;
   s8 erasing_row_source;
 
 public:
@@ -132,19 +132,19 @@ public:
   __attribute__((noinline)) void render();
 
   // tells if a cell is occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) bool occupied(s8 row, s8 column);
+  __attribute__((section(".prg_rom_fixed"))) bool occupied(s8 row, u8 column);
 
   // tells if a row if filled
   __attribute__((section(".prg_rom_fixed"))) bool row_filled(s8 row);
 
   // marks a position as occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void occupy(s8 row, s8 column);
+  __attribute__((section(".prg_rom_fixed"))) void occupy(s8 row, u8 column);
 
   // marks a position as not occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void free(s8 row, s8 column);
+  __attribute__((section(".prg_rom_fixed"))) void free(s8 row, u8 column);
 
   // change a cell at these coordinates and with a given style
-  __attribute__((noinline)) void set_maze_cell(s8 row, s8 column,
+  __attribute__((noinline)) void set_maze_cell(s8 row, u8 column,
                                                CellType type);
 
   // advances the process of clearing a filled line
