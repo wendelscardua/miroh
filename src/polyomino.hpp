@@ -30,7 +30,7 @@ class Polyomino {
   u8 shadow_y;
   s8 left_limit;
   s8 right_limit;
-  std::array<u16, 4> bitmask;
+  soa::Array<u16, 4> bitmask;
 
   __attribute__((noinline)) bool able_to_kick(auto kick_deltas);
 
