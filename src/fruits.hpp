@@ -40,14 +40,14 @@ struct Fruit {
   };
 
   s8 row;
-  s8 column;
+  u8 column;
   u8 x;
   u8 y;
 
-  u8 bobbing_counter;
   union {
     u8 raindrop_y;
     u8 despawn_counter;
+    u8 bobbing_counter;
   };
   u16 life;
   const Sprite *low_metasprite;
@@ -109,8 +109,7 @@ class Fruits {
   Board &board;
   u16 spawn_timer;
 
-  Animation splash_animation{&splash_cells,
-                             sizeof(splash_cells) / sizeof(AnimCell)};
+  Animation splash_animation{&splash_cells};
 
 public:
   static constexpr u16 SPAWN_DELAY = 5 * 60;
@@ -123,6 +122,6 @@ public:
   void spawn_on_board(u8 fruit_index);
 
   __attribute((noinline)) void render_fruit(Fruit fruit, int y_scroll);
-  __attribute((noinline)) void render_below_player(int y_scroll, int y_player);
-  __attribute((noinline)) void render_above_player(int y_scroll, int y_player);
+  __attribute((noinline)) void render_below_player(int y_scroll, u8 y_player);
+  __attribute((noinline)) void render_above_player(int y_scroll, u8 y_player);
 };

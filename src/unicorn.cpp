@@ -24,14 +24,10 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
       x(starting_x), y(starting_y), row(starting_y.whole >> 4),
       column(starting_x.whole >> 4), score(0), statue(false) {
-  left_animation = Animation{&moving_left_cells,
-                             sizeof(moving_left_cells) / sizeof(AnimCell)};
-  right_animation = Animation{&moving_right_cells,
-                              sizeof(moving_right_cells) / sizeof(AnimCell)};
-  left_tired_animation = Animation{
-      &trudging_left_cells, sizeof(trudging_left_cells) / sizeof(AnimCell)};
-  right_tired_animation = Animation{
-      &trudging_right_cells, sizeof(trudging_right_cells) / sizeof(AnimCell)};
+  left_animation = Animation{&moving_left_cells};
+  right_animation = Animation{&moving_right_cells};
+  left_tired_animation = Animation{&trudging_left_cells};
+  right_tired_animation = Animation{&trudging_right_cells};
   set_state(state);
 }
 
@@ -47,49 +43,38 @@ void Unicorn::set_state(State new_state) {
   state = new_state;
   switch (state) {
   case State::Idle:
-    idle_left_animation =
-        Animation{&idle_left_cells, sizeof(idle_left_cells) / sizeof(AnimCell)};
-    idle_right_animation = Animation{
-        &idle_right_cells, sizeof(idle_right_cells) / sizeof(AnimCell)};
-    idle_left_tired_animation = Animation{
-        &tired_left_cells, sizeof(tired_left_cells) / sizeof(AnimCell)};
-    idle_right_tired_animation = Animation{
-        &tired_right_cells, sizeof(tired_right_cells) / sizeof(AnimCell)};
+    idle_left_animation = Animation{&idle_left_cells};
+    idle_right_animation = Animation{&idle_right_cells};
+    idle_left_tired_animation = Animation{&tired_left_cells};
+    idle_right_tired_animation = Animation{&tired_right_cells};
     break;
   case State::Moving:
     break;
   case State::Yawning:
     idle_left_animation = idle_left_tired_animation =
-        Animation{&yawn_left_cells, sizeof(yawn_left_cells) / sizeof(AnimCell)};
-    idle_right_animation = idle_right_tired_animation = Animation{
-        &yawn_right_cells, sizeof(yawn_right_cells) / sizeof(AnimCell)};
+        Animation{&yawn_left_cells};
+    idle_right_animation = idle_right_tired_animation =
+        Animation{&yawn_right_cells};
     break;
   case State::Sleeping:
-    idle_left_animation = idle_left_tired_animation = Animation{
-        &sleep_left_cells, sizeof(sleep_left_cells) / sizeof(AnimCell)};
-    idle_right_animation = idle_right_tired_animation = Animation{
-        &sleep_right_cells, sizeof(sleep_right_cells) / sizeof(AnimCell)};
+    idle_left_animation = idle_left_tired_animation =
+        Animation{&sleep_left_cells};
+    idle_right_animation = idle_right_tired_animation =
+        Animation{&sleep_right_cells};
     break;
   case State::Trapped:
-    generic_animation =
-        Animation{&trapped_cells, sizeof(trapped_cells) / sizeof(AnimCell)};
+    generic_animation = Animation{&trapped_cells};
     break;
   case State::Roll:
-    generic_animation =
-        (facing == Direction::Right)
-            ? Animation{&roll_right_cells,
-                        sizeof(roll_right_cells) / sizeof(AnimCell)}
-            : Animation{&roll_left_cells,
-                        sizeof(roll_left_cells) / sizeof(AnimCell)};
+    generic_animation = (facing == Direction::Right)
+                            ? Animation{&roll_right_cells}
+                            : Animation{&roll_left_cells};
 
     break;
   case State::Impact:
-    generic_animation =
-        (facing == Direction::Right)
-            ? Animation{&impact_right_cells,
-                        sizeof(impact_right_cells) / sizeof(AnimCell)}
-            : Animation{&impact_left_cells,
-                        sizeof(impact_left_cells) / sizeof(AnimCell)};
+    generic_animation = (facing == Direction::Right)
+                            ? Animation{&impact_right_cells}
+                            : Animation{&impact_left_cells};
 
     break;
   }
@@ -369,17 +354,13 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
   }
 }
 
-void Unicorn::fix_uni_priority(bool left_wall, bool right_wall) {
-  if (state != State::Moving) {
-    return;
-  }
+void Unicorn::fix_uni_priority(u8 sprite_offset, bool left_wall,
+                               bool right_wall) {
   u8 tile_y = y.whole & 0x0f;
   if (tile_y < 0x07 || tile_y > 0x0c) {
     return;
   }
 
-  // XXX: assume player is first sprite, so we know the right indices to mess
-  // with here
   if (!left_wall) {
     OAM_BUF[sprite_offset + 2] ^= OAM_BEHIND;
   }
@@ -399,45 +380,47 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
     return;
   }
 
-  if (state == State::Trapped || state == State::Roll ||
-      state == State::Impact) {
-    generic_animation.update(board.origin_x + x.whole, reference_y + y.whole);
-    return;
-  }
-
-  sprite_offset = SPRID;
-
-  Animation &animation =
-      (state == State::Idle || state == State::Yawning ||
-       state == State::Sleeping)
-          ? (facing == Direction::Right
-                 ? (energy > 0 ? idle_right_animation
-                               : idle_right_tired_animation)
-                 : (energy > 0 ? idle_left_animation
-                               : idle_left_tired_animation))
-          : (facing == Direction::Right
-                 ? (energy > 0 ? right_animation : right_tired_animation)
-                 : (energy > 0 ? left_animation : left_tired_animation));
-  animation.update(board.origin_x + x.whole, reference_y + y.whole);
-
   switch (state) {
-  case State::Idle:
+  case State::Idle: {
+    Animation &animation =
+        (facing == Direction::Right
+             ? (energy > 0 ? idle_right_animation : idle_right_tired_animation)
+             : (energy > 0 ? idle_left_animation : idle_left_tired_animation));
+    animation.update(board.origin_x + x.whole, reference_y + y.whole);
     if (animation.finished) {
       set_state(State::Yawning);
     }
-    break;
-  case State::Moving:
-    fix_uni_priority(left_wall, right_wall);
-    break;
-  case State::Yawning:
+  } break;
+  case State::Moving: {
+    u8 sprite_offset = SPRID;
+    Animation &animation =
+        (facing == Direction::Right
+             ? (energy > 0 ? right_animation : right_tired_animation)
+             : (energy > 0 ? left_animation : left_tired_animation));
+    animation.update(board.origin_x + x.whole, reference_y + y.whole);
+    fix_uni_priority(sprite_offset, left_wall, right_wall);
+  } break;
+  case State::Yawning: {
+    Animation &animation =
+        (facing == Direction::Right
+             ? (energy > 0 ? idle_right_animation : idle_right_tired_animation)
+             : (energy > 0 ? idle_left_animation : idle_left_tired_animation));
+    animation.update(board.origin_x + x.whole, reference_y + y.whole);
     if (animation.finished) {
       set_state(State::Sleeping);
     }
-    break;
-  case State::Sleeping:
-  case State::Impact:
+  } break;
+  case State::Sleeping: {
+    Animation &animation =
+        (facing == Direction::Right
+             ? (energy > 0 ? idle_right_animation : idle_right_tired_animation)
+             : (energy > 0 ? idle_left_animation : idle_left_tired_animation));
+    animation.update(board.origin_x + x.whole, reference_y + y.whole);
+  } break;
   case State::Trapped:
   case State::Roll:
+  case State::Impact:
+    generic_animation.update(board.origin_x + x.whole, reference_y + y.whole);
     break;
   }
 }
@@ -454,24 +437,29 @@ void Unicorn::feed(u8 nutrition) {
 }
 
 void render_energy_hud(int y_scroll, u8 value) {
+  if (value == 0) {
+    return;
+  }
   static constexpr u8 ENERGY_HUD_X = 0x30;
   static constexpr u8 ENERGY_HUD_Y = 0xd7;
 
-  if ((u16)(ENERGY_HUD_Y - y_scroll) >> 8 != 0) {
-    return;
-  }
+  static const Sprite *sprites[] = {
+      NULL,
+      Metasprites::Energy1,
+      Metasprites::Energy2,
+      Metasprites::Energy3,
+      Metasprites::Energy4,
+      Metasprites::Energy5,
+      Metasprites::Energy6,
+      Metasprites::Energy7,
+      Metasprites::Energy8,
+      Metasprites::Energy9,
+      Metasprites::Energy10,
+      Metasprites::Energy11,
+      Metasprites::Energy12,
+  };
 
-  u8 x = ENERGY_HUD_X;
-  u8 y = (u8)(ENERGY_HUD_Y - y_scroll);
-
-  for (u8 i = 0; i < 4; i++) {
-    if (value == 0)
-      break;
-    u8 delta = value > 3 ? 3 : value;
-    oam_spr(x, y, 0x30 + delta, 0);
-    value -= delta;
-    x += 8;
-  }
+  banked_oam_meta_spr(ENERGY_HUD_X, ENERGY_HUD_Y - y_scroll, sprites[value]);
 }
 
 void Unicorn::refresh_energy_hud(int y_scroll) {

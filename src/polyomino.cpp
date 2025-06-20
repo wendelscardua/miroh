@@ -11,7 +11,8 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define POLYOMINOS_TEXT ".prg_rom_0.text.polyominos"
+#pragma clang section text = ".prg_rom_0.text.polyominos"
+#pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
 
 static auto littleminos = Bag<u8, 5>([](auto *bag) {
   for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
@@ -51,13 +52,15 @@ Polyomino::Polyomino(Board &board)
   render_next();
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
+void Polyomino::spawn() {
   state = State::Active;
   grounded_timer = 0;
   move_timer = 0;
   movement_direction = Direction::None;
-  column = 5;
+  column = 4;
   row = 0;
+  x = board.origin_x + (u8)(column << 4);
+  y = board.origin_y + (u8)(row << 4);
 
   definition = next;
   next = polyominos[pieces.take()];
@@ -75,12 +78,12 @@ __attribute__((noinline, section(POLYOMINOS_TEXT))) void Polyomino::spawn() {
     }
   }
   row -= (max_delta + 1);
+  y -= (max_delta + 1) * 16;
 
   update_bitmask();
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::update_bitmask() {
+void Polyomino::update_bitmask() {
   for (u8 i = 0; i < 4; i++) {
     bitmask[i] = 0;
   }
@@ -101,11 +104,13 @@ Polyomino::update_bitmask() {
   update_shadow();
 }
 
-__attribute__((noinline)) void Polyomino::update_shadow() {
+void Polyomino::update_shadow() {
   START_MESEN_WATCH(4);
   shadow_row = row;
+  shadow_y = y;
   while (!collide(shadow_row + 1, column)) {
     shadow_row++;
+    shadow_y += 16;
   }
   STOP_MESEN_WATCH(4);
 }
@@ -121,9 +126,12 @@ inline u16 signed_shift(u16 value, s8 shift) {
 }
 
 bool Polyomino::collide(s8 new_row, s8 new_column) {
+  START_MESEN_WATCH(31);
   if (left_limit + new_column < 0 || right_limit + new_column >= WIDTH) {
+    STOP_MESEN_WATCH(31);
     return true;
   }
+#pragma clang loop unroll(full)
   for (u8 i = 0; i < 4; i++) {
     s8 mod_row = (s8)(new_row + i - 1);
     if (mod_row < 0) {
@@ -132,15 +140,15 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     if (bitmask[i] &&
         (mod_row >= HEIGHT || (signed_shift(bitmask[i], (new_column - column)) &
                                board.occupied_bitset[(u8)(new_row + i - 1)]))) {
+      STOP_MESEN_WATCH(31);
       return true;
     }
   }
-
+  STOP_MESEN_WATCH(31);
   return false;
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) bool
-Polyomino::able_to_kick(auto kick_deltas) {
+bool Polyomino::able_to_kick(auto kick_deltas) {
   for (auto kick : kick_deltas) {
     s8 new_row = row + kick.delta_row;
     s8 new_column = column + kick.delta_column;
@@ -148,14 +156,15 @@ Polyomino::able_to_kick(auto kick_deltas) {
     if (!definition->collide(board, new_row, new_column)) {
       row = new_row;
       column = new_column;
+      x += 16 * kick.delta_column;
+      y += 16 * kick.delta_row;
       return true;
     }
   }
   return false;
 }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) void
-Polyomino::handle_input(u8 pressed, u8 held) {
+void Polyomino::handle_input(u8 pressed, u8 held) {
   if (state != State::Active) {
     return;
   }
@@ -240,6 +249,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       }
     } else {
       row++;
+      y += 16;
       if (movement_direction != Direction::Up) {
         grounded_timer = 0;
       }
@@ -251,6 +261,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   case Direction::Left:
     if (!collide(row, column - 1)) {
       column--;
+      x -= 16;
+#pragma clang loop unroll(full)
       for (u8 i = 0; i < 4; i++) {
         bitmask[i] = bitmask[i] >> 1;
       }
@@ -261,6 +273,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   case Direction::Right:
     if (!collide(row, column + 1)) {
       column++;
+      x += 16;
+#pragma clang loop unroll(full)
       for (u8 i = 0; i < 4; i++) {
         bitmask[i] = bitmask[i] << 1;
       }
@@ -273,6 +287,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
+      y += 16;
       movement_direction = Direction::None;
     }
   case Direction::Up:
@@ -287,23 +302,21 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
-  definition->render(board.origin_x + (u8)(column << 4),
-                     (board.origin_y - y_scroll + (row << 4)));
-  definition->shadow(board.origin_x + (u8)(column << 4),
-                     (board.origin_y - y_scroll + (shadow_row << 4)),
-                     (u8)(shadow_row - row));
+  START_MESEN_WATCH(5);
+  definition->render(x, y - y_scroll);
+  STOP_MESEN_WATCH(5);
+  START_MESEN_WATCH(6);
+  definition->shadow(x, shadow_y - y_scroll, (u8)(shadow_row - row));
+  STOP_MESEN_WATCH(6);
 }
 
 void Polyomino::outside_render(int y_scroll) {
-  definition->outside_render(board.origin_x + (u8)(column << 4),
-                             (board.origin_y - y_scroll + (row << 4)),
-                             board.origin_y - y_scroll);
+  definition->outside_render(x, y - y_scroll, board.origin_y - y_scroll);
 }
 
 void Polyomino::render_next() { next->chibi_render(3, 5); }
 
-__attribute__((noinline, section(POLYOMINOS_TEXT))) s8
-Polyomino::freeze_blocks() {
+s8 Polyomino::freeze_blocks() {
   state = State::Inactive;
   grounded_timer = 0;
   s8 filled_lines = 0;
@@ -311,8 +324,9 @@ Polyomino::freeze_blocks() {
     return -1;
   }
 
-  // XXX: checking the range of possible rows that could have been filled by a
-  // polyomino
+// XXX: checking the range of possible rows that could have been filled by a
+// polyomino
+#pragma clang loop unroll(full)
   for (s8 delta_row = -1; delta_row <= 2; delta_row++) {
     s8 block_row = row + delta_row;
     if (board.row_filled(block_row)) {

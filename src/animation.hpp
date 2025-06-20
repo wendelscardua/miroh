@@ -16,10 +16,9 @@ public:
   static bool paused;
   u8 current_frame;
   u8 current_cell_index;
-  u8 length;
   bool finished;
 
-  Animation(const AnimCell (*cells)[], u8 length);
+  Animation(const AnimCell (*cells)[]);
 
   void reset();
 

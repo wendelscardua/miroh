@@ -191,8 +191,7 @@ void Drops::update() {
     if (drop.current_y == drop.target_y) {
       banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
       banked_lambda(Board::BANK, [&drop]() {
-        board.set_maze_cell((s8)drop.row, (s8)drop.column,
-                            CellType::Marshmallow);
+        board.set_maze_cell((s8)drop.row, drop.column, CellType::Marshmallow);
       });
       drop.row = 0xff;
       active_drops--;
@@ -234,7 +233,7 @@ bool Drops::random_hard_drop() {
       return false;
     }
     u8 column = board.random_free_column(row);
-    board.set_maze_cell((s8)row, (s8)column, CellType::Marshmallow);
+    board.set_maze_cell((s8)row, column, CellType::Marshmallow);
     if ((get_frame_count() & 0b1111) == 0) {
       banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
     }
@@ -310,6 +309,7 @@ void Gameplay::render() {
   BoardAnimation::paused = Animation::paused;
   scroll(0, (unsigned int)y_scroll);
   bool left_wall = false, right_wall = false;
+  START_MESEN_WATCH(10);
   if (unicorn.state == Unicorn::State::Moving) {
     u8 row = unicorn.row + 1;
     u8 col = unicorn.column;
@@ -319,33 +319,46 @@ void Gameplay::render() {
       right_wall = cell.right_wall;
     }
   }
+  STOP_MESEN_WATCH(10);
+  START_MESEN_WATCH(11);
   fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
+  STOP_MESEN_WATCH(11);
+  START_MESEN_WATCH(12);
   if (gameplay_state != GameplayState::Swapping ||
       swap_frames[swap_index].display_unicorn) {
-    banked_lambda(Unicorn::BANK, [this, left_wall, right_wall]() {
+    banked_lambda(Unicorn::BANK, [this, &left_wall, &right_wall]() {
       unicorn.render(y_scroll, left_wall, right_wall);
     });
   }
+  STOP_MESEN_WATCH(12);
+  START_MESEN_WATCH(13);
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
+  STOP_MESEN_WATCH(13);
 
   if (gameplay_state == GameplayState::MarshmallowOverflow &&
       overflow_state == OverflowState::FlashOutsideBlocks &&
       marshmallow_overflow_counter & 0b100) {
+    START_MESEN_WATCH(14);
     polyomino.outside_render(y_scroll);
+    STOP_MESEN_WATCH(14);
   } else if ((gameplay_state == GameplayState::Swapping &&
               swap_frames[swap_index].display_polyomino) ||
              (gameplay_state != GameplayState::Swapping &&
               gameplay_state != GameplayState::MarshmallowOverflow)) {
-    START_MESEN_WATCH(3);
+    START_MESEN_WATCH(15);
     polyomino.render(y_scroll);
-    STOP_MESEN_WATCH(3);
+    STOP_MESEN_WATCH(15);
   }
+  START_MESEN_WATCH(16);
   if (Drops::active_drops) {
     drops.render(y_scroll);
   }
+  STOP_MESEN_WATCH(16);
 
+  START_MESEN_WATCH(17);
   banked_lambda(Unicorn::BANK,
                 [this]() { unicorn.refresh_energy_hud(y_scroll); });
+  STOP_MESEN_WATCH(17);
 
   if (SPRID) {
     // if we rendered 64 sprites already, SPRID will have wrapped around back to

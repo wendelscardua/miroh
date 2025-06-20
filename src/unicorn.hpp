@@ -20,10 +20,9 @@ private:
   u8 energy;
   u8 energy_timer;
   u8 original_energy;
-  u8 sprite_offset;
 
   // fixes priority flags for bottom sprites
-  void fix_uni_priority(bool left_wall, bool right_wall);
+  void fix_uni_priority(u8 sprite_offset, bool left_wall, bool right_wall);
 
 public:
   static constexpr u8 BANK = 5;
@@ -53,16 +52,16 @@ public:
 
   bool statue;
 
-  Animation idle_left_animation{NULL, 0};
-  Animation idle_right_animation{NULL, 0};
-  Animation idle_left_tired_animation{NULL, 0};
-  Animation idle_right_tired_animation{NULL, 0};
-  Animation left_animation{NULL, 0};
-  Animation right_animation{NULL, 0};
-  Animation left_tired_animation{NULL, 0};
-  Animation right_tired_animation{NULL, 0};
+  Animation idle_left_animation{NULL};
+  Animation idle_right_animation{NULL};
+  Animation idle_left_tired_animation{NULL};
+  Animation idle_right_tired_animation{NULL};
+  Animation left_animation{NULL};
+  Animation right_animation{NULL};
+  Animation left_tired_animation{NULL};
+  Animation right_tired_animation{NULL};
 
-  Animation generic_animation{NULL, 0};
+  Animation generic_animation{NULL};
 
   __attribute__((section(".prg_rom_fixed.text.unicorn")))
   Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y);
