@@ -103,6 +103,7 @@ class Polyomino < Thor
         blocks.sort_by! { |delta_row, delta_column| [delta_row, delta_column] }
         blocks.each do |delta_row, delta_column|
           delta_column += 1
+          delta_row += 1
           delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
           f.puts "  .byte #{delta}"
         end

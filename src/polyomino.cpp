@@ -60,7 +60,7 @@ void Polyomino::spawn() {
   column = 4;
   row = 0;
   x = board.origin_x + (u8)(column << 4);
-  y = board.origin_y + (u8)(row << 4);
+  y = board.origin_y + (u8)(row * 16);
 
   definition = next;
   next = polyominos[pieces.take()];
@@ -98,7 +98,7 @@ void Polyomino::update_bitmask() {
     if (delta.delta_column < left_limit) {
       left_limit = delta.delta_column;
     }
-    bitmask[(u8)(delta.delta_row + 1)] |=
+    bitmask[(u8)(delta.delta_row)] |=
         Board::OCCUPIED_BITMASK[(u8)(column + delta.delta_column)];
   }
   update_shadow();
@@ -133,13 +133,13 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
   }
 #pragma clang loop unroll(full)
   for (u8 i = 0; i < 4; i++) {
-    s8 mod_row = (s8)(new_row + i - 1);
+    s8 mod_row = (s8)(new_row + i);
     if (mod_row < 0) {
       continue;
     }
     if (bitmask[i] &&
         (mod_row >= HEIGHT || (signed_shift(bitmask[i], (new_column - column)) &
-                               board.occupied_bitset[(u8)(new_row + i - 1)]))) {
+                               board.occupied_bitset[(u8)(new_row + i)]))) {
       STOP_MESEN_WATCH(31);
       return true;
     }
@@ -327,7 +327,7 @@ s8 Polyomino::freeze_blocks() {
 // XXX: checking the range of possible rows that could have been filled by a
 // polyomino
 #pragma clang loop unroll(full)
-  for (s8 delta_row = -1; delta_row <= 2; delta_row++) {
+  for (s8 delta_row = 0; delta_row <= 3; delta_row++) {
     s8 block_row = row + delta_row;
     if (board.row_filled(block_row)) {
       filled_lines++;
