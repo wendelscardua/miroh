@@ -15,27 +15,24 @@
 #pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
 
 static auto littleminos = Bag<u8, 5>([](auto *bag) {
-  for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
-    if (polyominos[i]->size <= 3) {
-      bag->insert(i);
-    }
+  // NOTE: source file defines indices [0, 4) as littleminos
+  for (u8 i = 0; i < 4; i++) {
+    bag->insert(i);
   }
 });
 
 static auto pentominos = Bag<u8, 18>([](auto *bag) {
-  for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
-    if (polyominos[i]->size == 5) {
-      bag->insert(i);
-    }
+  // NOTE: source file defines indices [11, 28) as pentominos
+  for (u8 i = 11; i < 28; i++) {
+    bag->insert(i);
   }
 });
 
 auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
   // add all tetrominos to the bag
-  for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
-    if (polyominos[i]->size == 4) {
-      bag->insert(i);
-    }
+  // NOTE: source file defines indices [4, 11) as tetrominos
+  for (u8 i = 4; i < 11; i++) {
+    bag->insert(i);
   }
 
   // also add two random "littleminos" (1,2, or 3 blocks)
