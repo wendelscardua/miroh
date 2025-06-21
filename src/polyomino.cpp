@@ -57,7 +57,7 @@ void Polyomino::spawn() {
   column = 4;
   row = 0;
   x = board.origin_x + (u8)(column << 4);
-  y = board.origin_y + (u8)(row * 16);
+  y = board.origin_y + (u8)(row << 4);
 
   definition = next;
   next = polyominos[pieces.take()];
