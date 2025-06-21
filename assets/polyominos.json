@@ -1,6 +1,16 @@
 {
   "pieces": {
     "n0":   { "blocks": [[ 0,  0]],                                         "rotateTo": "n0",   "kicks": "o"},
+    "i2":   { "blocks": [[ 0,  0], [ 0,  1]],                               "rotateTo": "i2R",  "kicks": "i" },
+    "i2R":  { "blocks": [[ 0,  1], [ 1,  1]],                               "rotateTo": "i22",  "kicks": "i" },
+    "i22":  { "blocks": [[ 1,  0], [ 1,  1]],                               "rotateTo": "i2L",  "kicks": "i" },
+    "i2L":  { "blocks": [[ 0,  0], [ 1,  0]],                               "rotateTo": "i2",   "kicks": "i" },
+    "i3":   { "blocks": [[ 0, -1], [ 0,  0], [ 0,  1]],                     "rotateTo": "i3R",  "kicks": "j" },
+    "i3R":  { "blocks": [[-1,  0], [ 0,  0], [ 1,  0]],                     "rotateTo": "i3",   "kicks": "j" },
+    "l3":   { "blocks": [[ 0,  0], [ 1,  0], [ 1,  1]],                     "rotateTo": "l3R",  "kicks": "j" },
+    "l3R":  { "blocks": [[ 0,  0], [ 0,  1], [ 1,  0]],                     "rotateTo": "l32",  "kicks": "j" },
+    "l32":  { "blocks": [[ 0,  0], [ 0,  1], [ 1,  1]],                     "rotateTo": "l3L",  "kicks": "j" },
+    "l3L":  { "blocks": [[ 0,  1], [ 1,  0], [ 1,  1]],                     "rotateTo": "l3",   "kicks": "j" },
     "i4":   { "blocks": [[ 0, -1], [ 0,  0], [ 0,  1], [ 0,  2]],           "rotateTo": "i4R",  "kicks": "i" },
     "i4R":  { "blocks": [[-1,  1], [ 0,  1], [ 1,  1], [ 2,  1]],           "rotateTo": "i42",  "kicks": "i" },
     "i42":  { "blocks": [[ 1, -1], [ 1,  0], [ 1,  1], [ 1,  2]],           "rotateTo": "i4L",  "kicks": "i" },
@@ -86,17 +96,7 @@
     "fn5":  { "blocks": [[ 0,  2], [ 0,  1], [ 1,  1], [ 1,  0], [ 1, -1]], "rotateTo": "fn5R", "kicks": "i" },
     "fn5R": { "blocks": [[ 2,  1], [ 1,  0], [ 1,  1], [ 0,  0], [-1,  0]], "rotateTo": "fn52", "kicks": "i" },
     "fn52": { "blocks": [[ 0,  2], [ 0,  1], [ 0,  0], [ 1,  0], [ 1, -1]], "rotateTo": "fn5L", "kicks": "i" },
-    "fn5L": { "blocks": [[ 2,  1], [ 1,  1], [ 0,  0], [ 0,  1], [-1,  0]], "rotateTo": "fn5",  "kicks": "i" },
-    "i3":   { "blocks": [[ 0, -1], [ 0,  0], [ 0,  1]],                     "rotateTo": "i3R",  "kicks": "j" },
-    "i3R":  { "blocks": [[-1,  0], [ 0,  0], [ 1,  0]],                     "rotateTo": "i3",   "kicks": "j" },
-    "l3":   { "blocks": [[ 0,  0], [ 1,  0], [ 1,  1]],                     "rotateTo": "l3R",  "kicks": "j" },
-    "l3R":  { "blocks": [[ 0,  0], [ 0,  1], [ 1,  0]],                     "rotateTo": "l32",  "kicks": "j" },
-    "l32":  { "blocks": [[ 0,  0], [ 0,  1], [ 1,  1]],                     "rotateTo": "l3L",  "kicks": "j" },
-    "l3L":  { "blocks": [[ 0,  1], [ 1,  0], [ 1,  1]],                     "rotateTo": "l3",   "kicks": "j" },
-    "i2":   { "blocks": [[ 0,  0], [ 0,  1]],                               "rotateTo": "i2R",  "kicks": "i" },
-    "i2R":  { "blocks": [[ 0,  1], [ 1,  1]],                               "rotateTo": "i22",  "kicks": "i" },
-    "i22":  { "blocks": [[ 1,  0], [ 1,  1]],                               "rotateTo": "i2L",  "kicks": "i" },
-    "i2L":  { "blocks": [[ 0,  0], [ 1,  0]],                               "rotateTo": "i2",   "kicks": "i" }
+    "fn5L": { "blocks": [[ 2,  1], [ 1,  1], [ 0,  0], [ 0,  1], [-1,  0]], "rotateTo": "fn5",  "kicks": "i" }
   },
   "kicks": {
     "o":  [ [0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0] ],
