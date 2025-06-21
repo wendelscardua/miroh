@@ -28,7 +28,7 @@ static auto pentominos = Bag<u8, 18>([](auto *bag) {
   }
 });
 
-auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
+auto Polyomino::pieces = Bag<u8, 10>([](auto *bag) {
   // add all tetrominos to the bag
   // NOTE: source file defines indices [4, 11) as tetrominos
   for (u8 i = 4; i < 11; i++) {
