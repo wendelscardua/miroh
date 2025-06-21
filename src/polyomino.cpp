@@ -108,7 +108,7 @@ void Polyomino::update_shadow() {
   START_MESEN_WATCH(4);
   shadow_row = row;
   shadow_y = y;
-  while (!collide(shadow_row + 1, column)) {
+  while (!collide(shadow_row + 1, (s8)column)) {
     shadow_row++;
     shadow_y += 16;
   }
@@ -137,9 +137,9 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     if (mod_row < 0) {
       continue;
     }
-    if (bitmask[i] &&
-        (mod_row >= HEIGHT || (signed_shift(bitmask[i], (new_column - column)) &
-                               board.occupied_bitset[(u8)(new_row + i)]))) {
+    if (bitmask[i] && (mod_row >= HEIGHT ||
+                       (signed_shift(bitmask[i], (new_column - (s8)column)) &
+                        board.occupied_bitset[(u8)(new_row + i)]))) {
       STOP_MESEN_WATCH(31);
       return true;
     }
@@ -151,7 +151,7 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
 bool Polyomino::able_to_kick(auto kick_deltas) {
   for (auto kick : kick_deltas) {
     s8 new_row = row + kick.delta_row;
-    s8 new_column = column + kick.delta_column;
+    u8 new_column = (u8)(column + kick.delta_column);
 
     if (!definition->collide(board, new_row, new_column)) {
       row = new_row;
@@ -238,7 +238,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
-    if (collide(row + 1, column)) {
+    if (collide(row + 1, (s8)column)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
         drop_timer = 0;
@@ -283,7 +283,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     movement_direction = Direction::None;
     break;
   case Direction::Down:
-    if (collide(row + 1, column)) {
+    if (collide(row + 1, (s8)column)) {
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
