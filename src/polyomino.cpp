@@ -37,17 +37,20 @@ Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), state(State::Inactive) {
 
   // initialize littleminos bag
+  littleminos.reset();
   for (u8 i = 0; i < 4; i++) {
     littleminos.insert(i);
   }
 
   // initialize pentominos bag
+  pentominos.reset();
   for (u8 i = 11; i < 28; i++) {
     pentominos.insert(i);
   }
 
   // add all tetrominos to the pieces bag
   // NOTE: source file defines indices [4, 11) as tetrominos
+  pieces.reset();
   for (u8 i = 4; i < 11; i++) {
     pieces.insert(i);
   }

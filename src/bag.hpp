@@ -10,11 +10,15 @@ template <typename T, size_t N> class Bag {
   std::array<T, N> items;
   u8 index;
   u8 end;
-  u8 size;
   T (*filter)(T value);
 
 public:
-  Bag(T (*filter)(T)) : index(0), end(0), size(0), filter(filter) {};
+  Bag(T (*filter)(T)) : index(0), end(0), filter(filter) {};
+
+  void reset() {
+    index = 0;
+    end = 0;
+  }
 
   void insert(T value) {
     u8 random_point = RAND_UP_TO(end + 1);
