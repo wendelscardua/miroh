@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include "assets.hpp"
+#include <neslib.h>
 
 __attribute__((section(".prg_rom_fixed.text"))) void u8_to_text(u8 score_text[],
                                                                 u8 value) {
@@ -96,4 +97,12 @@ int_to_text(u8 score_text[], u16 value) {
     }
     score_text[i] = DARK_ZERO_TILE;
   }
+}
+
+__attribute__((section(".prg_rom_fixed.text"))) u8 rand_up_to(u8 n) {
+  u8 result = rand8() & 31;
+  while (result >= n) {
+    result -= n;
+  }
+  return result;
 }
