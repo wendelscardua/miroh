@@ -54,5 +54,5 @@ public:
     return items[index];
   }
 
-  bool empty() { return index == end; }
+  bool empty() { return size == 0; }
 };

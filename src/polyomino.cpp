@@ -14,14 +14,14 @@
 #pragma clang section text = ".prg_rom_0.text.polyominos"
 #pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
 
-static auto littleminos = Bag<u8, 5>([](auto *bag) {
+static auto littleminos = Bag<u8, 4>([](auto *bag) {
   // NOTE: source file defines indices [0, 4) as littleminos
   for (u8 i = 0; i < 4; i++) {
     bag->insert(i);
   }
 });
 
-static auto pentominos = Bag<u8, 18>([](auto *bag) {
+static auto pentominos = Bag<u8, 17>([](auto *bag) {
   // NOTE: source file defines indices [11, 28) as pentominos
   for (u8 i = 11; i < 28; i++) {
     bag->insert(i);
