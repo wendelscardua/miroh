@@ -14,38 +14,53 @@
 #pragma clang section text = ".prg_rom_0.text.polyominos"
 #pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
 
-static auto littleminos = Bag<u8, 4>([](auto *bag) {
-  // NOTE: source file defines indices [0, 4) as littleminos
-  for (u8 i = 0; i < 4; i++) {
-    bag->insert(i);
-  }
-});
+// NOTE: source file defines indices [0, 4) as littleminos
+static auto littleminos = Bag<u8, 4>(NULL);
 
-static auto pentominos = Bag<u8, 17>([](auto *bag) {
-  // NOTE: source file defines indices [11, 28) as pentominos
-  for (u8 i = 11; i < 28; i++) {
-    bag->insert(i);
-  }
-});
+// NOTE: source file defines indices [11, 28) as pentominos
+static auto pentominos = Bag<u8, 17>(NULL);
 
-auto Polyomino::pieces = Bag<u8, 10>([](auto *bag) {
-  // add all tetrominos to the bag
-  // NOTE: source file defines indices [4, 11) as tetrominos
-  for (u8 i = 4; i < 11; i++) {
-    bag->insert(i);
+// NOTE: source file defines indices [4, 11) as tetrominos
+auto Polyomino::pieces = Bag<u8, 10>([](auto value) {
+  if (value < 4) {
+    return littleminos.take();
   }
 
-  // also add two random "littleminos" (1,2, or 3 blocks)
-  bag->insert(littleminos.take());
-  bag->insert(littleminos.take());
+  if (value >= 11) {
+    return pentominos.take();
+  }
 
-  // ... and a random pentomino
-  bag->insert(pentominos.take());
+  return value;
 });
 
 Polyomino::Polyomino(Board &board)
-    : board(board), definition(NULL), next(polyominos[pieces.take()]),
-      state(State::Inactive) {
+    : board(board), definition(NULL), state(State::Inactive) {
+
+  // initialize littleminos bag
+  for (u8 i = 0; i < 4; i++) {
+    littleminos.insert(i);
+  }
+
+  // initialize pentominos bag
+  for (u8 i = 11; i < 28; i++) {
+    pentominos.insert(i);
+  }
+
+  // add all tetrominos to the pieces bag
+  // NOTE: source file defines indices [4, 11) as tetrominos
+  for (u8 i = 4; i < 11; i++) {
+    pieces.insert(i);
+  }
+
+  // also add two random "littleminos" (1,2, or 3 blocks)
+  pieces.insert(littleminos.take());
+  pieces.insert(littleminos.take());
+
+  // ... and a random pentomino
+  pieces.insert(pentominos.take());
+
+  next = polyominos[pieces.take()];
+
   render_next();
 }
 
