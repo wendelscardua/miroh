@@ -10,8 +10,8 @@
 #define CHIBI_TILE 0x1a
 
 struct Coordinates {
-  u8 delta_column : 4;
-  s8 delta_row : 4;
+  s8 delta_row : 8;
+  s8 delta_column : 8;
 
   constexpr u8 delta_x() { return delta_column * 0x10; }
   constexpr s8 delta_y() { return delta_row * 0x10; }

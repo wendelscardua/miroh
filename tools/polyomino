@@ -105,14 +105,14 @@ class Polyomino < Thor
           delta_column += 1
           delta_row += 1
           delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
-          f.puts "  .byte #{delta}"
+          f.puts "  .byte #{delta_row < 0 ? 0xff : delta_row}, #{delta_column < 0 ? 0xff : delta_column}"
         end
 
         # alignment is only important for canon pieces
         next unless canon.include?(key.to_s)
 
         (5 - blocks.size).times do
-          f.puts '  .byte 0'
+          f.puts '  .byte 0, 0'
         end
 
         # tiles for the nametable preview of the next piece
@@ -132,7 +132,7 @@ class Polyomino < Thor
           delta_row = -delta_y
           delta_column = delta_x
           delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
-          f.puts ".byte #{delta}"
+          f.puts ".byte #{delta_row < 0 ? 0xff : delta_row}, #{delta_column < 0 ? 0xff : delta_column}"
         end
       end
     end
