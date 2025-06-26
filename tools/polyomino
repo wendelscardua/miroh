@@ -104,7 +104,6 @@ class Polyomino < Thor
         blocks.each do |delta_row, delta_column|
           delta_column += 1
           delta_row += 1
-          delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
           f.puts "  .byte #{delta_row < 0 ? 0xff : delta_row}, #{delta_column < 0 ? 0xff : delta_column}"
         end
 
@@ -131,7 +130,6 @@ class Polyomino < Thor
         values.each do |delta_x, delta_y|
           delta_row = -delta_y
           delta_column = delta_x
-          delta = (delta_row < 0 ? 0xf : delta_row) << 4 | (delta_column < 0 ? 0xf : delta_column)
           f.puts ".byte #{delta_row < 0 ? 0xff : delta_row}, #{delta_column < 0 ? 0xff : delta_column}"
         end
       end
