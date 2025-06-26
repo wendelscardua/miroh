@@ -13,8 +13,8 @@ struct Coordinates {
   s8 delta_row : 8;
   s8 delta_column : 8;
 
-  constexpr u8 delta_x() { return delta_column * 0x10; }
-  constexpr s8 delta_y() { return delta_row * 0x10; }
+  constexpr u8 delta_x() { return (u8)(delta_column) * 0x10; }
+  constexpr u8 delta_y() { return (u8)(delta_row) * 0x10; }
 };
 
 struct Kick {
