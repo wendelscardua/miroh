@@ -163,7 +163,7 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
   return false;
 }
 
-bool Polyomino::able_to_kick(auto kick_deltas) {
+bool Polyomino::able_to_kick(const auto &kick_deltas) {
   for (auto kick : kick_deltas) {
     s8 new_row = row + kick.delta_row;
     u8 new_column = (u8)(column + kick.delta_column);

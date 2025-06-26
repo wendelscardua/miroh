@@ -32,7 +32,7 @@ class Polyomino {
   s8 right_limit;
   soa::Array<u16, 4> bitmask;
 
-  __attribute__((noinline)) bool able_to_kick(auto kick_deltas);
+  __attribute__((noinline)) bool able_to_kick(const auto &kick_deltas);
 
 public:
   enum class State {
