@@ -103,15 +103,15 @@ void Polyomino::update_bitmask() {
     bitmask[i] = 0;
   }
 
-  left_limit = 2;
-  right_limit = -2;
+  left_limit = 4;
+  right_limit = 0;
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     if (delta.delta_column > right_limit) {
-      right_limit = delta.delta_column;
+      right_limit = (u8)delta.delta_column;
     }
     if (delta.delta_column < left_limit) {
-      left_limit = delta.delta_column;
+      left_limit = (u8)delta.delta_column;
     }
     bitmask[(u8)(delta.delta_row)] |=
         Board::OCCUPIED_BITMASK[(u8)(column + delta.delta_column)];
