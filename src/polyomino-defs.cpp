@@ -11,7 +11,8 @@
 bool PolyominoDef::collide(Board &board, s8 row, u8 column) const {
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];
-    if (board.occupied(row + delta.delta_row, column + delta.delta_column)) {
+    if (board.occupied(row + delta.delta_row,
+                       column + (u8)delta.delta_column)) {
       return true;
     }
   }
@@ -113,7 +114,7 @@ bool PolyominoDef::board_render(Board &board, s8 row, u8 column) const {
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];
     s8 block_row = row + delta.delta_row;
-    u8 block_column = column + delta.delta_column;
+    u8 block_column = column + (u8)delta.delta_column;
     if (block_row >= 0) {
       banked_lambda(Board::BANK, [&board, block_row, block_column]() {
         board.add_animation(BoardAnimation(&Board::block_jiggle,
