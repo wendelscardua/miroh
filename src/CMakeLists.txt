@@ -50,7 +50,7 @@ add_custom_command(
   DEPENDS ${MAZER} ${CMAKE_SOURCE_DIR}/assets/mazes
 )
 
-add_metasprite_asset(SOURCE "metasprites.nss" TARGET "metasprites.cpp" HEADER "metasprites.hpp" BANK 1 NAMESPACE "Metasprites")
+add_metasprite_asset(SOURCE "metasprites.nss" TARGET "metasprites.cpp" HEADER "metasprites.hpp" BANK 6 NAMESPACE "Metasprites")
 
 add_library(SourceObj
   OBJECT
