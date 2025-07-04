@@ -5,6 +5,7 @@
 #include "common.hpp"
 #include "log.hpp"
 #include "metasprites.hpp"
+#include "polyominos-metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
 
@@ -21,6 +22,12 @@ bool PolyominoDef::collide(Board &board, s8 row, u8 column) const {
 
 void PolyominoDef::render(u8 x, int y) const {
   static u8 polyomino_start_index = 0;
+  u8 index = this->index;
+  auto ptr = banked_lambda(POLYOMINOMETASPRITE_BANK, [index] {
+    return PolyominoMetasprite::all_pieces[index];
+  });
+  banked_oam_meta_spr(x, y, ptr);
+  return;
 
 #pragma clang loop unroll(full)
   for (u8 j = 0; j < 5; j++) {
