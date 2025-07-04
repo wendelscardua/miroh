@@ -1,6 +1,7 @@
                                 ; config.s
         .global __chr_rom_size
         .global __chr_ram_size
+        .global __prg_rom_size
         .global __mirroring
 
                                 ; Kilobytes
