@@ -40,7 +40,13 @@ endif()
 
 add_custom_command(
   OUTPUT polyominos.s
-  COMMAND ${POLYOMINO} generate ${CMAKE_CURRENT_BINARY_DIR}/polyominos.s ${CMAKE_SOURCE_DIR}/assets/polyominos.json --max-size 4 --bank .prg_rom_0
+  COMMAND ${POLYOMINO} data ${CMAKE_CURRENT_BINARY_DIR}/polyominos.s ${CMAKE_SOURCE_DIR}/assets/polyominos.json --bank 0
+  DEPENDS ${POLYOMINO} ${CMAKE_SOURCE_DIR}/assets/polyominos.json
+)
+
+add_custom_command(
+  OUTPUT polyominos-metasprites.cpp polyominos-metasprites.hpp
+  COMMAND ${POLYOMINO} sprites ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.cpp ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.hpp ${CMAKE_SOURCE_DIR}/assets/polyominos.json --bank 6
   DEPENDS ${POLYOMINO} ${CMAKE_SOURCE_DIR}/assets/polyominos.json
 )
 
@@ -85,6 +91,7 @@ add_library(SourceObj
   soundtrack.hpp
 
   ${CMAKE_CURRENT_BINARY_DIR}/metasprites.cpp 
+  ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.cpp 
 )
 
 set_property(

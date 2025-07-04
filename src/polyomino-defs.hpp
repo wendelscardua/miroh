@@ -22,6 +22,7 @@ struct Kick {
 };
 
 struct PolyominoDef {
+  const u8 index;
   const PolyominoDef *const left_rotation;
   const PolyominoDef *const right_rotation;
   const Kick *const left_kick;
