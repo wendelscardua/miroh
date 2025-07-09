@@ -150,7 +150,7 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
       break;
     }
   case Fruit::State::Active:
-    banked_oam_meta_spr(fruit.x, fruit.y - y_scroll,
+    banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
                         (fruit.bobbing_counter & 0b10000)
                             ? fruit.high_metasprite
                             : fruit.low_metasprite);
@@ -160,10 +160,12 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
       if (splash_animation.current_cell_index == 13 ||
           splash_animation.current_cell_index == 14) {
         // splash anim 14 & 15
-        banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.high_metasprite);
+        banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
+                            fruit.high_metasprite);
       } else if (splash_animation.current_cell_index >= 15) {
         // splash anim 16 & 17
-        banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, fruit.low_metasprite);
+        banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
+                            fruit.low_metasprite);
       }
       // NOTE: assumes this runs on fixed bank
       {
@@ -181,7 +183,8 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
 
         oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), drop_tile, 0);
       }
-      banked_oam_meta_spr(fruit.x, fruit.y - y_scroll, metasprite);
+      banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
+                          metasprite);
     }
     break;
   case Fruit::State::Inactive:

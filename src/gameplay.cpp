@@ -212,15 +212,15 @@ void Drops::render(int y_scroll) {
     if (drop.row > HEIGHT) {
       continue;
     }
-    banked_oam_meta_spr(drop.x, drop.current_y - y_scroll,
+    banked_oam_meta_spr(METASPRITES_BANK, drop.x, drop.current_y - y_scroll,
                         current_stage == Stage::StarlitStables
                             ? Metasprites::block
                             : Metasprites::BlockB);
     if (drop.shadow > 5) {
-      banked_oam_meta_spr(drop.x, drop.target_y - y_scroll,
+      banked_oam_meta_spr(METASPRITES_BANK, drop.x, drop.target_y - y_scroll,
                           Metasprites::BlockShadow5);
     } else if (drop.shadow > 0) {
-      banked_oam_meta_spr(drop.x, drop.target_y - y_scroll,
+      banked_oam_meta_spr(METASPRITES_BANK, drop.x, drop.target_y - y_scroll,
                           shadows[drop.shadow - 1]);
     }
   }

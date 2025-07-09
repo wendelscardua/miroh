@@ -2,10 +2,11 @@
 
 .global banked_oam_meta_spr
 
-; void banked_oam_meta_spr(char x, int y, const void *data);
-; A/rc6: x
-; X/rc7: y.l
-; rc2: y.h 
+; void banked_oam_meta_spr(char bank, char x, int y, const void *data);
+; A/rc6: bank
+; X/rc7: x
+; rc2: y.l
+; rc3: y.h
 ; rc4: data.l
 ; rc5: data.h
 ; rc8: extend signal for sprite delta y
@@ -16,7 +17,7 @@ banked_oam_meta_spr:
 
   jsr get_prg_bank
   pha
-  lda #mos24bank(_ZN11Metasprites5blockE)
+  lda __rc6
   jsr set_prg_bank
 
   ldx SPRID
@@ -27,7 +28,7 @@ banked_oam_meta_spr:
   beq 2f
   iny
   clc
-  adc __rc6
+  adc __rc7
   sta OAM_BUF+3,x
   
   lda #0
@@ -45,10 +46,10 @@ banked_oam_meta_spr:
 3:
   iny
   clc
-  adc __rc7
+  adc __rc2
   sta OAM_BUF+0,x
   
-  lda __rc2
+  lda __rc3
   adc __rc8
 
   ; high byte zero = on screen (?)

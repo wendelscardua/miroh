@@ -26,7 +26,7 @@ void PolyominoDef::render(u8 x, int y) const {
   auto ptr = banked_lambda(POLYOMINOMETASPRITE_BANK, [index] {
     return PolyominoMetasprite::all_pieces[index];
   });
-  banked_oam_meta_spr(x, y, ptr);
+  banked_oam_meta_spr(POLYOMINOMETASPRITE_BANK, x, y, ptr);
   return;
 
 #pragma clang loop unroll(full)
@@ -42,7 +42,7 @@ void PolyominoDef::render(u8 x, int y) const {
     auto delta = deltas[i];
     u8 block_x = (u8)(x + delta.delta_x());
     int block_y = y + delta.delta_y();
-    banked_oam_meta_spr(block_x, block_y,
+    banked_oam_meta_spr(METASPRITES_BANK, block_x, block_y,
                         current_stage == Stage::StarlitStables
                             ? Metasprites::block
                             : Metasprites::BlockB);
@@ -86,7 +86,7 @@ void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
     auto delta = deltas[i];
     u8 block_x = (u8)(x + delta.delta_x());
     int block_y = y + delta.delta_y();
-    banked_oam_meta_spr(block_x, block_y, metasprite);
+    banked_oam_meta_spr(METASPRITES_BANK, block_x, block_y, metasprite);
     STOP_MESEN_WATCH(100);
   }
 
@@ -104,7 +104,7 @@ void PolyominoDef::outside_render(u8 x, int y, int cutting_point_y) const {
     if (block_y >= cutting_point_y) {
       continue;
     }
-    banked_oam_meta_spr(block_x, block_y,
+    banked_oam_meta_spr(METASPRITES_BANK, block_x, block_y,
                         current_stage == Stage::StarlitStables
                             ? Metasprites::block
                             : Metasprites::BlockB);
