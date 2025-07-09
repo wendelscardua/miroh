@@ -1,7 +1,8 @@
 .section .prg_rom_fixed,"axR",@progbits
 
 .global banked_oam_meta_spr
-
+.global _BANK_SHADOW 
+; HACK: inline get_prg_bank
 ; void banked_oam_meta_spr(char bank, char x, int y, const void *data);
 ; A/rc6: bank
 ; X/rc7: x
@@ -12,15 +13,15 @@
 ; rc8: extend signal for sprite delta y
 
 banked_oam_meta_spr:
-  sta __rc6
-  stx __rc7
+  sta mos8(__rc6)
+  stx mos8(__rc7)
 
-  jsr get_prg_bank
+  lda mos8(_BANK_SHADOW)
   pha
-  lda __rc6
+  lda mos8(__rc6)
   jsr set_prg_bank
 
-  ldx SPRID
+  ldx mos8(SPRID)
   ldy #0
 1:
   lda (__rc4),y  ;x offset
@@ -32,7 +33,7 @@ banked_oam_meta_spr:
   sta OAM_BUF+3,x
   
   lda #0
-  sta __rc8
+  sta mos8(__rc8)
   
   lda (__rc4),y  ;y offset
   
@@ -41,16 +42,16 @@ banked_oam_meta_spr:
   beq 3f
   
   lda #$ff
-  sta __rc8
+  sta mos8(__rc8)
   lda (__rc4),y  ;restore y offset
 3:
   iny
   clc
-  adc __rc2
+  adc mos8(__rc2)
   sta OAM_BUF+0,x
   
-  lda __rc3
-  adc __rc8
+  lda mos8(__rc3)
+  adc mos8(__rc8)
 
   ; high byte zero = on screen (?)
   beq 4f
@@ -76,10 +77,9 @@ banked_oam_meta_spr:
   inx
   jmp 1b
 2:
-  stx SPRID
+  stx mos8(SPRID)
   pla
-  jsr set_prg_bank
-  rts
+  jmp set_prg_bank ; HACK: jmp = jsr + rts
 
 
 .global banked_oam_meta_spr_horizontal
