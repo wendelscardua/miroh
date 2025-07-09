@@ -46,7 +46,7 @@ add_custom_command(
 
 add_custom_command(
   OUTPUT polyominos-metasprites.cpp polyominos-metasprites.hpp
-  COMMAND ${POLYOMINO} sprites ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.cpp ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.hpp ${CMAKE_SOURCE_DIR}/assets/polyominos.json --bank 6
+  COMMAND ${POLYOMINO} sprites ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.cpp ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.hpp ${CMAKE_SOURCE_DIR}/assets/polyominos.json --main_bank 7 --alt_bank 8 --shadow_banks 9,10,11,12,13
   DEPENDS ${POLYOMINO} ${CMAKE_SOURCE_DIR}/assets/polyominos.json
 )
 

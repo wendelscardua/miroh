@@ -21,79 +21,57 @@ bool PolyominoDef::collide(Board &board, s8 row, u8 column) const {
 }
 
 void PolyominoDef::render(u8 x, int y) const {
-  static u8 polyomino_start_index = 0;
   u8 index = this->index;
-  auto ptr = banked_lambda(POLYOMINOMETASPRITE_BANK, [index] {
-    return PolyominoMetasprite::all_pieces[index];
+  u8 bank = current_stage == Stage::StarlitStables
+                ? POLYOMINO_METASPRITE_MAIN_BANK
+                : POLYOMINO_METASPRITE_ALT_BANK;
+  auto ptr = banked_lambda(POLYOMINO_METASPRITE_MAIN_BANK, [index, bank] {
+    return bank == POLYOMINO_METASPRITE_MAIN_BANK
+               ? PolyominoMetaspriteMain::all_pieces[index]
+               : PolyominoMetaspriteAlt::all_pieces[index];
   });
-  banked_oam_meta_spr(POLYOMINOMETASPRITE_BANK, x, y, ptr);
+  banked_oam_meta_spr(bank, x, y, ptr);
   return;
-
-#pragma clang loop unroll(full)
-  for (u8 j = 0; j < 5; j++) {
-    u8 i = polyomino_start_index + j;
-    if (i >= 5) {
-      i -= 5;
-    }
-    if (i >= size) {
-      continue;
-    }
-
-    auto delta = deltas[i];
-    u8 block_x = (u8)(x + delta.delta_x());
-    int block_y = y + delta.delta_y();
-    banked_oam_meta_spr(METASPRITES_BANK, block_x, block_y,
-                        current_stage == Stage::StarlitStables
-                            ? Metasprites::block
-                            : Metasprites::BlockB);
-  }
-
-  polyomino_start_index += 2;
-  if (polyomino_start_index >= 5) {
-    polyomino_start_index -= 5;
-  }
 }
 
-static const char *shadows[] = {
-    (const char *)Metasprites::BlockShadow1,
-    (const char *)Metasprites::BlockShadow2,
-    (const char *)Metasprites::BlockShadow3,
-    (const char *)Metasprites::BlockShadow4,
-    (const char *)Metasprites::BlockShadow5,
-};
+static const u8 shadow_banks[] = {
+    POLYOMINO_METASPRITE_SHADOW1_BANK, POLYOMINO_METASPRITE_SHADOW2_BANK,
+    POLYOMINO_METASPRITE_SHADOW3_BANK, POLYOMINO_METASPRITE_SHADOW4_BANK,
+    POLYOMINO_METASPRITE_SHADOW5_BANK};
 
 // TODO: avoid overlap with render
 void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
-  static u8 polyomino_start_index = 0;
-
-  if (dist == 0) {
+  u8 index = this->index;
+  u8 bank;
+  switch (dist) {
+  case 0:
     return;
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+    bank = shadow_banks[dist - 1];
+    break;
+  default:
+    bank = shadow_banks[4];
+    break;
   }
-
-  const char *metasprite =
-      dist >= 5 ? (const char *)Metasprites::BlockShadow5 : shadows[dist - 1];
-
-  for (u8 j = 0; j < 5; j++) {
-    u8 i = polyomino_start_index + j;
-    if (i >= 5) {
-      i -= 5;
+  auto ptr = banked_lambda(bank, [index, bank] {
+    switch (bank) {
+    case POLYOMINO_METASPRITE_SHADOW1_BANK:
+      return PolyominoMetaspriteShadow1::all_pieces[index];
+    case POLYOMINO_METASPRITE_SHADOW2_BANK:
+      return PolyominoMetaspriteShadow2::all_pieces[index];
+    case POLYOMINO_METASPRITE_SHADOW3_BANK:
+      return PolyominoMetaspriteShadow3::all_pieces[index];
+    case POLYOMINO_METASPRITE_SHADOW4_BANK:
+      return PolyominoMetaspriteShadow4::all_pieces[index];
+    default:
+      return PolyominoMetaspriteShadow5::all_pieces[index];
     }
-    if (i >= size) {
-      continue;
-    }
-
-    START_MESEN_WATCH(100);
-    auto delta = deltas[i];
-    u8 block_x = (u8)(x + delta.delta_x());
-    int block_y = y + delta.delta_y();
-    banked_oam_meta_spr(METASPRITES_BANK, block_x, block_y, metasprite);
-    STOP_MESEN_WATCH(100);
-  }
-
-  polyomino_start_index += 2;
-  if (polyomino_start_index >= 5) {
-    polyomino_start_index -= 5;
-  }
+  });
+  banked_oam_meta_spr(bank, x, y, ptr);
+  return;
 }
 
 void PolyominoDef::outside_render(u8 x, int y, int cutting_point_y) const {

@@ -130,74 +130,126 @@ class Polyomino < Thor
   end
 
   desc 'sprites CPP HEADER JSON_FILE', 'Generates sprite C++ and header based on json'
-  method_option :bank, type: :string, required: true
+  method_option :main_bank, type: :string, required: true
+  method_option :alt_bank, type: :string, required: true
+  method_option :shadow_banks, type: :string, required: true
 
   def sprites(cpp_file, h_file, pieces_json)
-    namespace = 'PolyominoMetasprite'
+    main_bank = options[:main_bank]
+    alt_bank = options[:alt_bank]
+    shadow_banks = options[:shadow_banks].split(/\D/)
 
-    bank = options[:bank]
-    rodata = %Q(__attribute__((section(".prg_rom_#{bank}.rodata.polyominos"))))
+    banks = {
+      main: main_bank,
+      alt: alt_bank,
+      shadow1: shadow_banks[0],
+      shadow2: shadow_banks[1],
+      shadow3: shadow_banks[2],
+      shadow4: shadow_banks[3],
+      shadow5: shadow_banks[4],
+    }
+
+    namespaces = banks.to_h {|bank, _| [bank, "PolyominoMetasprite#{bank.capitalize}"] }
+    namespace_consts = banks.to_h {|bank, _| [bank, "POLYOMINO_METASPRITE_#{bank.upcase}"] }
+
+    rodatas = banks.to_h do |bank, bank_number|
+       [bank, %Q(__attribute__((section(".prg_rom_#{bank_number}.rodata.polyominos.#{bank}"))))]
+    end
 
     # Read the same JSON as the data method
     data = JSON.parse(File.read(pieces_json), symbolize_names: true)
     pieces = data[:pieces]
 
     # Sprite template for each block (relative positions and tile/attribute values)
-    sprite_templates = [
-      { x: 0,  y: -1, tile: 0x44, attr: 2 },
-      { x: 8,  y: -1, tile: 0x44, attr: 66 },
-      { x: 0,  y: 7,  tile: 0x54, attr: 2 },
-      { x: 8,  y: 7,  tile: 0x54, attr: 66 }
-    ]
+    sprite_templates = {
+      main: [
+        { x: 0,  y: -1, tile: 0x44, attr: 2 },
+        { x: 8,  y: -1, tile: 0x44, attr: 66 },
+        { x: 0,  y: 7,  tile: 0x54, attr: 2 },
+        { x: 8,  y: 7,  tile: 0x54, attr: 66 }
+      ],
+      alt: [
+        { x: 0,  y: -1, tile: 0x44, attr: 3 },
+        { x: 8,  y: -1, tile: 0x44, attr: 67 },
+        { x: 0,  y: 7,  tile: 0x54, attr: 3 },
+        { x: 8,  y: 7,  tile: 0x54, attr: 67 }
+      ],
+      shadow1: [
+        { x: 0,  y: 0,  tile: 0x43, attr: 34 },
+        { x: 0,  y: 8,  tile: 0x53, attr: 34 },
+        { x: 8,  y: 8,  tile: 0x43, attr: 226 },
+        { x: 8,  y: 0,  tile: 0x53, attr: 226 }
+      ],
+      shadow2: [
+        { x: 0,  y: 0,  tile: 0x42, attr: 34 },
+        { x: 0,  y: 8,  tile: 0x52, attr: 34 },
+        { x: 8,  y: 8,  tile: 0x42, attr: 226 },
+        { x: 8,  y: 0,  tile: 0x52, attr: 226 }
+      ],
+      shadow3: [
+        { x: 0,  y: 0,  tile: 0x41, attr: 34 },
+        { x: 0,  y: 8,  tile: 0x51, attr: 34 },
+        { x: 8,  y: 8,  tile: 0x41, attr: 226 },
+        { x: 8,  y: 0,  tile: 0x51, attr: 226 }
+      ],
+      shadow4: [
+        { x: 4,  y: 4,  tile: 0x50, attr: 34 }
+      ],
+      shadow5: [
+        { x: 4,  y: 4,  tile: 0x40, attr: 34 }
+      ]
+    }
 
     File.open(cpp_file, 'w') do |f|
-      f.puts <<~PREAMBLE
-        #include "#{h_file}"
+      f.puts "#include \"#{h_file}\""
 
-        namespace #{namespace} {
-      PREAMBLE
+      banks.keys.each do |bank|
+        f.puts "namespace #{namespaces[bank]} {"
 
-      pieces.each do |key, values|
-        blocks = values[:blocks]
-        f.puts "  #{namespace.upcase}_RODATA const Sprite piece_#{key}[] = {"
-        blocks.each do |delta_row, delta_column|
-          delta_column += 1
-          delta_row += 1
-          sprite_templates.each do |template|
-            x = 16 * delta_column + template[:x]
-            y = 16 * delta_row + template[:y]
-            f.puts "    { .spr = { #{x}, #{y}, 0x#{template[:tile].to_s(16)}, #{template[:attr]} } },"
+        pieces.each do |key, values|
+          blocks = values[:blocks]
+          f.puts "  #{namespace_consts[bank]}_RODATA const Sprite piece_#{key}[] = {"
+          blocks.each do |delta_row, delta_column|
+            delta_column += 1
+            delta_row += 1
+            sprite_templates[bank].each do |template|
+              x = 16 * delta_column + template[:x]
+              y = 16 * delta_row + template[:y]
+              f.puts "    { .spr = { #{x}, #{y}, 0x#{template[:tile].to_s(16)}, #{template[:attr]} } },"
+            end
           end
+          f.puts '    { .terminator = 0x80 } };'
         end
-        f.puts '    { .terminator = 0x80 } };'
+        # Add array of pointers to each metasprite
+        f.puts "\n  #{namespace_consts[bank]}_RODATA const Sprite* const all_pieces[] = {"
+        pieces.each do |key, _|
+          f.puts "    piece_#{key},"
+        end
+        f.puts "  };"
+        f.puts "}"
       end
-      # Add array of pointers to each metasprite
-      f.puts "\n  #{namespace.upcase}_RODATA const Sprite* const all_pieces[] = {"
-      pieces.each do |key, _|
-        f.puts "    piece_#{key},"
-      end
-      f.puts "  };"
-      f.puts "}"
     end
 
     File.open(h_file, 'w') do |f|
       f.puts <<~PREAMBLE
         #pragma once
         #include "common.hpp"
-        #define #{namespace.upcase}_RODATA #{rodata}
-        #define #{namespace.upcase}_BANK #{bank}
-        namespace #{namespace} {
       PREAMBLE
-      pieces.each do |key, _|
-        f.puts "  extern #{namespace.upcase}_RODATA const Sprite piece_#{key}[];"
+      banks.each do |bank, bank_number|
+        f.puts "#define #{namespace_consts[bank]}_RODATA #{rodatas[bank]}"
+        f.puts "#define #{namespace_consts[bank]}_BANK #{bank_number}"
+        f.puts "namespace #{namespaces[bank]} {"
+        pieces.each do |key, _|
+          f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite piece_#{key}[];"
+        end
+        f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite* const all_pieces[];"
+        f.puts "  enum class Piece_Id : u8 {"
+        pieces.each do |key, _|
+          f.puts "    #{key},"
+        end
+        f.puts "  };"
+        f.puts '}'
       end
-      f.puts "  extern #{namespace.upcase}_RODATA const Sprite* const all_pieces[];"
-      f.puts "  enum class Piece_Id : u8 {"
-      pieces.each do |key, _|
-        f.puts "    #{key},"
-      end
-      f.puts "  };"
-      f.puts '}'
     end
   end
   private
