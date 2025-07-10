@@ -219,11 +219,26 @@ class Polyomino < Thor
             end
           end
           f.puts '    { .terminator = 0x80 } };'
+
+          f.puts "  #{namespace_consts[bank]}_RODATA const Sprite flip_piece_#{key}[] = {"
+          blocks.reverse.each do |delta_row, delta_column|
+            delta_column += 1
+            delta_row += 1
+            sprite_templates[bank].reverse.each do |template|
+              x = 16 * delta_column + template[:x]
+              y = 16 * delta_row + template[:y]
+              f.puts "    { .spr = { #{x}, #{y}, 0x#{template[:tile].to_s(16)}, #{template[:attr]} } },"
+            end
+          end
+          f.puts '    { .terminator = 0x80 } };'
         end
         # Add array of pointers to each metasprite
         f.puts "\n  #{namespace_consts[bank]}_RODATA const Sprite* const all_pieces[] = {"
         pieces.each do |key, _|
           f.puts "    piece_#{key},"
+        end
+        pieces.each do |key, _|
+          f.puts "    flip_piece_#{key},"
         end
         f.puts "  };"
         f.puts "}"
@@ -241,12 +256,14 @@ class Polyomino < Thor
         f.puts "namespace #{namespaces[bank]} {"
         pieces.each do |key, _|
           f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite piece_#{key}[];"
+          f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite flip_piece_#{key}[];"
         end
         f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite* const all_pieces[];"
         f.puts "  enum class Piece_Id : u8 {"
         pieces.each do |key, _|
           f.puts "    #{key},"
         end
+        f.puts "    FlipStart," # the flipped pieces have the same index as the original ones + FlipStart
         f.puts "  };"
         f.puts '}'
       end

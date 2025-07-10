@@ -3,7 +3,6 @@
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "common.hpp"
-#include "log.hpp"
 #include "metasprites.hpp"
 #include "polyominos-metasprites.hpp"
 #include <nesdoug.h>
@@ -22,6 +21,10 @@ bool PolyominoDef::collide(Board &board, s8 row, u8 column) const {
 
 void PolyominoDef::render(u8 x, int y) const {
   u8 index = this->index;
+  if (get_frame_count() & 1) {
+    index += (u8)PolyominoMetaspriteMain::Piece_Id::FlipStart;
+  }
+
   u8 bank = current_stage == Stage::StarlitStables
                 ? POLYOMINO_METASPRITE_MAIN_BANK
                 : POLYOMINO_METASPRITE_ALT_BANK;
@@ -42,6 +45,10 @@ static const u8 shadow_banks[] = {
 // TODO: avoid overlap with render
 void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
   u8 index = this->index;
+  if (get_frame_count() & 1) {
+    index += (u8)PolyominoMetaspriteShadow1::Piece_Id::FlipStart;
+  }
+
   u8 bank;
   switch (dist) {
   case 0:
@@ -56,15 +63,15 @@ void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
     bank = shadow_banks[4];
     break;
   }
-  auto ptr = banked_lambda(bank, [index, bank] {
-    switch (bank) {
-    case POLYOMINO_METASPRITE_SHADOW1_BANK:
+  auto ptr = banked_lambda(bank, [index, dist] {
+    switch (dist) {
+    case 1:
       return PolyominoMetaspriteShadow1::all_pieces[index];
-    case POLYOMINO_METASPRITE_SHADOW2_BANK:
+    case 2:
       return PolyominoMetaspriteShadow2::all_pieces[index];
-    case POLYOMINO_METASPRITE_SHADOW3_BANK:
+    case 3:
       return PolyominoMetaspriteShadow3::all_pieces[index];
-    case POLYOMINO_METASPRITE_SHADOW4_BANK:
+    case 4:
       return PolyominoMetaspriteShadow4::all_pieces[index];
     default:
       return PolyominoMetaspriteShadow5::all_pieces[index];
