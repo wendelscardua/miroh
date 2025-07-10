@@ -3,7 +3,6 @@
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "common.hpp"
-#include "metasprites.hpp"
 #include "polyominos-metasprites.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -79,21 +78,6 @@ void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
   });
   banked_oam_meta_spr(bank, x, y, ptr);
   return;
-}
-
-void PolyominoDef::outside_render(u8 x, int y, int cutting_point_y) const {
-  for (u8 i = 0; i < size; i++) {
-    auto delta = deltas[i];
-    u8 block_x = (u8)(x + delta.delta_x());
-    int block_y = y + delta.delta_y();
-    if (block_y >= cutting_point_y) {
-      continue;
-    }
-    banked_oam_meta_spr(METASPRITES_BANK, block_x, block_y,
-                        current_stage == Stage::StarlitStables
-                            ? Metasprites::block
-                            : Metasprites::BlockB);
-  }
 }
 
 void PolyominoDef::chibi_render(u8 row, u8 column) const {

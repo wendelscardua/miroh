@@ -326,7 +326,7 @@ void Polyomino::render(int y_scroll) {
 }
 
 void Polyomino::outside_render(int y_scroll) {
-  definition->outside_render(x, y - y_scroll, board.origin_y - y_scroll);
+  definition->render(x, y - y_scroll);
 }
 
 void Polyomino::render_next() { next->chibi_render(3, 5); }

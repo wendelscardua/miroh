@@ -337,7 +337,7 @@ void Gameplay::render() {
 
   if (gameplay_state == GameplayState::MarshmallowOverflow &&
       overflow_state == OverflowState::FlashOutsideBlocks &&
-      marshmallow_overflow_counter & 0b100) {
+      (marshmallow_overflow_counter & 0b1000)) {
     START_MESEN_WATCH(14);
     polyomino.outside_render(y_scroll);
     STOP_MESEN_WATCH(14);
@@ -711,7 +711,7 @@ __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
   switch (overflow_state) {
   case OverflowState::FlashOutsideBlocks:
     if (marshmallow_overflow_counter >=
-        19) { // enough for blocks to blink {off, on, off, on, off}
+        39) { // enough for blocks to blink {off, on, off, on, off}
       overflow_state = OverflowState::SwallowNextPiece;
       marshmallow_overflow_counter = 0xff;
       multi_vram_buffer_horz(OPEN_MOUTH, 2, NTADR_A(5, 5));

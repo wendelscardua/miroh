@@ -34,7 +34,6 @@ struct PolyominoDef {
   bool collide(Board &board, s8 row, u8 column) const;
   void render(u8 x, int y) const;
   void shadow(u8 x, int y, u8 dist) const;
-  void outside_render(u8 x, int y, int cutting_point_y) const;
   void chibi_render(u8 row, u8 column) const;
 
   // draws the polyomino on the nametable/board
