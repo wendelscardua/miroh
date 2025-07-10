@@ -41,9 +41,7 @@ banked_oam_meta_spr:
   bpl 3f
   beq 3f
   
-  lda #$ff
-  sta mos8(__rc8)
-  lda (__rc4),y  ;restore y offset
+  dec mos8(__rc8) ; make __rc8 value $00 -> $ff
 3:
   iny
   clc
