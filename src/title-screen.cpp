@@ -121,7 +121,7 @@ void TitleScreen::render_sprites() {
                                    : Metasprites::AvocadoLow);
 
 #ifdef NDEBUG
-  banked_oam_meta_spr(JR_X_POSITION, JR_Y_POSITION - y_scroll,
+  banked_oam_meta_spr(METASPRITES_BANK, JR_X_POSITION, JR_Y_POSITION - y_scroll,
                       Metasprites::TitleJR);
 #endif
 
