@@ -14,13 +14,13 @@ class Polyomino {
   static constexpr s8 MOVEMENT_INITIAL_DELAY = 16;
   static constexpr s8 MOVEMENT_DELAY = 6;
 
-  static Bag<u8, NUM_POLYOMINOS> pieces;
+  static Bag<u8, 10> pieces;
 
   Board &board;
   const PolyominoDef *definition;
   const PolyominoDef *next;
   s8 row;
-  s8 column;
+  u8 column;
   u8 x;
   u8 y;
   u16 drop_timer;
@@ -28,11 +28,11 @@ class Polyomino {
   Direction movement_direction;
   s8 shadow_row;
   u8 shadow_y;
-  s8 left_limit;
-  s8 right_limit;
+  u8 left_limit;
+  u8 right_limit;
   soa::Array<u16, 4> bitmask;
 
-  __attribute__((noinline)) bool able_to_kick(auto kick_deltas);
+  __attribute__((noinline)) bool able_to_kick(const auto &kick_deltas);
 
 public:
   enum class State {

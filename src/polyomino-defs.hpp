@@ -10,11 +10,11 @@
 #define CHIBI_TILE 0x1a
 
 struct Coordinates {
-  u8 delta_column : 4;
-  s8 delta_row : 4;
+  s8 delta_row : 8;
+  s8 delta_column : 8;
 
-  constexpr u8 delta_x() { return delta_column * 0x10; }
-  constexpr s8 delta_y() { return delta_row * 0x10; }
+  constexpr u8 delta_x() { return (u8)(delta_column) * 0x10; }
+  constexpr u8 delta_y() { return (u8)(delta_row) * 0x10; }
 };
 
 struct Kick {
@@ -22,6 +22,7 @@ struct Kick {
 };
 
 struct PolyominoDef {
+  const u8 index;
   const PolyominoDef *const left_rotation;
   const PolyominoDef *const right_rotation;
   const Kick *const left_kick;
@@ -33,7 +34,6 @@ struct PolyominoDef {
   bool collide(Board &board, s8 row, u8 column) const;
   void render(u8 x, int y) const;
   void shadow(u8 x, int y, u8 dist) const;
-  void outside_render(u8 x, int y, int cutting_point_y) const;
   void chibi_render(u8 row, u8 column) const;
 
   // draws the polyomino on the nametable/board

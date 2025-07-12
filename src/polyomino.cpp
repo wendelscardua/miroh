@@ -14,41 +14,56 @@
 #pragma clang section text = ".prg_rom_0.text.polyominos"
 #pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
 
-static auto littleminos = Bag<u8, 5>([](auto *bag) {
-  for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
-    if (polyominos[i]->size <= 3) {
-      bag->insert(i);
-    }
-  }
-});
+// NOTE: source file defines indices [0, 4) as littleminos
+static auto littleminos = Bag<u8, 4>(NULL);
 
-static auto pentominos = Bag<u8, 18>([](auto *bag) {
-  for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
-    if (polyominos[i]->size == 5) {
-      bag->insert(i);
-    }
-  }
-});
+// NOTE: source file defines indices [11, 28) as pentominos
+static auto pentominos = Bag<u8, 17>(NULL);
 
-auto Polyomino::pieces = Bag<u8, NUM_POLYOMINOS>([](auto *bag) {
-  // add all tetrominos to the bag
-  for (u8 i = 0; i < NUM_POLYOMINOS; i++) {
-    if (polyominos[i]->size == 4) {
-      bag->insert(i);
-    }
+// NOTE: source file defines indices [4, 11) as tetrominos
+auto Polyomino::pieces = Bag<u8, 10>([](auto value) {
+  if (value < 4) {
+    return littleminos.take();
   }
 
-  // also add two random "littleminos" (1,2, or 3 blocks)
-  bag->insert(littleminos.take());
-  bag->insert(littleminos.take());
+  if (value >= 11) {
+    return pentominos.take();
+  }
 
-  // ... and a random pentomino
-  bag->insert(pentominos.take());
+  return value;
 });
 
 Polyomino::Polyomino(Board &board)
-    : board(board), definition(NULL), next(polyominos[pieces.take()]),
-      state(State::Inactive) {
+    : board(board), definition(NULL), state(State::Inactive) {
+
+  // initialize littleminos bag
+  littleminos.reset();
+  for (u8 i = 0; i < 4; i++) {
+    littleminos.insert(i);
+  }
+
+  // initialize pentominos bag
+  pentominos.reset();
+  for (u8 i = 11; i < 28; i++) {
+    pentominos.insert(i);
+  }
+
+  // add all tetrominos to the pieces bag
+  // NOTE: source file defines indices [4, 11) as tetrominos
+  pieces.reset();
+  for (u8 i = 4; i < 11; i++) {
+    pieces.insert(i);
+  }
+
+  // also add two random "littleminos" (1,2, or 3 blocks)
+  pieces.insert(littleminos.take());
+  pieces.insert(littleminos.take());
+
+  // ... and a random pentomino
+  pieces.insert(pentominos.take());
+
+  next = polyominos[pieces.take()];
+
   render_next();
 }
 
@@ -88,17 +103,17 @@ void Polyomino::update_bitmask() {
     bitmask[i] = 0;
   }
 
-  left_limit = 2;
-  right_limit = -2;
+  left_limit = 4;
+  right_limit = 0;
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     if (delta.delta_column > right_limit) {
-      right_limit = delta.delta_column;
+      right_limit = (u8)delta.delta_column;
     }
     if (delta.delta_column < left_limit) {
-      left_limit = delta.delta_column;
+      left_limit = (u8)delta.delta_column;
     }
-    bitmask[(u8)(delta.delta_row + 1)] |=
+    bitmask[(u8)(delta.delta_row)] |=
         Board::OCCUPIED_BITMASK[(u8)(column + delta.delta_column)];
   }
   update_shadow();
@@ -108,7 +123,7 @@ void Polyomino::update_shadow() {
   START_MESEN_WATCH(4);
   shadow_row = row;
   shadow_y = y;
-  while (!collide(shadow_row + 1, column)) {
+  while (!collide(shadow_row + 1, (s8)column)) {
     shadow_row++;
     shadow_y += 16;
   }
@@ -133,13 +148,13 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
   }
 #pragma clang loop unroll(full)
   for (u8 i = 0; i < 4; i++) {
-    s8 mod_row = (s8)(new_row + i - 1);
+    s8 mod_row = (s8)(new_row + i);
     if (mod_row < 0) {
       continue;
     }
-    if (bitmask[i] &&
-        (mod_row >= HEIGHT || (signed_shift(bitmask[i], (new_column - column)) &
-                               board.occupied_bitset[(u8)(new_row + i - 1)]))) {
+    if (bitmask[i] && (mod_row >= HEIGHT ||
+                       (signed_shift(bitmask[i], (new_column - (s8)column)) &
+                        board.occupied_bitset[(u8)(new_row + i)]))) {
       STOP_MESEN_WATCH(31);
       return true;
     }
@@ -148,10 +163,10 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
   return false;
 }
 
-bool Polyomino::able_to_kick(auto kick_deltas) {
+bool Polyomino::able_to_kick(const auto &kick_deltas) {
   for (auto kick : kick_deltas) {
     s8 new_row = row + kick.delta_row;
-    s8 new_column = column + kick.delta_column;
+    u8 new_column = (u8)(column + kick.delta_column);
 
     if (!definition->collide(board, new_row, new_column)) {
       row = new_row;
@@ -238,7 +253,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
-    if (collide(row + 1, column)) {
+    if (collide(row + 1, (s8)column)) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
         drop_timer = 0;
@@ -283,7 +298,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     movement_direction = Direction::None;
     break;
   case Direction::Down:
-    if (collide(row + 1, column)) {
+    if (collide(row + 1, (s8)column)) {
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
@@ -311,7 +326,7 @@ void Polyomino::render(int y_scroll) {
 }
 
 void Polyomino::outside_render(int y_scroll) {
-  definition->outside_render(x, y - y_scroll, board.origin_y - y_scroll);
+  definition->render(x, y - y_scroll);
 }
 
 void Polyomino::render_next() { next->chibi_render(3, 5); }
@@ -327,7 +342,7 @@ s8 Polyomino::freeze_blocks() {
 // XXX: checking the range of possible rows that could have been filled by a
 // polyomino
 #pragma clang loop unroll(full)
-  for (s8 delta_row = -1; delta_row <= 2; delta_row++) {
+  for (s8 delta_row = 0; delta_row <= 3; delta_row++) {
     s8 block_row = row + delta_row;
     if (board.row_filled(block_row)) {
       filled_lines++;

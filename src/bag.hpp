@@ -10,13 +10,18 @@ template <typename T, size_t N> class Bag {
   std::array<T, N> items;
   u8 index;
   u8 end;
-  void (*refill)(Bag *bag);
+  T (*filter)(T value);
 
 public:
-  Bag(void (*refill)(Bag *bag)) : index(0), end(0), refill(refill){};
+  Bag(T (*filter)(T)) : index(0), end(0), filter(filter) {};
+
+  void reset() {
+    index = 0;
+    end = 0;
+  }
 
   void insert(T value) {
-    u8 random_point = index + RAND_UP_TO(size() + 1);
+    u8 random_point = RAND_UP_TO(end + 1);
     if (random_point >= N) {
       random_point -= N;
     }
@@ -33,31 +38,18 @@ public:
   }
 
   T take() {
-    if (empty()) {
-      refill(this);
-    }
-    u8 old_index = index;
+    T value = items[index];
     index++;
     if (index == N) {
       index = 0;
     }
-    return items[old_index];
-  }
-
-  T peek() {
-    if (empty()) {
-      refill(this);
-    }
-    return items[index];
-  }
-
-  bool empty() { return index == end; }
-
-  size_t size() {
-    if (end >= index) {
-      return end - index;
+    if (filter != NULL) {
+      insert(filter(value));
     } else {
-      return end + N - index;
+      insert(value);
     }
+    return value;
   }
+
+  T peek() { return items[index]; }
 };

@@ -116,7 +116,7 @@ void TitleScreen::render_sprites() {
     cursor_x = MAIN_MENU_CURSOR_X_POSITION;
     cursor_y = menu_y_position[(u8)current_option];
   }
-  banked_oam_meta_spr(cursor_x, cursor_y - y_scroll,
+  banked_oam_meta_spr(METASPRITES_BANK, cursor_x, cursor_y - y_scroll,
                       bobbing_flag ? Metasprites::AvocadoHigh
                                    : Metasprites::AvocadoLow);
 
@@ -125,9 +125,10 @@ void TitleScreen::render_sprites() {
                       Metasprites::TitleJR);
 #endif
 
-  banked_oam_meta_spr(HOW_TO_LEFT_X_POSITION, HOW_TO_LEFT_Y_POSITION - y_scroll,
+  banked_oam_meta_spr(METASPRITES_BANK, HOW_TO_LEFT_X_POSITION,
+                      HOW_TO_LEFT_Y_POSITION - y_scroll,
                       Metasprites::HowtoLeft);
-  banked_oam_meta_spr(HOW_TO_RIGHT_X_POSITION,
+  banked_oam_meta_spr(METASPRITES_BANK, HOW_TO_RIGHT_X_POSITION,
                       HOW_TO_RIGHT_Y_POSITION - y_scroll,
                       Metasprites::HowtoRight);
   oam_hide_rest();

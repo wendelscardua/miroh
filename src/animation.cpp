@@ -1,5 +1,6 @@
 #include "animation.hpp"
 #include "banked-asset-helpers.hpp"
+#include "metasprites.hpp"
 
 // same as Unicorn
 #pragma clang section text = ".prg_rom_5.text.animation"
@@ -19,7 +20,7 @@ void Animation::reset() {
 }
 
 void Animation::update(char x, int y) {
-  banked_oam_meta_spr(x, y, current_cell->metasprite);
+  banked_oam_meta_spr(METASPRITES_BANK, x, y, current_cell->metasprite);
   if (paused) {
     return;
   }
