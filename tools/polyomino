@@ -18,13 +18,11 @@ class Polyomino < Thor
     true
   end
 
-  desc 'generate ASM_FILE JSON_FILE', 'Generates asm file based on json'
-  method_option :bank, type: :string, required: false
-  method_option :max_size, type: :numeric, required: false, default: nil, desc: 'Maximum size covered by polyomino'
+  desc 'data ASM_FILE JSON_FILE', 'Generates data asm file based on json'
+  method_option :bank, type: :string, required: true
 
-  def generate(s_file, pieces_json)
-    bank = options[:bank] || '.prg_rom_fixed'
-    max_size = options[:max_size] || 256
+  def data(s_file, pieces_json)
+    bank = ".prg_rom_#{options[:bank]}.rodata.polyominos"
 
     data = JSON.parse(File.read(pieces_json), symbolize_names: true)
     data => { pieces:, kicks:, canon: }
@@ -35,13 +33,6 @@ class Polyomino < Thor
         .global polyominos
         polyominos:
       ASM
-      pieces.reject! do |_, values|
-        values => { blocks: }
-        columns = blocks.map { |_, column| column }
-        rows = blocks.map { |row, _| row }
-        columns.max - columns.min + 1 > max_size ||
-          rows.max - rows.min + 1 > max_size
-      end
       pieces.each do |key, values|
         values => { rotateTo: rotate_to }
         pieces[rotate_to.to_sym][:leftRotateTo] = key
@@ -53,9 +44,11 @@ class Polyomino < Thor
       canon.each do |key|
         f.puts ".byte piece_#{key}@mos16hi"
       end
-      pieces.each do |key, values|
+      pieces.each.with_index do |(key, values), index|
         values => { blocks:, rotateTo: rotate_to, leftRotateTo: left_rotate_to, kicks: piece_kicks }
         f.puts "piece_#{key}:"
+
+        f.puts ".byte #{index}"
 
         f.puts ".word piece_#{left_rotate_to}, piece_#{rotate_to}"
         right_kick = case piece_kicks
@@ -136,6 +129,146 @@ class Polyomino < Thor
     end
   end
 
+  desc 'sprites CPP HEADER JSON_FILE', 'Generates sprite C++ and header based on json'
+  method_option :main_bank, type: :string, required: true
+  method_option :alt_bank, type: :string, required: true
+  method_option :shadow_banks, type: :string, required: true
+
+  def sprites(cpp_file, h_file, pieces_json)
+    main_bank = options[:main_bank]
+    alt_bank = options[:alt_bank]
+    shadow_banks = options[:shadow_banks].split(/\D/)
+
+    banks = {
+      main: main_bank,
+      alt: alt_bank,
+      shadow1: shadow_banks[0],
+      shadow2: shadow_banks[1],
+      shadow3: shadow_banks[2],
+      shadow4: shadow_banks[3],
+      shadow5: shadow_banks[4],
+    }
+
+    namespaces = banks.to_h {|bank, _| [bank, "PolyominoMetasprite#{bank.capitalize}"] }
+    namespace_consts = banks.to_h {|bank, _| [bank, "POLYOMINO_METASPRITE_#{bank.upcase}"] }
+
+    rodatas = banks.to_h do |bank, bank_number|
+       [bank, %Q(__attribute__((section(".prg_rom_#{bank_number}.rodata.polyominos.#{bank}"))))]
+    end
+
+    # Read the same JSON as the data method
+    data = JSON.parse(File.read(pieces_json), symbolize_names: true)
+    pieces = data[:pieces]
+
+    # Sprite template for each block (relative positions and tile/attribute values)
+    sprite_templates = {
+      main: [
+        { x: 0,  y: -1, tile: 0x44, attr: 2 },
+        { x: 8,  y: -1, tile: 0x44, attr: 66 },
+        { x: 0,  y: 7,  tile: 0x54, attr: 2 },
+        { x: 8,  y: 7,  tile: 0x54, attr: 66 }
+      ],
+      alt: [
+        { x: 0,  y: -1, tile: 0x44, attr: 3 },
+        { x: 8,  y: -1, tile: 0x44, attr: 67 },
+        { x: 0,  y: 7,  tile: 0x54, attr: 3 },
+        { x: 8,  y: 7,  tile: 0x54, attr: 67 }
+      ],
+      shadow1: [
+        { x: 0,  y: 0,  tile: 0x43, attr: 34 },
+        { x: 0,  y: 8,  tile: 0x53, attr: 34 },
+        { x: 8,  y: 8,  tile: 0x43, attr: 226 },
+        { x: 8,  y: 0,  tile: 0x53, attr: 226 }
+      ],
+      shadow2: [
+        { x: 0,  y: 0,  tile: 0x42, attr: 34 },
+        { x: 0,  y: 8,  tile: 0x52, attr: 34 },
+        { x: 8,  y: 8,  tile: 0x42, attr: 226 },
+        { x: 8,  y: 0,  tile: 0x52, attr: 226 }
+      ],
+      shadow3: [
+        { x: 0,  y: 0,  tile: 0x41, attr: 34 },
+        { x: 0,  y: 8,  tile: 0x51, attr: 34 },
+        { x: 8,  y: 8,  tile: 0x41, attr: 226 },
+        { x: 8,  y: 0,  tile: 0x51, attr: 226 }
+      ],
+      shadow4: [
+        { x: 4,  y: 4,  tile: 0x50, attr: 34 }
+      ],
+      shadow5: [
+        { x: 4,  y: 4,  tile: 0x40, attr: 34 }
+      ]
+    }
+
+    File.open(cpp_file, 'w') do |f|
+      f.puts "#include \"#{h_file}\""
+
+      banks.keys.each do |bank|
+        f.puts "namespace #{namespaces[bank]} {"
+
+        pieces.each do |key, values|
+          blocks = values[:blocks]
+          f.puts "  #{namespace_consts[bank]}_RODATA const Sprite piece_#{key}[] = {"
+          blocks.each do |delta_row, delta_column|
+            delta_column += 1
+            delta_row += 1
+            sprite_templates[bank].each do |template|
+              x = 16 * delta_column + template[:x]
+              y = 16 * delta_row + template[:y]
+              f.puts "    { .spr = { #{x}, #{y}, 0x#{template[:tile].to_s(16)}, #{template[:attr]} } },"
+            end
+          end
+          f.puts '    { .terminator = 0x80 } };'
+
+          f.puts "  #{namespace_consts[bank]}_RODATA const Sprite flip_piece_#{key}[] = {"
+          blocks.reverse.each do |delta_row, delta_column|
+            delta_column += 1
+            delta_row += 1
+            sprite_templates[bank].reverse.each do |template|
+              x = 16 * delta_column + template[:x]
+              y = 16 * delta_row + template[:y]
+              f.puts "    { .spr = { #{x}, #{y}, 0x#{template[:tile].to_s(16)}, #{template[:attr]} } },"
+            end
+          end
+          f.puts '    { .terminator = 0x80 } };'
+        end
+        # Add array of pointers to each metasprite
+        f.puts "\n  #{namespace_consts[bank]}_RODATA const Sprite* const all_pieces[] = {"
+        pieces.each do |key, _|
+          f.puts "    piece_#{key},"
+        end
+        pieces.each do |key, _|
+          f.puts "    flip_piece_#{key},"
+        end
+        f.puts "  };"
+        f.puts "}"
+      end
+    end
+
+    File.open(h_file, 'w') do |f|
+      f.puts <<~PREAMBLE
+        #pragma once
+        #include "common.hpp"
+      PREAMBLE
+      banks.each do |bank, bank_number|
+        f.puts "#define #{namespace_consts[bank]}_RODATA #{rodatas[bank]}"
+        f.puts "#define #{namespace_consts[bank]}_BANK #{bank_number}"
+        f.puts "namespace #{namespaces[bank]} {"
+        pieces.each do |key, _|
+          f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite piece_#{key}[];"
+          f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite flip_piece_#{key}[];"
+        end
+        f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite* const all_pieces[];"
+        f.puts "  enum class Piece_Id : u8 {"
+        pieces.each do |key, _|
+          f.puts "    #{key},"
+        end
+        f.puts "    FlipStart," # the flipped pieces have the same index as the original ones + FlipStart
+        f.puts "  };"
+        f.puts '}'
+      end
+    end
+  end
   private
 
   PREVIEW_BASE_TILE = 0x70

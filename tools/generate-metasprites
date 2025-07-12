@@ -25,7 +25,7 @@ class GenerateMetasprites < Thor
     namespace = options[:namespace] || 'Metasprite'
 
     bank = options[:bank]
-    rodata = %Q(__attribute__((section(".prg_rom_#{bank}.metasprites.rodata"))))
+    rodata = %Q(__attribute__((section(".prg_rom_#{bank}.rodata.metasprites"))))
 
     session = NEXXT::Session.read(session_file)
 

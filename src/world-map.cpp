@@ -291,9 +291,9 @@ void WorldMap::render_sprites() {
   if (ending_triggered) {
     // TODO: maybe showcase sprites?
   } else {
-    banked_oam_meta_spr(0x35, stage_label_y[(u8)current_stage],
-                        story_mode_beaten ? Metasprites::MirohMap
-                                          : Metasprites::UniMap);
+    banked_oam_meta_spr(
+        METASPRITES_BANK, 0x35, stage_label_y[(u8)current_stage],
+        story_mode_beaten ? Metasprites::MirohMap : Metasprites::UniMap);
   }
   oam_hide_rest();
 }

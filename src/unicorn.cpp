@@ -373,10 +373,10 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
   int reference_y = board.origin_y - y_scroll;
 
   if (statue) {
-    banked_oam_meta_spr(board.origin_x + x.whole, reference_y + y.whole,
-                        facing == Direction::Right
-                            ? Metasprites::UniRightStatue
-                            : Metasprites::UniLeftStatue);
+    banked_oam_meta_spr(
+        METASPRITES_BANK, board.origin_x + x.whole, reference_y + y.whole,
+        facing == Direction::Right ? Metasprites::UniRightStatue
+                                   : Metasprites::UniLeftStatue);
     return;
   }
 
@@ -459,7 +459,8 @@ void render_energy_hud(int y_scroll, u8 value) {
       Metasprites::Energy12,
   };
 
-  banked_oam_meta_spr(ENERGY_HUD_X, ENERGY_HUD_Y - y_scroll, sprites[value]);
+  banked_oam_meta_spr(METASPRITES_BANK, ENERGY_HUD_X, ENERGY_HUD_Y - y_scroll,
+                      sprites[value]);
 }
 
 void Unicorn::refresh_energy_hud(int y_scroll) {
