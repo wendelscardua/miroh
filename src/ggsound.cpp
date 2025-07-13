@@ -14,8 +14,6 @@ extern "C" void *sound_param_word_3;
 extern "C" u8 sound_bank;
 
 namespace GGSound {
-  constexpr u8 BANK = 2;
-
   inline namespace Wrapper {
     extern "C" void sound_initialize();
     extern "C" void sound_stop();

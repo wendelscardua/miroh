@@ -6,6 +6,8 @@
 // #define FEATURE_DPCM
 
 namespace GGSound {
+  constexpr u8 BANK = 2;
+
   struct Track {
     u16 ntsc_tempo;
     u16 pal_tempo;
