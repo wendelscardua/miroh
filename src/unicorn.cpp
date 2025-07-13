@@ -118,6 +118,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
 
     // begins roll action
     if (pressed & (PAD_A | PAD_B)) {
+      roll_into_block = false;
       if (energy < CHARGE_COST && !roll_disabled) {
         banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
         break;
@@ -126,7 +127,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       energy -= CHARGE_COST;
       set_state(State::Roll);
       roll_distance = 0;
-      bool occ, wall;
+      bool occ = false, wall = false;
       if (facing == Direction::Right) {
         banked_lambda(Board::BANK, [this, &wall, &occ]() {
           while (
