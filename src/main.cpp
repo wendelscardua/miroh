@@ -60,9 +60,8 @@ static void main_init() {
   set_vram_buffer();
 
   {
-    ScopedBank scopedBank(GET_BANK(song_list));
-    GGSound::init(GGSound::Region::NTSC, song_list, sfx_list, instrument_list,
-                  GET_BANK(song_list));
+    ScopedBank scopedBank(GGSound::BANK);
+    GGSound::init(GGSound::Region::NTSC, song_list, sfx_list, instrument_list);
   }
 }
 

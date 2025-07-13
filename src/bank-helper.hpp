@@ -3,12 +3,6 @@
 #include "common.hpp"
 #include <mapper.h>
 #include <type_traits>
-#define GET_BANK(symbol)                                                       \
-  []() {                                                                       \
-    register u8 bank asm("a");                                                 \
-    asm("ld%0 #mos24bank(" #symbol ")\n" : "=r"(bank) : "r"(bank));            \
-    return bank;                                                               \
-  }()
 
 class ScopedBank {
   u8 old_bank;
