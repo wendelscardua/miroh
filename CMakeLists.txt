@@ -42,11 +42,15 @@ set(ROM ${CMAKE_PROJECT_NAME}.nes)
 
 include(Assets)
 
-# include ca65 objects directly as a workaround - it doesn't work if they are missing, though
-add_executable(${ROM} "${CMAKE_BINARY_DIR}/ca65src/ggsound.o" "${CMAKE_BINARY_DIR}/ca65src/soundtrack.o")
-
 add_subdirectory(src)
 add_subdirectory(ca65src)
+
+add_executable(${ROM})
+
+target_sources(${ROM} PRIVATE 
+  "${CMAKE_BINARY_DIR}/ca65src/ggsound.o" 
+  "${CMAKE_BINARY_DIR}/ca65src/soundtrack.o"
+)
 
 target_link_libraries(${ROM} PRIVATE
   # Second-party, included in llvm-mos
