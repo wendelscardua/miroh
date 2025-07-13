@@ -26,11 +26,12 @@ namespace GGSound {
   __attribute__((noinline)) void init(Region arg_region,
                                       const Track *arg_song_list[],
                                       const Track *arg_sfx_list[],
-                                      const void *arg_instruments[],
+                                      const void *arg_instruments[]
 #ifdef FEATURE_DPCM
-                                      const void *dpcm_pointers[],
+                                      ,
+                                      const void *dpcm_pointers[]
 #endif
-                                      u8 arg_bank) {
+  ) {
     sound_param_byte_0 = (u8)arg_region;
     sound_param_word_0 = (void *)arg_song_list;
     sound_param_word_1 = (void *)arg_sfx_list;
@@ -38,7 +39,7 @@ namespace GGSound {
 #ifdef FEATURE_DPCM
     sound_param_word_3 = (void *)dpcm_pointers;
 #endif
-    sound_bank = arg_bank;
+    sound_bank = BANK;
     ScopedBank ggsound_bank(BANK);
     sound_initialize();
   }

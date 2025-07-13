@@ -54,11 +54,12 @@ namespace GGSound {
 
   // Initialize sound engine
   void init(Region region, const Track *song_list[], const Track *sfx_list[],
-            const void *instruments[],
+            const void *instruments[]
 #ifdef FEATURE_DPCM
-            const void *dpcm_pointers[],
+            ,
+            const void *dpcm_pointers[]
 #endif
-            u8 bank);
+  );
 
   // Kill all active streams and halt sound
   void stop();
