@@ -22,24 +22,19 @@ jobs:
         ruby-version-file: .ruby-version
         bundler-cache: false  # We don't have a Gemfile, tools use bundler/inline
         
-    - name: Install cc65 from source
+    - name: Install cc65 from openSUSE Build Service
       run: |
-        # Install build dependencies for cc65
-        sudo apt-get update
-        sudo apt-get install -y build-essential git
-        
-        # Clone and build cc65
-        git clone https://github.com/cc65/cc65.git
-        cd cc65
-        make
-        sudo make install PREFIX=/usr/local
-        cd ..
+        # Add the openSUSE Build Service repository for cc65 (more recent than official releases)
+        echo 'deb http://download.opensuse.org/repositories/home:/strik/xUbuntu_22.10/ /' | sudo tee /etc/apt/sources.list.d/home:strik.list
+        curl -fsSL https://download.opensuse.org/repositories/home:strik/xUbuntu_22.10/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_strik.gpg > /dev/null
+        sudo apt update
+        sudo apt install -y cc65
         
     - name: Install LLVM-MOS SDK
       run: |
         # Download and install LLVM-MOS SDK from official release
         wget https://github.com/llvm-mos/llvm-mos-sdk/releases/latest/download/llvm-mos-linux.tar.xz
-        tar -xf llvm-mos-linux.tar.xz
+        tar xf llvm-mos-linux.tar.xz
         sudo mv llvm-mos /opt/llvm-mos
         echo "/opt/llvm-mos/bin" >> $GITHUB_PATH
         
