@@ -1,0 +1,48 @@
+name: Validate Pull Request Build
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  validate-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install LLVM-MOS SDK
+      run: |
+        # Download and install LLVM-MOS SDK from official release
+        wget https://github.com/llvm-mos/llvm-mos-sdk/releases/latest/download/llvm-mos-linux.tar.xz
+        tar -xf llvm-mos-linux.tar.xz
+        sudo mv llvm-mos /opt/llvm-mos
+        echo "/opt/llvm-mos/bin" >> $GITHUB_PATH
+        
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build
+        
+    - name: Configure build
+      run: |
+        cmake --preset=release -DCMAKE_PREFIX_PATH=/opt/llvm-mos
+        
+    - name: Build ROM
+      run: |
+        cmake --build build --config MinSizeRel
+        
+    - name: Verify ROM file
+      run: |
+        ls -la build/miroh-jr.nes
+        file build/miroh-jr.nes
+        echo "✅ ROM built successfully!"
+        
+    - name: Upload ROM as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: miroh-jr-rom-pr-${{ github.event.number }}
+        path: build/miroh-jr.nes
+        retention-days: 7
