@@ -1,5 +1,11 @@
 find_package(Python3 REQUIRED)
 
+# Check for ca65 (part of cc65 toolchain)
+find_program(CA65_EXECUTABLE ca65)
+if(NOT CA65_EXECUTABLE)
+    message(FATAL_ERROR "ca65 is required but not found. Please install cc65 toolchain.")
+endif()
+
 find_file(
   ft_to_asm
   NAMES ft_txt_to_asm.py
