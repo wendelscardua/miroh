@@ -1,3 +1,5 @@
+find_package(Ruby REQUIRED)
+
 find_file(
   ft_to_asm
   NAMES ft_txt_to_asm.py
