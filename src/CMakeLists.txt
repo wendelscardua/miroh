@@ -70,6 +70,7 @@ add_library(SourceObj
   OBJECT
 
   config.s
+  pal_bright_table.s
 
   main.cpp
   title-screen.cpp
