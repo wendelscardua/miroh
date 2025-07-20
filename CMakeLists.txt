@@ -47,11 +47,6 @@ add_subdirectory(ca65src)
 
 add_executable(${ROM})
 
-target_sources(${ROM} PRIVATE 
-  "${CMAKE_BINARY_DIR}/ca65src/ggsound.o" 
-  "${CMAKE_BINARY_DIR}/ca65src/soundtrack.o"
-)
-
 target_link_libraries(${ROM} PRIVATE
   # Second-party, included in llvm-mos
   neslib

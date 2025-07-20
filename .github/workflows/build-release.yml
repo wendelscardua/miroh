@@ -1,0 +1,102 @@
+name: Build and Release ROM
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    # Skip if this is a pre-release tag created by the workflow
+    if: ${{ !contains(github.ref, '-pre') }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true  # Cache gems from Gemfile
+        
+    - name: Install cc65 from openSUSE Build Service
+      run: |
+        # Add the openSUSE Build Service repository for cc65 (more recent than official releases)
+        echo 'deb http://download.opensuse.org/repositories/home:/strik/xUbuntu_22.10/ /' | sudo tee /etc/apt/sources.list.d/home:strik.list
+        curl -fsSL https://download.opensuse.org/repositories/home:strik/xUbuntu_22.10/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_strik.gpg > /dev/null
+        sudo apt update
+        sudo apt install -y cc65
+        
+    - name: Install LLVM-MOS SDK
+      run: |
+        # Download and install LLVM-MOS SDK from official release
+        wget https://github.com/llvm-mos/llvm-mos-sdk/releases/latest/download/llvm-mos-linux.tar.xz
+        tar xf llvm-mos-linux.tar.xz
+        sudo mv llvm-mos /opt/llvm-mos
+        echo "/opt/llvm-mos/bin" >> $GITHUB_PATH
+        
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build
+        
+    - name: Configure build
+      run: |
+        cmake --preset=release -DCMAKE_PREFIX_PATH=/opt/llvm-mos
+        
+    - name: Build ROM
+      run: |
+        cmake --build build --config MinSizeRel
+        
+    - name: Verify ROM file
+      run: |
+        ls -la build/miroh-jr.nes
+        file build/miroh-jr.nes
+        
+    - name: Set release type
+      id: release_type
+      run: |
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          echo "is_prerelease=false"
+          echo "is_draft=true"
+          echo "release_name=Release ${{ github.ref_name }}"
+          echo "tag_name=${{ github.ref_name }}"
+        else
+          echo "is_prerelease=true"
+          echo "is_draft=false"
+          echo "release_name=Pre-release v${{ github.run_number }}"
+          echo "tag_name=v${{ github.run_number }}-pre"
+        fi
+        
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.release_type.outputs.tag_name }}
+        release_name: ${{ steps.release_type.outputs.release_name }}
+        body: |
+          ${{ steps.release_type.outputs.is_prerelease == 'true' && 'Pre-release build from commit' || 'Release build from commit' }} ${{ github.sha }}
+          
+          **ROM File**: `miroh-jr.nes`
+          
+          Built on: ${{ github.event.head_commit.timestamp }}
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref }}
+          
+          ${{ steps.release_type.outputs.is_prerelease == 'true' && '**This is a pre-release for testing.**' || '**This is a draft release. Please review and publish when ready.**' }}
+        draft: ${{ steps.release_type.outputs.is_draft }}
+        prerelease: ${{ steps.release_type.outputs.is_prerelease }}
+        
+    - name: Upload ROM to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/miroh-jr.nes
+        asset_name: miroh-jr.nes
+        asset_content_type: application/octet-stream

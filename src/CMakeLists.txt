@@ -1,3 +1,5 @@
+find_package(Ruby REQUIRED)
+
 find_file(
   ft_to_asm
   NAMES ft_txt_to_asm.py
@@ -56,12 +58,19 @@ add_custom_command(
   DEPENDS ${MAZER} ${CMAKE_SOURCE_DIR}/assets/mazes
 )
 
+add_custom_command(
+  OUTPUT soundtrack.hpp
+  COMMAND ${SOUNDTRACK_ENUMS} generate ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.hpp ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
+  DEPENDS ${SOUNDTRACK_ENUMS} ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
+)
+
 add_metasprite_asset(SOURCE "metasprites.nss" TARGET "metasprites.cpp" HEADER "metasprites.hpp" BANK 6 NAMESPACE "Metasprites")
 
 add_library(SourceObj
   OBJECT
 
   config.s
+  pal_bright_table.s
 
   main.cpp
   title-screen.cpp
@@ -88,7 +97,7 @@ add_library(SourceObj
   polyominos.s
   maze-defs.s
 
-  soundtrack.hpp
+  ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.hpp
 
   ${CMAKE_CURRENT_BINARY_DIR}/metasprites.cpp 
   ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.cpp 
