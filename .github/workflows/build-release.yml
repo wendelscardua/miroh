@@ -19,7 +19,7 @@ jobs:
     - name: Install Ruby
       uses: ruby/setup-ruby@v1
       with:
-        bundler-cache: false  # We don't have a Gemfile, tools use bundler/inline
+        bundler-cache: true  # Cache gems from Gemfile
         
     - name: Install cc65 from openSUSE Build Service
       run: |

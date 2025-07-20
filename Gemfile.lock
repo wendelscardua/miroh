@@ -1,0 +1,20 @@
+GIT
+  remote: https://github.com/wendelscardua/famitracker_parser.git
+  revision: adb909b3ce76c7b5dd66eaf8023542cf9d36067c
+  specs:
+    famitracker_parser (0.1.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    thor (1.4.0)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  famitracker_parser!
+  thor
+
+BUNDLED WITH
+   2.4.21
