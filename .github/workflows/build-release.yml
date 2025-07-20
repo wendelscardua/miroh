@@ -12,6 +12,10 @@ jobs:
     # Skip if this is a pre-release tag created by the workflow
     if: ${{ !contains(github.ref, '-pre') }}
     
+    permissions:
+      contents: write
+      packages: write
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
