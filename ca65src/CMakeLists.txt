@@ -22,13 +22,6 @@ add_custom_command(
   DEPENDS ${ft_to_asm} ${CMAKE_SOURCE_DIR}/music/soundtrack.txt
 )
 
-add_library(Ca65Obj
-  OBJECT
-
-  ggsound.o
-  soundtrack.o
-)
-
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ggsound.o
     COMMAND ca65 --include-dir ${CMAKE_CURRENT_BINARY_DIR} -o ${CMAKE_CURRENT_BINARY_DIR}/ggsound.o ${CMAKE_CURRENT_SOURCE_DIR}/ggsound.asm
@@ -44,5 +37,15 @@ add_custom_command(
     # DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/soundtrack_dpcm.asm
     VERBATIM)
 
-set_target_properties(Ca65Obj PROPERTIES LINKER_LANGUAGE CXX)
+add_library(Ca65Obj OBJECT IMPORTED GLOBAL)
 
+set_property(TARGET Ca65Obj PROPERTY IMPORTED_OBJECTS
+  "${CMAKE_CURRENT_BINARY_DIR}/ggsound.o;${CMAKE_CURRENT_BINARY_DIR}/soundtrack.o"
+)
+
+add_custom_target(ggsound_obj DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/ggsound.o)
+add_custom_target(soundtrack_obj DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.o)
+
+add_dependencies(Ca65Obj ggsound_obj soundtrack_obj)
+
+set_target_properties(Ca65Obj PROPERTIES LINKER_LANGUAGE CXX)
