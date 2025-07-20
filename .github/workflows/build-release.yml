@@ -76,12 +76,10 @@ jobs:
         
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.release_type.outputs.tag_name }}
-        release_name: ${{ steps.release_type.outputs.release_name }}
+        name: ${{ steps.release_type.outputs.release_name }}
         body: |
           ${{ steps.release_type.outputs.is_prerelease == 'true' && 'Pre-release build from commit' || 'Release build from commit' }} ${{ github.sha }}
           
@@ -94,13 +92,4 @@ jobs:
           ${{ steps.release_type.outputs.is_prerelease == 'true' && '**This is a pre-release for testing.**' || '**This is a draft release. Please review and publish when ready.**' }}
         draft: ${{ steps.release_type.outputs.is_draft }}
         prerelease: ${{ steps.release_type.outputs.is_prerelease }}
-        
-    - name: Upload ROM to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/miroh-jr.nes
-        asset_name: miroh-jr.nes
-        asset_content_type: application/octet-stream
+        files: build/miroh-jr.nes
