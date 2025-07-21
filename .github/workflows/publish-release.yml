@@ -1,14 +1,14 @@
-name: Publish Draft Release
+name: Publish Release and Upload to itch.io
 
 on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Tag name of the draft release to publish (e.g., v1.0.0)'
+        description: 'Tag name for the release (e.g., 3.0.0)'
         required: true
         type: string
       release_notes:
-        description: 'Release notes (optional - will use existing if empty)'
+        description: 'Release notes (optional)'
         required: false
         type: string
         default: ''
@@ -17,7 +17,7 @@ on:
         required: true
         type: string
       itch_channel:
-        description: 'itch.io channel name (e.g., windows, linux, mac, or a custom channel)'
+        description: 'itch.io channel name (e.g., nes, windows, etc.)'
         required: true
         type: string
         default: 'nes'
@@ -25,105 +25,38 @@ on:
 jobs:
   publish-release:
     runs-on: ubuntu-latest
-    
     permissions:
       contents: write
-      
     env:
       BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Download ROM from release
+    - name: Download latest ROM artifact from build
+      uses: actions/download-artifact@v4
+      with:
+        name: miroh-jr.nes
+        path: .
+    - name: Create tag and release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.release_tag }}
+        name: Release ${{ github.event.inputs.release_tag }}
+        body: ${{ github.event.inputs.release_notes }}
+        draft: false
+        prerelease: false
+        files: miroh-jr.nes
+    - name: Install itch.io butler
       run: |
-        # Get the release assets
-        RELEASE_RESPONSE=$(gh api repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.release_tag }})
-        
-        # Find the ROM asset
-        ROM_ASSET_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.assets[] | select(.name == "miroh-jr.nes") | .browser_download_url')
-        
-        if [ -z "$ROM_ASSET_URL" ] || [ "$ROM_ASSET_URL" = "null" ]; then
-          echo "❌ Error: Could not find miroh-jr.nes in the release assets"
-          exit 1
-        fi
-        
-        echo "Downloading ROM from: $ROM_ASSET_URL"
-        curl -L -o miroh-jr.nes "$ROM_ASSET_URL"
-        
-        # Verify the downloaded file
-        ls -la miroh-jr.nes
-        file miroh-jr.nes
-        echo "✅ ROM downloaded successfully"
-      
-    - name: Get release information
-      id: release_info
-      run: |
-        # Get the draft release
-        RELEASE_RESPONSE=$(gh api repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.release_tag }})
-        
-        # Extract release ID and current body
-        RELEASE_ID=$(echo "$RELEASE_RESPONSE" | jq -r '.id')
-        CURRENT_BODY=$(echo "$RELEASE_RESPONSE" | jq -r '.body // ""')
-        
-        echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
-        echo "current_body=$CURRENT_BODY" >> $GITHUB_OUTPUT
-        
-        # Check if release exists and is a draft
-        IS_DRAFT=$(echo "$RELEASE_RESPONSE" | jq -r '.draft // false')
-        if [ "$IS_DRAFT" != "true" ]; then
-          echo "❌ Error: Release with tag ${{ github.event.inputs.release_tag }} is not a draft or doesn't exist"
-          exit 1
-        fi
-        
-        echo "✅ Found draft release with ID: $RELEASE_ID"
-        
-    - name: Update release notes
-      id: update_notes
-      run: |
-        # Use provided notes if available, otherwise keep existing
-        if [ -n "${{ github.event.inputs.release_notes }}" ]; then
-          NEW_BODY="${{ github.event.inputs.release_notes }}"
-        else
-          NEW_BODY="${{ steps.release_info.outputs.current_body }}"
-        fi
-        
-        echo "new_body<<EOF" >> $GITHUB_OUTPUT
-        echo "$NEW_BODY" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        
-    - name: Publish release
-      run: |
-        # Publish the draft release
-        gh api repos/${{ github.repository }}/releases/${{ steps.release_info.outputs.release_id }} \
-          --method PATCH \
-          --field draft=false \
-          --field body="${{ steps.update_notes.outputs.new_body }}"
-        
-        echo "✅ Successfully published release ${{ github.event.inputs.release_tag }}"
-        
-    - name: Upload to itch.io
-      run: |
-        # Install itch.io butler
         curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
         unzip butler.zip
         chmod +x butler
-        
-        # Upload to itch.io
-        echo "Uploading to itch.io project: ${{ github.event.inputs.itch_project }}"
-        echo "Channel: ${{ github.event.inputs.itch_channel }}"
-        
+    - name: Upload to itch.io
+      run: |
         ./butler push miroh-jr.nes ${{ github.event.inputs.itch_project }}:${{ github.event.inputs.itch_channel }} --userversion ${{ github.event.inputs.release_tag }}
-        
-        echo "✅ Successfully uploaded to itch.io!"
-        
     - name: Create success message
       run: |
-        # Extract username and game name from itch project
         ITCH_USERNAME=$(echo "${{ github.event.inputs.itch_project }}" | cut -d'/' -f1)
         ITCH_GAME=$(echo "${{ github.event.inputs.itch_project }}" | cut -d'/' -f2)
-        
         echo "🎉 Release ${{ github.event.inputs.release_tag }} has been published!"
         echo "GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.event.inputs.release_tag }}"
         echo "itch.io: https://$ITCH_USERNAME.itch.io/$ITCH_GAME" 
