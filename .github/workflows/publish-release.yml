@@ -1,0 +1,62 @@
+name: Publish Release and Upload to itch.io
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag name for the release (e.g., 3.0.0)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes (optional)'
+        required: false
+        type: string
+        default: ''
+      itch_project:
+        description: 'itch.io project name (e.g., username/game-name)'
+        required: true
+        type: string
+      itch_channel:
+        description: 'itch.io channel name (e.g., nes, windows, etc.)'
+        required: true
+        type: string
+        default: 'nes'
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+    steps:
+    - name: Download latest ROM artifact from build
+      uses: actions/download-artifact@v4
+      with:
+        name: miroh-jr.nes
+        path: .
+    - name: Create tag and release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.release_tag }}
+        name: Release ${{ github.event.inputs.release_tag }}
+        body: ${{ github.event.inputs.release_notes }}
+        draft: false
+        prerelease: false
+        files: miroh-jr.nes
+    - name: Install itch.io butler
+      run: |
+        curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+        unzip butler.zip
+        chmod +x butler
+    - name: Upload to itch.io
+      run: |
+        ./butler push miroh-jr.nes ${{ github.event.inputs.itch_project }}:${{ github.event.inputs.itch_channel }} --userversion ${{ github.event.inputs.release_tag }}
+    - name: Create success message
+      run: |
+        ITCH_USERNAME=$(echo "${{ github.event.inputs.itch_project }}" | cut -d'/' -f1)
+        ITCH_GAME=$(echo "${{ github.event.inputs.itch_project }}" | cut -d'/' -f2)
+        echo "🎉 Release ${{ github.event.inputs.release_tag }} has been published!"
+        echo "GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.event.inputs.release_tag }}"
+        echo "itch.io: https://$ITCH_USERNAME.itch.io/$ITCH_GAME" 
