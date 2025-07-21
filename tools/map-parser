@@ -1,14 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'bundler/inline'
-
-gemfile do
-  source 'https://rubygems.org'
-
-  gem 'thor'
-end
-
+require 'bundler/setup'
 require 'thor'
 
 # Tool for reading the .map file
