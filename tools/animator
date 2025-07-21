@@ -22,16 +22,14 @@ class Animator < Thor
       animations.each do |label, cells|
         f.puts ".global #{label}_cells"
         f.puts "#{label}_cells:"
-        cells.map {|metasprite, duration|
+        cells.map do |metasprite, duration|
           [
             "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16lo",
             "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16hi",
-             duration
+            duration
           ]
-        }.each do |values|
-          f.puts ".byte #{values.join(', ')}"
-        end
-        f.puts ".byte 0, 0, 0"
+        end.each { |values| f.puts ".byte #{values.join(', ')}" } # rubocop:disable Style/MultilineBlockChain
+        f.puts '.byte 0, 0, 0'
       end
     end
 

@@ -30,11 +30,11 @@ class Polyomino < Thor
         values => { rotateTo: rotate_to }
         pieces[rotate_to.to_sym][:leftRotateTo] = key
       end
-      canon.select! {|key| pieces.has_key?(key.to_sym) }
+      canon.select! { |key| pieces.key?(key.to_sym) }
       canon.each do |key|
         f.puts ".byte piece_#{key}@mos16lo"
       end
-      canon.each do |key|
+      canon.each do |key| # rubocop:disable Style/CombinableLoops
         f.puts ".byte piece_#{key}@mos16hi"
       end
       pieces.each.with_index do |(key, values), index|
@@ -90,7 +90,7 @@ class Polyomino < Thor
         blocks.each do |delta_row, delta_column|
           delta_column += 1
           delta_row += 1
-          f.puts "  .byte #{delta_row < 0 ? 0xff : delta_row}, #{delta_column < 0 ? 0xff : delta_column}"
+          f.puts "  .byte #{delta_row.negative? ? 0xff : delta_row}, #{delta_column.negative? ? 0xff : delta_column}"
         end
 
         # alignment is only important for canon pieces
@@ -104,7 +104,7 @@ class Polyomino < Thor
         f.puts "  .byte #{preview_bytes(blocks).join(', ')}"
       end
 
-      used_kicks = {};
+      used_kicks = {}
 
       kicks.each do |key, values|
         if (used_key = used_kicks[values])
@@ -116,7 +116,7 @@ class Polyomino < Thor
         values.each do |delta_x, delta_y|
           delta_row = -delta_y
           delta_column = delta_x
-          f.puts ".byte #{delta_row < 0 ? 0xff : delta_row}, #{delta_column < 0 ? 0xff : delta_column}"
+          f.puts ".byte #{delta_row.negative? ? 0xff : delta_row}, #{delta_column.negative? ? 0xff : delta_column}"
         end
       end
     end
@@ -139,14 +139,14 @@ class Polyomino < Thor
       shadow2: shadow_banks[1],
       shadow3: shadow_banks[2],
       shadow4: shadow_banks[3],
-      shadow5: shadow_banks[4],
+      shadow5: shadow_banks[4]
     }
 
-    namespaces = banks.to_h {|bank, _| [bank, "PolyominoMetasprite#{bank.capitalize}"] }
-    namespace_consts = banks.to_h {|bank, _| [bank, "POLYOMINO_METASPRITE_#{bank.upcase}"] }
+    namespaces = banks.to_h { |bank, _| [bank, "PolyominoMetasprite#{bank.capitalize}"] }
+    namespace_consts = banks.to_h { |bank, _| [bank, "POLYOMINO_METASPRITE_#{bank.upcase}"] }
 
     rodatas = banks.to_h do |bank, bank_number|
-       [bank, %Q(__attribute__((section(".prg_rom_#{bank_number}.rodata.polyominos.#{bank}"))))]
+      [bank, %(__attribute__((section(".prg_rom_#{bank_number}.rodata.polyominos.#{bank}"))))]
     end
 
     # Read the same JSON as the data method
@@ -196,7 +196,7 @@ class Polyomino < Thor
     File.open(cpp_file, 'w') do |f|
       f.puts "#include \"#{h_file}\""
 
-      banks.keys.each do |bank|
+      banks.each_key do |bank|
         f.puts "namespace #{namespaces[bank]} {"
 
         pieces.each do |key, values|
@@ -206,20 +206,20 @@ class Polyomino < Thor
             delta_column += 1
             delta_row += 1
             sprite_templates[bank].each do |template|
-              x = 16 * delta_column + template[:x]
-              y = 16 * delta_row + template[:y]
+              x = (16 * delta_column) + template[:x]
+              y = (16 * delta_row) + template[:y]
               f.puts "    { .spr = { #{x}, #{y}, 0x#{template[:tile].to_s(16)}, #{template[:attr]} } },"
             end
           end
           f.puts '    { .terminator = 0x80 } };'
 
           f.puts "  #{namespace_consts[bank]}_RODATA const Sprite flip_piece_#{key}[] = {"
-          blocks.reverse.each do |delta_row, delta_column|
+          blocks.reverse_each do |delta_row, delta_column|
             delta_column += 1
             delta_row += 1
-            sprite_templates[bank].reverse.each do |template|
-              x = 16 * delta_column + template[:x]
-              y = 16 * delta_row + template[:y]
+            sprite_templates[bank].reverse_each do |template|
+              x = (16 * delta_column) + template[:x]
+              y = (16 * delta_row) + template[:y]
               f.puts "    { .spr = { #{x}, #{y}, 0x#{template[:tile].to_s(16)}, #{template[:attr]} } },"
             end
           end
@@ -227,14 +227,14 @@ class Polyomino < Thor
         end
         # Add array of pointers to each metasprite
         f.puts "\n  #{namespace_consts[bank]}_RODATA const Sprite* const all_pieces[] = {"
-        pieces.each do |key, _|
+        pieces.each_key do |key|
           f.puts "    piece_#{key},"
         end
-        pieces.each do |key, _|
+        pieces.each_key do |key| # rubocop:disable Style/CombinableLoops
           f.puts "    flip_piece_#{key},"
         end
-        f.puts "  };"
-        f.puts "}"
+        f.puts '  };'
+        f.puts '}'
       end
     end
 
@@ -247,31 +247,32 @@ class Polyomino < Thor
         f.puts "#define #{namespace_consts[bank]}_RODATA #{rodatas[bank]}"
         f.puts "#define #{namespace_consts[bank]}_BANK #{bank_number}"
         f.puts "namespace #{namespaces[bank]} {"
-        pieces.each do |key, _|
+        pieces.each_key do |key|
           f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite piece_#{key}[];"
           f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite flip_piece_#{key}[];"
         end
         f.puts "  extern #{namespace_consts[bank]}_RODATA const Sprite* const all_pieces[];"
-        f.puts "  enum class Piece_Id : u8 {"
-        pieces.each do |key, _|
+        f.puts '  enum class Piece_Id : u8 {'
+        pieces.each_key do |key|
           f.puts "    #{key},"
         end
-        f.puts "    FlipStart," # the flipped pieces have the same index as the original ones + FlipStart
-        f.puts "  };"
+        f.puts '    FlipStart,' # the flipped pieces have the same index as the original ones + FlipStart
+        f.puts '  };'
         f.puts '}'
       end
     end
   end
-  private
 
   PREVIEW_BASE_TILE = 0x70
 
+  private
+
   def preview_byte(block_matrix, row_offset, column_offset)
-    block_matrix[row_offset + 1][column_offset + 1] * 1 +
-    block_matrix[row_offset + 1][column_offset + 0] * 2 +
-    block_matrix[row_offset + 0][column_offset + 1] * 4 +
-    block_matrix[row_offset + 0][column_offset + 0] * 8 +
-    PREVIEW_BASE_TILE
+    (block_matrix[row_offset + 1][column_offset + 1] * 1) +
+      (block_matrix[row_offset + 1][column_offset + 0] * 2) +
+      (block_matrix[row_offset + 0][column_offset + 1] * 4) +
+      (block_matrix[row_offset + 0][column_offset + 0] * 8) +
+      PREVIEW_BASE_TILE
   end
 
   def preview_bytes(blocks)

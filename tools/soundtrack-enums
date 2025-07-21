@@ -4,7 +4,7 @@
 require 'bundler/setup'
 require 'thor'
 require 'famitracker_parser'
-require_relative './nexxt'
+require_relative 'nexxt'
 
 # Tool for converting a famitracker text into a .hpp header with enums
 class SoundtrackEnums < Thor
@@ -43,7 +43,7 @@ class SoundtrackEnums < Thor
         .sub(/_+\z/, '')
         .capitalize
         .then do |label|
-          if label =~ /^[A-Z]/
+          if /^[A-Z]/.match?(label)
             label
           else
             "Number#{label}"

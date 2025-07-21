@@ -3,7 +3,7 @@
 
 require 'bundler/setup'
 require 'thor'
-require_relative './nexxt'
+require_relative 'nexxt'
 
 # Tool for converting a NEXXT session into metasprite data
 class GenerateMetasprites < Thor
@@ -18,7 +18,7 @@ class GenerateMetasprites < Thor
     namespace = options[:namespace] || 'Metasprite'
 
     bank = options[:bank]
-    rodata = %Q(__attribute__((section(".prg_rom_#{bank}.rodata.metasprites"))))
+    rodata = %(__attribute__((section(".prg_rom_#{bank}.rodata.metasprites"))))
 
     session = NEXXT::Session.read(session_file)
 
@@ -30,13 +30,13 @@ class GenerateMetasprites < Thor
       PREAMBLE
 
       session.metasprites.each do |metasprite|
-        f.puts "  #{namespace.upcase}_RODATA const Sprite #{metasprite.name.gsub(/\s+/,'')}[] = {"
+        f.puts "  #{namespace.upcase}_RODATA const Sprite #{metasprite.name.gsub(/\s+/, '')}[] = {"
         metasprite.sprites.each do |sprite|
           f.puts "     { .spr = { #{sprite.x}, #{sprite.y}, #{format('0x%02x', sprite.tile)}, #{sprite.attribute} } },"
         end
         f.puts '    { .terminator = 0x80 } };'
       end
-      f.puts "}"
+      f.puts '}'
     end
 
     File.open(h_file, 'w') do |f|
@@ -48,13 +48,13 @@ class GenerateMetasprites < Thor
         namespace #{namespace} {
       PREAMBLE
       session.metasprites.each do |metasprite|
-        f.puts "  extern #{namespace.upcase}_RODATA const Sprite #{metasprite.name.gsub(/\s+/,'')}[];"
+        f.puts "  extern #{namespace.upcase}_RODATA const Sprite #{metasprite.name.gsub(/\s+/, '')}[];"
       end
-      f.puts "  enum class Metasprite_Id : u8 {"
+      f.puts '  enum class Metasprite_Id : u8 {'
       session.metasprites.each do |metasprite|
-        f.puts "    #{metasprite.name.gsub(/\s+/,'')},"
+        f.puts "    #{metasprite.name.gsub(/\s+/, '')},"
       end
-      f.puts "  };"
+      f.puts '  };'
       f.puts '}'
     end
   end

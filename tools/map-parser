@@ -47,9 +47,7 @@ class MapParser < Thor
            name: 'Area', used: 'Used', total: 'Total', free: 'Free'
 
     map.areas.each do |area|
-      used = area.out_sections
-                 .map { |out| out.usage }
-                 .sum
+      used = area.out_sections.sum(&:usage)
       next if used.zero? && !options[:verbose]
 
       total = area.range.end - area.range.begin
@@ -74,16 +72,18 @@ class MapParser < Thor
                in_section: in_section.name,
                usage:,
                out_section: out_section.name
-        if options[:verbose]
-          if in_section.symbols.any? && in_section.symbols.all? { |symbol| symbol.usage.zero? }
-             # infer symbol usage comparing consective symbols
-             in_section.symbols.sort_by! { |symbol| symbol.used_range.begin }
-             in_section.symbols.each_cons(2) {|left, right| left.used_range = left.used_range.begin...right.used_range.begin }
-             in_section.symbols.last.used_range = in_section.symbols.last.used_range.begin...in_section.used_range.end
+        next unless options[:verbose]
+
+        if in_section.symbols.any? && in_section.symbols.all? { |symbol| symbol.usage.zero? }
+          # infer symbol usage comparing consective symbols
+          in_section.symbols.sort_by! { |symbol| symbol.used_range.begin }
+          in_section.symbols.each_cons(2) do |left, right|
+            left.used_range = left.used_range.begin...right.used_range.begin
           end
-          in_section.symbols.sort_by(&:usage).reverse.each do |symbol|
-            printf "                 %<usage>8x: %<name>s\n", usage: symbol.usage, name: symbol.name
-          end
+          in_section.symbols.last.used_range = in_section.symbols.last.used_range.begin...in_section.used_range.end
+        end
+        in_section.symbols.sort_by(&:usage).reverse_each do |symbol|
+          printf "                 %<usage>8x: %<name>s\n", usage: symbol.usage, name: symbol.name
         end
       end
     end
@@ -103,10 +103,9 @@ class MapParser < Thor
         Area.new('RAM', 0x200...0x800)
       ]
 
-      (0..banks - 2).each do |bank|
+      (0..(banks - 2)).each do |bank|
         areas << Area.new("PRG ROM #{bank}",
-                          (0x8000 + 0x10000 * bank)...
-                          (0xc000 + 0x10000 * bank))
+                          (0x8000 + (0x10000 * bank))...(0xc000 + (0x10000 * bank)))
       end
 
       areas << Area.new('PRG ROM Last', 0xc000...0x10000)
@@ -121,16 +120,15 @@ class MapParser < Thor
         Area.new('WRAM', 0x6000...0x8000)
       ]
 
-      (0...banks - 2).each do |bank|
+      (0...(banks - 2)).each do |bank|
         areas << Area.new("PRG ROM #{bank}",
-                          (0x8000 + 0x10000 * bank)...
-                          (0xa000 + 0x10000 * bank))
+                          (0x8000 + (0x10000 * bank))...(0xa000 + (0x10000 * bank)))
       end
 
       areas << Area.new('PRG ROM Fix', 0xa000...0xc000)
       areas << Area.new('PRG ROM Last', 0xc000...0x10000)
 
-      areas << Area.new('CHR ROM', 0x1000000...0x1000000 + 0x2000 * chr_banks)
+      areas << Area.new('CHR ROM', 0x1000000...(0x1000000 + (0x2000 * chr_banks)))
 
       new(areas)
     end
@@ -177,39 +175,39 @@ class MapParser < Thor
         size = match['size'].to_i(16)
 
         if (out_name = match['out'])
-          next if out_name =~ / = / || out_name =~ /\A\s*\z/
+          next if out_name.include?(' = ') || out_name =~ /\A\s*\z/
 
           current_vma_area = areas.find { |area| area.range.include? vma }
           next unless current_vma_area
 
           current_vma_out_section = OutSection.new(name: out_name,
-                                                   used_range: vma...vma + size)
+                                                   used_range: vma...(vma + size))
 
-          current_vma_area.out_sections << current_vma_out_section unless out_name =~ /\A\.(?:debug|symtab|shstrtab|strtab|comment)/
+          unless /\A\.(?:debug|symtab|shstrtab|strtab|comment)/.match?(out_name)
+            current_vma_area.out_sections << current_vma_out_section
+          end
 
           if lma != vma
             current_lma_area = areas.find { |area| area.range.include? lma }
             next unless current_lma_area
 
             current_lma_out_section = OutSection.new(name: out_name,
-                                                     used_range: lma...lma + size)
+                                                     used_range: lma...(lma + size))
             current_lma_area.out_sections << current_lma_out_section
 
           end
         elsif (in_name = match['in'])
           current_vma_in_section = InSection.new(name: in_name,
-                                                 used_range: vma...vma + size)
+                                                 used_range: vma...(vma + size))
           current_vma_out_section.in_sections << current_vma_in_section
           if lma != vma
             current_lma_in_section = InSection.new(name: in_name,
-                                                  used_range: lma...lma + size)
+                                                   used_range: lma...(lma + size))
             current_lma_out_section.in_sections << current_lma_in_section
           end
         elsif (sym_name = match['sym'])
-          current_vma_in_section.symbols << Symbol.new(name: sym_name, used_range: vma...vma + size)
-          if lma != vma
-            current_lma_in_section.symbols << Symbol.new(name: sym_name, used_range: lma...lma + size)
-          end
+          current_vma_in_section.symbols << Symbol.new(name: sym_name, used_range: vma...(vma + size))
+          current_lma_in_section.symbols << Symbol.new(name: sym_name, used_range: lma...(lma + size)) if lma != vma
         end
       end
 
