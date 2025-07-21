@@ -31,10 +31,12 @@ jobs:
       BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
     steps:
     - name: Download latest ROM artifact from build
-      uses: actions/download-artifact@v4
+      uses: dawidd6/action-download-artifact@v3
       with:
+        workflow: build-release.yml
         name: miroh-jr.nes
         path: .
+        branch: main
     - name: Create tag and release
       id: create_release
       uses: softprops/action-gh-release@v1
