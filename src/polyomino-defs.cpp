@@ -7,11 +7,11 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-bool PolyominoDef::collide(Board &board, s8 row, u8 column) const {
+bool PolyominoDef::collide(Board &board, s8 row, s8 column) const {
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];
     if (board.occupied(row + delta.delta_row,
-                       column + (u8)delta.delta_column)) {
+                       (u8)(column + delta.delta_column))) {
       return true;
     }
   }
@@ -85,12 +85,12 @@ void PolyominoDef::chibi_render(u8 row, u8 column) const {
   multi_vram_buffer_horz(preview_tiles + 2, 2, NTADR_A(column, row + 1));
 }
 
-bool PolyominoDef::board_render(Board &board, s8 row, u8 column) const {
+bool PolyominoDef::board_render(Board &board, s8 row, s8 column) const {
   bool it_fits = true;
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];
     s8 block_row = row + delta.delta_row;
-    u8 block_column = column + (u8)delta.delta_column;
+    u8 block_column = (u8)(column + delta.delta_column);
     if (block_row >= 0) {
       banked_lambda(Board::BANK, [&board, block_row, block_column]() {
         board.add_animation(BoardAnimation(&Board::block_jiggle,

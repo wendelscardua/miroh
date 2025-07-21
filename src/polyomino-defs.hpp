@@ -31,14 +31,14 @@ struct PolyominoDef {
   std::array<const Coordinates, 5> deltas;
   const char preview_tiles[4];
 
-  bool collide(Board &board, s8 row, u8 column) const;
+  bool collide(Board &board, s8 row, s8 column) const;
   void render(u8 x, int y) const;
   void shadow(u8 x, int y, u8 dist) const;
   void chibi_render(u8 row, u8 column) const;
 
   // draws the polyomino on the nametable/board
   // returns true if the whole polyomino fits
-  bool board_render(Board &board, s8 row, u8 column) const;
+  bool board_render(Board &board, s8 row, s8 column) const;
 };
 
 extern "C" const soa::Array<PolyominoDef *, NUM_POLYOMINOS> polyominos;

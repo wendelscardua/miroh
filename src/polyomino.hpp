@@ -20,7 +20,7 @@ class Polyomino {
   const PolyominoDef *definition;
   const PolyominoDef *next;
   s8 row;
-  u8 column;
+  s8 column;
   u8 x;
   u8 y;
   u16 drop_timer;

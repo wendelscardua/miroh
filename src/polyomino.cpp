@@ -166,7 +166,7 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
 bool Polyomino::able_to_kick(const auto &kick_deltas) {
   for (auto kick : kick_deltas) {
     s8 new_row = row + kick.delta_row;
-    u8 new_column = (u8)(column + kick.delta_column);
+    s8 new_column = column + kick.delta_column;
 
     if (!definition->collide(board, new_row, new_column)) {
       row = new_row;
