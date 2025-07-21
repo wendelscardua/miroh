@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "coroutine.hpp"
 #include "direction.hpp"
+#include "energy-sprites.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
 #include "metasprites.hpp"
@@ -444,24 +445,8 @@ void render_energy_hud(int y_scroll, u8 value) {
   static constexpr u8 ENERGY_HUD_X = 0x30;
   static constexpr u8 ENERGY_HUD_Y = 0xd7;
 
-  static const Sprite *sprites[] = {
-      NULL,
-      Metasprites::Energy1,
-      Metasprites::Energy2,
-      Metasprites::Energy3,
-      Metasprites::Energy4,
-      Metasprites::Energy5,
-      Metasprites::Energy6,
-      Metasprites::Energy7,
-      Metasprites::Energy8,
-      Metasprites::Energy9,
-      Metasprites::Energy10,
-      Metasprites::Energy11,
-      Metasprites::Energy12,
-  };
-
   banked_oam_meta_spr(METASPRITES_BANK, ENERGY_HUD_X, ENERGY_HUD_Y - y_scroll,
-                      sprites[value]);
+                      energy_sprites[value]);
 }
 
 void Unicorn::refresh_energy_hud(int y_scroll) {
