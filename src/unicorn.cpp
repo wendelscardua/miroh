@@ -112,7 +112,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       buffered_input = 0;
     }
     // check if unicorn is trapped
-    if (board.occupied((s8)row, (s8)column)) {
+    if (board.occupied((s8)row, column)) {
       set_state(State::Trapped);
       break;
     }
@@ -160,7 +160,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
    (!pressed && moving != Direction::None && (held & (button))))
     if (PRESS_HELD(PAD_UP)) {
       if (!current_cell.up_wall && row > 0 &&
-          !board.occupied((s8)(row - 1), (s8)column)) {
+          !board.occupied((s8)(row - 1), column)) {
         moving = Direction::Up;
         target_x = x;
         target_y = y - GRID_SIZE;
@@ -169,8 +169,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       }
     }
     if (PRESS_HELD(PAD_DOWN)) {
-      if (!current_cell.down_wall &&
-          !board.occupied((s8)(row + 1), (s8)column)) {
+      if (!current_cell.down_wall && !board.occupied((s8)(row + 1), column)) {
         moving = Direction::Down;
         target_x = x;
         target_y = y + GRID_SIZE;
@@ -180,8 +179,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     }
     if (PRESS_HELD(PAD_LEFT)) {
       facing = Direction::Left;
-      if (!current_cell.left_wall &&
-          !board.occupied((s8)row, (s8)(column - 1))) {
+      if (!current_cell.left_wall && !board.occupied((s8)row, column - 1)) {
         moving = Direction::Left;
         target_x = x - GRID_SIZE;
         target_y = y;
@@ -191,8 +189,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     }
     if (PRESS_HELD(PAD_RIGHT)) {
       facing = Direction::Right;
-      if (!current_cell.right_wall &&
-          !board.occupied((s8)row, (s8)(column + 1))) {
+      if (!current_cell.right_wall && !board.occupied((s8)row, column + 1)) {
         moving = Direction::Right;
         target_x = x + GRID_SIZE;
         target_y = y;
