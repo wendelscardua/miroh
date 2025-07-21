@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "coroutine.hpp"
 #include "direction.hpp"
+#include "energy-sprites.hpp"
 #include "fixed-point.hpp"
 #include "ggsound.hpp"
 #include "metasprites.hpp"
@@ -111,7 +112,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       buffered_input = 0;
     }
     // check if unicorn is trapped
-    if (board.occupied((s8)row, (s8)column)) {
+    if (board.occupied((s8)row, column)) {
       set_state(State::Trapped);
       break;
     }
@@ -159,7 +160,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
    (!pressed && moving != Direction::None && (held & (button))))
     if (PRESS_HELD(PAD_UP)) {
       if (!current_cell.up_wall && row > 0 &&
-          !board.occupied((s8)(row - 1), (s8)column)) {
+          !board.occupied((s8)(row - 1), column)) {
         moving = Direction::Up;
         target_x = x;
         target_y = y - GRID_SIZE;
@@ -168,8 +169,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       }
     }
     if (PRESS_HELD(PAD_DOWN)) {
-      if (!current_cell.down_wall &&
-          !board.occupied((s8)(row + 1), (s8)column)) {
+      if (!current_cell.down_wall && !board.occupied((s8)(row + 1), column)) {
         moving = Direction::Down;
         target_x = x;
         target_y = y + GRID_SIZE;
@@ -179,8 +179,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     }
     if (PRESS_HELD(PAD_LEFT)) {
       facing = Direction::Left;
-      if (!current_cell.left_wall &&
-          !board.occupied((s8)row, (s8)(column - 1))) {
+      if (!current_cell.left_wall && !board.occupied((s8)row, column - 1)) {
         moving = Direction::Left;
         target_x = x - GRID_SIZE;
         target_y = y;
@@ -190,8 +189,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     }
     if (PRESS_HELD(PAD_RIGHT)) {
       facing = Direction::Right;
-      if (!current_cell.right_wall &&
-          !board.occupied((s8)row, (s8)(column + 1))) {
+      if (!current_cell.right_wall && !board.occupied((s8)row, column + 1)) {
         moving = Direction::Right;
         target_x = x + GRID_SIZE;
         target_y = y;
@@ -444,24 +442,8 @@ void render_energy_hud(int y_scroll, u8 value) {
   static constexpr u8 ENERGY_HUD_X = 0x30;
   static constexpr u8 ENERGY_HUD_Y = 0xd7;
 
-  static const Sprite *sprites[] = {
-      NULL,
-      Metasprites::Energy1,
-      Metasprites::Energy2,
-      Metasprites::Energy3,
-      Metasprites::Energy4,
-      Metasprites::Energy5,
-      Metasprites::Energy6,
-      Metasprites::Energy7,
-      Metasprites::Energy8,
-      Metasprites::Energy9,
-      Metasprites::Energy10,
-      Metasprites::Energy11,
-      Metasprites::Energy12,
-  };
-
   banked_oam_meta_spr(METASPRITES_BANK, ENERGY_HUD_X, ENERGY_HUD_Y - y_scroll,
-                      sprites[value]);
+                      energy_sprites[value]);
 }
 
 void Unicorn::refresh_energy_hud(int y_scroll) {

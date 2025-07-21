@@ -8,7 +8,7 @@ module NEXXT
     def initialize(text)
       @text = text
       lines = text.lines(chomp: true).compact
-      @flat_table = lines.select { |line| line =~ /=/ }.map { |line| line.split(/=/, 2) }.to_h
+      @flat_table = lines.grep(/=/).to_h { |line| line.split('=', 2) }
       @table = Session.parse_table(@flat_table)
       @chr_main = Session.decode_hex(@table.dig('CHR', 'Main'))
       @chr_copy = Session.decode_hex(@table.dig('CHR', 'Copy'))
@@ -52,7 +52,7 @@ module NEXXT
     end
 
     def self.decompose_key(key)
-      key.split(/(?<=[^A-Z0-9])(?=[A-Z0-9])|(?<=CHR)/).map { |part| part.gsub(/_/, '') }
+      key.split(/(?<=[^A-Z0-9])(?=[A-Z0-9])|(?<=CHR)/).map { |part| part.delete('_') }
     end
 
     # decompress NEXXT's rle'd hexadecimal data
@@ -65,7 +65,7 @@ module NEXXT
         raise "Invalid string #{string}" unless match
 
         if (rle = match['rle'])
-          values += [(values[-1] || 0)] * (rle.to_i(16) - 1)
+          values += [values[-1] || 0] * (rle.to_i(16) - 1)
         elsif (literal = match['literal'])
           values << literal.to_i(16)
         end
@@ -76,8 +76,7 @@ module NEXXT
 
     def self.metasprite_names(table)
       table.select { |key, value| value.is_a?(String) && key =~ /\d/ }
-           .map { |key, value| [value, key.to_i] }
-           .to_h
+           .to_h { |key, value| [value, key.to_i] }
     end
 
     def self.make_metasprites(names:, bytes:, offset:)
@@ -137,20 +136,20 @@ module NEXXT
                                  height_l.nil? ||
                                  height_h.nil?
 
-        [width_h * 256 + width_l, height_h * 256 + height_l]
+        [(width_h * 256) + width_l, (height_h * 256) + height_l]
       end
     end
 
     def self.organize_in_tiles(bytes, width, height)
       Array.new(height) do |row|
         Array.new(width) do |column|
-          bytes[row * width + column]
+          bytes[(row * width) + column]
         end
       end
     end
 
     def self.extract_attribute(attributes, width, meta_row, meta_column)
-      attribute = attributes[(meta_row / 2) * (width / 4) + (meta_column / 2)]
+      attribute = attributes[((meta_row / 2) * (width / 4)) + (meta_column / 2)]
       attribute >>= 4 if meta_row.odd?
       attribute >>= 2 if meta_column.odd?
       attribute & 0b11

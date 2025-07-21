@@ -96,6 +96,7 @@ add_library(SourceObj
   animation-defs.s
   polyominos.s
   maze-defs.s
+  energy-sprites.s
 
   ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.hpp
 

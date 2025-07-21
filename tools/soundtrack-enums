@@ -1,17 +1,10 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'bundler/inline'
-
-gemfile do
-  source 'https://rubygems.org'
-
-  gem 'famitracker_parser', github: 'wendelscardua/famitracker_parser'
-  gem 'thor'
-end
-
+require 'bundler/setup'
 require 'thor'
-require_relative './nexxt'
+require 'famitracker_parser'
+require_relative 'nexxt'
 
 # Tool for converting a famitracker text into a .hpp header with enums
 class SoundtrackEnums < Thor
@@ -50,7 +43,7 @@ class SoundtrackEnums < Thor
         .sub(/_+\z/, '')
         .capitalize
         .then do |label|
-          if label =~ /^[A-Z]/
+          if /^[A-Z]/.match?(label)
             label
           else
             "Number#{label}"
