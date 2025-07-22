@@ -15,19 +15,19 @@
 #pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
 
 // NOTE: source file defines indices [0, 4) as littleminos
-static auto littleminos = Bag<u8, 4>(NULL);
+Bag<u8, 4> Polyomino::littleminos(NULL);
 
 // NOTE: source file defines indices [11, 28) as pentominos
-static auto pentominos = Bag<u8, 17>(NULL);
+Bag<u8, 17> Polyomino::pentominos(NULL);
 
 // NOTE: source file defines indices [4, 11) as tetrominos
 auto Polyomino::pieces = Bag<u8, 10>([](auto value) {
   if (value < 4) {
-    return littleminos.take();
+    return Polyomino::littleminos.take();
   }
 
   if (value >= 11) {
-    return pentominos.take();
+    return Polyomino::pentominos.take();
   }
 
   return value;
@@ -37,15 +37,15 @@ Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), state(State::Inactive) {
 
   // initialize littleminos bag
-  littleminos.reset();
+  Polyomino::littleminos.reset();
   for (u8 i = 0; i < 4; i++) {
-    littleminos.insert(i);
+    Polyomino::littleminos.insert(i);
   }
 
   // initialize pentominos bag
-  pentominos.reset();
+  Polyomino::pentominos.reset();
   for (u8 i = 11; i < 28; i++) {
-    pentominos.insert(i);
+    Polyomino::pentominos.insert(i);
   }
 
   // add all tetrominos to the pieces bag
@@ -56,11 +56,11 @@ Polyomino::Polyomino(Board &board)
   }
 
   // also add two random "littleminos" (1,2, or 3 blocks)
-  pieces.insert(littleminos.take());
-  pieces.insert(littleminos.take());
+  pieces.insert(Polyomino::littleminos.take());
+  pieces.insert(Polyomino::littleminos.take());
 
   // ... and a random pentomino
-  pieces.insert(pentominos.take());
+  pieces.insert(Polyomino::pentominos.take());
 
   next = polyominos[pieces.take()];
 

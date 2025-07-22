@@ -15,6 +15,8 @@ class Polyomino {
   static constexpr s8 MOVEMENT_DELAY = 6;
 
   static Bag<u8, 10> pieces;
+  static Bag<u8, 4> littleminos;
+  static Bag<u8, 17> pentominos;
 
   Board &board;
   const PolyominoDef *definition;
