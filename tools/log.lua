@@ -9,9 +9,15 @@ label_stack = {}
 display_toggle = false
 left_mouse_prev_state = false
 
+frame_start_cycle = 0
+
+function get_start_frame_cycle_count()
+  frame_start_cycle = emu.getState()['cpu.cycleCount']
+end
+
 function putchar_cb(address, value)
-   c = string.char(value)
-   if (c == '\n') then
+  c = string.char(value)
+  if (c == '\n') then
     emu.log(str)
     str = ""
   else
@@ -39,6 +45,7 @@ function start_watch(_address, label)
   end
   current_watch = current_watch.children[label]
   current_watch.start = emu.getState()['cpu.cycleCount']
+  current_watch.relative_start = current_watch.start - frame_start_cycle
   current_watch.start_frame = emu.getState()['frameCount']
   emu.getState()
   table.insert(label_stack, label)
@@ -62,7 +69,8 @@ function stop_watch(_address, label)
     current_watch.cycles = 0
   end
   if frames > 0 then
-    emu.log("Warning: watch label " .. label .. " crossed " .. frames .. " frames (" .. new_cycles .. " cycles)")
+    emu.log("Warning: watch label " .. label .. " crossed " .. frames .. " frames (" .. new_cycles .. " cycles, starting at " .. current_watch.relative_start .. " cycles from beginning of its frame)")
+    emu.log("Current frame: " .. emu.getState()['frameCount'])
   elseif new_cycles > current_watch.cycles then
     current_watch.cycles = new_cycles
   end
@@ -84,32 +92,32 @@ function recursive_display(subtable, x, y, width)
 end
 
 function display_times()
-   left_mouse_state = emu.getMouseState().left
-   if left_mouse_state ~= left_mouse_prev_state then
-      if left_mouse_state then
-         display_toggle = not display_toggle
-      end
-      left_mouse_prev_state = left_mouse_state
-   end
+  left_mouse_state = emu.getMouseState().left
+  if left_mouse_state ~= left_mouse_prev_state then
+    if left_mouse_state then
+      display_toggle = not display_toggle
+    end
+    left_mouse_prev_state = left_mouse_state
+  end
 
-   if not display_toggle then
-      return
-   end
+  if not display_toggle then
+    return
+  end
 
-   display_stack = {}
-   recursive_display(watch_table, 8, 8, 128)
+  display_stack = {}
+  recursive_display(watch_table, 8, 8, 128)
 
-   while #display_stack ~= 0 do
-      rect = table.remove(display_stack)
-      bgColor = 0x302060FF
-      fgColor = 0x30FF4040
+  while #display_stack ~= 0 do
+    rect = table.remove(display_stack)
+    bgColor = 0x302060FF
+    fgColor = 0x30FF4040
 
-      emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, bgColor, true, 1)
-      emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, fgColor, false, 1)
-      if rect.label ~= nil then
-         emu.drawString(rect.x + 2, rect.y + 2, rect.label, 0xFFFFFF, 0xFF000000)
-      end
-   end
+    emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, bgColor, true, 1)
+    emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, fgColor, false, 1)
+    if rect.label ~= nil then
+      emu.drawString(rect.x + 2, rect.y + 2, rect.label, 0xFFFFFF, 0xFF000000)
+    end
+  end
 end
 
 function break_point(_address, value)
@@ -123,3 +131,4 @@ emu.addMemoryCallback(break_point, emu.callbackType.write, 0x4019)
 emu.addMemoryCallback(start_watch, emu.callbackType.write, 0x4020)
 emu.addMemoryCallback(stop_watch, emu.callbackType.write, 0x4021)
 emu.addEventCallback(display_times, emu.eventType.endFrame);
+emu.addEventCallback(get_start_frame_cycle_count, emu.eventType.startFrame);
