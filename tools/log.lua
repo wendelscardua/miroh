@@ -118,13 +118,13 @@ function recursive_display(subtable, x, y, width)
   local rect = { x = x, y = y, width = width, height = 2 }
   if subtable.cycles ~= nil then
     rect.label =  subtable.label .. " " .. string.format("%.2f", subtable.cycles)
-    rect.height = rect.height + 10
+    rect.height = rect.height + 7
   end
   for label, inner in pairs(subtable.children) do
-    rect.height = rect.height + recursive_display(inner, x + 4, y + rect.height, width - 6) + 2
+    rect.height = rect.height + recursive_display(inner, x + 4, y + rect.height, width - 6) - 1
   end
   table.insert(display_stack, rect)
-  return rect.height
+  return rect.height + 1
 end
 
 function display_times()
@@ -157,7 +157,7 @@ function display_times()
     emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, bgColor, true, 1)
     emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, fgColor, false, 1)
     if rect.label ~= nil then
-      emu.drawString(rect.x + 2, rect.y + 2, rect.label, 0x30FFFFFF, 0xFF000000)
+      emu.drawString(rect.x + 2, rect.y + 1, rect.label, 0x30FFFFFF, 0xFF000000)
     end
   end
 end
