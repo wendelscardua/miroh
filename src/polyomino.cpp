@@ -94,8 +94,6 @@ void Polyomino::spawn() {
   }
   row -= (max_delta + 1);
   y -= (max_delta + 1) * 16;
-
-  update_bitmask();
 }
 
 void Polyomino::update_bitmask() {
@@ -219,7 +217,6 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
 
     if (able_to_kick(definition->right_kick->deltas)) {
       banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
-      update_bitmask();
     } else {
       definition = definition->left_rotation; // undo rotation
     }
@@ -228,7 +225,6 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
 
     if (able_to_kick(definition->left_kick->deltas)) {
       banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
-      update_bitmask();
     } else {
       definition = definition->right_rotation; // undo rotation
     }
@@ -269,6 +265,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
         grounded_timer = 0;
       }
     }
+    update_bitmask();
     return;
   }
 
@@ -277,11 +274,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     if (!collide(row, column - 1)) {
       column--;
       x -= 16;
-#pragma clang loop unroll(full)
-      for (u8 i = 0; i < 4; i++) {
-        bitmask[i] = bitmask[i] >> 1;
-      }
-      update_shadow();
     }
     movement_direction = Direction::None;
     break;
@@ -289,11 +281,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     if (!collide(row, column + 1)) {
       column++;
       x += 16;
-#pragma clang loop unroll(full)
-      for (u8 i = 0; i < 4; i++) {
-        bitmask[i] = bitmask[i] << 1;
-      }
-      update_shadow();
     }
     movement_direction = Direction::None;
     break;
@@ -307,11 +294,9 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     }
   case Direction::Up:
   case Direction::None:
-    if (board.active_animations) {
-      update_shadow();
-    }
     break;
   }
+  update_bitmask();
 }
 
 void Polyomino::render(int y_scroll) {
