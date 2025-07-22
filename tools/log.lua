@@ -5,6 +5,8 @@ watch_table = {
 }
 current_watch = {}
 label_stack = {}
+label_latch = false
+label_address = 0
 
 display_toggle = 0  -- 0: no display, 1: less transparent, 2: more transparent
 left_mouse_prev_state = false
@@ -29,7 +31,24 @@ function putchar_cb(address, value)
   end
 end
 
-function start_watch(_address, label)
+function start_watch(_address, label_byte)
+  if label_latch then
+    label_latch = false
+    label_address = label_address * 256 + label_byte
+    label = ""
+    while true do
+      local byte = emu.read(label_address, emu.memType.nesMemory, false)
+      if byte == 0 then
+        break
+      end
+      label = label .. string.char(byte)
+      label_address = label_address + 1
+    end
+  else
+    label_latch = true
+    label_address = label_byte
+    return
+  end
   current_watch = watch_table
   for k, v in ipairs(label_stack) do
     current_watch = current_watch.children[v]
@@ -51,7 +70,24 @@ function start_watch(_address, label)
   table.insert(label_stack, label)
 end
 
-function stop_watch(_address, label)
+function stop_watch(_address, label_byte)
+  if label_latch then
+    label_latch = false
+    label_address = label_address * 256 + label_byte
+    label = ""
+    while true do
+      local byte = emu.read(label_address, emu.memType.nesMemory, false)
+      if byte == 0 then
+        break
+      end
+      label = label .. string.char(byte)
+      label_address = label_address + 1
+    end
+  else
+    label_latch = true
+    label_address = label_byte
+    return
+  end
   current_watch = watch_table
   for k, v in ipairs(label_stack) do
     current_watch = current_watch.children[v]
@@ -60,7 +96,7 @@ function stop_watch(_address, label)
   removed_label = table.remove(label_stack)
 
   if removed_label ~= label then
-    emu.log("Warning: closing label " .. label .. " doesn't match opening label " .. removed_label)
+    emu.log("Warning: closing label '" .. label .. "' doesn't match opening label '" .. removed_label .. "'")
   end
 
   local new_cycles = emu.getState()['cpu.cycleCount'] - current_watch.start
@@ -69,7 +105,7 @@ function stop_watch(_address, label)
     current_watch.cycles = 0
   end
   if frames > 0 then
-    emu.log("Warning: watch label " .. label .. " crossed " .. frames .. " frames (" .. new_cycles .. " cycles, starting at " .. current_watch.relative_start .. " cycles from beginning of its frame)")
+    emu.log("Warning: watch label '" .. label .. "' crossed " .. frames .. " frames (" .. new_cycles .. " cycles, starting at " .. current_watch.relative_start .. " cycles from beginning of its frame)")
     emu.log("Current frame: " .. emu.getState()['frameCount'])
   elseif new_cycles > current_watch.cycles then
     current_watch.cycles = new_cycles
@@ -105,7 +141,7 @@ function display_times()
   end
 
   display_stack = {}
-  recursive_display(watch_table, 4, 4, 80)
+  recursive_display(watch_table, 4, 4, 112)
 
   while #display_stack ~= 0 do
     rect = table.remove(display_stack)

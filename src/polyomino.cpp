@@ -120,14 +120,14 @@ void Polyomino::update_bitmask() {
 }
 
 void Polyomino::update_shadow() {
-  START_MESEN_WATCH(4);
+  START_MESEN_WATCH("shadow");
   shadow_row = row;
   shadow_y = y;
   while (!collide(shadow_row + 1, (s8)column)) {
     shadow_row++;
     shadow_y += 16;
   }
-  STOP_MESEN_WATCH(4);
+  STOP_MESEN_WATCH("shadow");
 }
 
 inline u16 signed_shift(u16 value, s8 shift) {
@@ -141,9 +141,9 @@ inline u16 signed_shift(u16 value, s8 shift) {
 }
 
 bool Polyomino::collide(s8 new_row, s8 new_column) {
-  START_MESEN_WATCH(31);
+  START_MESEN_WATCH("collide");
   if (left_limit + new_column < 0 || right_limit + new_column >= WIDTH) {
-    STOP_MESEN_WATCH(31);
+    STOP_MESEN_WATCH("collide");
     return true;
   }
 #pragma clang loop unroll(full)
@@ -155,11 +155,11 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     if (bitmask[i] && (mod_row >= HEIGHT ||
                        (signed_shift(bitmask[i], (new_column - (s8)column)) &
                         board.occupied_bitset[(u8)(new_row + i)]))) {
-      STOP_MESEN_WATCH(31);
+      STOP_MESEN_WATCH("collide");
       return true;
     }
   }
-  STOP_MESEN_WATCH(31);
+  STOP_MESEN_WATCH("collide");
   return false;
 }
 
@@ -317,12 +317,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
-  START_MESEN_WATCH(5);
   definition->render(x, y - y_scroll);
-  STOP_MESEN_WATCH(5);
-  START_MESEN_WATCH(6);
   definition->shadow(x, shadow_y - y_scroll, (u8)(shadow_row - row));
-  STOP_MESEN_WATCH(6);
 }
 
 void Polyomino::outside_render(int y_scroll) {
