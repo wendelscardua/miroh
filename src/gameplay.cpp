@@ -626,6 +626,7 @@ void Gameplay::gameplay_handler() {
     unicorn.statue = true;
   }
 
+  START_MESEN_WATCH("lin");
   // XXX: if we say line clearing is in progress during overflow, it will make
   // other stuff not happen (polyomino won't spawn, victory conditions won't
   // trigger, not even the line clearing itself will run)
@@ -634,24 +635,36 @@ void Gameplay::gameplay_handler() {
       banked_lambda(Board::BANK, []() {
         return board.ongoing_line_clearing(board.active_animations);
       });
+  STOP_MESEN_WATCH("lin");
 
+  START_MESEN_WATCH("pol");
+  START_MESEN_WATCH("spn");
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
       !line_clearing_in_progress && spawn_timer-- == 0) {
     polyomino.spawn();
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
+  STOP_MESEN_WATCH("spn");
+  START_MESEN_WATCH("inp");
   polyomino.handle_input(polyomino_pressed, polyomino_held);
+  STOP_MESEN_WATCH("inp");
+  START_MESEN_WATCH("upd");
   polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
                    failed_to_place, lines_cleared);
+  STOP_MESEN_WATCH("upd");
+  STOP_MESEN_WATCH("pol");
 
+  START_MESEN_WATCH("uni");
   banked_lambda(Unicorn::BANK, [this, line_clearing_in_progress]() {
     unicorn.update(unicorn_pressed, unicorn_held, line_clearing_in_progress);
   });
-
+  STOP_MESEN_WATCH("uni");
+  START_MESEN_WATCH("fru");
   fruits.update(unicorn, snack_was_eaten,
                 gameplay_state != GameplayState::MarshmallowOverflow);
-
+  STOP_MESEN_WATCH("fru");
+  START_MESEN_WATCH("ovr");
   if (failed_to_place) {
     gameplay_state = GameplayState::MarshmallowOverflow;
     overflow_state = OverflowState::FlashOutsideBlocks;
@@ -662,6 +675,7 @@ void Gameplay::gameplay_handler() {
              current_controller_scheme == ControllerScheme::TwoPlayers) {
     banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
   }
+  STOP_MESEN_WATCH("ovr");
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       polyomino.state != Polyomino::State::Active &&
@@ -669,6 +683,7 @@ void Gameplay::gameplay_handler() {
     swap_inputs();
   }
 
+  START_MESEN_WATCH("pts");
   if (lines_cleared) {
     const u8 points_per_lines[] = {0, 10, 30, 50, 70};
     u8 points = points_per_lines[lines_cleared];
@@ -681,13 +696,16 @@ void Gameplay::gameplay_handler() {
     unicorn.score += 1;
     add_experience(1);
   }
+  STOP_MESEN_WATCH("pts");
 
+  START_MESEN_WATCH("upk");
   if (gameplay_state == GameplayState::Playing ||
       gameplay_state == GameplayState::Swapping ||
       gameplay_state == GameplayState::MarshmallowOverflow) {
     game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
                      board.active_animations);
   }
+  STOP_MESEN_WATCH("upk");
 }
 
 __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
@@ -924,8 +942,8 @@ void Gameplay::loop() {
   while (current_game_state == GameState::Gameplay) {
     ppu_wait_nmi();
 
-    START_MESEN_WATCH("frame");
-    START_MESEN_WATCH("handler");
+    START_MESEN_WATCH("all");
+    START_MESEN_WATCH("hndl");
     pad_poll(0);
     pad_poll(1);
     if (input_mode == InputMode::Unicorn) {
@@ -987,12 +1005,10 @@ void Gameplay::loop() {
       }
       break;
     }
-    STOP_MESEN_WATCH("handler");
-    START_MESEN_WATCH("score");
+    STOP_MESEN_WATCH("hndl");
     if (VRAM_INDEX + 16 < 64) {
       banked_lambda(Unicorn::BANK, [this]() { unicorn.refresh_score_hud(); });
     }
-    STOP_MESEN_WATCH("score");
 
     if (no_lag_frame) {
       START_MESEN_WATCH("render");
@@ -1005,7 +1021,7 @@ void Gameplay::loop() {
 #endif
     }
 
-    STOP_MESEN_WATCH("frame");
+    STOP_MESEN_WATCH("all");
 
     no_lag_frame = frame == FRAME_CNT1;
   }
