@@ -941,7 +941,7 @@ void Gameplay::loop() {
     ppu_wait_nmi();
 
     START_MESEN_WATCH(1);
-
+    START_MESEN_WATCH(20);
     pad_poll(0);
     pad_poll(1);
     if (input_mode == InputMode::Unicorn) {
@@ -1003,10 +1003,12 @@ void Gameplay::loop() {
       }
       break;
     }
-
+    STOP_MESEN_WATCH(20);
+    START_MESEN_WATCH(21);
     if (VRAM_INDEX + 16 < 64) {
       banked_lambda(Unicorn::BANK, [this]() { unicorn.refresh_score_hud(); });
     }
+    STOP_MESEN_WATCH(21);
 
     if (no_lag_frame) {
       START_MESEN_WATCH(2);
