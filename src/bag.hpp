@@ -10,10 +10,9 @@ template <typename T, size_t N> class Bag {
   std::array<T, N> items;
   u8 index;
   u8 end;
-  T (*filter)(T value);
 
 public:
-  Bag(T (*filter)(T)) : index(0), end(0), filter(filter) {};
+  Bag() : index(0), end(0) {};
 
   void reset() {
     index = 0;
@@ -42,11 +41,6 @@ public:
     index++;
     if (index == N) {
       index = 0;
-    }
-    if (filter != NULL) {
-      insert(filter(value));
-    } else {
-      insert(value);
     }
     return value;
   }

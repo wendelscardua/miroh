@@ -15,56 +15,68 @@
 #pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
 
 // NOTE: source file defines indices [0, 4) as littleminos
-Bag<u8, 4> Polyomino::littleminos(NULL);
+auto Polyomino::littleminos = Bag<u8, 4>();
 
 // NOTE: source file defines indices [11, 28) as pentominos
-Bag<u8, 17> Polyomino::pentominos(NULL);
+auto Polyomino::pentominos = Bag<u8, 17>();
 
 // NOTE: source file defines indices [4, 11) as tetrominos
-auto Polyomino::pieces = Bag<u8, 10>([](auto value) {
-  if (value < 4) {
-    return Polyomino::littleminos.take();
-  }
-
-  if (value >= 11) {
-    return Polyomino::pentominos.take();
-  }
-
-  return value;
-});
+auto Polyomino::pieces = Bag<u8, 10>();
 
 Polyomino::Polyomino(Board &board)
     : board(board), definition(NULL), state(State::Inactive) {
 
   // initialize littleminos bag
-  Polyomino::littleminos.reset();
+  littleminos.reset();
   for (u8 i = 0; i < 4; i++) {
-    Polyomino::littleminos.insert(i);
+    littleminos.insert(i);
   }
 
   // initialize pentominos bag
-  Polyomino::pentominos.reset();
+  pentominos.reset();
   for (u8 i = 11; i < 28; i++) {
-    Polyomino::pentominos.insert(i);
+    pentominos.insert(i);
   }
 
   // add all tetrominos to the pieces bag
-  // NOTE: source file defines indices [4, 11) as tetrominos
   pieces.reset();
   for (u8 i = 4; i < 11; i++) {
     pieces.insert(i);
   }
 
   // also add two random "littleminos" (1,2, or 3 blocks)
-  pieces.insert(Polyomino::littleminos.take());
-  pieces.insert(Polyomino::littleminos.take());
+  auto littlemino = littleminos.take();
+  pieces.insert(littlemino);
+  littleminos.insert(littlemino);
+
+  littlemino = littleminos.take();
+  pieces.insert(littlemino);
+  littleminos.insert(littlemino);
 
   // ... and a random pentomino
-  pieces.insert(Polyomino::pentominos.take());
+  auto pentomino = pentominos.take();
+  pieces.insert(pentomino);
+  pentominos.insert(pentomino);
 
-  next = polyominos[pieces.take()];
+  next = polyominos[take_piece()];
 
   render_next();
+}
+
+u8 Polyomino::take_piece() {
+  auto piece = pieces.take();
+  if (piece < 4) {
+    auto new_piece = littleminos.take();
+    littleminos.insert(new_piece);
+    pieces.insert(new_piece);
+  } else if (piece >= 11) {
+    auto new_piece = pentominos.take();
+    pentominos.insert(new_piece);
+    pieces.insert(new_piece);
+  } else {
+    pieces.insert(piece);
+  }
+  return piece;
 }
 
 void Polyomino::spawn() {
@@ -78,7 +90,7 @@ void Polyomino::spawn() {
   y = board.origin_y + (u8)(row << 4);
 
   definition = next;
-  next = polyominos[pieces.take()];
+  next = polyominos[take_piece()];
 
   render_next();
 

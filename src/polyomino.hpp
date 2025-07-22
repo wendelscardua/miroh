@@ -45,6 +45,8 @@ public:
   State state;
   Polyomino(Board &board);
 
+  __attribute__((noinline)) u8 take_piece();
+
   __attribute__((noinline)) void spawn();
 
   __attribute__((noinline)) void handle_input(u8 pressed, u8 held);
