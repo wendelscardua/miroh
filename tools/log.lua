@@ -6,7 +6,7 @@ watch_table = {
 current_watch = {}
 label_stack = {}
 
-display_toggle = false
+display_toggle = 0  -- 0: no display, 1: less transparent, 2: more transparent
 left_mouse_prev_state = false
 
 frame_start_cycle = 0
@@ -85,7 +85,7 @@ function recursive_display(subtable, x, y, width)
     rect.height = rect.height + 10
   end
   for label, inner in pairs(subtable.children) do
-    rect.height = rect.height + recursive_display(inner, x + 2, y + rect.height, width - 4) + 2
+    rect.height = rect.height + recursive_display(inner, x + 4, y + rect.height, width - 6) + 2
   end
   table.insert(display_stack, rect)
   return rect.height
@@ -95,27 +95,33 @@ function display_times()
   left_mouse_state = emu.getMouseState().left
   if left_mouse_state ~= left_mouse_prev_state then
     if left_mouse_state then
-      display_toggle = not display_toggle
+      display_toggle = (display_toggle + 1) % 3
     end
     left_mouse_prev_state = left_mouse_state
   end
 
-  if not display_toggle then
+  if display_toggle == 0 then
     return
   end
 
   display_stack = {}
-  recursive_display(watch_table, 8, 8, 128)
+  recursive_display(watch_table, 4, 4, 80)
 
   while #display_stack ~= 0 do
     rect = table.remove(display_stack)
-    bgColor = 0x302060FF
-    fgColor = 0x30FF4040
-
+    if display_toggle == 1 then
+      -- Less transparent (more contrasting)
+      bgColor = 0xf02060FF
+      fgColor = 0xf0FF4040
+    elseif display_toggle == 2 then
+      -- More transparent (less contrasting)
+      bgColor = 0x802060FF
+      fgColor = 0x80FF4040
+    end
     emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, bgColor, true, 1)
     emu.drawRectangle(rect.x, rect.y, rect.width, rect.height, fgColor, false, 1)
     if rect.label ~= nil then
-      emu.drawString(rect.x + 2, rect.y + 2, rect.label, 0xFFFFFF, 0xFF000000)
+      emu.drawString(rect.x + 2, rect.y + 2, rect.label, 0x30FFFFFF, 0xFF000000)
     end
   end
 end
