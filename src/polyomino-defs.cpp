@@ -7,6 +7,9 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
+#pragma clang section text = ".prg_rom_14.text.polyomino-defs"
+#pragma clang section rodata = ".prg_rom_14.rodata.polyomino-defs"
+
 bool PolyominoDef::collide(Board &board, s8 row, s8 column) const {
   for (u8 i = 0; i < size; i++) {
     auto delta = deltas[i];

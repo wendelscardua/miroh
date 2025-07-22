@@ -37,6 +37,7 @@ class Polyomino {
   __attribute__((noinline)) bool able_to_kick(const auto &kick_deltas);
 
 public:
+  static constexpr u8 BANK = 14;
   enum class State {
     Inactive,
     Active,
@@ -44,6 +45,8 @@ public:
   u8 grounded_timer;
   State state;
   Polyomino(Board &board);
+
+  __attribute__((noinline)) void init();
 
   __attribute__((noinline)) u8 take_piece();
 

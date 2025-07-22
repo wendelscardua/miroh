@@ -42,7 +42,7 @@ endif()
 
 add_custom_command(
   OUTPUT polyominos.s
-  COMMAND ${POLYOMINO} data ${CMAKE_CURRENT_BINARY_DIR}/polyominos.s ${CMAKE_SOURCE_DIR}/assets/polyominos.json --bank 0
+  COMMAND ${POLYOMINO} data ${CMAKE_CURRENT_BINARY_DIR}/polyominos.s ${CMAKE_SOURCE_DIR}/assets/polyominos.json --bank 14
   DEPENDS ${POLYOMINO} ${CMAKE_SOURCE_DIR}/assets/polyominos.json
 )
 

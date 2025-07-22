@@ -252,6 +252,8 @@ Gameplay::Gameplay()
       input_mode(InputMode::Polyomino), yes_no_option(false),
       pause_option(PauseOption::Resume), drops(), y_scroll(INTRO_SCROLL_Y),
       goal_counter(0) {
+  banked_lambda(Polyomino::BANK, [&]() { polyomino.init(); });
+
   load_gameplay_assets();
 
   vram_adr(NAMETABLE_A);
@@ -330,12 +332,13 @@ void Gameplay::render() {
   if (gameplay_state == GameplayState::MarshmallowOverflow &&
       overflow_state == OverflowState::FlashOutsideBlocks &&
       (marshmallow_overflow_counter & 0b1000)) {
-    polyomino.outside_render(y_scroll);
+    banked_lambda(Polyomino::BANK,
+                  [&]() { polyomino.outside_render(y_scroll); });
   } else if ((gameplay_state == GameplayState::Swapping &&
               swap_frames[swap_index].display_polyomino) ||
              (gameplay_state != GameplayState::Swapping &&
               gameplay_state != GameplayState::MarshmallowOverflow)) {
-    polyomino.render(y_scroll);
+    banked_lambda(Polyomino::BANK, [&]() { polyomino.render(y_scroll); });
   }
   if (Drops::active_drops) {
     drops.render(y_scroll);
@@ -642,16 +645,20 @@ void Gameplay::gameplay_handler() {
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
       !line_clearing_in_progress && spawn_timer-- == 0) {
-    polyomino.spawn();
+    banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
   STOP_MESEN_WATCH("spn");
   START_MESEN_WATCH("inp");
-  polyomino.handle_input(polyomino_pressed, polyomino_held);
+  banked_lambda(Polyomino::BANK, [&]() {
+    polyomino.handle_input(polyomino_pressed, polyomino_held);
+  });
   STOP_MESEN_WATCH("inp");
   START_MESEN_WATCH("upd");
-  polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
-                   failed_to_place, lines_cleared);
+  banked_lambda(Polyomino::BANK, [&]() {
+    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
+                     failed_to_place, lines_cleared);
+  });
   STOP_MESEN_WATCH("upd");
   STOP_MESEN_WATCH("pol");
 

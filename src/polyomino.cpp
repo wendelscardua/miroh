@@ -11,8 +11,8 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#pragma clang section text = ".prg_rom_0.text.polyominos"
-#pragma clang section rodata = ".prg_rom_0.rodata.polyominos"
+#pragma clang section text = ".prg_rom_14.text.polyominos"
+#pragma clang section rodata = ".prg_rom_14.rodata.polyominos"
 
 // NOTE: source file defines indices [0, 4) as littleminos
 auto Polyomino::littleminos = Bag<u8, 4>();
@@ -24,7 +24,9 @@ auto Polyomino::pentominos = Bag<u8, 17>();
 auto Polyomino::pieces = Bag<u8, 10>();
 
 Polyomino::Polyomino(Board &board)
-    : board(board), definition(NULL), state(State::Inactive) {
+    : board(board), definition(NULL), state(State::Inactive) {}
+
+void Polyomino::init() {
 
   // initialize littleminos bag
   littleminos.reset();
