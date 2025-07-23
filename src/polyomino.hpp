@@ -32,6 +32,8 @@ class Polyomino {
   u8 shadow_y;
   u8 left_limit;
   u8 right_limit;
+  u8 top_limit;
+  u8 bottom_limit;
   soa::Array<u16, 4> bitmask;
 
   __attribute__((noinline)) bool able_to_kick(const auto &kick_deltas);

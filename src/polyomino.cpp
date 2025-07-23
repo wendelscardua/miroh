@@ -117,6 +117,8 @@ void Polyomino::update_bitmask() {
 
   left_limit = 4;
   right_limit = 0;
+  top_limit = 4;
+  bottom_limit = 0;
   for (u8 i = 0; i < definition->size; i++) {
     auto delta = definition->deltas[i];
     if (delta.delta_column > right_limit) {
@@ -124,6 +126,12 @@ void Polyomino::update_bitmask() {
     }
     if (delta.delta_column < left_limit) {
       left_limit = (u8)delta.delta_column;
+    }
+    if (delta.delta_row > bottom_limit) {
+      bottom_limit = (u8)delta.delta_row;
+    }
+    if (delta.delta_row < top_limit) {
+      top_limit = (u8)delta.delta_row;
     }
     bitmask[(u8)(delta.delta_row)] |=
         Board::OCCUPIED_BITMASK[(u8)(column + delta.delta_column)];
@@ -154,19 +162,18 @@ inline u16 signed_shift(u16 value, s8 shift) {
 
 bool Polyomino::collide(s8 new_row, s8 new_column) {
   START_MESEN_WATCH("collide");
-  if (left_limit + new_column < 0 || right_limit + new_column >= WIDTH) {
+  if ((s8)(left_limit + new_column) < 0 ||
+      (s8)(right_limit + new_column) >= WIDTH ||
+      (s8)(bottom_limit + new_row) >= HEIGHT) {
     STOP_MESEN_WATCH("collide");
     return true;
   }
+  s8 mod_row = new_row;
 #pragma clang loop unroll(full)
-  for (u8 i = 0; i < 4; i++) {
-    s8 mod_row = (s8)(new_row + i);
-    if (mod_row < 0) {
-      continue;
-    }
-    if (bitmask[i] && (mod_row >= HEIGHT ||
-                       (signed_shift(bitmask[i], (new_column - (s8)column)) &
-                        board.occupied_bitset[(u8)(new_row + i)]))) {
+  for (u8 i = 0; i < 4; i++, mod_row++) {
+    if (i >= top_limit && i <= bottom_limit && mod_row >= 0 &&
+        ((signed_shift(bitmask[i], (new_column - column)) &
+          board.occupied_bitset[(u8)mod_row]))) {
       STOP_MESEN_WATCH("collide");
       return true;
     }
