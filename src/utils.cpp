@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include "assets.hpp"
+#include "log.hpp"
 #include <neslib.h>
 
 __attribute__((section(".prg_rom_fixed.text"))) void u8_to_text(u8 score_text[],
@@ -98,10 +99,16 @@ __attribute__((always_inline)) void int_to_text(u8 score_text[], u16 value) {
   }
 }
 
-__attribute__((section(".prg_rom_fixed.text"))) u8 rand_up_to(u8 n) {
-  u8 result = rand8() & 31;
+__attribute__((noinline, section(".prg_rom_fixed.text"))) u8 rand_up_to(u8 n) {
+  START_MESEN_WATCH("rng");
+  u8 x = 1;
+  while (x <= n) {
+    x <<= 1;
+  }
+  u8 result = rand8() & (x - 1);
   while (result >= n) {
     result -= n;
   }
+  STOP_MESEN_WATCH("rng");
   return result;
 }
