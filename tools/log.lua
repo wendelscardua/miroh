@@ -13,8 +13,18 @@ left_mouse_prev_state = false
 
 frame_start_cycle = 0
 
+function reset_hits(subtable)
+  if subtable.hits ~= nil then
+    subtable.hits = 0
+  end
+  for _, child in pairs(subtable.children or {}) do
+    reset_hits(child)
+  end
+end
+
 function get_start_frame_cycle_count()
   frame_start_cycle = emu.getState()['cpu.cycleCount']
+  reset_hits(watch_table)
 end
 
 function putchar_cb(address, value)
@@ -59,10 +69,16 @@ function start_watch(_address, label_byte)
       start = 0,
       start_frame = 0,
       cycles = 0,
+      hits = 0,
+      max_hits = 0,
       children = {}
     }
   end
   current_watch = current_watch.children[label]
+  current_watch.hits = (current_watch.hits or 0) + 1
+  if current_watch.hits > (current_watch.max_hits or 0) then
+    current_watch.max_hits = current_watch.hits
+  end
   current_watch.start = emu.getState()['cpu.cycleCount']
   current_watch.relative_start = current_watch.start - frame_start_cycle
   current_watch.start_frame = emu.getState()['frameCount']
@@ -117,7 +133,10 @@ display_stack = {}
 function recursive_display(subtable, x, y, width)
   local rect = { x = x, y = y, width = width, height = 2 }
   if subtable.cycles ~= nil then
-    rect.label =  subtable.label .. " " .. string.format("%.2f", subtable.cycles)
+    rect.label =  subtable.label .. " " .. tostring(subtable.cycles)
+    if subtable.max_hits ~= nil then
+      rect.label = rect.label .. " x" .. tostring(subtable.max_hits)
+    end
     rect.height = rect.height + 7
   end
   for label, inner in pairs(subtable.children) do
