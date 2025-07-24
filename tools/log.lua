@@ -123,6 +123,9 @@ function stop_watch(_address, label_byte)
   if frames > 0 then
     emu.log("Warning: watch label '" .. label .. "' crossed " .. frames .. " frames (" .. new_cycles .. " cycles, starting at " .. current_watch.relative_start .. " cycles from beginning of its frame)")
     emu.log("Current frame: " .. emu.getState()['frameCount'])
+    for k, v in ipairs(label_stack) do
+      emu.log("label stack[" .. k .. "] = " .. v)
+    end
   elseif new_cycles > current_watch.cycles then
     current_watch.cycles = new_cycles
   end
