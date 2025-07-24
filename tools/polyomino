@@ -202,7 +202,7 @@ class Polyomino < Thor
         pieces.each do |key, values|
           blocks = values[:blocks]
           f.puts "  #{namespace_consts[bank]}_RODATA const Sprite piece_#{key}[] = {"
-          blocks.each do |delta_row, delta_column|
+          blocks.sort_by { |_, delta_column| delta_column % 2 }.each do |delta_row, delta_column|
             delta_column += 1
             delta_row += 1
             sprite_templates[bank].each do |template|
@@ -214,7 +214,7 @@ class Polyomino < Thor
           f.puts '    { .terminator = 0x80 } };'
 
           f.puts "  #{namespace_consts[bank]}_RODATA const Sprite flip_piece_#{key}[] = {"
-          blocks.reverse_each do |delta_row, delta_column|
+          blocks.sort_by { |_, delta_column| (delta_column + 1) % 2 }.each do |delta_row, delta_column|
             delta_column += 1
             delta_row += 1
             sprite_templates[bank].reverse_each do |template|
