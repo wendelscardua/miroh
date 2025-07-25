@@ -11,14 +11,20 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
+Cell::Cell() : walls(0) {}
+
+#pragma clang section rodata = ".prg_rom_fixed.rodata.board"
+
+const soa::Array<const u16, WIDTH> Board::OCCUPIED_BITMASK = {
+    0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
+    0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800};
+
 #pragma clang section text = ".prg_rom_4.text.board"
 #pragma clang section rodata = ".prg_rom_4.rodata.board"
 
-Cell::Cell() : walls(0) {}
-
-static constexpr u8 CELL_ROW_START[] = {
-    0,         WIDTH,     2 * WIDTH, 3 * WIDTH, 4 * WIDTH,
-    5 * WIDTH, 6 * WIDTH, 7 * WIDTH, 8 * WIDTH, 9 * WIDTH};
+static const u8 CELL_ROW_START[] = {0,         WIDTH,     2 * WIDTH, 3 * WIDTH,
+                                    4 * WIDTH, 5 * WIDTH, 6 * WIDTH, 7 * WIDTH,
+                                    8 * WIDTH, 9 * WIDTH};
 
 static_assert(sizeof(CELL_ROW_START) == HEIGHT,
               "CELL_ROW_START does not have HEIGHT entries");
