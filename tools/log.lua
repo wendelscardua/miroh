@@ -142,7 +142,15 @@ function recursive_display(subtable, x, y, width)
     end
     rect.height = rect.height + 7
   end
+  local keys = {}
   for label, inner in pairs(subtable.children) do
+    table.insert(keys, label)
+  end
+  table.sort(keys, function(a, b)
+    return subtable.children[a].relative_start < subtable.children[b].relative_start
+  end)
+  for _, label in ipairs(keys) do
+    local inner = subtable.children[label]
     rect.height = rect.height + recursive_display(inner, x + 4, y + rect.height, width - 6) - 1
   end
   table.insert(display_stack, rect)
