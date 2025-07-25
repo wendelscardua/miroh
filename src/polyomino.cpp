@@ -140,11 +140,23 @@ void Polyomino::update_bitmask() {
 
 void Polyomino::update_shadow() {
   START_MESEN_WATCH("shadow");
-  shadow_row = row;
-  shadow_y = y;
-  while (!collide(shadow_row + 1, (s8)column)) {
-    shadow_row++;
-    shadow_y += 16;
+  s8 min_delta = HEIGHT + 4;
+  for (u8 i = 0; i < definition->size; i++) {
+    auto delta = definition->deltas[i];
+    s8 diff = (s8)(board.occupied_height[column + delta.delta_column] -
+                   (row + delta.delta_row));
+    if (diff < min_delta) {
+      min_delta = diff;
+    }
+  }
+  if (min_delta >= 0) {
+
+    shadow_row = row + min_delta - 1;
+    shadow_y = y + (u8)(min_delta - 1) * 16;
+  } else {
+
+    shadow_row = row;
+    shadow_y = y;
   }
   STOP_MESEN_WATCH("shadow");
 }
