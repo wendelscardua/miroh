@@ -231,6 +231,9 @@ void Board::reset() {
     animation.finished = true;
   }
   active_animations = false;
+  for (u8 col = 0; col < WIDTH; ++col) {
+    occupied_height[col] = HEIGHT;
+  }
 }
 
 void Board::render() {
@@ -254,10 +257,19 @@ bool Board::occupied(s8 row, u8 column) {
 
 void Board::occupy(s8 row, u8 column) {
   occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
+  if (row < occupied_height[column]) {
+    occupied_height[column] = (u8)row;
+  }
 }
 
 void Board::free(s8 row, u8 column) {
   occupied_bitset[(u8)row] &= ~OCCUPIED_BITMASK[(u8)column];
+  if (row == (u8)(occupied_height[column])) {
+    do {
+      row++;
+    } while (!occupied(row, column));
+    occupied_height[column] = (u8)row;
+  }
 }
 
 static const Cell null_cell;

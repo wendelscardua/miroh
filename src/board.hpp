@@ -79,6 +79,8 @@ public:
   soa::Array<u16, HEIGHT> occupied_bitset;
   Cell cell[HEIGHT * WIDTH]; // each of the board's cells
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
+  u8 occupied_height[WIDTH]; // track, for each column, where a shadow can be
+                             // placed
   std::array<BoardAnimation, 7> animations;
   bool active_animations;
 
