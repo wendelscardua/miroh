@@ -143,7 +143,8 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
   }
 }
 
-void Fruits::render_fruit(Fruit fruit, int y_scroll) {
+void Fruits::render_fruit(u8 fruit_index, int y_scroll) {
+  auto fruit = fruits[fruit_index];
   switch (fruit.state) {
   case Fruit::State::Despawning:
     if ((fruit.despawn_counter & 0b111) == 0b100) {
@@ -193,21 +194,19 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
 }
 
 void Fruits::render_below_player(int y_scroll, u8 y_player) {
-  static_assert(NUM_FRUITS == 2, "Invalid unrolled loop");
-  if (fruits[0].y > y_player) {
-    render_fruit(fruits[0], y_scroll);
-  };
-  if (fruits[1].y > y_player) {
-    render_fruit(fruits[1], y_scroll);
-  };
+#pragma clang loop unroll(enable)
+  for (u8 i = 0; i < NUM_FRUITS; i++) {
+    if (fruits[i].y > y_player) {
+      render_fruit(i, y_scroll);
+    };
+  }
 }
 
 void Fruits::render_above_player(int y_scroll, u8 y_player) {
-  static_assert(NUM_FRUITS == 2, "Invalid unrolled loop");
-  if (fruits[0].y <= y_player) {
-    render_fruit(fruits[0], y_scroll);
-  };
-  if (fruits[1].y <= y_player) {
-    render_fruit(fruits[1], y_scroll);
-  };
+#pragma clang loop unroll(enable)
+  for (u8 i = 0; i < NUM_FRUITS; i++) {
+    if (fruits[i].y <= y_player) {
+      render_fruit(i, y_scroll);
+    };
+  }
 }
