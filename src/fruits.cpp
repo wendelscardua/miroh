@@ -173,15 +173,15 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
         splash_animation.update(fruit.x, fruit.y - y_scroll);
       }
     } else {
-      auto &metasprite = (fruit.y - fruit.raindrop_y <= 48)
-                             ? Metasprites::RainShadowB
-                             : Metasprites::RainShadowA;
+      auto near_shadow = (fruit.y - fruit.raindrop_y) <= 48;
+      auto &metasprite =
+          near_shadow ? Metasprites::RainShadowB : Metasprites::RainShadowA;
 
-      if (fruit.raindrop_y - y_scroll > 0 &&
-          fruit.raindrop_y - y_scroll < 0xe0) {
-        u8 drop_tile = (fruit.y - fruit.raindrop_y <= 48) ? 0xb2 : 0xb1;
+      auto shadow_position = fruit.raindrop_y - y_scroll;
+      if (shadow_position > 0 && shadow_position < 0xe0) {
+        u8 drop_tile = near_shadow ? 0xb2 : 0xb1;
 
-        oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), drop_tile, 0);
+        oam_spr(fruit.x + 4, (u8)(shadow_position), drop_tile, 0);
       }
       banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
                           metasprite);
