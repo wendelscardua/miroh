@@ -182,7 +182,9 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
 }
 
 bool Polyomino::able_to_kick(const auto &kick_deltas) {
+  START_MESEN_WATCH("kicks");
   for (auto kick : kick_deltas) {
+    START_MESEN_WATCH("kick");
     s8 new_row = row + kick.delta_row;
     s8 new_column = column + kick.delta_column;
 
@@ -191,9 +193,13 @@ bool Polyomino::able_to_kick(const auto &kick_deltas) {
       column = new_column;
       x += 16 * kick.delta_column;
       y += 16 * kick.delta_row;
+      STOP_MESEN_WATCH("kick");
+      STOP_MESEN_WATCH("kicks");
       return true;
     }
+    STOP_MESEN_WATCH("kick");
   }
+  STOP_MESEN_WATCH("kicks");
   return false;
 }
 
