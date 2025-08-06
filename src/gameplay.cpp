@@ -191,7 +191,7 @@ void Drops::update() {
     if (drop.current_y == drop.target_y) {
       banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
       banked_lambda(Board::BANK, [&drop]() {
-        board.set_maze_cell((s8)drop.row, drop.column, CellType::Marshmallow);
+        board.set_maze_cell(drop.row, drop.column, CellType::Marshmallow);
       });
       drop.row = 0xff;
       active_drops--;
@@ -233,7 +233,7 @@ bool Drops::random_hard_drop() {
       return false;
     }
     u8 column = board.random_free_column(row);
-    board.set_maze_cell((s8)row, column, CellType::Marshmallow);
+    board.set_maze_cell(row, column, CellType::Marshmallow);
     if ((get_frame_count() & 0b1111) == 0) {
       banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
     }

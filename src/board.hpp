@@ -136,13 +136,13 @@ public:
   __attribute__((section(".prg_rom_fixed"))) bool row_filled(s8 row);
 
   // marks a position as occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void occupy(s8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed"))) void occupy(u8 row, u8 column);
 
   // marks a position as not occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void free(s8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed"))) void free(u8 row, u8 column);
 
   // change a cell at these coordinates and with a given style
-  __attribute__((noinline)) void set_maze_cell(s8 row, u8 column,
+  __attribute__((noinline)) void set_maze_cell(u8 row, u8 column,
                                                CellType type);
 
   // advances the process of clearing a filled line

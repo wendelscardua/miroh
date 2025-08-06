@@ -186,7 +186,7 @@ void Board::generate_maze() {
     u8 random_column = random_free_column(random_row);
     u8 index = board_index(random_row, random_column);
 
-    occupy((s8)random_row, random_column);
+    occupy(random_row, random_column);
 
     auto current_element = &disjoint_set[index];
     auto right_element =
@@ -234,7 +234,7 @@ void Board::reset() {
 }
 
 void Board::render() {
-  for (s8 i = 0; i < HEIGHT; i++) {
+  for (u8 i = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
       set_maze_cell(i, j, CellType::Maze);
       flush_vram_update2();
@@ -252,85 +252,85 @@ bool Board::occupied(s8 row, u8 column) {
   return occupied_bitset[(u8)row] & OCCUPIED_BITMASK[(u8)column];
 }
 
-void Board::occupy(s8 row, u8 column) {
-  occupied_bitset[(u8)row] |= OCCUPIED_BITMASK[(u8)column];
+void Board::occupy(u8 row, u8 column) {
+  occupied_bitset[row] |= OCCUPIED_BITMASK[column];
 }
 
-void Board::free(s8 row, u8 column) {
-  occupied_bitset[(u8)row] &= ~OCCUPIED_BITMASK[(u8)column];
+void Board::free(u8 row, u8 column) {
+  occupied_bitset[row] &= ~OCCUPIED_BITMASK[column];
 }
 
 static const Cell null_cell;
 
-static constexpr u8 upper_left_maze_tile[] = {0x00,
-                                              MAZE_BASE_TILE + 0x18,
-                                              MAZE_BASE_TILE + 0x16,
-                                              MAZE_BASE_TILE + 0x16,
-                                              MAZE_BASE_TILE + 0x14,
-                                              MAZE_BASE_TILE + 0x0e,
-                                              MAZE_BASE_TILE + 0x11,
-                                              MAZE_BASE_TILE + 0x11,
-                                              MAZE_BASE_TILE + 0x18,
-                                              MAZE_BASE_TILE + 0x18,
-                                              MAZE_BASE_TILE + 0x12,
-                                              MAZE_BASE_TILE + 0x16,
-                                              MAZE_BASE_TILE + 0x14,
-                                              MAZE_BASE_TILE + 0x14,
-                                              MAZE_BASE_TILE + 0x11,
-                                              MAZE_BASE_TILE + 0x11};
+const u8 upper_left_maze_tile[] = {0x00,
+                                   MAZE_BASE_TILE + 0x18,
+                                   MAZE_BASE_TILE + 0x16,
+                                   MAZE_BASE_TILE + 0x16,
+                                   MAZE_BASE_TILE + 0x14,
+                                   MAZE_BASE_TILE + 0x0e,
+                                   MAZE_BASE_TILE + 0x11,
+                                   MAZE_BASE_TILE + 0x11,
+                                   MAZE_BASE_TILE + 0x18,
+                                   MAZE_BASE_TILE + 0x18,
+                                   MAZE_BASE_TILE + 0x12,
+                                   MAZE_BASE_TILE + 0x16,
+                                   MAZE_BASE_TILE + 0x14,
+                                   MAZE_BASE_TILE + 0x14,
+                                   MAZE_BASE_TILE + 0x11,
+                                   MAZE_BASE_TILE + 0x11};
 
-static constexpr u8 upper_right_maze_tile[] = {0x00,
-                                               MAZE_BASE_TILE + 0x15,
-                                               MAZE_BASE_TILE + 0x15,
-                                               MAZE_BASE_TILE + 0x15,
-                                               MAZE_BASE_TILE + 0x10,
-                                               MAZE_BASE_TILE + 0x0d,
-                                               MAZE_BASE_TILE + 0x10,
-                                               MAZE_BASE_TILE + 0x10,
-                                               MAZE_BASE_TILE + 0x17,
-                                               MAZE_BASE_TILE + 0x17,
-                                               MAZE_BASE_TILE + 0x12,
-                                               MAZE_BASE_TILE + 0x17,
-                                               MAZE_BASE_TILE + 0x13,
-                                               MAZE_BASE_TILE + 0x13,
-                                               MAZE_BASE_TILE + 0x13,
-                                               MAZE_BASE_TILE + 0x13};
+const u8 upper_right_maze_tile[] = {0x00,
+                                    MAZE_BASE_TILE + 0x15,
+                                    MAZE_BASE_TILE + 0x15,
+                                    MAZE_BASE_TILE + 0x15,
+                                    MAZE_BASE_TILE + 0x10,
+                                    MAZE_BASE_TILE + 0x0d,
+                                    MAZE_BASE_TILE + 0x10,
+                                    MAZE_BASE_TILE + 0x10,
+                                    MAZE_BASE_TILE + 0x17,
+                                    MAZE_BASE_TILE + 0x17,
+                                    MAZE_BASE_TILE + 0x12,
+                                    MAZE_BASE_TILE + 0x17,
+                                    MAZE_BASE_TILE + 0x13,
+                                    MAZE_BASE_TILE + 0x13,
+                                    MAZE_BASE_TILE + 0x13,
+                                    MAZE_BASE_TILE + 0x13};
 
-static constexpr u8 lower_left_maze_tile[] = {0x00,
-                                              MAZE_BASE_TILE + 0x08,
-                                              MAZE_BASE_TILE + 0x01,
-                                              MAZE_BASE_TILE + 0x06,
-                                              MAZE_BASE_TILE + 0x04,
-                                              MAZE_BASE_TILE + 0x0e,
-                                              MAZE_BASE_TILE + 0x01,
-                                              MAZE_BASE_TILE + 0x06,
-                                              MAZE_BASE_TILE + 0x04,
-                                              MAZE_BASE_TILE + 0x08,
-                                              MAZE_BASE_TILE + 0x02,
-                                              MAZE_BASE_TILE + 0x06,
-                                              MAZE_BASE_TILE + 0x04,
-                                              MAZE_BASE_TILE + 0x08,
-                                              MAZE_BASE_TILE + 0x01,
-                                              MAZE_BASE_TILE + 0x06};
+const u8 lower_left_maze_tile[] = {0x00,
+                                   MAZE_BASE_TILE + 0x08,
+                                   MAZE_BASE_TILE + 0x01,
+                                   MAZE_BASE_TILE + 0x06,
+                                   MAZE_BASE_TILE + 0x04,
+                                   MAZE_BASE_TILE + 0x0e,
+                                   MAZE_BASE_TILE + 0x01,
+                                   MAZE_BASE_TILE + 0x06,
+                                   MAZE_BASE_TILE + 0x04,
+                                   MAZE_BASE_TILE + 0x08,
+                                   MAZE_BASE_TILE + 0x02,
+                                   MAZE_BASE_TILE + 0x06,
+                                   MAZE_BASE_TILE + 0x04,
+                                   MAZE_BASE_TILE + 0x08,
+                                   MAZE_BASE_TILE + 0x01,
+                                   MAZE_BASE_TILE + 0x06};
 
-static constexpr u8 lower_right_maze_tile[] = {0x00,
-                                               MAZE_BASE_TILE + 0x05,
-                                               MAZE_BASE_TILE + 0x00,
-                                               MAZE_BASE_TILE + 0x05,
-                                               MAZE_BASE_TILE + 0x00,
-                                               MAZE_BASE_TILE + 0x0d,
-                                               MAZE_BASE_TILE + 0x00,
-                                               MAZE_BASE_TILE + 0x05,
-                                               MAZE_BASE_TILE + 0x03,
-                                               MAZE_BASE_TILE + 0x07,
-                                               MAZE_BASE_TILE + 0x02,
-                                               MAZE_BASE_TILE + 0x07,
-                                               MAZE_BASE_TILE + 0x03,
-                                               MAZE_BASE_TILE + 0x07,
-                                               MAZE_BASE_TILE + 0x03,
-                                               MAZE_BASE_TILE + 0x07};
+const u8 lower_right_maze_tile[] = {0x00,
+                                    MAZE_BASE_TILE + 0x05,
+                                    MAZE_BASE_TILE + 0x00,
+                                    MAZE_BASE_TILE + 0x05,
+                                    MAZE_BASE_TILE + 0x00,
+                                    MAZE_BASE_TILE + 0x0d,
+                                    MAZE_BASE_TILE + 0x00,
+                                    MAZE_BASE_TILE + 0x05,
+                                    MAZE_BASE_TILE + 0x03,
+                                    MAZE_BASE_TILE + 0x07,
+                                    MAZE_BASE_TILE + 0x02,
+                                    MAZE_BASE_TILE + 0x07,
+                                    MAZE_BASE_TILE + 0x03,
+                                    MAZE_BASE_TILE + 0x07,
+                                    MAZE_BASE_TILE + 0x03,
+                                    MAZE_BASE_TILE + 0x07};
 
-static constexpr u8 lower_left_block_tile[] = {
+const u8 lower_left_block_tile[] = {
     MARSHMALLOW_BASE_TILE + 0x02, MARSHMALLOW_BASE_TILE + 0x06,
     MARSHMALLOW_BASE_TILE + 0x08, MARSHMALLOW_BASE_TILE + 0x08,
     MARSHMALLOW_BASE_TILE + 0x06, MARSHMALLOW_BASE_TILE + 0x04,
@@ -340,7 +340,7 @@ static constexpr u8 lower_left_block_tile[] = {
     MARSHMALLOW_BASE_TILE + 0x06, MARSHMALLOW_BASE_TILE + 0x06,
     MARSHMALLOW_BASE_TILE + 0x08, MARSHMALLOW_BASE_TILE + 0x08};
 
-static constexpr u8 lower_right_block_tile[] = {
+const u8 lower_right_block_tile[] = {
     MARSHMALLOW_BASE_TILE + 0x03, MARSHMALLOW_BASE_TILE + 0x07,
     MARSHMALLOW_BASE_TILE + 0x07, MARSHMALLOW_BASE_TILE + 0x07,
     MARSHMALLOW_BASE_TILE + 0x07, MARSHMALLOW_BASE_TILE + 0x05,
@@ -389,7 +389,7 @@ u8 walls_to_index(bool wall_going_up, bool wall_going_right,
 #define BOTTOM_0 VRAM_BUF[VRAM_INDEX + 8]
 #define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
 
-void Board::set_maze_cell(s8 row, u8 column, CellType cell_type) {
+void Board::set_maze_cell(u8 row, u8 column, CellType cell_type) {
   auto current_cell = &cell_at((u8)row, (u8)column);
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
@@ -568,7 +568,7 @@ bool Board::ongoing_line_clearing(bool jiggling) {
   for (erasing_row = HEIGHT - 1; erasing_row >= 0; erasing_row--) {
     if (deleted[erasing_row]) {
       for (erasing_column = 0; erasing_column < WIDTH; erasing_column++) {
-        set_maze_cell(erasing_row, erasing_column, CellType::Maze);
+        set_maze_cell((u8)erasing_row, erasing_column, CellType::Maze);
         CORO_YIELD(true);
       }
     }
@@ -592,17 +592,19 @@ bool Board::ongoing_line_clearing(bool jiggling) {
 
         if (source_occupied) {
           if (!occupied(erasing_row, erasing_column)) {
-            set_maze_cell(erasing_row, erasing_column, CellType::Marshmallow);
-            occupy(erasing_row, erasing_column);
+            set_maze_cell((u8)erasing_row, erasing_column,
+                          CellType::Marshmallow);
+            occupy((u8)erasing_row, erasing_column);
             changed = true;
           }
           if (erasing_row_source >= 0 &&
               occupied(erasing_row_source, erasing_column)) {
-            set_maze_cell(erasing_row_source, erasing_column, CellType::Maze);
+            set_maze_cell((u8)erasing_row_source, erasing_column,
+                          CellType::Maze);
             changed = true;
           }
         } else if (occupied(erasing_row, erasing_column)) {
-          set_maze_cell(erasing_row, erasing_column, CellType::Maze);
+          set_maze_cell((u8)erasing_row, erasing_column, CellType::Maze);
           changed = true;
         }
       }
@@ -668,7 +670,7 @@ void Board::animate() {
     }
     active_animations = true;
     if (animation.current_frame == 0) {
-      set_maze_cell((s8)animation.row, animation.column,
+      set_maze_cell(animation.row, animation.column,
                     animation.current_cell->cell_type);
     }
     animation.update();
