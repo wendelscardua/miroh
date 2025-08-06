@@ -594,7 +594,6 @@ bool Board::ongoing_line_clearing(bool jiggling) {
           if (!occupied(erasing_row, erasing_column)) {
             set_maze_cell((u8)erasing_row, erasing_column,
                           CellType::Marshmallow);
-            occupy((u8)erasing_row, erasing_column);
             changed = true;
           }
           if (erasing_row_source >= 0 &&
