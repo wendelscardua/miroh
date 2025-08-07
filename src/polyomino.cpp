@@ -294,8 +294,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
         grounded_timer = 0;
       }
     }
-    update_bitmask();
-    update_shadow();
     return;
   }
 
