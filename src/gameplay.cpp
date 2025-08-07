@@ -189,7 +189,7 @@ void Drops::update() {
       continue;
     }
     if (drop.current_y == drop.target_y) {
-      banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+      GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
       banked_lambda(Board::BANK, [&drop]() {
         board.set_maze_cell(drop.row, drop.column, CellType::Marshmallow);
       });
@@ -235,7 +235,7 @@ bool Drops::random_hard_drop() {
     u8 column = board.random_free_column(row);
     board.set_maze_cell(row, column, CellType::Marshmallow);
     if ((get_frame_count() & 0b1111) == 0) {
-      banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+      GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
     }
     return true;
   });
@@ -275,7 +275,7 @@ Gameplay::Gameplay()
 
   ppu_on_all();
 
-  banked_play_song(song_per_stage[(u8)current_stage]);
+  GGSound::play_song(song_per_stage[(u8)current_stage]);
 
   pal_fade_to(0, 4);
 
@@ -440,15 +440,15 @@ void Gameplay::pause_handler() {
     pause_option = PauseOption::Resume;
     gameplay_state = GameplayState::Playing;
     GGSound::resume();
-    banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
   } else if (any_pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
     pause_option = NEXT_OPTION[(u8)pause_option];
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (any_pressed & (PAD_LEFT | PAD_UP)) {
     pause_option = PREV_OPTION[(u8)pause_option];
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (any_pressed & PAD_A) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     switch (pause_option) {
     case PauseOption::Exit:
       ppu_wait_nmi();
@@ -518,15 +518,15 @@ void Gameplay::confirm_exit_handler() {
   ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & PAD_B) {
-    banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
     pause_game();
     return;
   } else if (any_pressed &
              (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     yes_no_option = !yes_no_option;
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (any_pressed & (PAD_A | PAD_START)) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       current_game_state = GameState::WorldMap;
     } else {
@@ -545,9 +545,9 @@ void Gameplay::confirm_retry_handler() {
   } else if (any_pressed &
              (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     yes_no_option = !yes_no_option;
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (any_pressed & (PAD_A | PAD_START)) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
     } else {
@@ -563,7 +563,7 @@ void Gameplay::confirm_continue_handler() {
   ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & (PAD_A | PAD_START)) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     current_game_state = GameState::WorldMap;
     return;
   }
@@ -578,10 +578,10 @@ void Gameplay::retry_exit_handler() {
   ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
     yes_no_option = !yes_no_option;
   } else if (any_pressed & (PAD_A | PAD_START)) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
     } else {
@@ -677,10 +677,10 @@ void Gameplay::gameplay_handler() {
     overflow_state = OverflowState::FlashOutsideBlocks;
     marshmallow_overflow_counter = 0xff;
     GGSound::stop();
-    banked_play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::Two);
+    GGSound::play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::Two);
   } else if (blocks_were_placed &&
              current_controller_scheme == ControllerScheme::TwoPlayers) {
-    banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
   }
   STOP_MESEN_WATCH("ovr");
 
@@ -846,7 +846,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
                              PAUSE_MENU_OPTIONS_POSITION);
       gameplay_state = GameplayState::ConfirmContinue;
       story_completion[(u8)current_stage] = true;
-      banked_play_song(Song::Victory);
+      GGSound::play_song(Song::Victory);
       break;
     }
     break;
@@ -864,7 +864,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
         multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
         if (time_trial_seconds == 10 || time_trial_seconds == 5 ||
             time_trial_seconds == 0) {
-          banked_play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
+          GGSound::play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
         }
         if (time_trial_seconds == 0) {
           end_game();
@@ -901,7 +901,7 @@ void Gameplay::fail_game() {
                          PAUSE_MENU_OPTIONS_POSITION);
   gameplay_state = GameplayState::RetryOrExit;
   yes_no_option = true;
-  banked_play_song(Song::Failure);
+  GGSound::play_song(Song::Failure);
 }
 
 void Gameplay::pause_game() {
@@ -921,7 +921,7 @@ void Gameplay::swap_inputs() {
   }
   if (input_mode == InputMode::Unicorn) {
     if (polyomino.state != Polyomino::State::Active) {
-      banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
+      GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
       return;
     }
     input_mode = InputMode::Polyomino;
@@ -931,9 +931,9 @@ void Gameplay::swap_inputs() {
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       blocks_were_placed) {
-    banked_play_sfx(SFX::Number1pblockdrop, GGSound::SFXPriority::Two);
+    GGSound::play_sfx(SFX::Number1pblockdrop, GGSound::SFXPriority::Two);
   } else {
-    banked_play_sfx(SFX::Unicornon, GGSound::SFXPriority::Two);
+    GGSound::play_sfx(SFX::Unicornon, GGSound::SFXPriority::Two);
   }
 
   gameplay_state = GameplayState::Swapping;
@@ -1040,7 +1040,7 @@ void Gameplay::add_experience(u8 exp) {
     while (experience >= LEVEL_UP_POINTS && current_level < MAX_LEVEL) {
       experience -= LEVEL_UP_POINTS;
       current_level++;
-      banked_play_sfx(SFX::Levelup, GGSound::SFXPriority::Two);
+      GGSound::play_sfx(SFX::Levelup, GGSound::SFXPriority::Two);
     }
   }
 }

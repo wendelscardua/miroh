@@ -1,6 +1,5 @@
 #include "polyomino.hpp"
 #include "bag.hpp"
-#include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "common.hpp"
 #include "direction.hpp"
@@ -242,7 +241,7 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
     definition = definition->right_rotation;
 
     if (able_to_kick(definition->right_kick->deltas)) {
-      banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
       update_bitmask();
     } else {
       definition = definition->left_rotation; // undo rotation
@@ -252,7 +251,7 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
 
     if (able_to_kick(definition->left_kick->deltas)) {
       update_bitmask();
-      banked_play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
     } else {
       definition = definition->right_rotation; // undo rotation
     }

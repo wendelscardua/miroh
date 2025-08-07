@@ -89,7 +89,7 @@ void Unicorn::energy_upkeep() {
     if (energy > 0) {
       energy--;
       if (energy == 0) {
-        banked_play_sfx(SFX::Outofenergy, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Outofenergy, GGSound::SFXPriority::One);
       }
     }
   }
@@ -121,10 +121,10 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     if (pressed & (PAD_A | PAD_B)) {
       roll_into_block = false;
       if (energy < CHARGE_COST && !roll_disabled) {
-        banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
+        GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
         break;
       }
-      banked_play_sfx(SFX::Headbutt, GGSound::SFXPriority::Two);
+      GGSound::play_sfx(SFX::Headbutt, GGSound::SFXPriority::Two);
       energy -= CHARGE_COST;
       set_state(State::Roll);
       roll_distance = 0;
@@ -264,7 +264,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
   case State::Trapped:
     if (generic_animation.current_cell_index == 1 &&
         generic_animation.current_frame == 0) {
-      banked_play_sfx(SFX::Marshmallow, GGSound::SFXPriority::Two);
+      GGSound::play_sfx(SFX::Marshmallow, GGSound::SFXPriority::Two);
     }
     break;
   case State::Roll:
@@ -297,7 +297,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     }
     if (roll_into_block && generic_animation.current_cell_index == 0 &&
         generic_animation.current_frame == 3) {
-      banked_play_sfx(SFX::Blockhit, GGSound::SFXPriority::Two);
+      GGSound::play_sfx(SFX::Blockhit, GGSound::SFXPriority::Two);
       if (facing == Direction::Right) {
         if (board.occupied((s8)row, column + 2)) {
           banked_lambda(Board::BANK, [this]() {
@@ -347,7 +347,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       }
     } else if (generic_animation.current_cell_index == 5 &&
                generic_animation.current_frame == 0) {
-      banked_play_sfx(SFX::Butt, GGSound::SFXPriority::One);
+      GGSound::play_sfx(SFX::Butt, GGSound::SFXPriority::One);
     }
     break;
   }
@@ -425,7 +425,7 @@ void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
 }
 
 void Unicorn::feed(u8 nutrition) {
-  banked_play_sfx(SFX::Eat, GGSound::SFXPriority::One);
+  GGSound::play_sfx(SFX::Eat, GGSound::SFXPriority::One);
 
   energy_timer = 0;
   if (energy < MAX_ENERGY - nutrition) {

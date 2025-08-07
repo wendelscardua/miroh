@@ -92,7 +92,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
     bgm_test_index = 8;
   } else {
     bgm_test_index = 0;
-    banked_play_song(current_track);
+    GGSound::play_song(current_track);
   }
   one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
 
@@ -151,7 +151,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
     if (next_track_delay > 0) {
       next_track_delay--;
       if (next_track_delay == 0) {
-        banked_play_song(current_track);
+        GGSound::play_song(current_track);
       }
     }
 
@@ -170,12 +170,12 @@ __attribute__((noinline)) void TitleScreen::loop() {
       }
       if (pressed & (PAD_UP | PAD_LEFT)) {
         current_option = previous_option[(u8)current_option];
-        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
         current_option = next_option[(u8)current_option];
-        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_START | PAD_A)) {
-        banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
         switch (current_option) {
         case MenuOption::OnePlayer:
         case MenuOption::TwoPlayers:
@@ -197,12 +197,12 @@ __attribute__((noinline)) void TitleScreen::loop() {
     case State::ModeMenu:
       if (pressed & (PAD_UP | PAD_LEFT)) {
         current_game_mode = previous_mode[(u8)current_game_mode];
-        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_DOWN | PAD_RIGHT | PAD_SELECT | PAD_B)) {
         current_game_mode = next_mode[(u8)current_game_mode];
-        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_START | PAD_A)) {
-        banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
         current_game_state = GameState::WorldMap;
         current_stage = Stage::StarlitStables;
         show_intro =
@@ -212,7 +212,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
     case State::HowToPlay:
       if (pressed & (PAD_B)) {
         state = State::MainMenu;
-        banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
       } else if (pressed & (PAD_LEFT | PAD_UP)) {
         if ((u8)bgm_test_index == 0) {
           bgm_test_index = sizeof(bgm_test_songs) - 1;
@@ -222,7 +222,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         current_track = bgm_test_songs[bgm_test_index];
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
-        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
       } else if (pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_A)) {
         if ((u8)bgm_test_index == sizeof(bgm_test_songs) - 1) {
@@ -233,7 +233,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         current_track = bgm_test_songs[bgm_test_index];
         next_track_delay = NEXT_TRACK_DELAY;
         GGSound::stop();
-        banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+        GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
       }
       how_to_select_timer++;

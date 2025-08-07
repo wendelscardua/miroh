@@ -2,6 +2,7 @@
 #include "animation.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "ggsound.hpp"
 #include "metasprites.hpp"
 #include "unicorn.hpp"
 #include "utils.hpp"
@@ -81,7 +82,7 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
             splash_animation.current_frame == 0) {
           // near splash 14
           // TODO: check if this is ok
-          banked_play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
+          GGSound::play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
         }
         if (splash_animation.finished) {
           fruit.state = Fruit::State::Active;

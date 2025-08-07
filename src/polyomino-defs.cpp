@@ -101,7 +101,7 @@ bool PolyominoDef::board_render(Board &board, s8 row, s8 column) const {
                                                sizeof(Board::block_jiggle[0]),
                                            (u8)block_row, (u8)block_column));
         // XXX: just so line clears can be counted
-        board.occupy(block_row, block_column);
+        board.occupy((u8)block_row, (u8)block_column);
       });
     } else {
       it_fits = false;
