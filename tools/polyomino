@@ -92,7 +92,7 @@ class Polyomino < Thor
         blocks.each do |delta_row, delta_column|
           bitmask[delta_row + 1] |= 1 << (4 + delta_column + 1) # 4 is the Spawn Column (see polyomino.hpp)
         end
-        f.puts ".word #{bitmask.join(', ')}"
+        f.puts ".byte #{bitmask.join(', ')}" # although masks correspond to a WIDTH-bits value, they fit in a byte
 
         # Calculate bounding box limits
         left_limit = 4

@@ -119,9 +119,9 @@ void Polyomino::update_bitmask() {
 
   for (u8 i = 0; i < 4; i++) {
     if (column >= SPAWN_COLUMN) {
-      bitmask[i] = definition->bitmask[i] << distance;
+      bitmask[i] = ((u16)definition->bitmask[i]) << distance;
     } else if (column < SPAWN_COLUMN) {
-      bitmask[i] = definition->bitmask[i] >> distance;
+      bitmask[i] = ((u16)definition->bitmask[i]) >> distance;
     }
   }
 
