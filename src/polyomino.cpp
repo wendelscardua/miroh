@@ -197,8 +197,8 @@ bool Polyomino::able_to_kick(const auto &kick_deltas) {
     if (!definition->collide(board, new_row, new_column)) {
       row = new_row;
       column = new_column;
-      x += 16 * kick.delta_column;
-      y += 16 * kick.delta_row;
+      x += kick.delta_x;
+      y += kick.delta_y;
       STOP_MESEN_WATCH("kick");
       STOP_MESEN_WATCH("kicks");
       return true;

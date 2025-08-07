@@ -10,15 +10,22 @@
 #define CHIBI_TILE 0x1a
 
 struct Coordinates {
-  s8 delta_row : 8;
-  s8 delta_column : 8;
+  s8 delta_row;
+  s8 delta_column;
 
   constexpr u8 delta_x() { return (u8)(delta_column) * 0x10; }
   constexpr u8 delta_y() { return (u8)(delta_row) * 0x10; }
 };
 
+struct KickCoordinates {
+  s8 delta_row;
+  s8 delta_column;
+  s8 delta_x;
+  s8 delta_y;
+};
+
 struct Kick {
-  std::array<const Coordinates, 5> deltas;
+  std::array<const KickCoordinates, 5> deltas;
 };
 
 struct PolyominoDef {

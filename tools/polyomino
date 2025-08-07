@@ -138,7 +138,16 @@ class Polyomino < Thor
         values.each do |delta_x, delta_y|
           delta_row = -delta_y
           delta_column = delta_x
-          f.puts ".byte #{delta_row.negative? ? 0xff : delta_row}, #{delta_column.negative? ? 0xff : delta_column}"
+          delta_x = delta_column * 16
+          delta_y = delta_row * 16
+
+          delta_row += 256 if delta_row.negative?
+          delta_column += 256 if delta_column.negative?
+          delta_x += 256 if delta_x.negative?
+          delta_y += 256 if delta_y.negative?
+
+          f.puts ".byte #{delta_row}, #{delta_column}"
+          f.puts ".byte #{delta_x}, #{delta_y}"
         end
       end
     end
