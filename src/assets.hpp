@@ -9,7 +9,7 @@ const int PPU_PATTERN_TABLE_1 = 0x1000;
 // prg bank index where most assets are stored
 const u8 ASSETS_BANK = 1;
 // prg bank for palettes
-const u8 PALETTES_BANK = 2;
+const u8 PALETTES_BANK = 3;
 
 // various base tiles
 static constexpr u8 MAZE_BASE_TILE = 0x20;

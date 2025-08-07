@@ -6,7 +6,7 @@
 
 class TitleScreen {
 public:
-  static constexpr u8 BANK = 2;
+  static constexpr u8 BANK = 3;
   static constexpr s16 TITLE_SCROLL = 0x0;
   static constexpr s16 HOW_TO_SCROLL = 0x100;
   static constexpr s16 PALETTE_SWAP_POINT = 0xb0;
