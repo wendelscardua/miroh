@@ -114,18 +114,14 @@ void Polyomino::spawn() {
 
 void Polyomino::update_bitmask() {
   START_MESEN_WATCH("bitmask");
+  const u8 distance = column >= SPAWN_COLUMN ? (u8)(column - SPAWN_COLUMN)
+                                             : (u8)(SPAWN_COLUMN - column);
+
   for (u8 i = 0; i < 4; i++) {
-    bitmask[i] = definition->bitmask[i];
-  }
-  if (column > SPAWN_COLUMN) {
-    const u8 distance = (u8)(column - SPAWN_COLUMN);
-    for (u8 i = 0; i < distance; i++) {
-      move_bitmask_right();
-    }
-  } else if (column < SPAWN_COLUMN) {
-    const u8 distance = (u8)(SPAWN_COLUMN - column);
-    for (u8 i = 0; i < distance; i++) {
-      move_bitmask_left();
+    if (column >= SPAWN_COLUMN) {
+      bitmask[i] = definition->bitmask[i] << distance;
+    } else if (column < SPAWN_COLUMN) {
+      bitmask[i] = definition->bitmask[i] >> distance;
     }
   }
 
