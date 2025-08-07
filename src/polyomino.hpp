@@ -73,6 +73,10 @@ public:
 
   __attribute__((noinline)) void update_bitmask();
 
+  void move_bitmask_left();
+
+  void move_bitmask_right();
+
   __attribute__((noinline)) void update_shadow();
 
   // returns number of filled lines aftter blocks were frozen, or -1 if

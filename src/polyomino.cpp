@@ -107,6 +107,9 @@ void Polyomino::spawn() {
   }
   row -= (max_delta + 1);
   y -= (max_delta + 1) * 16;
+
+  update_bitmask();
+  update_shadow();
 }
 
 void Polyomino::update_bitmask() {
@@ -134,6 +137,18 @@ void Polyomino::update_bitmask() {
     }
     bitmask[(u8)(delta.delta_row)] |=
         Board::OCCUPIED_BITMASK[(u8)(column + delta.delta_column)];
+  }
+}
+
+void Polyomino::move_bitmask_left() {
+  for (u8 i = 0; i < 4; i++) {
+    bitmask[i] >>= 1;
+  }
+}
+
+void Polyomino::move_bitmask_right() {
+  for (u8 i = 0; i < 4; i++) {
+    bitmask[i] <<= 1;
   }
 }
 
@@ -243,6 +258,7 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
     if (able_to_kick(definition->right_kick->deltas)) {
       GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
       update_bitmask();
+      update_shadow();
     } else {
       definition = definition->left_rotation; // undo rotation
     }
@@ -251,6 +267,7 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
 
     if (able_to_kick(definition->left_kick->deltas)) {
       update_bitmask();
+      update_shadow();
       GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
     } else {
       definition = definition->right_rotation; // undo rotation
@@ -302,6 +319,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     if (!collide(row, column - 1)) {
       column--;
       x -= 16;
+      move_bitmask_left();
+      update_shadow();
     }
     movement_direction = Direction::None;
     break;
@@ -309,6 +328,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     if (!collide(row, column + 1)) {
       column++;
       x += 16;
+      move_bitmask_right();
+      update_shadow();
     }
     movement_direction = Direction::None;
     break;
@@ -322,12 +343,11 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       y += 16;
       movement_direction = Direction::None;
     }
+    break;
   case Direction::Up:
   case Direction::None:
     break;
   }
-  update_bitmask();
-  update_shadow();
 }
 
 void Polyomino::render(int y_scroll) {
