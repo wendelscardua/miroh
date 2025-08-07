@@ -13,7 +13,7 @@
 #pragma clang section rodata = ".prg_rom_fixed.rodata.bah"
 
 void banked_play_song(Song song) {
-  ScopedBank scoopedBank(GGSound::BANK);
+  ScopedBank scopedBank(GGSound::BANK);
   GGSound::play_song(song);
 }
 
