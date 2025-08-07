@@ -87,6 +87,28 @@ class Polyomino < Thor
         # each pair of deltas fit in a byte
         f.puts ".byte #{blocks.size}"
         blocks.sort_by! { |delta_row, delta_column| [delta_row, delta_column] }
+
+        bitmask = [0, 0, 0, 0]
+        blocks.each do |delta_row, delta_column|
+          bitmask[delta_row + 1] |= 1 << (4 + delta_column + 1) # 4 is the Spawn Column (see polyomino.hpp)
+        end
+        f.puts ".word #{bitmask.join(', ')}"
+
+        # Calculate bounding box limits
+        left_limit = 4
+        right_limit = 0
+        top_limit = 4
+        bottom_limit = 0
+        blocks.each do |delta_row, delta_column|
+          delta_column += 1
+          delta_row += 1
+          right_limit = delta_column if delta_column > right_limit
+          left_limit = delta_column if delta_column < left_limit
+          bottom_limit = delta_row if delta_row > bottom_limit
+          top_limit = delta_row if delta_row < top_limit
+        end
+        f.puts ".byte #{left_limit}, #{right_limit}, #{top_limit}, #{bottom_limit}"
+
         blocks.each do |delta_row, delta_column|
           delta_column += 1
           delta_row += 1

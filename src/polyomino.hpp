@@ -13,6 +13,7 @@
 class Polyomino {
   static constexpr s8 MOVEMENT_INITIAL_DELAY = 16;
   static constexpr s8 MOVEMENT_DELAY = 6;
+  static constexpr u8 SPAWN_COLUMN = 4;
 
   static Bag<u8, 10> pieces;
   static Bag<u8, 4> littleminos;

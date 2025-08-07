@@ -28,6 +28,11 @@ struct PolyominoDef {
   const Kick *const left_kick;
   const Kick *const right_kick;
   const u8 size;
+  const u16 bitmask[4];
+  const u8 left_limit;
+  const u8 right_limit;
+  const u8 top_limit;
+  const u8 bottom_limit;
   std::array<const Coordinates, 5> deltas;
   const char preview_tiles[4];
 

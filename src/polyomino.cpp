@@ -85,7 +85,7 @@ void Polyomino::spawn() {
   grounded_timer = 0;
   move_timer = 0;
   movement_direction = Direction::None;
-  column = 4;
+  column = SPAWN_COLUMN;
   row = 0;
   x = board.origin_x + (u8)(column << 4);
   y = board.origin_y + (u8)(row << 4);
@@ -113,31 +113,27 @@ void Polyomino::spawn() {
 }
 
 void Polyomino::update_bitmask() {
+  START_MESEN_WATCH("bitmask");
   for (u8 i = 0; i < 4; i++) {
-    bitmask[i] = 0;
+    bitmask[i] = definition->bitmask[i];
+  }
+  if (column > SPAWN_COLUMN) {
+    const u8 distance = (u8)(column - SPAWN_COLUMN);
+    for (u8 i = 0; i < distance; i++) {
+      move_bitmask_right();
+    }
+  } else if (column < SPAWN_COLUMN) {
+    const u8 distance = (u8)(SPAWN_COLUMN - column);
+    for (u8 i = 0; i < distance; i++) {
+      move_bitmask_left();
+    }
   }
 
-  left_limit = 4;
-  right_limit = 0;
-  top_limit = 4;
-  bottom_limit = 0;
-  for (u8 i = 0; i < definition->size; i++) {
-    auto delta = definition->deltas[i];
-    if (delta.delta_column > right_limit) {
-      right_limit = (u8)delta.delta_column;
-    }
-    if (delta.delta_column < left_limit) {
-      left_limit = (u8)delta.delta_column;
-    }
-    if (delta.delta_row > bottom_limit) {
-      bottom_limit = (u8)delta.delta_row;
-    }
-    if (delta.delta_row < top_limit) {
-      top_limit = (u8)delta.delta_row;
-    }
-    bitmask[(u8)(delta.delta_row)] |=
-        Board::OCCUPIED_BITMASK[(u8)(column + delta.delta_column)];
-  }
+  left_limit = definition->left_limit;
+  right_limit = definition->right_limit;
+  top_limit = definition->top_limit;
+  bottom_limit = definition->bottom_limit;
+  STOP_MESEN_WATCH("bitmask");
 }
 
 void Polyomino::move_bitmask_left() {
