@@ -276,7 +276,9 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   }
   if (drop_timer++ >= drop_frames) {
     drop_timer -= drop_frames;
-    if (collide(row + 1, (s8)column)) {
+    // NOTE: since we've computed shadow row using collision, when we arrive at
+    // it it means we would collide with the ground
+    if (row == shadow_row) {
       if (grounded_timer >= MAX_GROUNDED_TIMER) {
         grounded_timer = 0;
         drop_timer = 0;
@@ -313,7 +315,9 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     movement_direction = Direction::None;
     break;
   case Direction::Down:
-    if (collide(row + 1, (s8)column)) {
+    // NOTE: since we've computed shadow row using collision, when we arrive at
+    // it it means we would collide with the ground
+    if (row == shadow_row) {
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
       row++;
