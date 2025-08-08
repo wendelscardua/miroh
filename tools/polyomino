@@ -22,7 +22,7 @@ class Polyomino < Thor
 
     File.open(s_file, 'w') do |f|
       f.puts <<~ASM
-        .section #{bank}
+        .section #{bank},"aR",@progbits
         .global polyominos
         polyominos:
       ASM
