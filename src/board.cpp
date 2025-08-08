@@ -384,12 +384,8 @@ u8 walls_to_index(bool wall_going_up, bool wall_going_right,
  10: eof (0xff)
  */
 
-#define TOP_0 VRAM_BUF[VRAM_INDEX + 3]
-#define TOP_1 VRAM_BUF[VRAM_INDEX + 4]
-#define BOTTOM_0 VRAM_BUF[VRAM_INDEX + 8]
-#define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
-
 void Board::set_maze_cell(u8 row, u8 column, CellType cell_type) {
+  u8 top_0, top_1, bottom_0, bottom_1;
   const auto current_cell_index = board_index(row, column);
   const auto current_cell = &cell[current_cell_index];
   int position =
@@ -406,48 +402,48 @@ void Board::set_maze_cell(u8 row, u8 column, CellType cell_type) {
     const auto right_cell =
         column < WIDTH - 1 ? &cell[current_cell_index + 1] : &null_cell;
 
-    TOP_0 = upper_left_maze_tile[walls_to_index(
+    top_0 = upper_left_maze_tile[walls_to_index(
         upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
         left_cell->up_wall)];
-    TOP_1 = upper_right_maze_tile[walls_to_index(
+    top_1 = upper_right_maze_tile[walls_to_index(
         upper_cell->right_wall, right_cell->up_wall, current_cell->right_wall,
         current_cell->up_wall)];
-    BOTTOM_0 = lower_left_maze_tile[walls_to_index(
+    bottom_0 = lower_left_maze_tile[walls_to_index(
         current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
         left_cell->down_wall)];
-    BOTTOM_1 = lower_right_maze_tile[walls_to_index(
+    bottom_1 = lower_right_maze_tile[walls_to_index(
         current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
         current_cell->down_wall)];
 
     if (row == 0) {
       if (column > 0 && current_cell->left_wall) {
-        TOP_0 = MAZE_BASE_TILE + 0x0a;
+        top_0 = MAZE_BASE_TILE + 0x0a;
       }
       if (column < WIDTH - 1 && current_cell->right_wall) {
-        TOP_1 = MAZE_BASE_TILE + 0x09;
+        top_1 = MAZE_BASE_TILE + 0x09;
       }
     } else if (row == HEIGHT - 1) {
       if (column > 0 && current_cell->left_wall) {
-        BOTTOM_0 = MAZE_BASE_TILE + 0x1a;
+        bottom_0 = MAZE_BASE_TILE + 0x1a;
       }
       if (column < WIDTH - 1 && current_cell->right_wall) {
-        BOTTOM_1 = MAZE_BASE_TILE + 0x19;
+        bottom_1 = MAZE_BASE_TILE + 0x19;
       }
     }
 
     if (column == 0) {
       if (row > 0 && current_cell->up_wall) {
-        TOP_0 = MAZE_BASE_TILE + 0x1b;
+        top_0 = MAZE_BASE_TILE + 0x1b;
       }
       if (row < HEIGHT - 1 && current_cell->down_wall) {
-        BOTTOM_0 = MAZE_BASE_TILE + 0x0b;
+        bottom_0 = MAZE_BASE_TILE + 0x0b;
       }
     } else if (column == WIDTH - 1) {
       if (row > 0 && current_cell->up_wall) {
-        TOP_1 = MAZE_BASE_TILE + 0x1c;
+        top_1 = MAZE_BASE_TILE + 0x1c;
       }
       if (row < HEIGHT - 1 && current_cell->down_wall) {
-        BOTTOM_1 = MAZE_BASE_TILE + 0x0c;
+        bottom_1 = MAZE_BASE_TILE + 0x0c;
       }
     }
 
@@ -460,49 +456,49 @@ void Board::set_maze_cell(u8 row, u8 column, CellType cell_type) {
     const auto right_cell =
         column < WIDTH - 1 ? &cell[current_cell_index + 1] : &null_cell;
 
-    TOP_0 = MARSHMALLOW_BASE_TILE;
-    TOP_1 = MARSHMALLOW_BASE_TILE + 1;
+    top_0 = MARSHMALLOW_BASE_TILE;
+    top_1 = MARSHMALLOW_BASE_TILE + 1;
 
-    BOTTOM_0 = lower_left_block_tile[walls_to_index(
+    bottom_0 = lower_left_block_tile[walls_to_index(
         current_cell->left_wall, current_cell->down_wall, lower_cell->left_wall,
         left_cell->down_wall)];
-    BOTTOM_1 = lower_right_block_tile[walls_to_index(
+    bottom_1 = lower_right_block_tile[walls_to_index(
         current_cell->right_wall, right_cell->down_wall, lower_cell->right_wall,
         current_cell->down_wall)];
 
     if (row == HEIGHT - 1) {
       if (column > 0 && current_cell->left_wall) {
-        BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
+        bottom_0 = MARSHMALLOW_BASE_TILE + 0x0a;
       }
       if (column < WIDTH - 1 && current_cell->right_wall) {
-        BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
+        bottom_1 = MARSHMALLOW_BASE_TILE + 0x0b;
       }
     }
 
     if (column == 0) {
       if (row < HEIGHT - 1 && current_cell->down_wall) {
-        BOTTOM_0 = MARSHMALLOW_BASE_TILE + 0x0a;
+        bottom_0 = MARSHMALLOW_BASE_TILE + 0x0a;
       }
     } else if (column == WIDTH - 1) {
       if (row < HEIGHT - 1 && current_cell->down_wall) {
-        BOTTOM_1 = MARSHMALLOW_BASE_TILE + 0x0b;
+        bottom_1 = MARSHMALLOW_BASE_TILE + 0x0b;
       }
     }
 
     switch (cell_type) {
     case CellType::Jiggling:
-      TOP_0 += 0x10;
-      TOP_1 += 0x10;
-      BOTTOM_0 += 0x10;
-      BOTTOM_1 += 0x10;
+      top_0 += 0x10;
+      top_1 += 0x10;
+      bottom_0 += 0x10;
+      bottom_1 += 0x10;
       break;
     case CellType::LeanLeft:
-      TOP_0 = 0x4c;
-      TOP_1 = 0x4d;
+      top_0 = 0x4c;
+      top_1 = 0x4d;
       break;
     case CellType::LeanRight:
-      TOP_0 = 0x4e;
-      TOP_1 = 0x4f;
+      top_0 = 0x4e;
+      top_1 = 0x4f;
       break;
     case CellType::Maze:
     case CellType::Marshmallow:
@@ -517,11 +513,13 @@ void Board::set_maze_cell(u8 row, u8 column, CellType cell_type) {
   VRAM_BUF[VRAM_INDEX] = (u8)(position >> 8) | 0x40;
   VRAM_BUF[VRAM_INDEX + 1] = (u8)position;
   VRAM_BUF[VRAM_INDEX + 2] = 2;
-  // 3, 4 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 3] = top_0;
+  VRAM_BUF[VRAM_INDEX + 4] = top_1;
   VRAM_BUF[VRAM_INDEX + 5] = (u8)((position + 0x20) >> 8) | 0x40;
   VRAM_BUF[VRAM_INDEX + 6] = (u8)(position + 0x20);
   VRAM_BUF[VRAM_INDEX + 7] = 2;
-  // 8, 9 = tiles already set
+  VRAM_BUF[VRAM_INDEX + 8] = bottom_0;
+  VRAM_BUF[VRAM_INDEX + 9] = bottom_1;
   VRAM_BUF[VRAM_INDEX + 10] = 0xff;
   VRAM_INDEX += 10;
 
