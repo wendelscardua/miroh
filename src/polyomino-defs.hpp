@@ -35,7 +35,7 @@ struct PolyominoDef {
   const Kick *const left_kick;
   const Kick *const right_kick;
   const u8 size;
-  const u8 bitmask[4];
+  const u16 (*const bitmasks)[4];
   const u8 left_limit;
   const u8 right_limit;
   const u8 top_limit;

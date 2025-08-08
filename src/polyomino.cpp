@@ -1,5 +1,6 @@
 #include "polyomino.hpp"
 #include "bag.hpp"
+#include "bank-helper.hpp"
 #include "board.hpp"
 #include "common.hpp"
 #include "direction.hpp"
@@ -114,16 +115,17 @@ void Polyomino::spawn() {
 
 void Polyomino::update_bitmask() {
   START_MESEN_WATCH("bitmask");
-  const u8 distance = column >= SPAWN_COLUMN ? (u8)(column - SPAWN_COLUMN)
-                                             : (u8)(SPAWN_COLUMN - column);
 
-  for (u8 i = 0; i < 4; i++) {
-    if (column >= SPAWN_COLUMN) {
-      bitmask[i] = ((u16)definition->bitmask[i]) << distance;
-    } else if (column < SPAWN_COLUMN) {
-      bitmask[i] = ((u16)definition->bitmask[i]) >> distance;
+  // NOTE: column + 3 because we've precomputed all possible shifts from
+  // columns -3 to 11
+  auto ptr = definition->bitmasks + (column + 3);
+
+  // TODO: constantize bitmasks bank number
+  banked_lambda(13, [this, ptr]() {
+    for (u8 i = 0; i < 4; i++) {
+      bitmask[i] = (*ptr)[i];
     }
-  }
+  });
 
   left_limit = definition->left_limit;
   right_limit = definition->right_limit;

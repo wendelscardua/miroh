@@ -13,9 +13,11 @@ class Polyomino < Thor
 
   desc 'data ASM_FILE JSON_FILE', 'Generates data asm file based on json'
   method_option :bank, type: :string, required: true
+  method_option :aux_bank, type: :string, required: true
 
   def data(s_file, pieces_json)
     bank = ".prg_rom_#{options[:bank]}.rodata.polyominos"
+    aux_bank = ".prg_rom_#{options[:aux_bank]}.rodata.polyominos"
 
     data = JSON.parse(File.read(pieces_json), symbolize_names: true)
     data => { pieces:, kicks:, canon: }
@@ -88,11 +90,7 @@ class Polyomino < Thor
         f.puts ".byte #{blocks.size}"
         blocks.sort_by! { |delta_row, delta_column| [delta_row, delta_column] }
 
-        bitmask = [0, 0, 0, 0]
-        blocks.each do |delta_row, delta_column|
-          bitmask[delta_row + 1] |= 1 << (4 + delta_column + 1) # 4 is the Spawn Column (see polyomino.hpp)
-        end
-        f.puts ".byte #{bitmask.join(', ')}" # although masks correspond to a WIDTH-bits value, they fit in a byte
+        f.puts ".word bitmasks_#{key}"
 
         # Calculate bounding box limits
         left_limit = 4
@@ -148,6 +146,22 @@ class Polyomino < Thor
 
           f.puts ".byte #{delta_row}, #{delta_column}"
           f.puts ".byte #{delta_x}, #{delta_y}"
+        end
+      end
+
+      f.puts <<~ASM
+        .section #{aux_bank},"aR",@progbits
+      ASM
+
+      pieces.each do |key, values|
+        values => { blocks: }
+        f.puts "bitmasks_#{key}:"
+        (-3..11).each do |offset_column|
+          bitmask = [0, 0, 0, 0]
+          blocks.each do |delta_row, delta_column|
+            bitmask[delta_row + 1] |= 1 << (offset_column + delta_column + 1)
+          end
+          f.puts ".word #{bitmask.join(', ')}"
         end
       end
     end
