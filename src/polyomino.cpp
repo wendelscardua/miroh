@@ -122,6 +122,7 @@ void Polyomino::update_bitmask() {
 
   // TODO: constantize bitmasks bank number
   banked_lambda(13, [this, ptr]() {
+#pragma clang loop unroll(full)
     for (u8 i = 0; i < 4; i++) {
       bitmask[i] = (*ptr)[i];
     }
@@ -135,12 +136,14 @@ void Polyomino::update_bitmask() {
 }
 
 void Polyomino::move_bitmask_left() {
+#pragma clang loop unroll(full)
   for (u8 i = 0; i < 4; i++) {
     bitmask[i] >>= 1;
   }
 }
 
 void Polyomino::move_bitmask_right() {
+#pragma clang loop unroll(full)
   for (u8 i = 0; i < 4; i++) {
     bitmask[i] <<= 1;
   }
