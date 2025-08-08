@@ -74,7 +74,8 @@ static_assert(bgm_test_songs[0] == Song::Marshmallow_mountain);
 __attribute__((noinline)) TitleScreen::TitleScreen()
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
       current_track(Song::Marshmallow_mountain), next_track_delay(0),
-      y_scroll(TITLE_SCROLL) {
+      y_scroll(TITLE_SCROLL), easter_egg_code{0, 0, 0, 0},
+      easter_egg_code_index(0) {
   banked_lambda(ASSETS_BANK, []() { load_title_assets(); });
 
   pal_bright(0);
@@ -235,7 +236,24 @@ __attribute__((noinline)) void TitleScreen::loop() {
         GGSound::stop();
         GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
+      } else if (pressed & (PAD_START)) {
+        easter_egg_code[easter_egg_code_index] =
+            bgm_test_labels[bgm_test_index];
+        easter_egg_code_index++;
+        if (easter_egg_code_index == 4) {
+          easter_egg_code_index = 0;
+          //     s=0x15, p=0x12, a=0x04, c=0x06, e=0x08
+          //     f=0x09, l=0x0e, i=0x0c, g=0x0a, h=0x0b, t=0x16
+
+          // high = start with a very high score
+          if (easter_egg_code[0] == 0x0b && easter_egg_code[1] == 0x0c &&
+              easter_egg_code[2] == 0x0a && easter_egg_code[3] == 0x0b) {
+            GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+            // TODO: next game starts with a very high score
+          }
+        }
       }
+
       how_to_select_timer++;
       if (how_to_select_timer == 90) {
         how_to_players_switched = !how_to_players_switched;
