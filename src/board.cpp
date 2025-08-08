@@ -390,19 +390,21 @@ u8 walls_to_index(bool wall_going_up, bool wall_going_right,
 #define BOTTOM_1 VRAM_BUF[VRAM_INDEX + 9]
 
 void Board::set_maze_cell(u8 row, u8 column, CellType cell_type) {
-  auto current_cell = &cell_at((u8)row, (u8)column);
+  const auto current_cell_index = board_index(row, column);
+  const auto current_cell = &cell[current_cell_index];
   int position =
       NTADR_A((origin_x >> 3) + (column << 1), (origin_y >> 3) + (row << 1));
 
   if (cell_type == CellType::Maze) {
     free(row, column);
-    auto upper_cell = row > 0 ? &cell_at((u8)row - 1, (u8)column) : &null_cell;
-    auto lower_cell =
-        row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
-    auto left_cell =
-        column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
-    auto right_cell =
-        column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
+    const auto upper_cell =
+        row > 0 ? &cell[current_cell_index - WIDTH] : &null_cell;
+    const auto lower_cell =
+        row < HEIGHT - 1 ? &cell[current_cell_index + WIDTH] : &null_cell;
+    const auto left_cell =
+        column > 0 ? &cell[current_cell_index - 1] : &null_cell;
+    const auto right_cell =
+        column < WIDTH - 1 ? &cell[current_cell_index + 1] : &null_cell;
 
     TOP_0 = upper_left_maze_tile[walls_to_index(
         upper_cell->left_wall, current_cell->up_wall, current_cell->left_wall,
@@ -451,12 +453,12 @@ void Board::set_maze_cell(u8 row, u8 column, CellType cell_type) {
 
   } else {
     occupy(row, column);
-    auto lower_cell =
-        row < HEIGHT - 1 ? &cell_at((u8)row + 1, (u8)column) : &null_cell;
-    auto left_cell =
-        column > 0 ? &cell_at((u8)row, (u8)column - 1) : &null_cell;
-    auto right_cell =
-        column < WIDTH - 1 ? &cell_at((u8)row, (u8)column + 1) : &null_cell;
+    const auto lower_cell =
+        row < HEIGHT - 1 ? &cell[current_cell_index + WIDTH] : &null_cell;
+    const auto left_cell =
+        column > 0 ? &cell[current_cell_index - 1] : &null_cell;
+    const auto right_cell =
+        column < WIDTH - 1 ? &cell[current_cell_index + 1] : &null_cell;
 
     TOP_0 = MARSHMALLOW_BASE_TILE;
     TOP_1 = MARSHMALLOW_BASE_TILE + 1;
