@@ -368,7 +368,7 @@ void Unicorn::fix_uni_priority(u8 sprite_offset, bool left_wall,
   }
 }
 
-void Unicorn::render(int y_scroll, bool left_wall, bool right_wall) {
+void Unicorn::render(int y_scroll) {
   int reference_y = board.origin_y - y_scroll;
 
   if (statue) {

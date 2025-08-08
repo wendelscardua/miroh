@@ -310,22 +310,20 @@ void Gameplay::render() {
                        gameplay_state != GameplayState::MarshmallowOverflow);
   BoardAnimation::paused = Animation::paused;
   scroll(0, (unsigned int)y_scroll);
-  bool left_wall = false, right_wall = false;
+  unicorn.left_wall = false, unicorn.right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {
     u8 row = unicorn.row + 1;
     u8 col = unicorn.column;
     if (row < HEIGHT) {
       auto cell = board.cell_at(row, col);
-      left_wall = cell.left_wall;
-      right_wall = cell.right_wall;
+      unicorn.left_wall = cell.left_wall;
+      unicorn.right_wall = cell.right_wall;
     }
   }
   fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
   if (gameplay_state != GameplayState::Swapping ||
       swap_frames[swap_index].display_unicorn) {
-    banked_lambda(Unicorn::BANK, [this, &left_wall, &right_wall]() {
-      unicorn.render(y_scroll, left_wall, right_wall);
-    });
+    banked_lambda(Unicorn::BANK, [this]() { unicorn.render(y_scroll); });
   }
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
 

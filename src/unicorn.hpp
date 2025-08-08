@@ -47,6 +47,7 @@ public:
   u8 roll_distance;
   bool roll_into_block;
   u16 score;
+  bool left_wall, right_wall;
 
   u8 buffered_input;
 
@@ -68,7 +69,7 @@ public:
 
   __attribute__((noinline)) void update(u8 pressed, u8 held,
                                         bool roll_disabled);
-  void render(int y_scroll, bool left_wall, bool right_wall);
+  void render(int y_scroll);
   void feed(u8 nutrition);
   void energy_upkeep();
   void refresh_energy_hud(int y_scroll);
