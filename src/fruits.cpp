@@ -41,7 +41,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   // pick a random row
   static_assert(sizeof(fruit_rows[0]) == 4);
   fruit.row = fruit_rows[fruit_index][RAND_UP_TO_POW2(2)]; // see assert above
-  if (board.row_filled(fruit.row)) {
+  if (board.row_filled((u8)fruit.row)) {
     // if row is bad, give up for now, we try next frame
     return;
   }

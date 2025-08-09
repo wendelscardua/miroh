@@ -133,7 +133,7 @@ public:
   __attribute__((section(".prg_rom_fixed"))) bool occupied(s8 row, u8 column);
 
   // tells if a row if filled
-  __attribute__((section(".prg_rom_fixed"))) bool row_filled(s8 row);
+  __attribute__((section(".prg_rom_fixed"))) bool row_filled(u8 row);
 
   // marks a position as occupied by a solid block
   __attribute__((section(".prg_rom_fixed"))) void occupy(u8 row, u8 column);

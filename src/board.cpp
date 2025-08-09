@@ -526,8 +526,8 @@ void Board::set_maze_cell(u8 row, u8 column, CellType cell_type) {
   // end of unrolled
 }
 
-bool Board::row_filled(s8 row) {
-  return occupied_bitset[(u8)row] == FULL_ROW_BITMASK;
+bool Board::row_filled(u8 row) {
+  return occupied_bitset[row] == FULL_ROW_BITMASK;
 }
 
 const SFX sfx_per_lines_cleared[] = {SFX::Lineclear1, SFX::Lineclear2,
@@ -540,7 +540,7 @@ bool Board::ongoing_line_clearing(bool jiggling) {
 
   CORO_INIT;
 
-  for (s8 i = 0; i < HEIGHT; i++) {
+  for (u8 i = 0; i < HEIGHT; i++) {
     if (row_filled(i)) {
       deleted[i] = true;
       any_deleted = true;
@@ -618,7 +618,7 @@ bool Board::ongoing_line_clearing(bool jiggling) {
     }
   }
 
-  for (s8 i = 0; i < HEIGHT; i++) {
+  for (u8 i = 0; i < HEIGHT; i++) {
     deleted[i] = false;
   }
 
@@ -629,7 +629,7 @@ u8 Board::random_free_row() {
   u8 possible_rows[HEIGHT];
   u8 max_possible_rows = 0;
   for (u8 i = 0; i < HEIGHT; i++) {
-    if (!row_filled((s8)i)) {
+    if (!row_filled(i)) {
       possible_rows[max_possible_rows++] = i;
     }
   }

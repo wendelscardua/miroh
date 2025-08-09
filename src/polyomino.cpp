@@ -372,8 +372,8 @@ s8 Polyomino::freeze_blocks() {
 // XXX: checking the range of possible rows that could have been filled by a
 // polyomino
 #pragma clang loop unroll(full)
-  for (s8 delta_row = 0; delta_row <= 3; delta_row++) {
-    s8 block_row = row + delta_row;
+  for (u8 delta_row = 0; delta_row <= 3; delta_row++) {
+    u8 block_row = (u8)(row + delta_row);
     if (board.row_filled(block_row)) {
       filled_lines++;
     }
