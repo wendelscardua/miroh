@@ -154,11 +154,9 @@ void Polyomino::update_shadow() {
 }
 
 bool Polyomino::collide(s8 new_row, s8 new_column) {
-  START_MESEN_WATCH("collide");
   if ((s8)(left_limit + new_column) < 0 ||
       (s8)(right_limit + new_column) >= WIDTH ||
       (s8)(bottom_limit + new_row) >= HEIGHT) {
-    STOP_MESEN_WATCH("collide");
     return true;
   }
   s8 mod_row = new_row;
@@ -168,7 +166,6 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     for (u8 i = 0; i < 4; i++, mod_row++) {
       if (i >= top_limit && i <= bottom_limit && mod_row >= 0) {
         if (bitmask[i] & board.occupied_bitset[(u8)mod_row]) {
-          STOP_MESEN_WATCH("collide");
           return true;
         }
       }
@@ -178,7 +175,6 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     for (u8 i = 0; i < 4; i++, mod_row++) {
       if (i >= top_limit && i <= bottom_limit && mod_row >= 0) {
         if ((bitmask[i] << 1) & board.occupied_bitset[(u8)mod_row]) {
-          STOP_MESEN_WATCH("collide");
           return true;
         }
       }
@@ -188,14 +184,12 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     for (u8 i = 0; i < 4; i++, mod_row++) {
       if (i >= top_limit && i <= bottom_limit && mod_row >= 0) {
         if ((bitmask[i] >> 1) & board.occupied_bitset[(u8)mod_row]) {
-          STOP_MESEN_WATCH("collide");
           return true;
         }
       }
     }
   }
 
-  STOP_MESEN_WATCH("collide");
   return false;
 }
 
