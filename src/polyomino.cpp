@@ -162,18 +162,39 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
     return true;
   }
   s8 mod_row = new_row;
+
+  if (new_column == column) {
 #pragma clang loop unroll(full)
-  for (u8 i = 0; i < 4; i++, mod_row++) {
-    if (i >= top_limit && i <= bottom_limit && mod_row >= 0) {
-      const auto shifted_mask = new_column == column  ? bitmask[i]
-                                : new_column > column ? bitmask[i] << 1
-                                                      : bitmask[i] >> 1;
-      if (shifted_mask & board.occupied_bitset[(u8)mod_row]) {
-        STOP_MESEN_WATCH("collide");
-        return true;
+    for (u8 i = 0; i < 4; i++, mod_row++) {
+      if (i >= top_limit && i <= bottom_limit && mod_row >= 0) {
+        if (bitmask[i] & board.occupied_bitset[(u8)mod_row]) {
+          STOP_MESEN_WATCH("collide");
+          return true;
+        }
+      }
+    }
+  } else if (new_column > column) {
+#pragma clang loop unroll(full)
+    for (u8 i = 0; i < 4; i++, mod_row++) {
+      if (i >= top_limit && i <= bottom_limit && mod_row >= 0) {
+        if ((bitmask[i] << 1) & board.occupied_bitset[(u8)mod_row]) {
+          STOP_MESEN_WATCH("collide");
+          return true;
+        }
+      }
+    }
+  } else {
+#pragma clang loop unroll(full)
+    for (u8 i = 0; i < 4; i++, mod_row++) {
+      if (i >= top_limit && i <= bottom_limit && mod_row >= 0) {
+        if ((bitmask[i] >> 1) & board.occupied_bitset[(u8)mod_row]) {
+          STOP_MESEN_WATCH("collide");
+          return true;
+        }
       }
     }
   }
+
   STOP_MESEN_WATCH("collide");
   return false;
 }
