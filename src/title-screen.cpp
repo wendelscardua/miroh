@@ -15,61 +15,54 @@
 #pragma clang section text = ".prg_rom_3.text"
 #pragma clang section rodata = ".prg_rom_3.rodata"
 
-__attribute__((section(".prg_rom_3.rodata")))
-const TitleScreen::MenuOption previous_option[] = {
+__attribute__((used)) const TitleScreen::MenuOption previous_option[] = {
     TitleScreen::MenuOption::HowToPlay,  // OnePlayer
     TitleScreen::MenuOption::OnePlayer,  // TwoPlayers
     TitleScreen::MenuOption::TwoPlayers, // HowToPlay
 };
 
-__attribute__((section(".prg_rom_3.rodata")))
-const TitleScreen::MenuOption next_option[] = {
+__attribute__((used)) const TitleScreen::MenuOption next_option[] = {
     TitleScreen::MenuOption::TwoPlayers, // OnePlayer
     TitleScreen::MenuOption::HowToPlay,  // TwoPlayers
     TitleScreen::MenuOption::OnePlayer,  // HowToPlay
 };
 
-__attribute__((section(".prg_rom_3.rodata"))) const u8 menu_y_position[] = {
+const u8 menu_y_position[] = {
     0x96, // OnePlayer
     0xa6, // TwoPlayers
     0xb6, // HowToPlay
 };
 
-__attribute__((section(".prg_rom_3.rodata"))) const GameMode previous_mode[] = {
+__attribute__((used)) const GameMode previous_mode[] = {
     GameMode::TimeTrial, GameMode::Story, GameMode::Endless};
 
-__attribute__((section(".prg_rom_3.rodata"))) const GameMode next_mode[] = {
+__attribute__((used)) const GameMode next_mode[] = {
     GameMode::Endless, GameMode::TimeTrial, GameMode::Story};
 
-__attribute__((section(".prg_rom_3.rodata")))
 const unsigned char story_label[12 * 1] = {0x02, 0x02, 0x15, 0x16, 0x11, 0x14,
                                            0x1b, 0x00, 0x00, 0x00, 0x00, 0x00};
-__attribute__((section(".prg_rom_3.rodata")))
 const unsigned char endless_label[12 * 1] = {
     0x00, 0x02, 0x08, 0x10, 0x07, 0x0e, 0x08, 0x15, 0x15, 0x00, 0x00, 0x00};
-__attribute__((section(".prg_rom_3.rodata")))
 const unsigned char time_trial_label[12 * 1] = {
     0x00, 0x00, 0x16, 0x0c, 0x0f, 0x08, 0x00, 0x16, 0x14, 0x0c, 0x04, 0x0e};
 
-__attribute__((section(".prg_rom_3.rodata")))
 const unsigned char bgm_test_labels[11 * 1] = {
     0x15, 0x12, 0x04, 0x06, 0x08, 0x09, 0x0e, 0x0c, 0x0a, 0x0b, 0x16};
 
-__attribute__((
-    section(".prg_rom_3.rodata"))) constexpr Song bgm_test_songs[] = {
-    Song::Marshmallow_mountain,
-    Song::Sting_plus_drums,
-    Song::Intro_music,
-    Song::Starlit_stables,
-    Song::Rainbow_retreat,
-    Song::Fairy_flight,
-    Song::Glitter_grotto,
-    Song::Baby_bullhead_title,
-    Song::Ending,
-    Song::Failure,
-    Song::Victory};
+const Song bgm_test_songs[] = {Song::Marshmallow_mountain,
+                               Song::Sting_plus_drums,
+                               Song::Intro_music,
+                               Song::Starlit_stables,
+                               Song::Rainbow_retreat,
+                               Song::Fairy_flight,
+                               Song::Glitter_grotto,
+                               Song::Baby_bullhead_title,
+                               Song::Ending,
+                               Song::Failure,
+                               Song::Victory};
 
-static_assert(bgm_test_songs[0] == Song::Marshmallow_mountain);
+__attribute__((used)) const SFX egg_sfx[] = {SFX::Lineclear1, SFX::Lineclear2,
+                                             SFX::Lineclear3, SFX::Lineclear4};
 
 __attribute__((noinline)) TitleScreen::TitleScreen()
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
@@ -237,6 +230,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
         GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
       } else if (pressed & (PAD_START)) {
+        GGSound::play_sfx(egg_sfx[easter_egg_code_index],
+                          GGSound::SFXPriority::One);
         easter_egg_code[easter_egg_code_index] =
             bgm_test_labels[bgm_test_index];
         easter_egg_code_index++;
