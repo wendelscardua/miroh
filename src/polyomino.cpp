@@ -88,28 +88,19 @@ void Polyomino::spawn() {
   movement_direction = Direction::None;
   column = SPAWN_COLUMN;
   row = 0;
-  x = board.origin_x + (u8)(column << 4);
-  y = board.origin_y + (u8)(row << 4);
 
   definition = next;
   next = polyominos[take_piece()];
 
   render_next();
 
-  for (u8 i = 0; i < 4; i++) {
-    bitmask[i] = 0;
-  }
-
-  s8 max_delta = 0;
-  for (auto delta : definition->deltas) {
-    if (delta.delta_row > max_delta) {
-      max_delta = delta.delta_row;
-    }
-  }
-  row -= (max_delta + 1);
-  y -= (max_delta + 1) * 16;
-
   update_bitmask();
+
+  row -= (bottom_limit + 1);
+
+  x = board.origin_x + (u8)(column << 4);
+  y = board.origin_y + (u8)(row << 4);
+
   update_shadow();
 }
 
