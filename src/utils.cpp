@@ -1,6 +1,5 @@
 #include "utils.hpp"
 #include "assets.hpp"
-#include "log.hpp"
 #include <neslib.h>
 
 #pragma clang section text = ".prg_rom_fixed.text.utils"
@@ -105,9 +104,7 @@ const u8 mask[] = {0x00, 0x00, 0x01, 0x03, 0x03, 0x07, 0x07, 0x07, 0x07, 0x0f,
                    0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x1f, 0x1f};
 
 __attribute__((noinline)) u8 rand_up_to(u8 n) {
-  START_MESEN_WATCH("rng");
   if (n < 2) {
-    STOP_MESEN_WATCH("rng");
     return 0;
   }
   u8 result = rand8() & mask[n];
@@ -117,6 +114,5 @@ __attribute__((noinline)) u8 rand_up_to(u8 n) {
   if (result >= n) {
     result -= n;
   }
-  STOP_MESEN_WATCH("rng");
   return result;
 }
