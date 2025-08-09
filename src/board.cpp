@@ -537,6 +537,7 @@ bool Board::ongoing_line_clearing(bool jiggling) {
   bool any_deleted = false;
   bool changed = false;
   u8 lines_cleared_for_sfx;
+  static u16 column_mask;
 
   CORO_INIT;
 
@@ -574,7 +575,8 @@ bool Board::ongoing_line_clearing(bool jiggling) {
     }
   }
 
-  for (erasing_column = 0; erasing_column < WIDTH; erasing_column++) {
+  for (erasing_column = 0, column_mask = 1; erasing_column < WIDTH;
+       erasing_column++, column_mask <<= 1) {
     erasing_row = HEIGHT - 1;
     erasing_row_source = HEIGHT - 1;
 
@@ -588,21 +590,17 @@ bool Board::ongoing_line_clearing(bool jiggling) {
         bool source_occupied =
             erasing_row_source < 0
                 ? false
-                : occupied(erasing_row_source, erasing_column);
+                : occupied_bitset[(u8)erasing_row_source] & column_mask;
 
         if (source_occupied) {
-          if (!occupied(erasing_row, erasing_column)) {
+          if (!(occupied_bitset[(u8)erasing_row] & column_mask)) {
             set_maze_cell((u8)erasing_row, erasing_column,
                           CellType::Marshmallow);
             changed = true;
           }
-          if (erasing_row_source >= 0 &&
-              occupied(erasing_row_source, erasing_column)) {
-            set_maze_cell((u8)erasing_row_source, erasing_column,
-                          CellType::Maze);
-            changed = true;
-          }
-        } else if (occupied(erasing_row, erasing_column)) {
+          set_maze_cell((u8)erasing_row_source, erasing_column, CellType::Maze);
+          changed = true;
+        } else if (occupied_bitset[(u8)erasing_row] & column_mask) {
           set_maze_cell((u8)erasing_row, erasing_column, CellType::Maze);
           changed = true;
         }
