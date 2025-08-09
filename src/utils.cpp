@@ -3,8 +3,10 @@
 #include "log.hpp"
 #include <neslib.h>
 
-__attribute__((section(".prg_rom_fixed.text"))) void u8_to_text(u8 score_text[],
-                                                                u8 value) {
+#pragma clang section text = ".prg_rom_fixed.text.utils"
+#pragma clang section rodata = ".prg_rom_fixed.rodata.utils"
+
+void u8_to_text(u8 score_text[], u8 value) {
   score_text[0] = 0;
   if (value >= 80) {
     score_text[0] |= 8;
@@ -99,14 +101,20 @@ __attribute__((always_inline)) void int_to_text(u8 score_text[], u16 value) {
   }
 }
 
-__attribute__((noinline, section(".prg_rom_fixed.text"))) u8 rand_up_to(u8 n) {
+const u8 mask[] = {0x00, 0x00, 0x01, 0x03, 0x03, 0x07, 0x07, 0x07, 0x07, 0x0f,
+                   0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x1f, 0x1f};
+
+__attribute__((noinline)) u8 rand_up_to(u8 n) {
   START_MESEN_WATCH("rng");
-  u8 x = 1;
-  while (x <= n) {
-    x <<= 1;
+  if (n < 2) {
+    STOP_MESEN_WATCH("rng");
+    return 0;
   }
-  u8 result = rand8() & (x - 1);
-  while (result >= n) {
+  u8 result = rand8() & mask[n];
+  if (result >= n) {
+    result = rand8() & mask[n];
+  }
+  if (result >= n) {
     result -= n;
   }
   STOP_MESEN_WATCH("rng");
