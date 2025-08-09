@@ -143,11 +143,13 @@ void Polyomino::move_bitmask_right() {
 void Polyomino::update_shadow() {
   START_MESEN_WATCH("shadow");
   shadow_row = row;
-  shadow_y = y;
+
   while (!collide(shadow_row + 1, (s8)column)) {
     shadow_row++;
-    shadow_y += 16;
   }
+
+  shadow_y = board.origin_y + (u8)(shadow_row << 4);
+
   STOP_MESEN_WATCH("shadow");
 }
 
