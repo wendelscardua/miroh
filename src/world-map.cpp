@@ -4,6 +4,7 @@
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
 #include "common.hpp"
+#include "ggsound.hpp"
 #include "metasprites.hpp"
 #include "soundtrack.hpp"
 #include "zx02.hpp"
@@ -136,8 +137,8 @@ WorldMap::WorldMap() {
 
   ppu_on_all();
 
-  banked_play_song(story_mode_beaten ? Song::Baby_bullhead_title
-                                     : Song::Intro_music);
+  GGSound::play_song(story_mode_beaten ? Song::Baby_bullhead_title
+                                       : Song::Intro_music);
 
   ending_triggered = false;
 
@@ -151,10 +152,10 @@ WorldMap::~WorldMap() {
 
 void WorldMap::stage_change(Stage new_stage) {
   if (new_stage == current_stage) {
-    banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
+    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
   } else {
     current_stage = new_stage;
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::Two);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::Two);
     change_uni_palette();
   }
 }
@@ -189,7 +190,7 @@ __attribute__((noinline)) void WorldMap::loop() {
     }
 
     if (pressed & (PAD_A | PAD_START)) {
-      banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+      GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
       if (current_stage == Stage::MarshmallowMountain) {
         // TODO: change this when we have MM
         oam_hide_rest();
@@ -212,7 +213,7 @@ __attribute__((noinline)) void WorldMap::loop() {
         }
 
         ending_triggered = true;
-        banked_play_song(Song::Ending);
+        GGSound::play_song(Song::Ending);
 
         do {
           ppu_wait_nmi();

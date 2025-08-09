@@ -17,6 +17,14 @@ void put_hex(u16 h) {
   put_hex((u8)(h >> 8));
   put_hex((u8)h);
 }
-void start_mesen_watch(u8 label) { POKE(0x4020, label); }
-void stop_mesen_watch(u8 label) { POKE(0x4021, label); }
+void start_mesen_watch(const char *addr) {
+  u16 address = (u16)(uintptr_t)addr;
+  POKE(0x4020, (address >> 8) & 0xFF);
+  POKE(0x4020, address & 0xFF);
+}
+void stop_mesen_watch(const char *addr) {
+  u16 address = (u16)(uintptr_t)addr;
+  POKE(0x4021, (address >> 8) & 0xFF);
+  POKE(0x4021, address & 0xFF);
+}
 void break_mesen(u8 label) { POKE(0x4019, label); }

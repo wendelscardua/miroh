@@ -103,7 +103,7 @@ class MapParser < Thor
         Area.new('RAM', 0x200...0x800)
       ]
 
-      (0..(banks - 2)).each do |bank|
+      (0..(banks - 1)).each do |bank|
         areas << Area.new("PRG ROM #{bank}",
                           (0x8000 + (0x10000 * bank))...(0xc000 + (0x10000 * bank)))
       end

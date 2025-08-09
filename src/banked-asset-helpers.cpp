@@ -3,24 +3,12 @@
 #include "bank-helper.hpp"
 #include "common.hpp"
 #include "donut.hpp"
-#include "ggsound.hpp"
-#include "soundtrack.hpp"
 #include "zx02.hpp"
 #include <mapper.h>
 #include <neslib.h>
 
 #pragma clang section text = ".prg_rom_fixed.text.bah"
 #pragma clang section rodata = ".prg_rom_fixed.rodata.bah"
-
-void banked_play_song(Song song) {
-  ScopedBank scoopedBank(GGSound::BANK);
-  GGSound::play_song(song);
-}
-
-void banked_play_sfx(SFX sfx, GGSound::SFXPriority priority) {
-  ScopedBank scopedBank(GGSound::BANK);
-  GGSound::play_sfx(sfx, priority);
-}
 
 void load_title_palette() {
   ScopedBank scopedBank(PALETTES_BANK);

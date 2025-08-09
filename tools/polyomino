@@ -13,16 +13,18 @@ class Polyomino < Thor
 
   desc 'data ASM_FILE JSON_FILE', 'Generates data asm file based on json'
   method_option :bank, type: :string, required: true
+  method_option :aux_bank, type: :string, required: true
 
   def data(s_file, pieces_json)
     bank = ".prg_rom_#{options[:bank]}.rodata.polyominos"
+    aux_bank = ".prg_rom_#{options[:aux_bank]}.rodata.polyominos"
 
     data = JSON.parse(File.read(pieces_json), symbolize_names: true)
     data => { pieces:, kicks:, canon: }
 
     File.open(s_file, 'w') do |f|
       f.puts <<~ASM
-        .section #{bank}
+        .section #{bank},"aR",@progbits
         .global polyominos
         polyominos:
       ASM
@@ -87,6 +89,24 @@ class Polyomino < Thor
         # each pair of deltas fit in a byte
         f.puts ".byte #{blocks.size}"
         blocks.sort_by! { |delta_row, delta_column| [delta_row, delta_column] }
+
+        f.puts ".word bitmasks_#{key}"
+
+        # Calculate bounding box limits
+        left_limit = 4
+        right_limit = 0
+        top_limit = 4
+        bottom_limit = 0
+        blocks.each do |delta_row, delta_column|
+          delta_column += 1
+          delta_row += 1
+          right_limit = delta_column if delta_column > right_limit
+          left_limit = delta_column if delta_column < left_limit
+          bottom_limit = delta_row if delta_row > bottom_limit
+          top_limit = delta_row if delta_row < top_limit
+        end
+        f.puts ".byte #{left_limit}, #{right_limit}, #{top_limit}, #{bottom_limit}"
+
         blocks.each do |delta_row, delta_column|
           delta_column += 1
           delta_row += 1
@@ -116,7 +136,32 @@ class Polyomino < Thor
         values.each do |delta_x, delta_y|
           delta_row = -delta_y
           delta_column = delta_x
-          f.puts ".byte #{delta_row.negative? ? 0xff : delta_row}, #{delta_column.negative? ? 0xff : delta_column}"
+          delta_x = delta_column * 16
+          delta_y = delta_row * 16
+
+          delta_row += 256 if delta_row.negative?
+          delta_column += 256 if delta_column.negative?
+          delta_x += 256 if delta_x.negative?
+          delta_y += 256 if delta_y.negative?
+
+          f.puts ".byte #{delta_row}, #{delta_column}"
+          f.puts ".byte #{delta_x}, #{delta_y}"
+        end
+      end
+
+      f.puts <<~ASM
+        .section #{aux_bank},"aR",@progbits
+      ASM
+
+      pieces.each do |key, values|
+        values => { blocks: }
+        f.puts "bitmasks_#{key}:"
+        (-3..11).each do |offset_column|
+          bitmask = [0, 0, 0, 0]
+          blocks.each do |delta_row, delta_column|
+            bitmask[delta_row + 1] |= 1 << (offset_column + delta_column + 1)
+          end
+          f.puts ".word #{bitmask.join(', ')}"
         end
       end
     end
@@ -202,7 +247,7 @@ class Polyomino < Thor
         pieces.each do |key, values|
           blocks = values[:blocks]
           f.puts "  #{namespace_consts[bank]}_RODATA const Sprite piece_#{key}[] = {"
-          blocks.each do |delta_row, delta_column|
+          blocks.sort_by { |_, delta_column| delta_column % 2 }.each do |delta_row, delta_column|
             delta_column += 1
             delta_row += 1
             sprite_templates[bank].each do |template|
@@ -214,7 +259,7 @@ class Polyomino < Thor
           f.puts '    { .terminator = 0x80 } };'
 
           f.puts "  #{namespace_consts[bank]}_RODATA const Sprite flip_piece_#{key}[] = {"
-          blocks.reverse_each do |delta_row, delta_column|
+          blocks.sort_by { |_, delta_column| (delta_column + 1) % 2 }.each do |delta_row, delta_column|
             delta_column += 1
             delta_row += 1
             sprite_templates[bank].reverse_each do |template|

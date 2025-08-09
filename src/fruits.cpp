@@ -2,6 +2,7 @@
 #include "animation.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "ggsound.hpp"
 #include "metasprites.hpp"
 #include "unicorn.hpp"
 #include "utils.hpp"
@@ -40,7 +41,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   // pick a random row
   static_assert(sizeof(fruit_rows[0]) == 4);
   fruit.row = fruit_rows[fruit_index][RAND_UP_TO_POW2(2)]; // see assert above
-  if (board.row_filled(fruit.row)) {
+  if (board.row_filled((u8)fruit.row)) {
     // if row is bad, give up for now, we try next frame
     return;
   }
@@ -81,7 +82,7 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
             splash_animation.current_frame == 0) {
           // near splash 14
           // TODO: check if this is ok
-          banked_play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
+          GGSound::play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
         }
         if (splash_animation.finished) {
           fruit.state = Fruit::State::Active;
@@ -143,7 +144,8 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
   }
 }
 
-void Fruits::render_fruit(Fruit fruit, int y_scroll) {
+void Fruits::render_fruit(u8 fruit_index, int y_scroll) {
+  auto fruit = fruits[fruit_index];
   switch (fruit.state) {
   case Fruit::State::Despawning:
     if ((fruit.despawn_counter & 0b111) == 0b100) {
@@ -173,15 +175,15 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
         splash_animation.update(fruit.x, fruit.y - y_scroll);
       }
     } else {
-      auto &metasprite = (fruit.y - fruit.raindrop_y <= 48)
-                             ? Metasprites::RainShadowB
-                             : Metasprites::RainShadowA;
+      auto near_shadow = (fruit.y - fruit.raindrop_y) <= 48;
+      auto &metasprite =
+          near_shadow ? Metasprites::RainShadowB : Metasprites::RainShadowA;
 
-      if (fruit.raindrop_y - y_scroll > 0 &&
-          fruit.raindrop_y - y_scroll < 0xe0) {
-        u8 drop_tile = (fruit.y - fruit.raindrop_y <= 48) ? 0xb2 : 0xb1;
+      auto shadow_position = fruit.raindrop_y - y_scroll;
+      if (shadow_position > 0 && shadow_position < 0xe0) {
+        u8 drop_tile = near_shadow ? 0xb2 : 0xb1;
 
-        oam_spr(fruit.x + 4, (u8)(fruit.raindrop_y - y_scroll), drop_tile, 0);
+        oam_spr(fruit.x + 4, (u8)(shadow_position), drop_tile, 0);
       }
       banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
                           metasprite);
@@ -193,21 +195,19 @@ void Fruits::render_fruit(Fruit fruit, int y_scroll) {
 }
 
 void Fruits::render_below_player(int y_scroll, u8 y_player) {
-  static_assert(NUM_FRUITS == 2, "Invalid unrolled loop");
-  if (fruits[0].y > y_player) {
-    render_fruit(fruits[0], y_scroll);
-  };
-  if (fruits[1].y > y_player) {
-    render_fruit(fruits[1], y_scroll);
-  };
+#pragma clang loop unroll(enable)
+  for (u8 i = 0; i < NUM_FRUITS; i++) {
+    if (fruits[i].y > y_player) {
+      render_fruit(i, y_scroll);
+    };
+  }
 }
 
 void Fruits::render_above_player(int y_scroll, u8 y_player) {
-  static_assert(NUM_FRUITS == 2, "Invalid unrolled loop");
-  if (fruits[0].y <= y_player) {
-    render_fruit(fruits[0], y_scroll);
-  };
-  if (fruits[1].y <= y_player) {
-    render_fruit(fruits[1], y_scroll);
-  };
+#pragma clang loop unroll(enable)
+  for (u8 i = 0; i < NUM_FRUITS; i++) {
+    if (fruits[i].y <= y_player) {
+      render_fruit(i, y_scroll);
+    };
+  }
 }

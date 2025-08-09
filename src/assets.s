@@ -90,7 +90,7 @@ endless_prompt:
 	.byte $15,$17,$14,$18,$0c,$18,$08,$02,$16,$0b,$0c,$15,$02,$15,$17,$0a,$04,$14,$1b,$02
 	.byte $02,$0a,$08,$0e,$04,$16,$0c,$10,$02,$05,$04,$14,$14,$04,$0a,$08,$3f,$2f,$02,$02
 
-    .section .prg_rom_2,"aR",@progbits
+    .section .prg_rom_3,"aR",@progbits
 
     .global level_bg_palettes
 level_bg_palettes:
@@ -137,7 +137,6 @@ MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 title_bg_palette: .incbin "TitleBG.pal"
 title_spr_palette: .incbin "TitleSPR.pal"
 
-    .section .prg_rom_3,"aR",@progbits
 .global intro_text_nametable
 intro_text_nametable: .incbin "IntroText.nam.zx02"
 .global ending_text_nametable

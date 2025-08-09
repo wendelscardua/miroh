@@ -13,14 +13,17 @@
 class Polyomino {
   static constexpr s8 MOVEMENT_INITIAL_DELAY = 16;
   static constexpr s8 MOVEMENT_DELAY = 6;
+  static constexpr u8 SPAWN_COLUMN = 4;
 
   static Bag<u8, 10> pieces;
+  static Bag<u8, 4> littleminos;
+  static Bag<u8, 17> pentominos;
 
   Board &board;
   const PolyominoDef *definition;
   const PolyominoDef *next;
   s8 row;
-  u8 column;
+  s8 column;
   u8 x;
   u8 y;
   u16 drop_timer;
@@ -30,11 +33,14 @@ class Polyomino {
   u8 shadow_y;
   u8 left_limit;
   u8 right_limit;
+  u8 top_limit;
+  u8 bottom_limit;
   soa::Array<u16, 4> bitmask;
 
   __attribute__((noinline)) bool able_to_kick(const auto &kick_deltas);
 
 public:
+  static constexpr u8 BANK = 14;
   enum class State {
     Inactive,
     Active,
@@ -42,6 +48,10 @@ public:
   u8 grounded_timer;
   State state;
   Polyomino(Board &board);
+
+  __attribute__((noinline)) void init();
+
+  __attribute__((noinline)) u8 take_piece();
 
   __attribute__((noinline)) void spawn();
 
@@ -63,6 +73,10 @@ public:
   bool collide(s8 row, s8 column);
 
   __attribute__((noinline)) void update_bitmask();
+
+  void move_bitmask_left();
+
+  void move_bitmask_right();
 
   __attribute__((noinline)) void update_shadow();
 

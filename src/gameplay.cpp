@@ -189,9 +189,9 @@ void Drops::update() {
       continue;
     }
     if (drop.current_y == drop.target_y) {
-      banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+      GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
       banked_lambda(Board::BANK, [&drop]() {
-        board.set_maze_cell((s8)drop.row, drop.column, CellType::Marshmallow);
+        board.set_maze_cell(drop.row, drop.column, CellType::Marshmallow);
       });
       drop.row = 0xff;
       active_drops--;
@@ -233,9 +233,9 @@ bool Drops::random_hard_drop() {
       return false;
     }
     u8 column = board.random_free_column(row);
-    board.set_maze_cell((s8)row, column, CellType::Marshmallow);
+    board.set_maze_cell(row, column, CellType::Marshmallow);
     if ((get_frame_count() & 0b1111) == 0) {
-      banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+      GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
     }
     return true;
   });
@@ -252,6 +252,8 @@ Gameplay::Gameplay()
       input_mode(InputMode::Polyomino), yes_no_option(false),
       pause_option(PauseOption::Resume), drops(), y_scroll(INTRO_SCROLL_Y),
       goal_counter(0) {
+  banked_lambda(Polyomino::BANK, [&]() { polyomino.init(); });
+
   load_gameplay_assets();
 
   vram_adr(NAMETABLE_A);
@@ -273,7 +275,7 @@ Gameplay::Gameplay()
 
   ppu_on_all();
 
-  banked_play_song(song_per_stage[(u8)current_stage]);
+  GGSound::play_song(song_per_stage[(u8)current_stage]);
 
   pal_fade_to(0, 4);
 
@@ -308,57 +310,40 @@ void Gameplay::render() {
                        gameplay_state != GameplayState::MarshmallowOverflow);
   BoardAnimation::paused = Animation::paused;
   scroll(0, (unsigned int)y_scroll);
-  bool left_wall = false, right_wall = false;
-  START_MESEN_WATCH(10);
+  unicorn.left_wall = false, unicorn.right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {
     u8 row = unicorn.row + 1;
     u8 col = unicorn.column;
     if (row < HEIGHT) {
       auto cell = board.cell_at(row, col);
-      left_wall = cell.left_wall;
-      right_wall = cell.right_wall;
+      unicorn.left_wall = cell.left_wall;
+      unicorn.right_wall = cell.right_wall;
     }
   }
-  STOP_MESEN_WATCH(10);
-  START_MESEN_WATCH(11);
   fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
-  STOP_MESEN_WATCH(11);
-  START_MESEN_WATCH(12);
   if (gameplay_state != GameplayState::Swapping ||
       swap_frames[swap_index].display_unicorn) {
-    banked_lambda(Unicorn::BANK, [this, &left_wall, &right_wall]() {
-      unicorn.render(y_scroll, left_wall, right_wall);
-    });
+    banked_lambda(Unicorn::BANK, [this]() { unicorn.render(y_scroll); });
   }
-  STOP_MESEN_WATCH(12);
-  START_MESEN_WATCH(13);
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
-  STOP_MESEN_WATCH(13);
 
   if (gameplay_state == GameplayState::MarshmallowOverflow &&
       overflow_state == OverflowState::FlashOutsideBlocks &&
       (marshmallow_overflow_counter & 0b1000)) {
-    START_MESEN_WATCH(14);
-    polyomino.outside_render(y_scroll);
-    STOP_MESEN_WATCH(14);
+    banked_lambda(Polyomino::BANK,
+                  [&]() { polyomino.outside_render(y_scroll); });
   } else if ((gameplay_state == GameplayState::Swapping &&
               swap_frames[swap_index].display_polyomino) ||
              (gameplay_state != GameplayState::Swapping &&
               gameplay_state != GameplayState::MarshmallowOverflow)) {
-    START_MESEN_WATCH(15);
-    polyomino.render(y_scroll);
-    STOP_MESEN_WATCH(15);
+    banked_lambda(Polyomino::BANK, [&]() { polyomino.render(y_scroll); });
   }
-  START_MESEN_WATCH(16);
   if (Drops::active_drops) {
     drops.render(y_scroll);
   }
-  STOP_MESEN_WATCH(16);
 
-  START_MESEN_WATCH(17);
   banked_lambda(Unicorn::BANK,
                 [this]() { unicorn.refresh_energy_hud(y_scroll); });
-  STOP_MESEN_WATCH(17);
 
   if (SPRID) {
     // if we rendered 64 sprites already, SPRID will have wrapped around back to
@@ -453,15 +438,15 @@ void Gameplay::pause_handler() {
     pause_option = PauseOption::Resume;
     gameplay_state = GameplayState::Playing;
     GGSound::resume();
-    banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
   } else if (any_pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT)) {
     pause_option = NEXT_OPTION[(u8)pause_option];
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (any_pressed & (PAD_LEFT | PAD_UP)) {
     pause_option = PREV_OPTION[(u8)pause_option];
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (any_pressed & PAD_A) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     switch (pause_option) {
     case PauseOption::Exit:
       ppu_wait_nmi();
@@ -531,15 +516,15 @@ void Gameplay::confirm_exit_handler() {
   ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & PAD_B) {
-    banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
     pause_game();
     return;
   } else if (any_pressed &
              (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     yes_no_option = !yes_no_option;
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (any_pressed & (PAD_A | PAD_START)) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       current_game_state = GameState::WorldMap;
     } else {
@@ -558,9 +543,9 @@ void Gameplay::confirm_retry_handler() {
   } else if (any_pressed &
              (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
     yes_no_option = !yes_no_option;
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
   } else if (any_pressed & (PAD_A | PAD_START)) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
     } else {
@@ -576,7 +561,7 @@ void Gameplay::confirm_continue_handler() {
   ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & (PAD_A | PAD_START)) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     current_game_state = GameState::WorldMap;
     return;
   }
@@ -591,10 +576,10 @@ void Gameplay::retry_exit_handler() {
   ease_scroll(PAUSE_SCROLL_Y);
 
   if (any_pressed & (PAD_RIGHT | PAD_DOWN | PAD_SELECT | PAD_LEFT | PAD_UP)) {
-    banked_play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
     yes_no_option = !yes_no_option;
   } else if (any_pressed & (PAD_A | PAD_START)) {
-    banked_play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
     if (yes_no_option) {
       gameplay_state = GameplayState::Retrying;
     } else {
@@ -642,6 +627,7 @@ void Gameplay::gameplay_handler() {
     unicorn.statue = true;
   }
 
+  START_MESEN_WATCH("lin");
   // XXX: if we say line clearing is in progress during overflow, it will make
   // other stuff not happen (polyomino won't spawn, victory conditions won't
   // trigger, not even the line clearing itself will run)
@@ -650,34 +636,51 @@ void Gameplay::gameplay_handler() {
       banked_lambda(Board::BANK, []() {
         return board.ongoing_line_clearing(board.active_animations);
       });
+  STOP_MESEN_WATCH("lin");
 
+  START_MESEN_WATCH("pol");
+  START_MESEN_WATCH("spn");
   // we only spawn when there's no line clearing going on
   if (polyomino.state == Polyomino::State::Inactive &&
       !line_clearing_in_progress && spawn_timer-- == 0) {
-    polyomino.spawn();
+    banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
   }
-  polyomino.handle_input(polyomino_pressed, polyomino_held);
-  polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
-                   failed_to_place, lines_cleared);
+  STOP_MESEN_WATCH("spn");
+  START_MESEN_WATCH("inp");
+  banked_lambda(Polyomino::BANK, [&]() {
+    polyomino.handle_input(polyomino_pressed, polyomino_held);
+  });
+  STOP_MESEN_WATCH("inp");
+  START_MESEN_WATCH("upd");
+  banked_lambda(Polyomino::BANK, [&]() {
+    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
+                     failed_to_place, lines_cleared);
+  });
+  STOP_MESEN_WATCH("upd");
+  STOP_MESEN_WATCH("pol");
 
+  START_MESEN_WATCH("uni");
   banked_lambda(Unicorn::BANK, [this, line_clearing_in_progress]() {
     unicorn.update(unicorn_pressed, unicorn_held, line_clearing_in_progress);
   });
-
+  STOP_MESEN_WATCH("uni");
+  START_MESEN_WATCH("fru");
   fruits.update(unicorn, snack_was_eaten,
                 gameplay_state != GameplayState::MarshmallowOverflow);
-
+  STOP_MESEN_WATCH("fru");
+  START_MESEN_WATCH("ovr");
   if (failed_to_place) {
     gameplay_state = GameplayState::MarshmallowOverflow;
     overflow_state = OverflowState::FlashOutsideBlocks;
     marshmallow_overflow_counter = 0xff;
     GGSound::stop();
-    banked_play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::Two);
+    GGSound::play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::Two);
   } else if (blocks_were_placed &&
              current_controller_scheme == ControllerScheme::TwoPlayers) {
-    banked_play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
   }
+  STOP_MESEN_WATCH("ovr");
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       polyomino.state != Polyomino::State::Active &&
@@ -685,6 +688,7 @@ void Gameplay::gameplay_handler() {
     swap_inputs();
   }
 
+  START_MESEN_WATCH("pts");
   if (lines_cleared) {
     const u8 points_per_lines[] = {0, 10, 30, 50, 70};
     u8 points = points_per_lines[lines_cleared];
@@ -697,13 +701,16 @@ void Gameplay::gameplay_handler() {
     unicorn.score += 1;
     add_experience(1);
   }
+  STOP_MESEN_WATCH("pts");
 
+  START_MESEN_WATCH("upk");
   if (gameplay_state == GameplayState::Playing ||
       gameplay_state == GameplayState::Swapping ||
       gameplay_state == GameplayState::MarshmallowOverflow) {
     game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
                      board.active_animations);
   }
+  STOP_MESEN_WATCH("upk");
 }
 
 __attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
@@ -837,7 +844,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
                              PAUSE_MENU_OPTIONS_POSITION);
       gameplay_state = GameplayState::ConfirmContinue;
       story_completion[(u8)current_stage] = true;
-      banked_play_song(Song::Victory);
+      GGSound::play_song(Song::Victory);
       break;
     }
     break;
@@ -855,7 +862,7 @@ Gameplay::game_mode_upkeep(bool stuff_in_progress) {
         multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
         if (time_trial_seconds == 10 || time_trial_seconds == 5 ||
             time_trial_seconds == 0) {
-          banked_play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
+          GGSound::play_sfx(SFX::Timeralmostgone, GGSound::SFXPriority::One);
         }
         if (time_trial_seconds == 0) {
           end_game();
@@ -892,7 +899,7 @@ void Gameplay::fail_game() {
                          PAUSE_MENU_OPTIONS_POSITION);
   gameplay_state = GameplayState::RetryOrExit;
   yes_no_option = true;
-  banked_play_song(Song::Failure);
+  GGSound::play_song(Song::Failure);
 }
 
 void Gameplay::pause_game() {
@@ -912,7 +919,7 @@ void Gameplay::swap_inputs() {
   }
   if (input_mode == InputMode::Unicorn) {
     if (polyomino.state != Polyomino::State::Active) {
-      banked_play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
+      GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
       return;
     }
     input_mode = InputMode::Polyomino;
@@ -922,9 +929,9 @@ void Gameplay::swap_inputs() {
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
       blocks_were_placed) {
-    banked_play_sfx(SFX::Number1pblockdrop, GGSound::SFXPriority::Two);
+    GGSound::play_sfx(SFX::Number1pblockdrop, GGSound::SFXPriority::Two);
   } else {
-    banked_play_sfx(SFX::Unicornon, GGSound::SFXPriority::Two);
+    GGSound::play_sfx(SFX::Unicornon, GGSound::SFXPriority::Two);
   }
 
   gameplay_state = GameplayState::Swapping;
@@ -940,8 +947,8 @@ void Gameplay::loop() {
   while (current_game_state == GameState::Gameplay) {
     ppu_wait_nmi();
 
-    START_MESEN_WATCH(1);
-
+    START_MESEN_WATCH("all");
+    START_MESEN_WATCH("hndl");
     pad_poll(0);
     pad_poll(1);
     if (input_mode == InputMode::Unicorn) {
@@ -1003,15 +1010,15 @@ void Gameplay::loop() {
       }
       break;
     }
-
+    STOP_MESEN_WATCH("hndl");
     if (VRAM_INDEX + 16 < 64) {
       banked_lambda(Unicorn::BANK, [this]() { unicorn.refresh_score_hud(); });
     }
 
     if (no_lag_frame) {
-      START_MESEN_WATCH(2);
+      START_MESEN_WATCH("render");
       render();
-      STOP_MESEN_WATCH(2);
+      STOP_MESEN_WATCH("render");
     } else {
 #ifndef NDEBUG
       putchar('X');
@@ -1019,7 +1026,7 @@ void Gameplay::loop() {
 #endif
     }
 
-    STOP_MESEN_WATCH(1);
+    STOP_MESEN_WATCH("all");
 
     no_lag_frame = frame == FRAME_CNT1;
   }
@@ -1031,7 +1038,7 @@ void Gameplay::add_experience(u8 exp) {
     while (experience >= LEVEL_UP_POINTS && current_level < MAX_LEVEL) {
       experience -= LEVEL_UP_POINTS;
       current_level++;
-      banked_play_sfx(SFX::Levelup, GGSound::SFXPriority::Two);
+      GGSound::play_sfx(SFX::Levelup, GGSound::SFXPriority::Two);
     }
   }
 }

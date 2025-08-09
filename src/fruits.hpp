@@ -121,7 +121,7 @@ public:
 
   void spawn_on_board(u8 fruit_index);
 
-  __attribute((noinline)) void render_fruit(Fruit fruit, int y_scroll);
+  __attribute((noinline)) void render_fruit(u8 fruit_index, int y_scroll);
   __attribute((noinline)) void render_below_player(int y_scroll, u8 y_player);
   __attribute((noinline)) void render_above_player(int y_scroll, u8 y_player);
 };

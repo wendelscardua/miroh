@@ -71,9 +71,7 @@ public:
   static constexpr u8 BANK = 4;
 
   // convert column into its bitmask
-  static constexpr soa::Array<const u16, WIDTH> OCCUPIED_BITMASK = {
-      0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
-      0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800};
+  static const soa::Array<const u16, WIDTH> OCCUPIED_BITMASK;
 
   static constexpr u8 origin_x = 0x20;
   static constexpr u8 origin_y = 0x30;
@@ -135,16 +133,16 @@ public:
   __attribute__((section(".prg_rom_fixed"))) bool occupied(s8 row, u8 column);
 
   // tells if a row if filled
-  __attribute__((section(".prg_rom_fixed"))) bool row_filled(s8 row);
+  __attribute__((section(".prg_rom_fixed"))) bool row_filled(u8 row);
 
   // marks a position as occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void occupy(s8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed"))) void occupy(u8 row, u8 column);
 
   // marks a position as not occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void free(s8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed"))) void free(u8 row, u8 column);
 
   // change a cell at these coordinates and with a given style
-  __attribute__((noinline)) void set_maze_cell(s8 row, u8 column,
+  __attribute__((noinline)) void set_maze_cell(u8 row, u8 column,
                                                CellType type);
 
   // advances the process of clearing a filled line

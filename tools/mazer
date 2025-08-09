@@ -20,7 +20,7 @@ class Mazer < Thor
 
     File.open(s_file, 'w') do |f|
       f.puts <<~ASM
-        .section #{bank}
+        .section #{bank},"aR",@progbits
         .global mazes
         mazes:
       ASM
