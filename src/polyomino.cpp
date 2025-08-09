@@ -101,7 +101,8 @@ void Polyomino::spawn() {
   x = board.origin_x + (u8)(column << 4);
   y = board.origin_y + (u8)(row << 4);
 
-  update_shadow();
+  // XXX: the next update on this frame will fix the shadow
+  shadow_row = HEIGHT;
 }
 
 void Polyomino::update_bitmask() {
@@ -256,7 +257,6 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
     if (able_to_kick(definition->right_kick->deltas)) {
       GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
       update_bitmask();
-      update_shadow();
     } else {
       definition = definition->left_rotation; // undo rotation
     }
@@ -265,7 +265,6 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
 
     if (able_to_kick(definition->left_kick->deltas)) {
       update_bitmask();
-      update_shadow();
       GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
     } else {
       definition = definition->right_rotation; // undo rotation
@@ -318,7 +317,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       column--;
       x -= 16;
       move_bitmask_left();
-      update_shadow();
     }
     movement_direction = Direction::None;
     break;
@@ -327,7 +325,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       column++;
       x += 16;
       move_bitmask_right();
-      update_shadow();
     }
     movement_direction = Direction::None;
     break;
@@ -346,6 +343,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   case Direction::None:
     break;
   }
+
+  update_shadow();
 }
 
 void Polyomino::render(int y_scroll) {
