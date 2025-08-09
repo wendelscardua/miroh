@@ -151,16 +151,6 @@ void Polyomino::update_shadow() {
   STOP_MESEN_WATCH("shadow");
 }
 
-inline u16 signed_shift(u16 value, s8 shift) {
-  if (shift == 0) {
-    return value;
-  } else if (shift > 0) {
-    return value << 1;
-  } else {
-    return value >> 1;
-  }
-}
-
 bool Polyomino::collide(s8 new_row, s8 new_column) {
   START_MESEN_WATCH("collide");
   if ((s8)(left_limit + new_column) < 0 ||
@@ -172,11 +162,14 @@ bool Polyomino::collide(s8 new_row, s8 new_column) {
   s8 mod_row = new_row;
 #pragma clang loop unroll(full)
   for (u8 i = 0; i < 4; i++, mod_row++) {
-    if (i >= top_limit && i <= bottom_limit && mod_row >= 0 &&
-        ((signed_shift(bitmask[i], (new_column - column)) &
-          board.occupied_bitset[(u8)mod_row]))) {
-      STOP_MESEN_WATCH("collide");
-      return true;
+    if (i >= top_limit && i <= bottom_limit && mod_row >= 0) {
+      const auto shifted_mask = new_column == column  ? bitmask[i]
+                                : new_column > column ? bitmask[i] << 1
+                                                      : bitmask[i] >> 1;
+      if (shifted_mask & board.occupied_bitset[(u8)mod_row]) {
+        STOP_MESEN_WATCH("collide");
+        return true;
+      }
     }
   }
   STOP_MESEN_WATCH("collide");
