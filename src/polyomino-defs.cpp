@@ -84,8 +84,19 @@ void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
 }
 
 void PolyominoDef::chibi_render(u8 row, u8 column) const {
-  multi_vram_buffer_horz(preview_tiles, 2, NTADR_A(column, row));
-  multi_vram_buffer_horz(preview_tiles + 2, 2, NTADR_A(column, row + 1));
+  const auto coord = NTADR_A(column, row);
+  VRAM_BUF[VRAM_INDEX] = (u8)(coord >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 1] = (u8)coord;
+  VRAM_BUF[VRAM_INDEX + 2] = 2;
+  VRAM_BUF[VRAM_INDEX + 3] = preview_tiles[0];
+  VRAM_BUF[VRAM_INDEX + 4] = preview_tiles[1];
+  VRAM_BUF[VRAM_INDEX + 5] = (u8)((coord + 0x20) >> 8) | 0x40;
+  VRAM_BUF[VRAM_INDEX + 6] = (u8)(coord + 0x20);
+  VRAM_BUF[VRAM_INDEX + 7] = 2;
+  VRAM_BUF[VRAM_INDEX + 8] = preview_tiles[2];
+  VRAM_BUF[VRAM_INDEX + 9] = preview_tiles[3];
+  VRAM_BUF[VRAM_INDEX + 10] = 0xff;
+  VRAM_INDEX += 10;
 }
 
 bool PolyominoDef::board_render(Board &board, s8 row, s8 column) const {
