@@ -31,7 +31,7 @@ jobs:
       BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
     steps:
     - name: Download latest ROM artifact from build
-      uses: dawidd6/action-download-artifact@v3
+      uses: dawidd6/action-download-artifact@v6
       with:
         workflow: build-release.yml
         name: miroh-jr.nes
