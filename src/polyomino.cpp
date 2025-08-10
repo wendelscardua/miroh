@@ -350,12 +350,16 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
-  definition->render(x, y - y_scroll);
+  // XXX: extend signal if y feels negativish (y values after 0xe8 are likely an
+  // underflow when a large polyomino is spawned)
+  definition->render(x, (y >= 0xe8 ? (s16)(0xff00 | y) : y) - y_scroll);
   definition->shadow(x, shadow_y - y_scroll, (u8)(shadow_row - row));
 }
 
 void Polyomino::outside_render(int y_scroll) {
-  definition->render(x, y - y_scroll);
+  // XXX: extend signal if y feels negativish (y values after 0xe8 are likely an
+  // underflow when a large polyomino is spawned)
+  definition->render(x, (y >= 0xe8 ? (s16)(0xff00 | y) : y) - y_scroll);
 }
 
 void Polyomino::render_next() { next->chibi_render(3, 5); }
