@@ -236,6 +236,8 @@ __attribute__((noinline)) void TitleScreen::loop() {
             bgm_test_labels[bgm_test_index];
         easter_egg_code_index++;
         if (easter_egg_code_index == 4) {
+          multi_vram_buffer_horz(easter_egg_code, 4, NTADR_D(10, 28));
+
           easter_egg_code_index = 0;
           //     s=0x15, p=0x12, a=0x04, c=0x06, e=0x08
           //     f=0x09, l=0x0e, i=0x0c, g=0x0a, h=0x0b, t=0x16
@@ -243,8 +245,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
           // high = start with a very high score
           if (easter_egg_code[0] == 0x0b && easter_egg_code[1] == 0x0c &&
               easter_egg_code[2] == 0x0a && easter_egg_code[3] == 0x0b) {
-            GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
-            // TODO: next game starts with a very high score
+            // TODO: start game with high score
           }
         }
       }
