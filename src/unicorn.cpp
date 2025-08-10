@@ -3,6 +3,7 @@
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
 #include "board.hpp"
+#include "cheats.hpp"
 #include "common.hpp"
 #include "coroutine.hpp"
 #include "direction.hpp"
@@ -24,7 +25,8 @@ Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
       energy(STARTING_ENERGY), energy_timer(0),
       original_energy(STARTING_ENERGY), state(State::Idle), board(board),
       x(starting_x), y(starting_y), row(starting_y.whole >> 4),
-      column(starting_x.whole >> 4), score(0), statue(false) {
+      column(starting_x.whole >> 4), score(cheats.higher_score ? 8420 : 0),
+      statue(false) {
   left_animation = Animation{&moving_left_cells};
   right_animation = Animation{&moving_right_cells};
   left_tired_animation = Animation{&trudging_left_cells};
@@ -83,10 +85,11 @@ void Unicorn::set_state(State new_state) {
 
 void Unicorn::energy_upkeep() {
   energy_timer++;
-  // XXX: this could be an if, but eats 40 bytes of rom for some reason?
-  while (energy_timer >= ENERGY_TICKS) {
+  if (energy_timer >= ENERGY_TICKS) {
     energy_timer = 0;
-    if (energy > 0) {
+    if (cheats.infinite_energy) {
+      energy = MAX_ENERGY;
+    } else if (energy > 0) {
       energy--;
       if (energy == 0) {
         GGSound::play_sfx(SFX::Outofenergy, GGSound::SFXPriority::One);
