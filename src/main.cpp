@@ -3,6 +3,7 @@
 #include <neslib.h>
 
 #include "bank-helper.hpp"
+#include "cheats.hpp"
 #include "common.hpp"
 #include "gameplay.hpp"
 #include "ggsound.hpp"
@@ -20,6 +21,8 @@ ControllerScheme current_controller_scheme;
 Stage current_stage;
 
 Board board;
+
+Cheats cheats;
 
 u16 high_score[NUM_STAGES];
 bool story_completion[NUM_STAGES];
