@@ -25,9 +25,9 @@ void Cheats::push_code(u8 code) {
     if (memcmp(cheat_code, "high"_ts, 4) == 0) {
       higher_score = true;
       multi_vram_buffer_horz("high"_ts, 4, NTADR_D(4, 27));
-    } else if (memcmp(cheat_code, "life"_ts, 4) == 0) {
+    } else if (memcmp(cheat_code, "cafe"_ts, 4) == 0) {
       infinite_energy = true;
-      multi_vram_buffer_horz("life"_ts, 4, NTADR_D(10, 27));
+      multi_vram_buffer_horz("cafe"_ts, 4, NTADR_D(10, 27));
     }
   }
 }
