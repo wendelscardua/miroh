@@ -6,6 +6,7 @@
 #include "bank-helper.hpp"
 
 #include "banked-asset-helpers.hpp"
+#include "cheats.hpp"
 #include "common.hpp"
 #include "ggsound.hpp"
 #include "metasprites.hpp"
@@ -61,14 +62,10 @@ const Song bgm_test_songs[] = {Song::Marshmallow_mountain,
                                Song::Failure,
                                Song::Victory};
 
-__attribute__((used)) const SFX egg_sfx[] = {SFX::Lineclear1, SFX::Lineclear2,
-                                             SFX::Lineclear3, SFX::Lineclear4};
-
 __attribute__((noinline)) TitleScreen::TitleScreen()
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
       current_track(Song::Marshmallow_mountain), next_track_delay(0),
-      y_scroll(TITLE_SCROLL), easter_egg_code{0, 0, 0, 0},
-      easter_egg_code_index(0) {
+      y_scroll(TITLE_SCROLL) {
   banked_lambda(ASSETS_BANK, []() { load_title_assets(); });
 
   pal_bright(0);
@@ -80,6 +77,8 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
   scroll(0, (u16)y_scroll);
 
   ppu_on_all();
+
+  cheats.reset();
 
   if (ending_triggered) {
     current_track = Song::Ending;
@@ -230,24 +229,7 @@ __attribute__((noinline)) void TitleScreen::loop() {
         GGSound::play_sfx(SFX::Uioptionscycle, GGSound::SFXPriority::One);
         one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
       } else if (pressed & (PAD_START)) {
-        GGSound::play_sfx(egg_sfx[easter_egg_code_index],
-                          GGSound::SFXPriority::One);
-        easter_egg_code[easter_egg_code_index] =
-            bgm_test_labels[bgm_test_index];
-        easter_egg_code_index++;
-        if (easter_egg_code_index == 4) {
-          multi_vram_buffer_horz(easter_egg_code, 4, NTADR_D(10, 28));
-
-          easter_egg_code_index = 0;
-          //     s=0x15, p=0x12, a=0x04, c=0x06, e=0x08
-          //     f=0x09, l=0x0e, i=0x0c, g=0x0a, h=0x0b, t=0x16
-
-          // high = start with a very high score
-          if (easter_egg_code[0] == 0x0b && easter_egg_code[1] == 0x0c &&
-              easter_egg_code[2] == 0x0a && easter_egg_code[3] == 0x0b) {
-            // TODO: start game with high score
-          }
-        }
+        cheats.push_code(bgm_test_labels[bgm_test_index]);
       }
 
       how_to_select_timer++;

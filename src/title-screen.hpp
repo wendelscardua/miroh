@@ -40,9 +40,6 @@ public:
   s16 y_scroll;
   u8 bgm_test_index;
 
-  u8 easter_egg_code[4];
-  u8 easter_egg_code_index;
-
   TitleScreen();
   ~TitleScreen();
   void render_sprites();
