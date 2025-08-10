@@ -350,7 +350,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
 void Polyomino::render(int y_scroll) {
   if (state != State::Active)
     return;
-  definition->render(x, y - y_scroll);
+  // XXX: extend signal if y feels negativish
+  definition->render(x, (y >= 0xe8 ? (s16)(0xff00 | y) : y) - y_scroll);
   definition->shadow(x, shadow_y - y_scroll, (u8)(shadow_row - row));
 }
 
