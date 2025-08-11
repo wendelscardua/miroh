@@ -1005,7 +1005,7 @@ void Gameplay::loop() {
       if (swap_frame_counter >= swap_frames[swap_index].duration) {
         swap_frame_counter = 0;
         swap_index++;
-        if (swap_index >= sizeof(swap_frames)) {
+        if (swap_index >= sizeof(swap_frames) / sizeof(swap_frames[0])) {
           swap_index = 0;
           gameplay_state = GameplayState::Playing;
         }

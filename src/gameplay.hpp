@@ -103,9 +103,9 @@ public:
   static constexpr int PAUSE_MENU_POSITION = NTADR_C(0, 3);
   static constexpr int PAUSE_MENU_OPTIONS_POSITION = NTADR_C(0, 5);
   static constexpr struct {
-    u8 duration : 6;
-    bool display_unicorn : 1;
-    bool display_polyomino : 1;
+    u8 duration;
+    bool display_unicorn;
+    bool display_polyomino;
   } swap_frames[] = {
       {4, false, true}, {4, true, false}, {4, false, true},
       {4, true, false}, {4, true, true},
