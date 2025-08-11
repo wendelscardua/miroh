@@ -65,6 +65,7 @@ class MapParser < Thor
         out_section.in_sections.map { |in_section| [in_section, in_section.usage, out_section] }
       end
       usage_table.sort_by { |_, usage, _| usage }
+                 .reject { |_, usage, _| usage.zero? }
                  .reverse
                  .take(top)
                  .each do |in_section, usage, out_section|
