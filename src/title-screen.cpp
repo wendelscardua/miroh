@@ -62,7 +62,7 @@ const Song bgm_test_songs[] = {Song::Marshmallow_mountain,
                                Song::Failure,
                                Song::Victory};
 
-__attribute__((noinline)) TitleScreen::TitleScreen()
+TitleScreen::TitleScreen()
     : state(State::MainMenu), current_option(MenuOption::OnePlayer),
       current_track(Song::Marshmallow_mountain), next_track_delay(0),
       y_scroll(TITLE_SCROLL) {
@@ -92,7 +92,7 @@ __attribute__((noinline)) TitleScreen::TitleScreen()
   pal_fade_to(0, 4);
 }
 
-__attribute__((noinline)) TitleScreen::~TitleScreen() {
+TitleScreen::~TitleScreen() {
   pal_fade_to(4, 0);
   ppu_off();
 }
@@ -127,7 +127,7 @@ void TitleScreen::render_sprites() {
   oam_hide_rest();
 }
 
-__attribute__((noinline)) void TitleScreen::loop() {
+void TitleScreen::loop() {
   bool how_to_players_switched = false;
   u8 how_to_select_timer = 0;
 

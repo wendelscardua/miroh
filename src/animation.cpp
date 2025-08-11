@@ -9,8 +9,8 @@
 bool Animation::paused = false;
 
 Animation::Animation(const AnimCell (*cells)[])
-    : cells(cells), current_cell(&(*cells)[0]), current_frame(0),
-      current_cell_index(0), finished(false) {}
+    : current_frame(0), current_cell_index(0), finished(false),
+      current_cell(&(*cells)[0]), cells(cells) {}
 
 void Animation::reset() {
   current_frame = 0;

@@ -716,7 +716,7 @@ void Gameplay::gameplay_handler() {
   STOP_MESEN_WATCH("upk");
 }
 
-__attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
+void Gameplay::marshmallow_overflow_handler() {
   marshmallow_overflow_counter++;
   switch (overflow_state) {
   case OverflowState::FlashOutsideBlocks:
@@ -790,8 +790,7 @@ bool Gameplay::game_is_over() {
            overflow_state == OverflowState::GameOver));
 }
 
-__attribute__((noinline)) void
-Gameplay::game_mode_upkeep(bool stuff_in_progress) {
+void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   u8 goal_counter_text[2];
   switch (current_game_mode) {
   case GameMode::Story:
@@ -1006,7 +1005,7 @@ void Gameplay::loop() {
       if (swap_frame_counter >= swap_frames[swap_index].duration) {
         swap_frame_counter = 0;
         swap_index++;
-        if (swap_index >= sizeof(swap_frames)) {
+        if (swap_index >= sizeof(swap_frames) / sizeof(swap_frames[0])) {
           swap_index = 0;
           gameplay_state = GameplayState::Playing;
         }
@@ -1014,20 +1013,21 @@ void Gameplay::loop() {
       break;
     }
     STOP_MESEN_WATCH("hndl");
+    START_MESEN_WATCH("render");
+
     if (VRAM_INDEX + 16 < 64) {
       banked_lambda(Unicorn::BANK, [this]() { unicorn.refresh_score_hud(); });
     }
 
     if (no_lag_frame) {
-      START_MESEN_WATCH("render");
       render();
-      STOP_MESEN_WATCH("render");
     } else {
 #ifndef NDEBUG
       putchar('X');
       putchar('\n');
 #endif
     }
+    STOP_MESEN_WATCH("render");
 
     STOP_MESEN_WATCH("all");
 

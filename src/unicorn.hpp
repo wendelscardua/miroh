@@ -13,17 +13,6 @@ class Unicorn {
   static constexpr u8 STARTING_ENERGY = 9;
   static constexpr u8 CHARGE_COST = 3;
 
-private:
-  Direction facing;
-  Direction moving;
-  fixed_point target_x, target_y;
-  u8 energy;
-  u8 energy_timer;
-  u8 original_energy;
-
-  // fixes priority flags for bottom sprites
-  void fix_uni_priority(u8 sprite_offset, bool left_wall, bool right_wall);
-
 public:
   static constexpr u8 BANK = 5;
   static constexpr u8 ENERGY_TICKS = 240;
@@ -39,28 +28,14 @@ public:
   };
 
   State state;
-  Board &board;
   fixed_point x;
   fixed_point y;
   u8 row;
   u8 column;
-  u8 roll_distance;
-  bool roll_into_block;
   u16 score;
   bool left_wall, right_wall;
 
-  u8 buffered_input;
-
   bool statue;
-
-  Animation idle_left_animation{NULL};
-  Animation idle_right_animation{NULL};
-  Animation idle_left_tired_animation{NULL};
-  Animation idle_right_tired_animation{NULL};
-  Animation left_animation{NULL};
-  Animation right_animation{NULL};
-  Animation left_tired_animation{NULL};
-  Animation right_tired_animation{NULL};
 
   Animation generic_animation{NULL};
 
@@ -71,9 +46,36 @@ public:
                                         bool roll_disabled);
   void render(int y_scroll);
   void feed(u8 nutrition);
-  void energy_upkeep();
   void refresh_energy_hud(int y_scroll);
   void refresh_score_hud();
-  __attribute__((noinline)) void set_state(State new_state);
+
+private:
+  Board &board;
+
+  Direction facing;
+  Direction moving;
+  fixed_point target_x, target_y;
+  u8 energy;
+  u8 energy_timer;
+  u8 original_energy;
+
+  u8 roll_distance;
+  bool roll_into_block;
+
+  u8 buffered_input;
+
+  Animation idle_left_animation{NULL};
+  Animation idle_right_animation{NULL};
+  Animation idle_left_tired_animation{NULL};
+  Animation idle_right_tired_animation{NULL};
+  Animation left_animation{NULL};
+  Animation right_animation{NULL};
+  Animation left_tired_animation{NULL};
+  Animation right_tired_animation{NULL};
+
+  // fixes priority flags for bottom sprites
+  void fix_uni_priority(u8 sprite_offset, bool left_wall, bool right_wall);
+  void energy_upkeep();
+  void set_state(State new_state);
   const fixed_point &move_speed();
 };

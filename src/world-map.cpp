@@ -167,7 +167,7 @@ void WorldMap::tick_ending() {
   }
 }
 
-__attribute__((noinline)) void WorldMap::loop() {
+void WorldMap::loop() {
   u8 ending_sprite = 0;
   u8 ending_palette_counter = 0;
   u8 ending_palette = 4;

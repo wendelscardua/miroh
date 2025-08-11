@@ -6,7 +6,6 @@
 #include "animation.hpp"
 #include "board.hpp"
 #include "common.hpp"
-#include "metasprites.hpp"
 #include "unicorn.hpp"
 
 struct Fruit {
@@ -76,40 +75,11 @@ class Fruits {
   static constexpr u16 EXPIRATION_TIME = 12 * 60;
   static constexpr u8 DROP_SPEED = 12;
   static constexpr u8 DESPAWN_DELAY = 23;
-  static constexpr s8 fruit_rows[][4] = {{1, 5, 5, 9}, {3, 7, 3, 7}};
+  static const s8 fruit_rows[][4];
 
-  static constexpr const Sprite *high_fruits[] = {
-      Metasprites::AppleHigh,      Metasprites::CornHigh,
-      Metasprites::PearHigh,       Metasprites::AvocadoHigh,
-      Metasprites::EggplantHigh,   Metasprites::KiwiHigh,
-      Metasprites::BroccoliHigh,   Metasprites::GreenPeasHigh,
-      Metasprites::StrawberryHigh, Metasprites::CherriesHigh,
-      Metasprites::GrapesHigh,     Metasprites::CucumberHigh,
-      Metasprites::ClementineHigh, Metasprites::HallabongHigh,
-      Metasprites::CarrotHigh,     Metasprites::BerriesHigh,
-      Metasprites::BlueCornHigh,   Metasprites::BananasHigh,
-      Metasprites::SweetPotatoHigh};
+  static const Sprite *high_fruits[];
 
-  static constexpr const Sprite *low_fruits[] = {
-      Metasprites::AppleLow,      Metasprites::CornLow,
-      Metasprites::PearLow,       Metasprites::AvocadoLow,
-      Metasprites::EggplantLow,   Metasprites::KiwiLow,
-      Metasprites::BroccoliLow,   Metasprites::GreenPeasLow,
-      Metasprites::StrawberryLow, Metasprites::CherriesLow,
-      Metasprites::GrapesLow,     Metasprites::CucumberLow,
-      Metasprites::ClementineLow, Metasprites::HallabongLow,
-      Metasprites::CarrotLow,     Metasprites::BerriesLow,
-      Metasprites::BlueCornLow,   Metasprites::BananasLow,
-      Metasprites::SweetPotatoLow};
-
-  static_assert(sizeof(fruit_rows) == 4 * Fruits::NUM_FRUITS);
-
-  soa::Array<Fruit, NUM_FRUITS> fruits;
-  u8 active_fruits;
-  Board &board;
-  u16 spawn_timer;
-
-  Animation splash_animation{&splash_cells};
+  static const Sprite *low_fruits[];
 
 public:
   static constexpr u16 SPAWN_DELAY = 5 * 60;
@@ -119,9 +89,17 @@ public:
 
   void update(Unicorn &player, bool &snack_was_eaten, bool can_spawn);
 
-  void spawn_on_board(u8 fruit_index);
-
-  __attribute((noinline)) void render_fruit(u8 fruit_index, int y_scroll);
   __attribute((noinline)) void render_below_player(int y_scroll, u8 y_player);
   __attribute((noinline)) void render_above_player(int y_scroll, u8 y_player);
+
+private:
+  soa::Array<Fruit, NUM_FRUITS> fruits;
+  u8 active_fruits;
+  Board &board;
+  u16 spawn_timer;
+
+  Animation splash_animation{&splash_cells};
+
+  void spawn_on_board(u8 fruit_index);
+  void render_fruit(u8 fruit_index, int y_scroll);
 };

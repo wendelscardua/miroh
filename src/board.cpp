@@ -35,13 +35,12 @@ __attribute__((section(".prg_rom_fixed"))) u8 board_index(u8 row, u8 column) {
 
 bool BoardAnimation::paused = false;
 
-BoardAnimation::BoardAnimation() : cells(NULL), length(0), finished(true) {}
+BoardAnimation::BoardAnimation() : cells(NULL), finished(true), length(0) {}
 
 BoardAnimation::BoardAnimation(const BoardAnimFrame (*cells)[], u8 length,
                                u8 row, u8 column)
-    : cells(cells), current_cell(&(*cells)[0]), current_frame(0),
-      current_cell_index(0), length(length), row(row), column(column),
-      finished(false) {}
+    : cells(cells), current_cell(&(*cells)[0]), current_frame(0), row(row),
+      column(column), finished(false), current_cell_index(0), length(length) {}
 
 void BoardAnimation::update() {
   if (paused || finished)

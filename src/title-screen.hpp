@@ -33,6 +33,11 @@ public:
     HowToPlay,
   };
 
+  __attribute__((noinline)) TitleScreen();
+  __attribute__((noinline)) ~TitleScreen();
+  __attribute__((noinline)) void loop();
+
+private:
   State state;
   MenuOption current_option;
   Song current_track;
@@ -40,8 +45,5 @@ public:
   s16 y_scroll;
   u8 bgm_test_index;
 
-  TitleScreen();
-  ~TitleScreen();
   void render_sprites();
-  void loop();
 };
