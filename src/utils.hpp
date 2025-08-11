@@ -9,4 +9,4 @@
 void u8_to_text(u8 score_text[], u8 value);
 void int_to_text(u8 score_text[], u16 value);
 
-u8 rand_up_to(u8 n);
+__attribute__((noinline)) u8 rand_up_to(u8 n);

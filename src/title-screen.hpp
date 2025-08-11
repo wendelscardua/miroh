@@ -40,8 +40,8 @@ public:
   s16 y_scroll;
   u8 bgm_test_index;
 
-  TitleScreen();
-  ~TitleScreen();
+  __attribute__((noinline)) TitleScreen();
+  __attribute__((noinline)) ~TitleScreen();
   void render_sprites();
-  void loop();
+  __attribute__((noinline)) void loop();
 };

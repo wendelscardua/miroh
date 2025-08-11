@@ -23,13 +23,11 @@ namespace GGSound {
     extern "C" void resume_song();
   } // namespace Wrapper
 
-  __attribute__((noinline)) void init(Region arg_region,
-                                      const Track *arg_song_list[],
-                                      const Track *arg_sfx_list[],
-                                      const void *arg_instruments[]
+  void init(Region arg_region, const Track *arg_song_list[],
+            const Track *arg_sfx_list[], const void *arg_instruments[]
 #ifdef FEATURE_DPCM
-                                      ,
-                                      const void *dpcm_pointers[]
+            ,
+            const void *dpcm_pointers[]
 #endif
   ) {
     sound_param_byte_0 = (u8)arg_region;
@@ -44,26 +42,26 @@ namespace GGSound {
     sound_initialize();
   }
 
-  __attribute__((noinline)) void stop() {
+  void stop() {
     ScopedBank ggsound_bank(BANK);
     sound_stop();
   }
-  __attribute__((noinline)) void pause() {
+  void pause() {
     ScopedBank ggsound_bank(BANK);
     pause_song();
   }
-  __attribute__((noinline)) void resume() {
+  void resume() {
     ScopedBank ggsound_bank(BANK);
     resume_song();
   }
 
-  __attribute__((noinline)) void play_song(Song song) {
+  void play_song(Song song) {
     sound_param_byte_0 = (u8)song;
     ScopedBank ggsound_bank(BANK);
     Wrapper::play_song();
   }
 
-  __attribute__((noinline)) void play_sfx(SFX sfx, SFXPriority priority) {
+  void play_sfx(SFX sfx, SFXPriority priority) {
     sound_param_byte_0 = (u8)sfx;
     sound_param_byte_1 = (u8)priority;
     ScopedBank ggsound_bank(BANK);

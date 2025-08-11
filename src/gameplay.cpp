@@ -716,7 +716,7 @@ void Gameplay::gameplay_handler() {
   STOP_MESEN_WATCH("upk");
 }
 
-__attribute__((noinline)) void Gameplay::marshmallow_overflow_handler() {
+void Gameplay::marshmallow_overflow_handler() {
   marshmallow_overflow_counter++;
   switch (overflow_state) {
   case OverflowState::FlashOutsideBlocks:
@@ -790,8 +790,7 @@ bool Gameplay::game_is_over() {
            overflow_state == OverflowState::GameOver));
 }
 
-__attribute__((noinline)) void
-Gameplay::game_mode_upkeep(bool stuff_in_progress) {
+void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   u8 goal_counter_text[2];
   switch (current_game_mode) {
   case GameMode::Story:

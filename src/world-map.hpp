@@ -11,10 +11,10 @@ public:
 
   u8 ending_frame_counter;
 
-  WorldMap();
-  ~WorldMap();
+  __attribute__((noinline)) WorldMap();
+  __attribute__((noinline)) ~WorldMap();
   void render_sprites();
   void stage_change(Stage new_stage);
-  void loop();
+  __attribute__((noinline)) void loop();
   void tick_ending();
 };
