@@ -49,20 +49,35 @@ namespace charset_impl {
         return 0x02;
       case U'!':
         return 0x2f;
+      case U'?':
+        return 0x3f;
+      case U'-':
+        return 0x1c;
       case U'0' ... U'9':
         return (char)(C - U'0' + 0x64);
       case U'a' ... U'i':
         return (char)(C - U'a' + 0x04);
       case U'k' ... U'y':
         return (char)(C - U'k' + 0x0d);
+      case U'B':
+        return 0x1f;
+      case U'H':
+        return 0x1d;
+      case U'P':
+        return 0x1e;
+      case U'G':
+      case U'F':
+      case U'M':
+      case U'R':
+      case U'S':
+        return 0x6f;
       }
     }
   };
 
 } // namespace charset_impl
 
-// Converts strings to tiles, use "|" to toggle between normal text (usually
-// cyan) and title text (usually gray)
+// Converts strings to tiles
 template <charset_impl::TileString S> constexpr auto operator""_ts() {
   return S.Str;
 }
