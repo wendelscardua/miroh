@@ -44,8 +44,6 @@ public:
   const BoardAnimFrame *current_cell;
   static bool paused;
   u8 current_frame;
-  u8 current_cell_index;
-  u8 length;
   u8 row;
   u8 column;
   bool finished;
@@ -57,15 +55,15 @@ public:
   void reset();
 
   void update();
+
+private:
+  u8 current_cell_index;
+  u8 length;
 };
 
 class Board {
 
   static constexpr u16 FULL_ROW_BITMASK = 0x0fff;
-
-  s8 erasing_row;
-  u8 erasing_column;
-  s8 erasing_row_source;
 
 public:
   static constexpr u8 BANK = 4;
@@ -138,9 +136,6 @@ public:
   // marks a position as occupied by a solid block
   __attribute__((section(".prg_rom_fixed"))) void occupy(u8 row, u8 column);
 
-  // marks a position as not occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void free(u8 row, u8 column);
-
   // change a cell at these coordinates and with a given style
   __attribute__((noinline)) void set_maze_cell(u8 row, u8 column,
                                                CellType type);
@@ -163,4 +158,12 @@ public:
 
   // animate cells
   __attribute__((noinline)) void animate();
+
+private:
+  s8 erasing_row;
+  u8 erasing_column;
+  s8 erasing_row_source;
+
+  // marks a position as not occupied by a solid block
+  __attribute__((section(".prg_rom_fixed"))) void free(u8 row, u8 column);
 };

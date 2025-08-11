@@ -15,6 +15,26 @@ class Polyomino {
   static constexpr s8 MOVEMENT_DELAY = 6;
   static constexpr u8 SPAWN_COLUMN = 4;
 
+public:
+  static constexpr u8 BANK = 14;
+  enum class State {
+    Inactive,
+    Active,
+  };
+  u8 grounded_timer;
+  State state;
+  Polyomino(Board &board);
+
+  __attribute__((noinline)) void init();
+  __attribute__((noinline)) u8 take_piece();
+  __attribute__((noinline)) void spawn();
+  __attribute__((noinline)) void handle_input(u8 pressed, u8 held);
+  void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
+              u8 &lines_filled);
+  void render(int y_scroll);
+  void outside_render(int y_scroll);
+
+private:
   static Bag<u8, 10> pieces;
   static Bag<u8, 4> littleminos;
   static Bag<u8, 17> pentominos;
@@ -37,50 +57,17 @@ class Polyomino {
   u8 bottom_limit;
   soa::Array<u16, 4> bitmask;
 
-  __attribute__((noinline)) bool able_to_kick(const auto &kick_deltas);
-
-public:
-  static constexpr u8 BANK = 14;
-  enum class State {
-    Inactive,
-    Active,
-  };
-  u8 grounded_timer;
-  State state;
-  Polyomino(Board &board);
-
-  __attribute__((noinline)) void init();
-
-  __attribute__((noinline)) u8 take_piece();
-
-  __attribute__((noinline)) void spawn();
-
-  __attribute__((noinline)) void handle_input(u8 pressed, u8 held);
-
+  bool able_to_kick(const auto &kick_deltas);
   void freezing_handler(bool &blocks_placed, bool &failed_to_place,
                         u8 &lines_cleared);
-  void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
-              u8 &lines_filled);
-
-  void banked_render();
-
-  void render(int y_scroll);
-
-  void outside_render(int y_scroll);
-
   void render_next();
-
   bool collide(s8 row, s8 column);
-
-  __attribute__((noinline)) void update_bitmask();
-
+  void update_bitmask();
   void move_bitmask_left();
-
   void move_bitmask_right();
-
-  __attribute__((noinline)) void update_shadow();
+  void update_shadow();
 
   // returns number of filled lines aftter blocks were frozen, or -1 if
   // polyomino didn't fit
-  __attribute__((noinline)) s8 freeze_blocks();
+  s8 freeze_blocks();
 };

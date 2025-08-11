@@ -11,8 +11,6 @@ class Animation {
 public:
   static constexpr u8 BANK = 5; // same as Unicorn
 
-  const AnimCell (*cells)[];
-  const AnimCell *current_cell;
   static bool paused;
   u8 current_frame;
   u8 current_cell_index;
@@ -23,4 +21,8 @@ public:
   void reset();
 
   void update(char x, int y);
+
+private:
+  const AnimCell *current_cell;
+  const AnimCell (*cells)[];
 };

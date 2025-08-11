@@ -6,7 +6,6 @@
 #include "animation.hpp"
 #include "board.hpp"
 #include "common.hpp"
-#include "metasprites.hpp"
 #include "unicorn.hpp"
 
 struct Fruit {
@@ -82,13 +81,6 @@ class Fruits {
 
   static const Sprite *low_fruits[];
 
-  soa::Array<Fruit, NUM_FRUITS> fruits;
-  u8 active_fruits;
-  Board &board;
-  u16 spawn_timer;
-
-  Animation splash_animation{&splash_cells};
-
 public:
   static constexpr u16 SPAWN_DELAY = 5 * 60;
   static constexpr u8 FRUIT_NUTRITION = 3;
@@ -97,9 +89,17 @@ public:
 
   void update(Unicorn &player, bool &snack_was_eaten, bool can_spawn);
 
-  void spawn_on_board(u8 fruit_index);
-
-  __attribute((noinline)) void render_fruit(u8 fruit_index, int y_scroll);
   __attribute((noinline)) void render_below_player(int y_scroll, u8 y_player);
   __attribute((noinline)) void render_above_player(int y_scroll, u8 y_player);
+
+private:
+  soa::Array<Fruit, NUM_FRUITS> fruits;
+  u8 active_fruits;
+  Board &board;
+  u16 spawn_timer;
+
+  Animation splash_animation{&splash_cells};
+
+  void spawn_on_board(u8 fruit_index);
+  void render_fruit(u8 fruit_index, int y_scroll);
 };

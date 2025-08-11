@@ -94,10 +94,6 @@ class Gameplay {
       6   // 9
   };
 
-  u8 experience;
-  u8 current_level;
-  u16 spawn_timer;
-
 public:
   static constexpr u8 BANK = 0;
   static constexpr u16 INTRO_DELAY = 900;
@@ -128,20 +124,27 @@ public:
   static constexpr u8 BLOCKS_GOAL = 3;
   static constexpr u16 SCORE_GOAL = 10;
 #endif
+
+  __attribute__((noinline)) Gameplay();
+  __attribute__((noinline)) ~Gameplay();
+  __attribute__((noinline)) void loop();
+
+private:
+  u8 experience;
+  u8 current_level;
+  u16 spawn_timer;
+
   Unicorn unicorn;
   Polyomino polyomino;
   Fruits fruits;
 
   // sub-state for the gameplay state
   GameplayState gameplay_state;
-
   // sub-sub-state for the marshmallow overflow sub-state
   OverflowState overflow_state;
-
   // it's actually the input mode for player 1; whatever
   // p1 controls, p2 controls the other
   InputMode input_mode;
-
   // buttons pressed by whoever controls the unicorn
   u8 unicorn_pressed;
   // buttons held by whoever controls the unicorn
@@ -154,23 +157,17 @@ public:
   u8 any_pressed;
   // buttons held by anyone
   u8 any_held;
-
   // countdown of frames for the swap flashing and sfx
-  u8 swap_index : 4;
-  u8 swap_frame_counter : 4;
-
+  u8 swap_index;
+  u8 swap_frame_counter;
   // counter for marshmallow overflow events
   u8 marshmallow_overflow_counter;
-
   // Track current answer for a yes-or-no prompt
   bool yes_no_option;
-
   // Track current pause option
   PauseOption pause_option;
-
   // Used for game over animation
   Drops drops;
-
   int y_scroll;
   union {
     u16 goal_counter;
@@ -194,12 +191,6 @@ public:
   u8 lines_cleared;
   bool snack_was_eaten;
 
-  __attribute__((noinline)) Gameplay();
-  __attribute__((noinline)) ~Gameplay();
-  __attribute__((noinline)) void loop();
-  void add_experience(u8 exp);
-
-private:
   void render();
   void pause_game();
   void end_game();
@@ -217,4 +208,5 @@ private:
   void swap_inputs();
   void ease_scroll(const int target);
   bool game_is_over();
+  void add_experience(u8 exp);
 };

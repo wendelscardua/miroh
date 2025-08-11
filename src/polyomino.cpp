@@ -24,7 +24,7 @@ auto Polyomino::pentominos = Bag<u8, 17>();
 auto Polyomino::pieces = Bag<u8, 10>();
 
 Polyomino::Polyomino(Board &board)
-    : board(board), definition(NULL), state(State::Inactive) {}
+    : state(State::Inactive), board(board), definition(NULL) {}
 
 void Polyomino::init() {
 
