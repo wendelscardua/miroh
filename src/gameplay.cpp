@@ -635,6 +635,7 @@ void Gameplay::gameplay_handler() {
   // trigger, not even the line clearing itself will run)
   bool line_clearing_in_progress =
       gameplay_state == GameplayState::MarshmallowOverflow ||
+      unicorn.state == Unicorn::State::Trapped ||
       banked_lambda(Board::BANK, []() {
         return board.ongoing_line_clearing(board.active_animations);
       });
