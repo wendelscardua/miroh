@@ -1013,20 +1013,21 @@ void Gameplay::loop() {
       break;
     }
     STOP_MESEN_WATCH("hndl");
+    START_MESEN_WATCH("render");
+
     if (VRAM_INDEX + 16 < 64) {
       banked_lambda(Unicorn::BANK, [this]() { unicorn.refresh_score_hud(); });
     }
 
     if (no_lag_frame) {
-      START_MESEN_WATCH("render");
       render();
-      STOP_MESEN_WATCH("render");
     } else {
 #ifndef NDEBUG
       putchar('X');
       putchar('\n');
 #endif
     }
+    STOP_MESEN_WATCH("render");
 
     STOP_MESEN_WATCH("all");
 
