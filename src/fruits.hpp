@@ -76,33 +76,11 @@ class Fruits {
   static constexpr u16 EXPIRATION_TIME = 12 * 60;
   static constexpr u8 DROP_SPEED = 12;
   static constexpr u8 DESPAWN_DELAY = 23;
-  static constexpr s8 fruit_rows[][4] = {{1, 5, 5, 9}, {3, 7, 3, 7}};
+  static const s8 fruit_rows[][4];
 
-  static constexpr const Sprite *high_fruits[] = {
-      Metasprites::AppleHigh,      Metasprites::CornHigh,
-      Metasprites::PearHigh,       Metasprites::AvocadoHigh,
-      Metasprites::EggplantHigh,   Metasprites::KiwiHigh,
-      Metasprites::BroccoliHigh,   Metasprites::GreenPeasHigh,
-      Metasprites::StrawberryHigh, Metasprites::CherriesHigh,
-      Metasprites::GrapesHigh,     Metasprites::CucumberHigh,
-      Metasprites::ClementineHigh, Metasprites::HallabongHigh,
-      Metasprites::CarrotHigh,     Metasprites::BerriesHigh,
-      Metasprites::BlueCornHigh,   Metasprites::BananasHigh,
-      Metasprites::SweetPotatoHigh};
+  static const Sprite *high_fruits[];
 
-  static constexpr const Sprite *low_fruits[] = {
-      Metasprites::AppleLow,      Metasprites::CornLow,
-      Metasprites::PearLow,       Metasprites::AvocadoLow,
-      Metasprites::EggplantLow,   Metasprites::KiwiLow,
-      Metasprites::BroccoliLow,   Metasprites::GreenPeasLow,
-      Metasprites::StrawberryLow, Metasprites::CherriesLow,
-      Metasprites::GrapesLow,     Metasprites::CucumberLow,
-      Metasprites::ClementineLow, Metasprites::HallabongLow,
-      Metasprites::CarrotLow,     Metasprites::BerriesLow,
-      Metasprites::BlueCornLow,   Metasprites::BananasLow,
-      Metasprites::SweetPotatoLow};
-
-  static_assert(sizeof(fruit_rows) == 4 * Fruits::NUM_FRUITS);
+  static const Sprite *low_fruits[];
 
   soa::Array<Fruit, NUM_FRUITS> fruits;
   u8 active_fruits;

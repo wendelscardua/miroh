@@ -27,6 +27,33 @@ const Fruit::Type fruit_types_per_stage[][4] = {
      Fruit::Type::SweetPotato},
 };
 
+const s8 Fruits::fruit_rows[Fruits::NUM_FRUITS][4] = {{1, 5, 5, 9},
+                                                      {3, 7, 3, 7}};
+
+const Sprite *Fruits::high_fruits[] = {
+    Metasprites::AppleHigh,      Metasprites::CornHigh,
+    Metasprites::PearHigh,       Metasprites::AvocadoHigh,
+    Metasprites::EggplantHigh,   Metasprites::KiwiHigh,
+    Metasprites::BroccoliHigh,   Metasprites::GreenPeasHigh,
+    Metasprites::StrawberryHigh, Metasprites::CherriesHigh,
+    Metasprites::GrapesHigh,     Metasprites::CucumberHigh,
+    Metasprites::ClementineHigh, Metasprites::HallabongHigh,
+    Metasprites::CarrotHigh,     Metasprites::BerriesHigh,
+    Metasprites::BlueCornHigh,   Metasprites::BananasHigh,
+    Metasprites::SweetPotatoHigh};
+
+const Sprite *Fruits::low_fruits[] = {
+    Metasprites::AppleLow,      Metasprites::CornLow,
+    Metasprites::PearLow,       Metasprites::AvocadoLow,
+    Metasprites::EggplantLow,   Metasprites::KiwiLow,
+    Metasprites::BroccoliLow,   Metasprites::GreenPeasLow,
+    Metasprites::StrawberryLow, Metasprites::CherriesLow,
+    Metasprites::GrapesLow,     Metasprites::CucumberLow,
+    Metasprites::ClementineLow, Metasprites::HallabongLow,
+    Metasprites::CarrotLow,     Metasprites::BerriesLow,
+    Metasprites::BlueCornLow,   Metasprites::BananasLow,
+    Metasprites::SweetPotatoLow};
+
 void Fruits::spawn_on_board(u8 fruit_index) {
   auto fruit = fruits[fruit_index];
   fruit.row = -1;
