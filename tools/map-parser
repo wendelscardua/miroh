@@ -64,9 +64,8 @@ class MapParser < Thor
                         .flat_map do |out_section|
         out_section.in_sections.map { |in_section| [in_section, in_section.usage, out_section] }
       end
-      usage_table.sort_by { |_, usage, _| usage }
-                 .reject { |_, usage, _| usage.zero? }
-                 .reverse
+      usage_table.reject { |_, usage, _| usage.zero? }
+                 .sort_by { |in_section, usage, out_section| [-usage, out_section.name, in_section.name] }
                  .take(top)
                  .each do |in_section, usage, out_section|
         printf "             %<usage>8x: %<in_section>s in %<out_section>s\n",
