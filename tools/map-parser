@@ -3,6 +3,7 @@
 
 require 'bundler/setup'
 require 'thor'
+require 'wtf8-fixer'
 
 # Tool for reading the .map file
 class MapParser < Thor
@@ -159,7 +160,7 @@ class MapParser < Thor
       current_lma_out_section = nil
       current_vma_in_section = nil
       current_lma_in_section = nil
-      File.read(file).lines(chomp: true).drop(1).each do |line|
+      File.read(file).then { |content| WTF8Fixer.fix(content) }.lines(chomp: true).drop(1).each do |line|
         match = line.match(/\A(?<vma>.{8})\s
                               (?<lma>.{8})\s
                               (?<size>.{8})\s(?<align>.{5})\s
