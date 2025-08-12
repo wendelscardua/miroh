@@ -14,6 +14,11 @@ namespace charset_impl {
 
     constexpr TileString(char const (&Src)[N]) {
       for (size_t I = 0, J = 0; I < N; ++I) {
+        if (Src[I] == '\\') {
+          I++;
+          Str[J++] = Src[I];
+          continue;
+        }
         fake_assert(Src[I] < 0x80);
         auto new_char = TranslateUnicode(Src[I]);
         Str[J++] = new_char;
@@ -49,20 +54,38 @@ namespace charset_impl {
         return 0x02;
       case U'!':
         return 0x2f;
+      case U'?':
+        return 0x3f;
+      case U'-':
+        return 0x1c;
       case U'0' ... U'9':
         return (char)(C - U'0' + 0x64);
       case U'a' ... U'i':
         return (char)(C - U'a' + 0x04);
       case U'k' ... U'y':
         return (char)(C - U'k' + 0x0d);
+      case U'B':
+        return 0x1f;
+      case U'H':
+        return 0x1d;
+      case U'P':
+        return 0x1e;
+      case U'_': // XXX: using _ to represent a space in the title screen (0
+                 // tile is a different color)
+        return 0x00;
+      case U'G':
+      case U'F':
+      case U'M':
+      case U'R':
+      case U'S':
+        return 0x6f;
       }
     }
   };
 
 } // namespace charset_impl
 
-// Converts strings to tiles, use "|" to toggle between normal text (usually
-// cyan) and title text (usually gray)
+// Converts strings to tiles
 template <charset_impl::TileString S> constexpr auto operator""_ts() {
   return S.Str;
 }

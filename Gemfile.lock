@@ -81,6 +81,7 @@ GEM
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
+    wtf8-fixer (0.1.0)
     yard (0.9.37)
     yard-solargraph (0.1.0)
       yard (~> 0.9)
@@ -94,6 +95,7 @@ DEPENDENCIES
   rubocop-performance
   solargraph
   thor
+  wtf8-fixer
 
 BUNDLED WITH
    2.4.21

@@ -29,7 +29,8 @@ static const u8 CELL_ROW_START[] = {0,         WIDTH,     2 * WIDTH, 3 * WIDTH,
 static_assert(sizeof(CELL_ROW_START) == HEIGHT,
               "CELL_ROW_START does not have HEIGHT entries");
 
-__attribute__((section(".prg_rom_fixed"))) u8 board_index(u8 row, u8 column) {
+__attribute__((section(".prg_rom_fixed.text.board"))) u8
+board_index(u8 row, u8 column) {
   return CELL_ROW_START[row] + column;
 }
 

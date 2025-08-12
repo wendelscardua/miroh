@@ -1,4 +1,4 @@
-.section .prg_rom_fixed,"axR",@progbits
+.section .prg_rom_fixed.text.bah,"axR",@progbits
 
 .global banked_oam_meta_spr
 .global _BANK_SHADOW 
