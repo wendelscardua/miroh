@@ -18,7 +18,7 @@
 #pragma clang section text = ".prg_rom_5.text.unicorn"
 #pragma clang section rodata = ".prg_rom_5.rodata.unicorn"
 
-#define GRID_SIZE fixed_point(0x10, 0)
+#define GRID_SIZE 16.0_fp
 
 Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : state(State::Idle), x(starting_x), y(starting_y),

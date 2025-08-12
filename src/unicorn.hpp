@@ -7,8 +7,8 @@
 #include "fixed-point.hpp"
 
 class Unicorn {
-  static constexpr fixed_point DEFAULT_MOVE_SPEED = fixed_point(1, 0x25);
-  static constexpr fixed_point TIRED_MOVE_SPEED = fixed_point(0, 0x92);
+  static constexpr fixed_point DEFAULT_MOVE_SPEED = 1.14453125_fp;
+  static constexpr fixed_point TIRED_MOVE_SPEED = 0.5703125_fp;
   static constexpr u8 MAX_ENERGY = 12;
   static constexpr u8 STARTING_ENERGY = 9;
   static constexpr u8 CHARGE_COST = 3;
