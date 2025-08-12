@@ -14,6 +14,11 @@ namespace charset_impl {
 
     constexpr TileString(char const (&Src)[N]) {
       for (size_t I = 0, J = 0; I < N; ++I) {
+        if (Src[I] == '\\') {
+          I++;
+          Str[J++] = Src[I];
+          continue;
+        }
         fake_assert(Src[I] < 0x80);
         auto new_char = TranslateUnicode(Src[I]);
         Str[J++] = new_char;
