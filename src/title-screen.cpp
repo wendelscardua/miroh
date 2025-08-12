@@ -13,8 +13,8 @@
 #include "soundtrack.hpp"
 #include "title-screen.hpp"
 
-#pragma clang section text = ".prg_rom_3.text"
-#pragma clang section rodata = ".prg_rom_3.rodata"
+#pragma clang section text = ".prg_rom_3.text.titlescreen"
+#pragma clang section rodata = ".prg_rom_3.rodata.titlescreen"
 
 __attribute__((used)) const TitleScreen::MenuOption previous_option[] = {
     TitleScreen::MenuOption::HowToPlay,  // OnePlayer

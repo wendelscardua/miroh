@@ -17,7 +17,7 @@ public:
 };
 
 template <typename Func>
-__attribute__((noinline, section(".prg_rom_fixed.text"))) auto
+__attribute__((noinline, section(".prg_rom_fixed.text.banked_lambda"))) auto
 banked_lambda(char bank_id, Func lambda) -> decltype(lambda()) {
   ScopedBank bank(bank_id);
   if constexpr (std::is_void_v<decltype(lambda())>) {

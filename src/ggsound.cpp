@@ -2,8 +2,8 @@
 #include "bank-helper.hpp"
 #include <peekpoke.h>
 
-#pragma clang section text = ".prg_rom_fixed.ggsound.text"
-#pragma clang section rodata = ".prg_rom_fixed.ggsound.rodata"
+#pragma clang section text = ".prg_rom_fixed.text.ggsound"
+#pragma clang section rodata = ".prg_rom_fixed.rodata.ggsound"
 
 extern "C" u8 sound_param_byte_0;
 extern "C" u8 sound_param_byte_1;

@@ -126,13 +126,15 @@ public:
   __attribute__((noinline)) void render();
 
   // tells if a cell is occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) bool occupied(s8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed.text.board"))) bool
+  occupied(s8 row, u8 column);
 
   // tells if a row if filled
-  __attribute__((section(".prg_rom_fixed"))) bool row_filled(u8 row);
+  __attribute__((section(".prg_rom_fixed.text.board"))) bool row_filled(u8 row);
 
   // marks a position as occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void occupy(u8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed.text.board"))) void occupy(u8 row,
+                                                                    u8 column);
 
   // change a cell at these coordinates and with a given style
   __attribute__((noinline)) void set_maze_cell(u8 row, u8 column,
@@ -149,7 +151,8 @@ public:
   // (you passed a valid row so it should always succeed)
   __attribute__((noinline)) u8 random_free_column(u8 row);
 
-  __attribute__((section(".prg_rom_fixed"))) Cell &cell_at(u8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed.text.board"))) Cell &
+  cell_at(u8 row, u8 column);
 
   // enqueues a new animation
   __attribute__((noinline)) void add_animation(BoardAnimation animation);
@@ -163,5 +166,6 @@ private:
   s8 erasing_row_source;
 
   // marks a position as not occupied by a solid block
-  __attribute__((section(".prg_rom_fixed"))) void free(u8 row, u8 column);
+  __attribute__((section(".prg_rom_fixed.text.board"))) void free(u8 row,
+                                                                  u8 column);
 };
