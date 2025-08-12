@@ -190,10 +190,7 @@ bool Drops::random_hard_drop() {
 Gameplay::Gameplay()
     : experience(0), current_level(0), spawn_timer(0),
       unicorn(banked_lambda(Unicorn::BANK,
-                            []() {
-                              return Unicorn(board, fixed_point(0x50, 0x00),
-                                             fixed_point(0x50, 0x00));
-                            })),
+                            []() { return Unicorn(board, 80.0_fp, 80.0_fp); })),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
       input_mode(InputMode::Polyomino), yes_no_option(false),
       pause_option(PauseOption::Resume), drops(), y_scroll(INTRO_SCROLL_Y),
