@@ -62,3 +62,7 @@ struct fixed_point {
     }
   }
 };
+
+constexpr fixed_point operator""_fp(long double value) {
+  return fixed_point((u16)(value * 256.0));
+}
