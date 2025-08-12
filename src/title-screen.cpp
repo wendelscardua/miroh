@@ -6,6 +6,7 @@
 #include "bank-helper.hpp"
 
 #include "banked-asset-helpers.hpp"
+#include "charset.hpp"
 #include "cheats.hpp"
 #include "common.hpp"
 #include "ggsound.hpp"
@@ -40,15 +41,7 @@ __attribute__((used)) const GameMode previous_mode[] = {
 __attribute__((used)) const GameMode next_mode[] = {
     GameMode::Endless, GameMode::TimeTrial, GameMode::Story};
 
-const unsigned char story_label[12 * 1] = {0x02, 0x02, 0x15, 0x16, 0x11, 0x14,
-                                           0x1b, 0x00, 0x00, 0x00, 0x00, 0x00};
-const unsigned char endless_label[12 * 1] = {
-    0x00, 0x02, 0x08, 0x10, 0x07, 0x0e, 0x08, 0x15, 0x15, 0x00, 0x00, 0x00};
-const unsigned char time_trial_label[12 * 1] = {
-    0x00, 0x00, 0x16, 0x0c, 0x0f, 0x08, 0x00, 0x16, 0x14, 0x0c, 0x04, 0x0e};
-
-const unsigned char bgm_test_labels[11 * 1] = {
-    0x15, 0x12, 0x04, 0x06, 0x08, 0x09, 0x0e, 0x0c, 0x0a, 0x0b, 0x16};
+const char *bgm_test_labels = "spaceflight"_ts;
 
 const Song bgm_test_songs[] = {Song::Marshmallow_mountain,
                                Song::Sting_plus_drums,
@@ -177,9 +170,9 @@ void TitleScreen::loop() {
                                           : ControllerScheme::TwoPlayers;
           current_game_mode = GameMode::Story;
           state = State::ModeMenu;
-          multi_vram_buffer_horz(story_label, 12, NTADR_B(11, 19));
-          multi_vram_buffer_horz(endless_label, 12, NTADR_B(11, 21));
-          multi_vram_buffer_horz(time_trial_label, 12, NTADR_B(11, 23));
+          multi_vram_buffer_horz("__story_____"_ts, 12, NTADR_B(11, 19));
+          multi_vram_buffer_horz("__endless___"_ts, 12, NTADR_B(11, 21));
+          multi_vram_buffer_horz("__time_trial"_ts, 12, NTADR_B(11, 23));
           break;
         case MenuOption::HowToPlay:
           state = State::HowToPlay;

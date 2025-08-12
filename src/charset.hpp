@@ -65,6 +65,9 @@ namespace charset_impl {
         return 0x1d;
       case U'P':
         return 0x1e;
+      case U'_': // XXX: using _ to represent a space in the title screen (0
+                 // tile is a different color)
+        return 0x00;
       case U'G':
       case U'F':
       case U'M':
