@@ -882,7 +882,7 @@ void Gameplay::swap_inputs() {
 }
 
 void Gameplay::loop() {
-  static bool no_lag_frame = true;
+  bool no_lag_frame = true;
   extern volatile char FRAME_CNT1;
 
   while (current_game_state == GameState::Gameplay) {
