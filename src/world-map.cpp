@@ -119,6 +119,8 @@ WorldMap::WorldMap() {
 
   oam_clear();
 
+  show_intro = (current_game_mode == GameMode::Story) && (!story_mode_beaten);
+
   if (show_intro) {
     vram_adr(NAMETABLE_C);
     zx02_decompress_to_vram((void *)intro_text_nametable, NAMETABLE_C);
