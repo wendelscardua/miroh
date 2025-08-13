@@ -1,5 +1,6 @@
 #include "cheats.hpp"
 #include "charset.hpp"
+#include "common.hpp"
 #include "ggsound.hpp"
 #include "soundtrack.hpp"
 #include <nesdoug.h>
@@ -28,6 +29,13 @@ void Cheats::push_code(u8 code) {
     } else if (memcmp(cheat_code, "cafe"_ts, 4) == 0) {
       infinite_energy = true;
       multi_vram_buffer_horz("cafe"_ts, 4, NTADR_D(10, 27));
+    } else if (memcmp(cheat_code, "fate"_ts, 4) == 0) {
+      story_mode_beaten = true;
+      story_completion[0] = true;
+      story_completion[1] = true;
+      story_completion[2] = true;
+      story_completion[3] = true;
+      multi_vram_buffer_horz("fate"_ts, 4, NTADR_D(16, 27));
     }
   }
 }
