@@ -29,12 +29,27 @@ void Cheats::push_code(u8 code) {
     } else if (memcmp(cheat_code, "cafe"_ts, 4) == 0) {
       infinite_energy = true;
       multi_vram_buffer_horz("cafe"_ts, 4, NTADR_D(10, 27));
+    } else if (memcmp(cheat_code, "ggss"_ts, 4) == 0) {
+      story_completion[(u8)Stage::StarlitStables] = true;
+      multi_vram_buffer_horz("ggss"_ts, 4,
+                             NTADR_D(4 + 6 * (u8)Stage::StarlitStables, 28));
+    } else if (memcmp(cheat_code, "ggll"_ts, 4) == 0) {
+      story_completion[(u8)Stage::RainbowRetreat] = true;
+      multi_vram_buffer_horz("ggll"_ts, 4,
+                             NTADR_D(4 + 6 * (u8)Stage::RainbowRetreat, 28));
+    } else if (memcmp(cheat_code, "ggff"_ts, 4) == 0) {
+      story_completion[(u8)Stage::FairyForest] = true;
+      multi_vram_buffer_horz("ggff"_ts, 4,
+                             NTADR_D(4 + 6 * (u8)Stage::FairyForest, 28));
+    } else if (memcmp(cheat_code, "gggg"_ts, 4) == 0) {
+      story_completion[(u8)Stage::GlitteryGrotto] = true;
+      multi_vram_buffer_horz("gggg"_ts, 4,
+                             NTADR_D(4 + 6 * (u8)Stage::GlitteryGrotto, 28));
     } else if (memcmp(cheat_code, "fate"_ts, 4) == 0) {
-      story_mode_beaten = true;
-      story_completion[0] = true;
-      story_completion[1] = true;
-      story_completion[2] = true;
-      story_completion[3] = true;
+      story_completion[(u8)Stage::StarlitStables] = true;
+      story_completion[(u8)Stage::RainbowRetreat] = true;
+      story_completion[(u8)Stage::FairyForest] = true;
+      story_completion[(u8)Stage::GlitteryGrotto] = true;
       multi_vram_buffer_horz("fate"_ts, 4, NTADR_D(16, 27));
     }
   }
