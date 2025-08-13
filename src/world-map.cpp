@@ -181,7 +181,7 @@ void WorldMap::loop() {
     if (show_intro) {
       if (pressed) {
         show_intro = false;
-        scroll(0x0, 0);
+        scroll(0, 0);
       }
       continue;
     }
@@ -192,7 +192,7 @@ void WorldMap::loop() {
         // TODO: change this when we have MM
         oam_hide_rest();
 
-        scroll(0x100, 0);
+        scroll(0, 0xf0);
         do {
           ppu_wait_nmi();
           pad_poll(0);
