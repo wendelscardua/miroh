@@ -206,7 +206,7 @@ void WorldMap::loop() {
         }
         for (u8 y = 9; y <= 18; y++) {
           ppu_wait_nmi();
-          multi_vram_buffer_horz(temp, 32, NTADR_B(0, y));
+          multi_vram_buffer_horz(temp, 32, NTADR_C(0, y));
         }
 
         ending_triggered = true;
