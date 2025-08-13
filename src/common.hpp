@@ -42,8 +42,6 @@ extern Board board;
 extern bool story_completion[];
 extern u16 high_score[];
 extern bool ending_triggered;
-extern bool story_mode_beaten;
-extern bool show_intro;
 
 // neslib/nesdoug internal stuff
 
