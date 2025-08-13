@@ -81,6 +81,9 @@ TitleScreen::TitleScreen()
     GGSound::play_song(current_track);
   }
   one_vram_buffer(bgm_test_labels[bgm_test_index], TRACK_ID_POSITION);
+#ifndef NDEBUG
+  multi_vram_buffer_horz("debug"_ts, 5, NTADR_A(18, 14));
+#endif
 
   pal_fade_to(0, 4);
 }
@@ -106,11 +109,8 @@ void TitleScreen::render_sprites() {
                       bobbing_flag ? Metasprites::AvocadoHigh
                                    : Metasprites::AvocadoLow);
 
-#ifdef NDEBUG
   banked_oam_meta_spr(METASPRITES_BANK, JR_X_POSITION, JR_Y_POSITION - y_scroll,
                       Metasprites::TitleJR);
-#endif
-
   banked_oam_meta_spr(METASPRITES_BANK, HOW_TO_LEFT_X_POSITION,
                       HOW_TO_LEFT_Y_POSITION - y_scroll,
                       Metasprites::HowtoLeft);
