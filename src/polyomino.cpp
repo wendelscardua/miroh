@@ -307,7 +307,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       if (movement_direction != Direction::Up) {
         grounded_timer = 0;
       }
-      if (select_reminder == SelectReminder::WaitingRowToRemind) {
+      if (current_controller_scheme == ControllerScheme::OnePlayer &&
+          select_reminder == SelectReminder::WaitingRowToRemind) {
         select_reminder = SelectReminder::Reminding;
       }
     }

@@ -598,13 +598,12 @@ void Gameplay::gameplay_handler() {
       !line_clearing_in_progress && spawn_timer-- == 0) {
     banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
-    if (current_controller_scheme == ControllerScheme::OnePlayer &&
-        select_reminder == SelectReminder::NeedToRemind) {
-      select_reminder = SelectReminder::WaitingBlockToRemind;
-    } else if (/* (implied)current_controller_scheme ==
-                  ControllerScheme::OnePlayer && */
-               select_reminder == SelectReminder::WaitingBlockToRemind) {
-      select_reminder = SelectReminder::WaitingRowToRemind;
+    if (current_controller_scheme == ControllerScheme::OnePlayer) {
+      if (select_reminder == SelectReminder::NeedToRemind) {
+        select_reminder = SelectReminder::WaitingBlockToRemind;
+      } else if (select_reminder == SelectReminder::WaitingBlockToRemind) {
+        select_reminder = SelectReminder::WaitingRowToRemind;
+      }
     }
   }
   STOP_MESEN_WATCH("spn");
