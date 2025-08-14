@@ -284,8 +284,7 @@ void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
 }
 
 void Polyomino::update(u8 drop_frames, bool &blocks_placed,
-                       bool &failed_to_place, u8 &lines_cleared,
-                       SelectReminder &select_reminder) {
+                       bool &failed_to_place, u8 &lines_cleared) {
   if (state == State::Inactive) {
     return;
   }

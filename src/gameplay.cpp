@@ -196,9 +196,11 @@ Gameplay::Gameplay()
       pause_option(PauseOption::Resume), drops(), y_scroll(INTRO_SCROLL_Y),
       goal_counter(0) {
 
-  select_reminder = current_controller_scheme == ControllerScheme::OnePlayer
-                        ? SelectReminder::NeedToRemind
-                        : SelectReminder::Reminded;
+  // if player wasn't reminded, reset remind state progress
+  if (current_controller_scheme == ControllerScheme::OnePlayer &&
+      select_reminder != SelectReminder::Reminded) {
+    select_reminder = SelectReminder::NeedToRemind;
+  }
 
   banked_lambda(Polyomino::BANK, [&]() { polyomino.init(); });
 
@@ -271,10 +273,7 @@ void Gameplay::render() {
   fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
   if (gameplay_state != GameplayState::Swapping ||
       swap_frames[swap_index].display_unicorn) {
-    bool remind_select = select_reminder == SelectReminder::Reminding;
-    banked_lambda(Unicorn::BANK, [this, remind_select]() {
-      unicorn.render(y_scroll, remind_select);
-    });
+    banked_lambda(Unicorn::BANK, [this]() { unicorn.render(y_scroll); });
   }
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
 
@@ -569,7 +568,9 @@ void Gameplay::gameplay_handler() {
     return;
   } else if (any_pressed & PAD_SELECT) {
     swap_inputs();
-    select_reminder = SelectReminder::Reminded;
+    if (current_controller_scheme == ControllerScheme::OnePlayer) {
+      select_reminder = SelectReminder::Reminded;
+    }
   }
 
   unicorn.statue = false;
@@ -598,9 +599,12 @@ void Gameplay::gameplay_handler() {
       !line_clearing_in_progress && spawn_timer-- == 0) {
     banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
-    if (select_reminder == SelectReminder::NeedToRemind) {
+    if (current_controller_scheme == ControllerScheme::OnePlayer &&
+        select_reminder == SelectReminder::NeedToRemind) {
       select_reminder = SelectReminder::WaitingBlockToRemind;
-    } else if (select_reminder == SelectReminder::WaitingBlockToRemind) {
+    } else if (/* (implied)current_controller_scheme ==
+                  ControllerScheme::OnePlayer && */
+               select_reminder == SelectReminder::WaitingBlockToRemind) {
       select_reminder = SelectReminder::WaitingRowToRemind;
     }
   }
@@ -613,7 +617,7 @@ void Gameplay::gameplay_handler() {
   START_MESEN_WATCH("upd");
   banked_lambda(Polyomino::BANK, [&]() {
     polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
-                     failed_to_place, lines_cleared, select_reminder);
+                     failed_to_place, lines_cleared);
   });
   STOP_MESEN_WATCH("upd");
   STOP_MESEN_WATCH("pol");

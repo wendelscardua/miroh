@@ -371,7 +371,7 @@ void Unicorn::fix_uni_priority(u8 sprite_offset, bool left_wall,
   }
 }
 
-void Unicorn::render(int y_scroll, bool remind_select) {
+void Unicorn::render(int y_scroll) {
   int reference_y = board.origin_y - y_scroll;
 
   if (statue) {
@@ -425,7 +425,8 @@ void Unicorn::render(int y_scroll, bool remind_select) {
     generic_animation.update(board.origin_x + x.whole, reference_y + y.whole);
     break;
   }
-  if (remind_select) {
+  if (current_controller_scheme == ControllerScheme::OnePlayer &&
+      select_reminder == SelectReminder::Reminding) {
     banked_oam_meta_spr(METASPRITES_BANK, board.origin_x + x.whole,
                         reference_y + y.whole, Metasprites::SelectReminder);
   }

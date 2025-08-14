@@ -50,6 +50,7 @@ extern Board board;
 extern bool story_completion[];
 extern u16 high_score[];
 extern bool ending_triggered;
+extern SelectReminder select_reminder;
 
 // neslib/nesdoug internal stuff
 

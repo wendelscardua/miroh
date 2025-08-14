@@ -44,7 +44,7 @@ public:
 
   __attribute__((noinline)) void update(u8 pressed, u8 held,
                                         bool roll_disabled);
-  void render(int y_scroll, bool remind_select);
+  void render(int y_scroll);
   void feed(u8 nutrition);
   void refresh_energy_hud(int y_scroll);
   void refresh_score_hud();

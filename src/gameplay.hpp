@@ -190,7 +190,6 @@ private:
   bool failed_to_place;
   u8 lines_cleared;
   bool snack_was_eaten;
-  SelectReminder select_reminder;
 
   void render();
   void pause_game();
