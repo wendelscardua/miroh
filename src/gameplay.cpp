@@ -574,8 +574,7 @@ void Gameplay::gameplay_handler() {
 
   unicorn.statue = false;
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
-      input_mode == InputMode::Polyomino &&
-      unicorn.state == Unicorn::State::Idle) {
+      input_mode == InputMode::Polyomino) {
     unicorn.statue = true;
   }
 
