@@ -197,8 +197,7 @@ Gameplay::Gameplay()
       goal_counter(0) {
 
   // if player wasn't reminded, reset remind state progress
-  if (current_controller_scheme == ControllerScheme::OnePlayer &&
-      select_reminder != SelectReminder::Reminded) {
+  if (select_reminder != SelectReminder::Reminded) {
     select_reminder = SelectReminder::NeedToRemind;
   }
 
