@@ -13,6 +13,8 @@ public:
 
 private:
   bool available_stages[NUM_STAGES];
+  bool show_intro;
+  bool story_mode_beaten;
   u8 ending_frame_counter;
 
   void render_sprites();

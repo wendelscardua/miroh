@@ -191,8 +191,6 @@ void TitleScreen::loop() {
         GGSound::play_sfx(SFX::Uiconfirm, GGSound::SFXPriority::One);
         current_game_state = GameState::WorldMap;
         current_stage = Stage::StarlitStables;
-        show_intro =
-            (current_game_mode == GameMode::Story) && (!story_mode_beaten);
       }
       break;
     case State::HowToPlay:
