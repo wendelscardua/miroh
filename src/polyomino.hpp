@@ -30,7 +30,7 @@ public:
   __attribute__((noinline)) void spawn();
   __attribute__((noinline)) void handle_input(u8 pressed, u8 held);
   void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
-              u8 &lines_filled);
+              u8 &lines_filled, SelectReminder &select_reminder);
   void render(int y_scroll);
   void outside_render(int y_scroll);
 

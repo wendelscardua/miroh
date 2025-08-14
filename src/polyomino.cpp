@@ -284,7 +284,8 @@ void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
 }
 
 void Polyomino::update(u8 drop_frames, bool &blocks_placed,
-                       bool &failed_to_place, u8 &lines_cleared) {
+                       bool &failed_to_place, u8 &lines_cleared,
+                       SelectReminder &select_reminder) {
   if (state == State::Inactive) {
     return;
   }
@@ -306,6 +307,9 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       y += 16;
       if (movement_direction != Direction::Up) {
         grounded_timer = 0;
+      }
+      if (select_reminder == SelectReminder::WaitingRowToRemind) {
+        select_reminder = SelectReminder::Reminding;
       }
     }
     return;

@@ -195,6 +195,11 @@ Gameplay::Gameplay()
       input_mode(InputMode::Polyomino), yes_no_option(false),
       pause_option(PauseOption::Resume), drops(), y_scroll(INTRO_SCROLL_Y),
       goal_counter(0) {
+
+  select_reminder = current_controller_scheme == ControllerScheme::OnePlayer
+                        ? SelectReminder::NeedToRemind
+                        : SelectReminder::Reminded;
+
   banked_lambda(Polyomino::BANK, [&]() { polyomino.init(); });
 
   load_gameplay_assets();
@@ -266,7 +271,10 @@ void Gameplay::render() {
   fruits.render_below_player(y_scroll, unicorn.y.whole + board.origin_y);
   if (gameplay_state != GameplayState::Swapping ||
       swap_frames[swap_index].display_unicorn) {
-    banked_lambda(Unicorn::BANK, [this]() { unicorn.render(y_scroll); });
+    bool remind_select = select_reminder == SelectReminder::Reminding;
+    banked_lambda(Unicorn::BANK, [this, remind_select]() {
+      unicorn.render(y_scroll, remind_select);
+    });
   }
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
 
@@ -561,6 +569,7 @@ void Gameplay::gameplay_handler() {
     return;
   } else if (any_pressed & PAD_SELECT) {
     swap_inputs();
+    select_reminder = SelectReminder::Reminded;
   }
 
   unicorn.statue = false;
@@ -589,6 +598,11 @@ void Gameplay::gameplay_handler() {
       !line_clearing_in_progress && spawn_timer-- == 0) {
     banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
+    if (select_reminder == SelectReminder::NeedToRemind) {
+      select_reminder = SelectReminder::WaitingBlockToRemind;
+    } else if (select_reminder == SelectReminder::WaitingBlockToRemind) {
+      select_reminder = SelectReminder::WaitingRowToRemind;
+    }
   }
   STOP_MESEN_WATCH("spn");
   START_MESEN_WATCH("inp");
@@ -599,7 +613,7 @@ void Gameplay::gameplay_handler() {
   START_MESEN_WATCH("upd");
   banked_lambda(Polyomino::BANK, [&]() {
     polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
-                     failed_to_place, lines_cleared);
+                     failed_to_place, lines_cleared, select_reminder);
   });
   STOP_MESEN_WATCH("upd");
   STOP_MESEN_WATCH("pol");
