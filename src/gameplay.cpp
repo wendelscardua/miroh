@@ -195,6 +195,12 @@ Gameplay::Gameplay()
       input_mode(InputMode::Polyomino), yes_no_option(false),
       pause_option(PauseOption::Resume), drops(), y_scroll(INTRO_SCROLL_Y),
       goal_counter(0) {
+
+  // if player wasn't reminded, reset remind state progress
+  if (select_reminder != SelectReminder::Reminded) {
+    select_reminder = SelectReminder::NeedToRemind;
+  }
+
   banked_lambda(Polyomino::BANK, [&]() { polyomino.init(); });
 
   load_gameplay_assets();
@@ -561,6 +567,9 @@ void Gameplay::gameplay_handler() {
     return;
   } else if (any_pressed & PAD_SELECT) {
     swap_inputs();
+    if (current_controller_scheme == ControllerScheme::OnePlayer) {
+      select_reminder = SelectReminder::Reminded;
+    }
   }
 
   unicorn.statue = false;
@@ -589,6 +598,13 @@ void Gameplay::gameplay_handler() {
       !line_clearing_in_progress && spawn_timer-- == 0) {
     banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
     spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
+    if (current_controller_scheme == ControllerScheme::OnePlayer) {
+      if (select_reminder == SelectReminder::NeedToRemind) {
+        select_reminder = SelectReminder::WaitingBlockToRemind;
+      } else if (select_reminder == SelectReminder::WaitingBlockToRemind) {
+        select_reminder = SelectReminder::WaitingRowToRemind;
+      }
+    }
   }
   STOP_MESEN_WATCH("spn");
   START_MESEN_WATCH("inp");

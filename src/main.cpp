@@ -20,6 +20,8 @@ GameMode current_game_mode;
 ControllerScheme current_controller_scheme;
 Stage current_stage;
 
+SelectReminder select_reminder;
+
 Board board;
 
 Cheats cheats;
@@ -33,6 +35,7 @@ static void main_init() {
   current_game_state = GameState::TitleScreen;
   current_game_mode = GameMode::Story;
   current_controller_scheme = ControllerScheme::OnePlayer;
+  select_reminder = SelectReminder::NeedToRemind;
 
   set_prg_bank(0);
 

@@ -425,6 +425,11 @@ void Unicorn::render(int y_scroll) {
     generic_animation.update(board.origin_x + x.whole, reference_y + y.whole);
     break;
   }
+  if (current_controller_scheme == ControllerScheme::OnePlayer &&
+      select_reminder == SelectReminder::Reminding) {
+    banked_oam_meta_spr(METASPRITES_BANK, board.origin_x + x.whole,
+                        reference_y + y.whole, Metasprites::SelectReminder);
+  }
 }
 
 void Unicorn::feed(u8 nutrition) {

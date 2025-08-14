@@ -22,6 +22,14 @@ enum class ControllerScheme : u8 {
   TwoPlayers,
 };
 
+enum class SelectReminder : u8 {
+  NeedToRemind,         // the single player game barely started
+  WaitingBlockToRemind, // wait for the second block to spawn
+  WaitingRowToRemind,   // wait for the second block to drop a little
+  Reminding,            // remind the player by showing "select" sprite
+  Reminded,             // don't show the "select" sprite anymore
+};
+
 constexpr u8 NUM_STAGES = 5;
 
 enum class Stage : u8 {
@@ -42,6 +50,7 @@ extern Board board;
 extern bool story_completion[];
 extern u16 high_score[];
 extern bool ending_triggered;
+extern SelectReminder select_reminder;
 
 // neslib/nesdoug internal stuff
 
