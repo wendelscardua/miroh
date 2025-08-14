@@ -18,7 +18,7 @@ project(miroh-jr CXX ASM)
 add_compile_options(
   -g -gdwarf-4
   -std=c++23
-  -Wall -Wextra -Wconversion -Wsign-conversion
+  -Wall -Wextra -Wconversion -Wsign-conversion -Wno-unused-command-line-argument
 )
 
 add_link_options(
