@@ -88,7 +88,7 @@ void Fruits::spawn_on_board(u8 fruit_index) {
   banked_lambda(Animation::BANK, [this]() { splash_animation.reset(); });
 }
 
-Fruits::Fruits(Board &board) : board(board) {
+Fruits::Fruits(Board &board) : board(board), score_value(SCORE_VALUE_START) {
   spawn_timer = SPAWN_DELAY /
                 2; // just so player don't wait too much to see the first fruit
   for (auto fruit : fruits) {
@@ -131,8 +131,13 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
                  (unicorn.y.whole + 8) >> 4 == fruit.row) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
-        banked_lambda(Unicorn::BANK,
-                      [&unicorn]() { unicorn.feed(FRUIT_NUTRITION); });
+        banked_lambda(Unicorn::BANK, [this, &unicorn]() {
+          unicorn.feed(FRUIT_NUTRITION);
+          unicorn.add_score(score_value);
+        });
+        if (score_value < SCORE_VALUE_MAX) {
+          score_value += SCORE_VALUE_INCREMENT;
+        }
         snack_was_eaten = true;
       } else if (fruit.state == Fruit::State::Active) {
         if (--fruit.life == 0) {
@@ -145,6 +150,7 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
         if (--fruit.despawn_counter == 0) {
           fruit.state = Fruit::State::Inactive;
           active_fruits--;
+          score_value = SCORE_VALUE_START;
         }
       }
       break;

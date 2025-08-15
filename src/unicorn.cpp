@@ -23,9 +23,9 @@
 Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : state(State::Idle), x(starting_x), y(starting_y),
       row(starting_y.whole >> 4), column(starting_x.whole >> 4),
-      score(cheats.higher_score ? 8420 : 0), statue(false), board(board),
-      facing(Direction::Right), moving(Direction::Right),
-      energy(STARTING_ENERGY), energy_timer(0),
+      score(cheats.higher_score ? 8420 : 0), energy(STARTING_ENERGY),
+      statue(false), board(board), facing(Direction::Right),
+      moving(Direction::Right), energy_timer(0),
       original_energy(STARTING_ENERGY) {
   left_animation = Animation{&moving_left_cells};
   right_animation = Animation{&moving_right_cells};
@@ -443,6 +443,18 @@ void Unicorn::feed(u8 nutrition) {
   }
 }
 
+void Unicorn::add_score(u8 points) {
+  score += points;
+
+  if (score > 9999) {
+    score = 9999;
+  }
+
+  if (score > high_score[(u8)current_stage]) {
+    high_score[(u8)current_stage] = score;
+  }
+}
+
 void render_energy_hud(int y_scroll, u8 value) {
   if (value == 0) {
     return;
@@ -485,9 +497,6 @@ void Unicorn::refresh_score_hud() {
   int_to_text(score_text, score);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(22, 27));
 
-  if (score > high_score[(u8)current_stage]) {
-    high_score[(u8)current_stage] = score;
-  }
   int_to_text(score_text, high_score[(u8)current_stage]);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 4));
 }

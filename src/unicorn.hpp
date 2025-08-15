@@ -33,8 +33,9 @@ public:
   u8 row;
   u8 column;
   u16 score;
-  bool left_wall, right_wall;
+  u8 energy;
 
+  bool left_wall, right_wall;
   bool statue;
 
   Animation generic_animation{NULL};
@@ -48,6 +49,7 @@ public:
   void feed(u8 nutrition);
   void refresh_energy_hud(int y_scroll);
   void refresh_score_hud();
+  void add_score(u8 points);
 
 private:
   Board &board;
@@ -55,7 +57,6 @@ private:
   Direction facing;
   Direction moving;
   fixed_point target_x, target_y;
-  u8 energy;
   u8 energy_timer;
   u8 original_energy;
 
