@@ -752,11 +752,11 @@ void Gameplay::marshmallow_overflow_handler() {
 }
 
 bool Gameplay::game_is_over() {
-  return unicorn.state == Unicorn::State::Trapped &&
-         unicorn.generic_animation.finished &&
-         (gameplay_state != GameplayState::MarshmallowOverflow ||
-          (gameplay_state == GameplayState::MarshmallowOverflow &&
-           overflow_state == OverflowState::GameOver));
+  return (gameplay_state == GameplayState::MarshmallowOverflow &&
+          overflow_state == OverflowState::GameOver) ||
+         (gameplay_state != GameplayState::MarshmallowOverflow &&
+          unicorn.state == Unicorn::State::Trapped &&
+          unicorn.generic_animation.finished);
 }
 
 void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
