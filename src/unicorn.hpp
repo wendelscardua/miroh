@@ -33,8 +33,9 @@ public:
   u8 row;
   u8 column;
   u16 score;
-  bool left_wall, right_wall;
+  u8 energy;
 
+  bool left_wall, right_wall;
   bool statue;
 
   Animation generic_animation{NULL};
@@ -56,7 +57,6 @@ private:
   Direction facing;
   Direction moving;
   fixed_point target_x, target_y;
-  u8 energy;
   u8 energy_timer;
   u8 original_energy;
 

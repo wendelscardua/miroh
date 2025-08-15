@@ -23,9 +23,9 @@
 Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : state(State::Idle), x(starting_x), y(starting_y),
       row(starting_y.whole >> 4), column(starting_x.whole >> 4),
-      score(cheats.higher_score ? 8420 : 0), statue(false), board(board),
-      facing(Direction::Right), moving(Direction::Right),
-      energy(STARTING_ENERGY), energy_timer(0),
+      score(cheats.higher_score ? 8420 : 0), energy(STARTING_ENERGY),
+      statue(false), board(board), facing(Direction::Right),
+      moving(Direction::Right), energy_timer(0),
       original_energy(STARTING_ENERGY) {
   left_animation = Animation{&moving_left_cells};
   right_animation = Animation{&moving_right_cells};
