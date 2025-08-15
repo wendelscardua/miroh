@@ -84,6 +84,9 @@ class Fruits {
 public:
   static constexpr u16 SPAWN_DELAY = 5 * 60;
   static constexpr u8 FRUIT_NUTRITION = 3;
+  static constexpr u8 SCORE_VALUE_START = 5;
+  static constexpr u8 SCORE_VALUE_MAX = 25;
+  static constexpr u8 SCORE_VALUE_INCREMENT = 5;
 
   Fruits(Board &board);
 
@@ -97,6 +100,7 @@ private:
   u8 active_fruits;
   Board &board;
   u16 spawn_timer;
+  u8 score_value;
 
   Animation splash_animation{&splash_cells};
 
