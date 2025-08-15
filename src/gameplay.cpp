@@ -567,9 +567,14 @@ void Gameplay::gameplay_handler() {
     pause_game();
     return;
   } else if (any_pressed & PAD_SELECT) {
-    swap_inputs();
-    if (current_controller_scheme == ControllerScheme::OnePlayer) {
-      select_reminder = SelectReminder::Reminded;
+    if (polyomino.state == Polyomino::State::Active ||
+        current_controller_scheme == ControllerScheme::TwoPlayers) {
+      swap_inputs();
+      if (current_controller_scheme == ControllerScheme::OnePlayer) {
+        select_reminder = SelectReminder::Reminded;
+      }
+    } else {
+      GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
     }
   }
 
@@ -636,16 +641,22 @@ void Gameplay::gameplay_handler() {
     marshmallow_overflow_counter = 0xff;
     GGSound::stop();
     GGSound::play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::Two);
-  } else if (blocks_were_placed &&
-             current_controller_scheme == ControllerScheme::TwoPlayers) {
-    GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+  } else if (blocks_were_placed) {
+    if (current_controller_scheme == ControllerScheme::TwoPlayers) {
+      GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
+    } else {
+      // this sfx combines the sounds of placement and swap
+      GGSound::play_sfx(SFX::Number1pblockdrop, GGSound::SFXPriority::Two);
+    }
   }
   STOP_MESEN_WATCH("ovr");
 
   if (current_controller_scheme == ControllerScheme::OnePlayer &&
-      polyomino.state != Polyomino::State::Active &&
+      (blocks_were_placed || failed_to_place) &&
       input_mode == InputMode::Polyomino) {
-    swap_inputs();
+    // no need for advanced swapping, just control the unicorn for a bit during
+    // the ending scene
+    input_mode = InputMode::Unicorn;
   }
 
   START_MESEN_WATCH("pts");
@@ -741,11 +752,11 @@ void Gameplay::marshmallow_overflow_handler() {
 }
 
 bool Gameplay::game_is_over() {
-  return unicorn.state == Unicorn::State::Trapped &&
-         unicorn.generic_animation.finished &&
-         (gameplay_state != GameplayState::MarshmallowOverflow ||
-          (gameplay_state == GameplayState::MarshmallowOverflow &&
-           overflow_state == OverflowState::GameOver));
+  return (gameplay_state == GameplayState::MarshmallowOverflow &&
+          overflow_state == OverflowState::GameOver) ||
+         (gameplay_state != GameplayState::MarshmallowOverflow &&
+          unicorn.state == Unicorn::State::Trapped &&
+          unicorn.generic_animation.finished);
 }
 
 void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
@@ -876,19 +887,13 @@ void Gameplay::swap_inputs() {
     return;
   }
   if (input_mode == InputMode::Unicorn) {
-    if (polyomino.state != Polyomino::State::Active) {
-      GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
-      return;
-    }
     input_mode = InputMode::Polyomino;
   } else {
     input_mode = InputMode::Unicorn;
   }
 
-  if (current_controller_scheme == ControllerScheme::OnePlayer &&
-      blocks_were_placed) {
-    GGSound::play_sfx(SFX::Number1pblockdrop, GGSound::SFXPriority::Two);
-  } else {
+  if (current_controller_scheme != ControllerScheme::OnePlayer ||
+      !blocks_were_placed) {
     GGSound::play_sfx(SFX::Unicornon, GGSound::SFXPriority::Two);
   }
 
