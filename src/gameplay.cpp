@@ -350,7 +350,8 @@ void Gameplay::initialize_goal() {
   }
 }
 
-const u8 ease_deltas[] = {1, 2, 3, 4, 255};
+const u8 ease_deltas[] = {1, 2, 4, 8, 255};
+
 void Gameplay::ease_scroll(const int target) {
   static u8 ease_index = 0;
   if (target == y_scroll)
