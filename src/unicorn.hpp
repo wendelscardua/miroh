@@ -48,6 +48,7 @@ public:
   void feed(u8 nutrition);
   void refresh_energy_hud(int y_scroll);
   void refresh_score_hud();
+  void add_score(u8 points);
 
 private:
   Board &board;

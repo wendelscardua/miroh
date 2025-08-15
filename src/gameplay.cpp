@@ -652,14 +652,11 @@ void Gameplay::gameplay_handler() {
   if (lines_cleared) {
     const u8 points_per_lines[] = {0, 10, 30, 50, 70};
     u8 points = points_per_lines[lines_cleared];
-    unicorn.score += points;
-    if (unicorn.score > 9999) {
-      unicorn.score = 9999;
-    }
+    unicorn.add_score(points);
     add_experience(points);
   } else if (blocks_were_placed) {
-    unicorn.score += 1;
-    add_experience(1);
+    unicorn.add_score(5);
+    add_experience(5);
   }
   STOP_MESEN_WATCH("pts");
 

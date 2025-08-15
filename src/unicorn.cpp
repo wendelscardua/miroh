@@ -443,6 +443,18 @@ void Unicorn::feed(u8 nutrition) {
   }
 }
 
+void Unicorn::add_score(u8 points) {
+  score += points;
+
+  if (score > 9999) {
+    score = 9999;
+  }
+
+  if (score > high_score[(u8)current_stage]) {
+    high_score[(u8)current_stage] = score;
+  }
+}
+
 void render_energy_hud(int y_scroll, u8 value) {
   if (value == 0) {
     return;
@@ -485,9 +497,6 @@ void Unicorn::refresh_score_hud() {
   int_to_text(score_text, score);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(22, 27));
 
-  if (score > high_score[(u8)current_stage]) {
-    high_score[(u8)current_stage] = score;
-  }
   int_to_text(score_text, high_score[(u8)current_stage]);
   multi_vram_buffer_horz(score_text, 4, NTADR_A(23, 4));
 }

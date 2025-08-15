@@ -131,8 +131,10 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
                  (unicorn.y.whole + 8) >> 4 == fruit.row) {
         fruit.state = Fruit::State::Inactive;
         active_fruits--;
-        banked_lambda(Unicorn::BANK,
-                      [&unicorn]() { unicorn.feed(FRUIT_NUTRITION); });
+        banked_lambda(Unicorn::BANK, [this, &unicorn]() {
+          unicorn.feed(FRUIT_NUTRITION);
+          unicorn.add_score(score_value);
+        });
         if (score_value < SCORE_VALUE_MAX) {
           score_value += SCORE_VALUE_INCREMENT;
         }
