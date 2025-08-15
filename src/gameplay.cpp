@@ -650,9 +650,10 @@ void Gameplay::gameplay_handler() {
 
   START_MESEN_WATCH("pts");
   if (lines_cleared) {
-    const u8 points_per_lines[] = {0, 10, 30, 50, 70};
-    const u8 multiplier_per_energy[] = {0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4};
-    u8 points = points_per_lines[lines_cleared];
+    static const u8 points_per_lines[] = {10, 30, 50, 70};
+    static const u8 multiplier_per_energy[] = {1, 1, 1, 1, 2, 2, 2,
+                                               3, 3, 3, 4, 4, 4};
+    u8 points = points_per_lines[lines_cleared - 1];
     add_experience(points);
     for (u8 i = 0; i < multiplier_per_energy[unicorn.energy]; i++) {
       unicorn.add_score(points);
