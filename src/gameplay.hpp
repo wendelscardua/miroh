@@ -64,7 +64,7 @@ class Gameplay {
   };
 
   // we level up every 10 exp
-  static constexpr u16 LEVEL_UP_POINTS = 10;
+  static constexpr u16 LEVEL_UP_POINTS = 8;
 
   static constexpr u8 MAX_LEVEL = 20;
 
@@ -76,8 +76,7 @@ class Gameplay {
   static constexpr u8 TWO_PLAYERS_ARE = 6;
 
   static constexpr u8 DROP_FRAMES_PER_LEVEL[] = {
-      60, 48, 37, 28, 21, 16, 11, 8, 6, 4, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0,
-  };
+      120, 95, 74, 57, 43, 31, 23, 16, 11, 8, 5, 3, 2, 1, 1, 1, 0, 0, 0, 0};
 
 public:
   static constexpr u8 BANK = 0;
