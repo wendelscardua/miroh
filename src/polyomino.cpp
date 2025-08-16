@@ -316,24 +316,24 @@ actions:
   case Action::MoveLeft:
   case Action::MoveLeftAndRotateLeft:
   case Action::MoveLeftAndRotateRight:
+    action = (Action)((u8)action & ~(u8)Action::MoveLeft);
     if (!collide(row, column - 1)) {
       column--;
       x -= 16;
       move_bitmask_left();
     } else {
-      action = (Action)((u8)action & ~(u8)Action::MoveLeft);
       goto actions;
     }
     break;
   case Action::MoveRight:
   case Action::MoveRightAndRotateLeft:
   case Action::MoveRightAndRotateRight:
+    action = (Action)((u8)action & ~(u8)Action::MoveRight);
     if (!collide(row, column + 1)) {
       column++;
       x += 16;
       move_bitmask_right();
     } else {
-      action = (Action)((u8)action & ~(u8)Action::MoveRight);
       goto actions;
     }
     break;
@@ -346,6 +346,7 @@ actions:
       row++;
       y += 16;
     }
+    action = Action::Idle;
     break;
   case Action::RotateRight:
     definition = definition->right_rotation;
@@ -356,6 +357,7 @@ actions:
     } else {
       definition = definition->left_rotation; // undo rotation
     }
+    action = Action::Idle;
     break;
   case Action::RotateLeft:
     definition = definition->left_rotation;
@@ -366,12 +368,13 @@ actions:
     } else {
       definition = definition->right_rotation; // undo rotation
     }
+    action = Action::Idle;
     break;
   case Action::Drop:
+    action = Action::Idle;
   case Action::Idle:
     break;
   }
-  action = Action::Idle;
 
   update_shadow();
 }
