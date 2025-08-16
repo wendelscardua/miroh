@@ -2,7 +2,6 @@
 
 #include "bag.hpp"
 #include "board.hpp"
-#include "direction.hpp"
 #include "polyomino-defs.hpp"
 #include <nesdoug.h>
 #include <neslib.h>
@@ -35,6 +34,16 @@ public:
   void outside_render(int y_scroll);
 
 private:
+  enum class Action {
+    Idle,
+    MoveLeft,
+    MoveRight,
+    MoveDown,
+    Drop,
+    RotateLeft,
+    RotateRight,
+  };
+
   static Bag<u8, 10> pieces;
   static Bag<u8, 4> littleminos;
   static Bag<u8, 17> pentominos;
@@ -48,7 +57,7 @@ private:
   u8 y;
   u16 drop_timer;
   s8 move_timer;
-  Direction movement_direction;
+  Action action;
   s8 shadow_row;
   u8 shadow_y;
   u8 left_limit;
