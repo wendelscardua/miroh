@@ -222,9 +222,6 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
     return;
   }
   if (pressed & PAD_UP) {
-    // just some high enough value for the drop to proceed until the end
-    drop_timer = HEIGHT * 70;
-    lock_down_timer = MAX_LOCK_DOWN_TIMER;
     action = Action::Drop;
   } else if (pressed & PAD_DOWN) {
     move_timer = MOVEMENT_INITIAL_DELAY;
@@ -400,6 +397,9 @@ actions:
     action = Action::Idle;
     break;
   case Action::Drop:
+    row = shadow_row;
+    y = shadow_y;
+    freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     action = Action::Idle;
   case Action::Idle:
     break;
