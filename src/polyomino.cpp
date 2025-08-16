@@ -297,7 +297,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   // it it means we are grounded
   if (row == shadow_row) {
     if (lock_down_timer >= MAX_LOCK_DOWN_TIMER ||
-        lock_down_moves >= MAX_LOCK_DOWN_MOVES || action == Action::SoftDrop) {
+        lock_down_moves >= MAX_LOCK_DOWN_MOVES) {
       drop_timer = 0;
       action = Action::Idle;
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
