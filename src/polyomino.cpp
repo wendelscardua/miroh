@@ -222,14 +222,14 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
     return;
   }
   if (pressed & PAD_UP) {
-    action = Action::Drop;
+    action = Action::HardDrop;
   } else if (pressed & PAD_DOWN) {
     move_timer = MOVEMENT_INITIAL_DELAY;
-    action = Action::MoveDown;
+    action = Action::SoftDrop;
   } else if (held & PAD_DOWN) {
     if (move_timer == 0) {
       move_timer = MOVEMENT_DELAY;
-      action = Action::MoveDown;
+      action = Action::SoftDrop;
     } else {
       move_timer--;
     }
@@ -297,7 +297,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   // it it means we are grounded
   if (row == shadow_row) {
     if (lock_down_timer >= MAX_LOCK_DOWN_TIMER ||
-        lock_down_moves >= MAX_LOCK_DOWN_MOVES) {
+        lock_down_moves >= MAX_LOCK_DOWN_MOVES || action == Action::SoftDrop) {
       drop_timer = 0;
       action = Action::Idle;
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
@@ -307,13 +307,11 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   } else {
     lock_down_timer = 0;
     lock_down_moves = 0;
-    if (drop_timer++ >= drop_frames) {
-      drop_timer -= drop_frames;
+    if (drop_timer++ >= drop_frames || action == Action::SoftDrop) {
+      drop_timer = 0;
+      lock_down_timer = 0;
       row++;
       y += 16;
-      if (action != Action::Drop) {
-        lock_down_timer = 0;
-      }
       if (current_controller_scheme == ControllerScheme::OnePlayer &&
           select_reminder == SelectReminder::WaitingRowToRemind) {
         select_reminder = SelectReminder::Reminding;
@@ -355,17 +353,6 @@ actions:
       goto actions;
     }
     break;
-  case Action::MoveDown:
-    // NOTE: since we've computed shadow row using collision, when we arrive at
-    // it it means we would collide with the ground
-    if (row == shadow_row) {
-      freezing_handler(blocks_placed, failed_to_place, lines_cleared);
-    } else {
-      row++;
-      y += 16;
-    }
-    action = Action::Idle;
-    break;
   case Action::RotateRight:
     definition = definition->right_rotation;
 
@@ -396,12 +383,14 @@ actions:
     }
     action = Action::Idle;
     break;
-  case Action::Drop:
+  case Action::HardDrop:
     row = shadow_row;
     y = shadow_y;
     freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     action = Action::Idle;
+  case Action::SoftDrop:
   case Action::Idle:
+    action = Action::Idle;
     break;
   }
 
