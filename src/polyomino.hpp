@@ -10,10 +10,10 @@
 #define FROZEN_BLOCK_ATTRIBUTE 2
 
 class Polyomino {
-  static constexpr s8 MOVEMENT_INITIAL_DELAY = 10;
-  static constexpr s8 MOVEMENT_DELAY = 2;
-  static constexpr s8 ROTATION_INITIAL_DELAY = 32;
-  static constexpr s8 ROTATION_DELAY = 16;
+  static constexpr s8 MOVEMENT_INITIAL_DELAY = 10 - 1;
+  static constexpr s8 MOVEMENT_DELAY = 2 - 1;
+  static constexpr s8 ROTATION_INITIAL_DELAY = 32 - 1;
+  static constexpr s8 ROTATION_DELAY = 16 - 1;
   static constexpr u8 SPAWN_COLUMN = 4;
 
 public:

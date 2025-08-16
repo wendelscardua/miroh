@@ -262,7 +262,7 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
   } else if (held & PAD_A) {
     if (rotate_timer == 0) {
       rotate_timer = ROTATION_DELAY;
-      action = (Action)((u8)action & ~(u8)Action::RotateRight);
+      action = (Action)((u8)action | (u8)Action::RotateRight);
     } else {
       rotate_timer--;
     }
@@ -272,7 +272,7 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
   } else if (held & PAD_B) {
     if (rotate_timer == 0) {
       rotate_timer = ROTATION_DELAY;
-      action = (Action)((u8)action & ~(u8)Action::RotateLeft);
+      action = (Action)((u8)action | (u8)Action::RotateLeft);
     } else {
       rotate_timer--;
     }
