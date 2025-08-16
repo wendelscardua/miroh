@@ -224,6 +224,14 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
     drop_timer = HEIGHT * 70;
     grounded_timer = MAX_GROUNDED_TIMER;
     action = Action::Drop;
+  } else if (pressed & PAD_DOWN) {
+    move_timer = MOVEMENT_INITIAL_DELAY;
+    action = Action::MoveDown;
+  } else if (held & PAD_DOWN) {
+    if (--move_timer <= 0) {
+      move_timer = MOVEMENT_DELAY;
+      action = Action::MoveDown;
+    }
   } else if (pressed & PAD_LEFT) {
     move_timer = MOVEMENT_INITIAL_DELAY;
     action = Action::MoveLeft;
@@ -240,33 +248,21 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
       move_timer = MOVEMENT_DELAY;
       action = Action::MoveRight;
     }
-  } else if (pressed & PAD_DOWN) {
+  } else if (pressed & PAD_A) {
     move_timer = MOVEMENT_INITIAL_DELAY;
-    action = Action::MoveDown;
-  } else if (held & PAD_DOWN) {
+    action = Action::RotateRight;
+  } else if (held & PAD_A) {
     if (--move_timer <= 0) {
       move_timer = MOVEMENT_DELAY;
-      action = Action::MoveDown;
-    }
-  }
-
-  if (pressed & PAD_A) {
-    definition = definition->right_rotation;
-
-    if (able_to_kick(definition->right_kick->deltas)) {
-      GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
-      update_bitmask();
-    } else {
-      definition = definition->left_rotation; // undo rotation
+      action = Action::RotateRight;
     }
   } else if (pressed & PAD_B) {
-    definition = definition->left_rotation;
-
-    if (able_to_kick(definition->left_kick->deltas)) {
-      update_bitmask();
-      GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
-    } else {
-      definition = definition->right_rotation; // undo rotation
+    move_timer = MOVEMENT_INITIAL_DELAY;
+    action = Action::RotateLeft;
+  } else if (held & PAD_B) {
+    if (--move_timer <= 0) {
+      move_timer = MOVEMENT_DELAY;
+      action = Action::RotateLeft;
     }
   }
 }
@@ -321,7 +317,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       x -= 16;
       move_bitmask_left();
     }
-    action = Action::Idle;
     break;
   case Action::MoveRight:
     if (!collide(row, column + 1)) {
@@ -329,7 +324,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       x += 16;
       move_bitmask_right();
     }
-    action = Action::Idle;
     break;
   case Action::MoveDown:
     // NOTE: since we've computed shadow row using collision, when we arrive at
@@ -339,13 +333,33 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     } else {
       row++;
       y += 16;
-      action = Action::Idle;
+    }
+    break;
+  case Action::RotateRight:
+    definition = definition->right_rotation;
+
+    if (able_to_kick(definition->right_kick->deltas)) {
+      GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      update_bitmask();
+    } else {
+      definition = definition->left_rotation; // undo rotation
+    }
+    break;
+  case Action::RotateLeft:
+    definition = definition->left_rotation;
+
+    if (able_to_kick(definition->left_kick->deltas)) {
+      update_bitmask();
+      GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+    } else {
+      definition = definition->right_rotation; // undo rotation
     }
     break;
   case Action::Drop:
   case Action::Idle:
     break;
   }
+  action = Action::Idle;
 
   update_shadow();
 }
