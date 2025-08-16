@@ -6,7 +6,7 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define MAX_GROUNDED_TIMER 2
+#define MAX_GROUNDED_TIMER 30
 #define FROZEN_BLOCK_ATTRIBUTE 2
 
 class Polyomino {
