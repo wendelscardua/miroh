@@ -12,7 +12,7 @@ class Polyomino {
   static constexpr s8 ROTATION_INITIAL_DELAY = 32 - 1;
   static constexpr s8 ROTATION_DELAY = 16 - 1;
   static constexpr u8 SPAWN_COLUMN = 4;
-  static constexpr u8 MAX_GROUNDED_TIMER = 30;
+  static constexpr u8 MAX_LOCK_DOWN_TIMER = 30;
   static constexpr u8 FROZEN_BLOCK_ATTRIBUTE = 2;
 
 public:
@@ -21,7 +21,7 @@ public:
     Inactive,
     Active,
   };
-  u8 grounded_timer;
+  u8 lock_down_timer;
   State state;
   Polyomino(Board &board);
 

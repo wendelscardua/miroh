@@ -82,7 +82,7 @@ u8 Polyomino::take_piece() {
 
 void Polyomino::spawn() {
   state = State::Active;
-  grounded_timer = 0;
+  lock_down_timer = 0;
   move_timer = 0;
   rotate_timer = 0;
   action = Action::Idle;
@@ -223,7 +223,7 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
   if (pressed & PAD_UP) {
     // just some high enough value for the drop to proceed until the end
     drop_timer = HEIGHT * 70;
-    grounded_timer = MAX_GROUNDED_TIMER;
+    lock_down_timer = MAX_LOCK_DOWN_TIMER;
     action = Action::Drop;
   } else if (pressed & PAD_DOWN) {
     move_timer = MOVEMENT_INITIAL_DELAY;
@@ -298,13 +298,13 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   // NOTE: since we've computed shadow row using collision, when we arrive at
   // it it means we are grounded
   if (row == shadow_row) {
-    if (grounded_timer >= MAX_GROUNDED_TIMER) {
-      grounded_timer = 0;
+    if (lock_down_timer >= MAX_LOCK_DOWN_TIMER) {
+      lock_down_timer = 0;
       drop_timer = 0;
       action = Action::Idle;
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
-      grounded_timer++;
+      lock_down_timer++;
     }
   } else {
     if (drop_timer++ >= drop_frames) {
@@ -312,7 +312,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       row++;
       y += 16;
       if (action != Action::Drop) {
-        grounded_timer = 0;
+        lock_down_timer = 0;
       }
       if (current_controller_scheme == ControllerScheme::OnePlayer &&
           select_reminder == SelectReminder::WaitingRowToRemind) {
@@ -408,7 +408,7 @@ void Polyomino::render_next() { next->chibi_render(3, 5); }
 
 s8 Polyomino::freeze_blocks() {
   state = State::Inactive;
-  grounded_timer = 0;
+  lock_down_timer = 0;
   s8 filled_lines = 0;
   if (!definition->board_render(board, row, column)) {
     return -1;
