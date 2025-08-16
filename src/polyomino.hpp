@@ -6,15 +6,15 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define MAX_GROUNDED_TIMER 2
-#define FROZEN_BLOCK_ATTRIBUTE 2
-
 class Polyomino {
-  static constexpr s8 MOVEMENT_INITIAL_DELAY = 16;
-  static constexpr s8 MOVEMENT_DELAY = 6;
-  static constexpr s8 ROTATION_INITIAL_DELAY = 32;
-  static constexpr s8 ROTATION_DELAY = 16;
+  static constexpr s8 MOVEMENT_INITIAL_DELAY = 10 - 1;
+  static constexpr s8 MOVEMENT_DELAY = 2 - 1;
+  static constexpr s8 ROTATION_INITIAL_DELAY = 32 - 1;
+  static constexpr s8 ROTATION_DELAY = 16 - 1;
   static constexpr u8 SPAWN_COLUMN = 4;
+  static constexpr u8 MAX_LOCK_DOWN_TIMER = 30;
+  static constexpr u8 MAX_LOCK_DOWN_MOVES = 15;
+  static constexpr u8 FROZEN_BLOCK_ATTRIBUTE = 2;
 
 public:
   static constexpr u8 BANK = 14;
@@ -22,7 +22,8 @@ public:
     Inactive,
     Active,
   };
-  u8 grounded_timer;
+  u8 lock_down_timer;
+  u8 lock_down_moves;
   State state;
   Polyomino(Board &board);
 
@@ -37,13 +38,17 @@ public:
 
 private:
   enum class Action {
-    Idle,
-    MoveLeft,
-    MoveRight,
-    MoveDown,
-    Drop,
-    RotateLeft,
-    RotateRight,
+    Idle = 0,
+    MoveLeft = 1,
+    MoveRight = 2,
+    MoveDown = 4,
+    Drop = 8,
+    RotateLeft = 16,
+    RotateRight = 32,
+    MoveLeftAndRotateLeft = MoveLeft | RotateLeft,
+    MoveLeftAndRotateRight = MoveLeft | RotateRight,
+    MoveRightAndRotateLeft = MoveRight | RotateLeft,
+    MoveRightAndRotateRight = MoveRight | RotateRight,
   };
 
   static Bag<u8, 10> pieces;
@@ -58,7 +63,8 @@ private:
   u8 x;
   u8 y;
   u16 drop_timer;
-  s8 move_timer;
+  u8 move_timer;
+  u8 rotate_timer;
   Action action;
   s8 shadow_row;
   u8 shadow_y;

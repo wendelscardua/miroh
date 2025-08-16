@@ -63,36 +63,20 @@ class Gameplay {
     GameOver,
   };
 
-  // we level up every 50 points
-  static constexpr u16 LEVEL_UP_POINTS = 50;
+  // we level up every 10 exp
+  static constexpr u16 LEVEL_UP_POINTS = 8;
 
-  static constexpr u8 MAX_LEVEL = 9;
+  static constexpr u8 MAX_LEVEL = 20;
 
-  static constexpr u16 SPAWN_DELAY_PER_LEVEL[] = {
-      150, // 0
-      135, // 1
-      135, // 2
-      120, // 3
-      120, // 4
-      105, // 5
-      105, // 6
-      90,  // 7
-      75,  // 8
-      60   // 9
+  static constexpr u16 SINGLE_PLAYER_ARE_PER_LEVEL[] = {
+      150, 135, 135, 120, 120, 105, 105, 90, 75, 60,
+      45,  30,  30,  30,  30,  30,  30,  30, 30, 30,
   };
+
+  static constexpr u8 TWO_PLAYERS_ARE = 6;
 
   static constexpr u8 DROP_FRAMES_PER_LEVEL[] = {
-      60, // 0
-      54, // 1
-      48, // 2
-      42, // 3
-      36, // 4
-      30, // 5
-      24, // 6
-      18, // 7
-      12, // 8
-      6   // 9
-  };
+      120, 95, 74, 57, 43, 31, 23, 16, 11, 8, 5, 3, 2, 1, 1, 1, 0, 0, 0, 0};
 
 public:
   static constexpr u8 BANK = 0;

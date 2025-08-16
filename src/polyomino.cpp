@@ -82,8 +82,10 @@ u8 Polyomino::take_piece() {
 
 void Polyomino::spawn() {
   state = State::Active;
-  grounded_timer = 0;
+  lock_down_timer = 0;
+  lock_down_moves = 0;
   move_timer = 0;
+  rotate_timer = 0;
   action = Action::Idle;
   column = SPAWN_COLUMN;
   row = 0;
@@ -222,47 +224,58 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
   if (pressed & PAD_UP) {
     // just some high enough value for the drop to proceed until the end
     drop_timer = HEIGHT * 70;
-    grounded_timer = MAX_GROUNDED_TIMER;
+    lock_down_timer = MAX_LOCK_DOWN_TIMER;
     action = Action::Drop;
   } else if (pressed & PAD_DOWN) {
     move_timer = MOVEMENT_INITIAL_DELAY;
     action = Action::MoveDown;
   } else if (held & PAD_DOWN) {
-    if (--move_timer <= 0) {
+    if (move_timer == 0) {
       move_timer = MOVEMENT_DELAY;
       action = Action::MoveDown;
+    } else {
+      move_timer--;
     }
   } else if (pressed & PAD_LEFT) {
     move_timer = MOVEMENT_INITIAL_DELAY;
     action = Action::MoveLeft;
   } else if (held & PAD_LEFT) {
-    if (--move_timer <= 0) {
+    if (move_timer == 0) {
       move_timer = MOVEMENT_DELAY;
       action = Action::MoveLeft;
+    } else {
+      move_timer--;
     }
   } else if (pressed & PAD_RIGHT) {
     move_timer = MOVEMENT_INITIAL_DELAY;
     action = Action::MoveRight;
   } else if (held & PAD_RIGHT) {
-    if (--move_timer <= 0) {
+    if (move_timer == 0) {
       move_timer = MOVEMENT_DELAY;
       action = Action::MoveRight;
+    } else {
+      move_timer--;
     }
-  } else if (pressed & PAD_A) {
-    move_timer = ROTATION_INITIAL_DELAY;
-    action = Action::RotateRight;
+  }
+  if (pressed & PAD_A) {
+    rotate_timer = ROTATION_INITIAL_DELAY;
+    action = (Action)((u8)action | (u8)Action::RotateRight);
   } else if (held & PAD_A) {
-    if (--move_timer <= 0) {
-      move_timer = ROTATION_DELAY;
-      action = Action::RotateRight;
+    if (rotate_timer == 0) {
+      rotate_timer = ROTATION_DELAY;
+      action = (Action)((u8)action | (u8)Action::RotateRight);
+    } else {
+      rotate_timer--;
     }
   } else if (pressed & PAD_B) {
-    move_timer = ROTATION_INITIAL_DELAY;
-    action = Action::RotateLeft;
+    rotate_timer = ROTATION_INITIAL_DELAY;
+    action = (Action)((u8)action | (u8)Action::RotateLeft);
   } else if (held & PAD_B) {
-    if (--move_timer <= 0) {
-      move_timer = ROTATION_DELAY;
-      action = Action::RotateLeft;
+    if (rotate_timer == 0) {
+      rotate_timer = ROTATION_DELAY;
+      action = (Action)((u8)action | (u8)Action::RotateLeft);
+    } else {
+      rotate_timer--;
     }
   }
 }
@@ -283,46 +296,66 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   if (state == State::Inactive) {
     return;
   }
-  if (drop_timer++ >= drop_frames) {
-    drop_timer -= drop_frames;
-    // NOTE: since we've computed shadow row using collision, when we arrive at
-    // it it means we would collide with the ground
-    if (row == shadow_row) {
-      if (grounded_timer >= MAX_GROUNDED_TIMER) {
-        grounded_timer = 0;
-        drop_timer = 0;
-        action = Action::Idle;
-        freezing_handler(blocks_placed, failed_to_place, lines_cleared);
-      } else {
-        grounded_timer++;
-      }
+  // NOTE: since we've computed shadow row using collision, when we arrive at
+  // it it means we are grounded
+  if (row == shadow_row) {
+    if (lock_down_timer >= MAX_LOCK_DOWN_TIMER ||
+        lock_down_moves >= MAX_LOCK_DOWN_MOVES) {
+      drop_timer = 0;
+      action = Action::Idle;
+      freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     } else {
+      lock_down_timer++;
+    }
+  } else {
+    lock_down_timer = 0;
+    lock_down_moves = 0;
+    if (drop_timer++ >= drop_frames) {
+      drop_timer -= drop_frames;
       row++;
       y += 16;
       if (action != Action::Drop) {
-        grounded_timer = 0;
+        lock_down_timer = 0;
       }
       if (current_controller_scheme == ControllerScheme::OnePlayer &&
           select_reminder == SelectReminder::WaitingRowToRemind) {
         select_reminder = SelectReminder::Reminding;
       }
     }
-    return;
   }
 
+actions:
   switch (action) {
   case Action::MoveLeft:
+  case Action::MoveLeftAndRotateLeft:
+  case Action::MoveLeftAndRotateRight:
+    action = (Action)((u8)action & ~(u8)Action::MoveLeft);
     if (!collide(row, column - 1)) {
       column--;
       x -= 16;
       move_bitmask_left();
+      if (lock_down_timer > 0) {
+        lock_down_timer = 0;
+        lock_down_moves++;
+      }
+    } else {
+      goto actions;
     }
     break;
   case Action::MoveRight:
+  case Action::MoveRightAndRotateLeft:
+  case Action::MoveRightAndRotateRight:
+    action = (Action)((u8)action & ~(u8)Action::MoveRight);
     if (!collide(row, column + 1)) {
       column++;
       x += 16;
       move_bitmask_right();
+      if (lock_down_timer > 0) {
+        lock_down_timer = 0;
+        lock_down_moves++;
+      }
+    } else {
+      goto actions;
     }
     break;
   case Action::MoveDown:
@@ -334,6 +367,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       row++;
       y += 16;
     }
+    action = Action::Idle;
     break;
   case Action::RotateRight:
     definition = definition->right_rotation;
@@ -341,9 +375,14 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     if (able_to_kick(definition->right_kick->deltas)) {
       GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
       update_bitmask();
+      if (lock_down_timer > 0) {
+        lock_down_timer = 0;
+        lock_down_moves++;
+      }
     } else {
       definition = definition->left_rotation; // undo rotation
     }
+    action = Action::Idle;
     break;
   case Action::RotateLeft:
     definition = definition->left_rotation;
@@ -351,15 +390,20 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     if (able_to_kick(definition->left_kick->deltas)) {
       update_bitmask();
       GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      if (lock_down_timer > 0) {
+        lock_down_timer = 0;
+        lock_down_moves++;
+      }
     } else {
       definition = definition->right_rotation; // undo rotation
     }
+    action = Action::Idle;
     break;
   case Action::Drop:
+    action = Action::Idle;
   case Action::Idle:
     break;
   }
-  action = Action::Idle;
 
   update_shadow();
 }
@@ -383,7 +427,7 @@ void Polyomino::render_next() { next->chibi_render(3, 5); }
 
 s8 Polyomino::freeze_blocks() {
   state = State::Inactive;
-  grounded_timer = 0;
+  lock_down_timer = 0;
   s8 filled_lines = 0;
   if (!definition->board_render(board, row, column)) {
     return -1;

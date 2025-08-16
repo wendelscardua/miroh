@@ -188,7 +188,7 @@ bool Drops::random_hard_drop() {
 }
 
 Gameplay::Gameplay()
-    : experience(0), current_level(0), spawn_timer(0),
+    : experience(0), current_level(1), spawn_timer(0),
       unicorn(banked_lambda(Unicorn::BANK,
                             []() { return Unicorn(board, 80.0_fp, 80.0_fp); })),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
@@ -342,7 +342,7 @@ void Gameplay::initialize_goal() {
   u8 goal_counter_text[2];
   if (current_game_mode == GameMode::Endless ||
       current_stage == Stage::GlitteryGrotto) {
-    u8_to_text(goal_counter_text, current_level + 1);
+    u8_to_text(goal_counter_text, current_level);
     multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
   } else {
     u8_to_text(goal_counter_text, (u8)goal_counter);
@@ -602,7 +602,9 @@ void Gameplay::gameplay_handler() {
   if (polyomino.state == Polyomino::State::Inactive &&
       !line_clearing_in_progress && spawn_timer-- == 0) {
     banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
-    spawn_timer = SPAWN_DELAY_PER_LEVEL[current_level];
+    spawn_timer = current_controller_scheme == ControllerScheme::OnePlayer
+                      ? SINGLE_PLAYER_ARE_PER_LEVEL[current_level - 1]
+                      : TWO_PLAYERS_ARE;
     if (current_controller_scheme == ControllerScheme::OnePlayer) {
       if (select_reminder == SelectReminder::NeedToRemind) {
         select_reminder = SelectReminder::WaitingBlockToRemind;
@@ -619,8 +621,8 @@ void Gameplay::gameplay_handler() {
   STOP_MESEN_WATCH("inp");
   START_MESEN_WATCH("upd");
   banked_lambda(Polyomino::BANK, [&]() {
-    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level], blocks_were_placed,
-                     failed_to_place, lines_cleared);
+    polyomino.update(DROP_FRAMES_PER_LEVEL[current_level - 1],
+                     blocks_were_placed, failed_to_place, lines_cleared);
   });
   STOP_MESEN_WATCH("upd");
   STOP_MESEN_WATCH("pol");
@@ -665,13 +667,12 @@ void Gameplay::gameplay_handler() {
     static const u8 multiplier_per_energy[] = {1, 1, 1, 1, 2, 2, 2,
                                                3, 3, 3, 4, 4, 4};
     u8 points = points_per_lines[lines_cleared - 1];
-    add_experience(points);
+    add_experience(lines_cleared);
     for (u8 i = 0; i < multiplier_per_energy[unicorn.energy]; i++) {
       unicorn.add_score(points);
     }
   } else if (blocks_were_placed) {
     unicorn.add_score(5);
-    add_experience(5);
   }
   STOP_MESEN_WATCH("pts");
 
@@ -800,7 +801,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       break;
     }
     if (current_stage == Stage::GlitteryGrotto) {
-      u8_to_text(goal_counter_text, current_level + 1);
+      u8_to_text(goal_counter_text, current_level);
     } else {
       u8_to_text(goal_counter_text, (u8)goal_counter);
     }
@@ -820,7 +821,7 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
     }
     break;
   case GameMode::Endless:
-    u8_to_text(goal_counter_text, current_level + 1);
+    u8_to_text(goal_counter_text, current_level);
     multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
     break;
   case GameMode::TimeTrial:
