@@ -84,6 +84,7 @@ void Polyomino::spawn() {
   state = State::Active;
   grounded_timer = 0;
   move_timer = 0;
+  rotate_timer = 0;
   action = Action::Idle;
   column = SPAWN_COLUMN;
   row = 0;
@@ -250,19 +251,19 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
     }
   }
   if (pressed & PAD_A) {
-    move_timer = ROTATION_INITIAL_DELAY;
+    rotate_timer = ROTATION_INITIAL_DELAY;
     action = (Action)((u8)action | (u8)Action::RotateRight);
   } else if (held & PAD_A) {
-    if (--move_timer <= 0) {
-      move_timer = ROTATION_DELAY;
+    if (--rotate_timer <= 0) {
+      rotate_timer = ROTATION_DELAY;
       action = (Action)((u8)action & ~(u8)Action::RotateRight);
     }
   } else if (pressed & PAD_B) {
-    move_timer = ROTATION_INITIAL_DELAY;
+    rotate_timer = ROTATION_INITIAL_DELAY;
     action = (Action)((u8)action | (u8)Action::RotateLeft);
   } else if (held & PAD_B) {
-    if (--move_timer <= 0) {
-      move_timer = ROTATION_DELAY;
+    if (--rotate_timer <= 0) {
+      rotate_timer = ROTATION_DELAY;
       action = (Action)((u8)action & ~(u8)Action::RotateLeft);
     }
   }
