@@ -13,6 +13,7 @@ class Polyomino {
   static constexpr s8 ROTATION_DELAY = 16 - 1;
   static constexpr u8 SPAWN_COLUMN = 4;
   static constexpr u8 MAX_LOCK_DOWN_TIMER = 30;
+  static constexpr u8 MAX_LOCK_DOWN_MOVES = 15;
   static constexpr u8 FROZEN_BLOCK_ATTRIBUTE = 2;
 
 public:
@@ -22,6 +23,7 @@ public:
     Active,
   };
   u8 lock_down_timer;
+  u8 lock_down_moves;
   State state;
   Polyomino(Board &board);
 

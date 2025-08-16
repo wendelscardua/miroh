@@ -83,6 +83,7 @@ u8 Polyomino::take_piece() {
 void Polyomino::spawn() {
   state = State::Active;
   lock_down_timer = 0;
+  lock_down_moves = 0;
   move_timer = 0;
   rotate_timer = 0;
   action = Action::Idle;
@@ -298,8 +299,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   // NOTE: since we've computed shadow row using collision, when we arrive at
   // it it means we are grounded
   if (row == shadow_row) {
-    if (lock_down_timer >= MAX_LOCK_DOWN_TIMER) {
-      lock_down_timer = 0;
+    if (lock_down_timer >= MAX_LOCK_DOWN_TIMER ||
+        lock_down_moves >= MAX_LOCK_DOWN_MOVES) {
       drop_timer = 0;
       action = Action::Idle;
       freezing_handler(blocks_placed, failed_to_place, lines_cleared);
@@ -307,6 +308,8 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
       lock_down_timer++;
     }
   } else {
+    lock_down_timer = 0;
+    lock_down_moves = 0;
     if (drop_timer++ >= drop_frames) {
       drop_timer -= drop_frames;
       row++;
@@ -331,6 +334,10 @@ actions:
       column--;
       x -= 16;
       move_bitmask_left();
+      if (lock_down_timer > 0) {
+        lock_down_timer = 0;
+        lock_down_moves++;
+      }
     } else {
       goto actions;
     }
@@ -343,6 +350,10 @@ actions:
       column++;
       x += 16;
       move_bitmask_right();
+      if (lock_down_timer > 0) {
+        lock_down_timer = 0;
+        lock_down_moves++;
+      }
     } else {
       goto actions;
     }
@@ -364,6 +375,10 @@ actions:
     if (able_to_kick(definition->right_kick->deltas)) {
       GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
       update_bitmask();
+      if (lock_down_timer > 0) {
+        lock_down_timer = 0;
+        lock_down_moves++;
+      }
     } else {
       definition = definition->left_rotation; // undo rotation
     }
@@ -375,6 +390,10 @@ actions:
     if (able_to_kick(definition->left_kick->deltas)) {
       update_bitmask();
       GGSound::play_sfx(SFX::Rotate, GGSound::SFXPriority::One);
+      if (lock_down_timer > 0) {
+        lock_down_timer = 0;
+        lock_down_moves++;
+      }
     } else {
       definition = definition->right_rotation; // undo rotation
     }
