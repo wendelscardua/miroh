@@ -249,19 +249,19 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
       action = Action::MoveRight;
     }
   } else if (pressed & PAD_A) {
-    move_timer = MOVEMENT_INITIAL_DELAY;
+    move_timer = ROTATION_INITIAL_DELAY;
     action = Action::RotateRight;
   } else if (held & PAD_A) {
     if (--move_timer <= 0) {
-      move_timer = MOVEMENT_DELAY;
+      move_timer = ROTATION_DELAY;
       action = Action::RotateRight;
     }
   } else if (pressed & PAD_B) {
-    move_timer = MOVEMENT_INITIAL_DELAY;
+    move_timer = ROTATION_INITIAL_DELAY;
     action = Action::RotateLeft;
   } else if (held & PAD_B) {
     if (--move_timer <= 0) {
-      move_timer = MOVEMENT_DELAY;
+      move_timer = ROTATION_DELAY;
       action = Action::RotateLeft;
     }
   }
