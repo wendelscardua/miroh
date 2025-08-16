@@ -229,42 +229,52 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
     move_timer = MOVEMENT_INITIAL_DELAY;
     action = Action::MoveDown;
   } else if (held & PAD_DOWN) {
-    if (--move_timer <= 0) {
+    if (move_timer == 0) {
       move_timer = MOVEMENT_DELAY;
       action = Action::MoveDown;
+    } else {
+      move_timer--;
     }
   } else if (pressed & PAD_LEFT) {
     move_timer = MOVEMENT_INITIAL_DELAY;
     action = Action::MoveLeft;
   } else if (held & PAD_LEFT) {
-    if (--move_timer <= 0) {
+    if (move_timer == 0) {
       move_timer = MOVEMENT_DELAY;
       action = Action::MoveLeft;
+    } else {
+      move_timer--;
     }
   } else if (pressed & PAD_RIGHT) {
     move_timer = MOVEMENT_INITIAL_DELAY;
     action = Action::MoveRight;
   } else if (held & PAD_RIGHT) {
-    if (--move_timer <= 0) {
+    if (move_timer == 0) {
       move_timer = MOVEMENT_DELAY;
       action = Action::MoveRight;
+    } else {
+      move_timer--;
     }
   }
   if (pressed & PAD_A) {
     rotate_timer = ROTATION_INITIAL_DELAY;
     action = (Action)((u8)action | (u8)Action::RotateRight);
   } else if (held & PAD_A) {
-    if (--rotate_timer <= 0) {
+    if (rotate_timer == 0) {
       rotate_timer = ROTATION_DELAY;
       action = (Action)((u8)action & ~(u8)Action::RotateRight);
+    } else {
+      rotate_timer--;
     }
   } else if (pressed & PAD_B) {
     rotate_timer = ROTATION_INITIAL_DELAY;
     action = (Action)((u8)action | (u8)Action::RotateLeft);
   } else if (held & PAD_B) {
-    if (--rotate_timer <= 0) {
+    if (rotate_timer == 0) {
       rotate_timer = ROTATION_DELAY;
       action = (Action)((u8)action & ~(u8)Action::RotateLeft);
+    } else {
+      rotate_timer--;
     }
   }
 }

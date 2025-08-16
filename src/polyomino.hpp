@@ -62,8 +62,8 @@ private:
   u8 x;
   u8 y;
   u16 drop_timer;
-  s8 move_timer;
-  s8 rotate_timer;
+  u8 move_timer;
+  u8 rotate_timer;
   Action action;
   s8 shadow_row;
   u8 shadow_y;
