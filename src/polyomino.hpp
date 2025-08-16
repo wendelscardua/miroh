@@ -37,13 +37,17 @@ public:
 
 private:
   enum class Action {
-    Idle,
-    MoveLeft,
-    MoveRight,
-    MoveDown,
-    Drop,
-    RotateLeft,
-    RotateRight,
+    Idle = 0,
+    MoveLeft = 1,
+    MoveRight = 2,
+    MoveDown = 4,
+    Drop = 8,
+    RotateLeft = 16,
+    RotateRight = 32,
+    MoveLeftAndRotateLeft = MoveLeft | RotateLeft,
+    MoveLeftAndRotateRight = MoveLeft | RotateRight,
+    MoveRightAndRotateLeft = MoveRight | RotateLeft,
+    MoveRightAndRotateRight = MoveRight | RotateRight,
   };
 
   static Bag<u8, 10> pieces;

@@ -248,21 +248,22 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
       move_timer = MOVEMENT_DELAY;
       action = Action::MoveRight;
     }
-  } else if (pressed & PAD_A) {
+  }
+  if (pressed & PAD_A) {
     move_timer = ROTATION_INITIAL_DELAY;
-    action = Action::RotateRight;
+    action = (Action)((u8)action | (u8)Action::RotateRight);
   } else if (held & PAD_A) {
     if (--move_timer <= 0) {
       move_timer = ROTATION_DELAY;
-      action = Action::RotateRight;
+      action = (Action)((u8)action & ~(u8)Action::RotateRight);
     }
   } else if (pressed & PAD_B) {
     move_timer = ROTATION_INITIAL_DELAY;
-    action = Action::RotateLeft;
+    action = (Action)((u8)action | (u8)Action::RotateLeft);
   } else if (held & PAD_B) {
     if (--move_timer <= 0) {
       move_timer = ROTATION_DELAY;
-      action = Action::RotateLeft;
+      action = (Action)((u8)action & ~(u8)Action::RotateLeft);
     }
   }
 }
@@ -310,19 +311,30 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     return;
   }
 
+actions:
   switch (action) {
   case Action::MoveLeft:
+  case Action::MoveLeftAndRotateLeft:
+  case Action::MoveLeftAndRotateRight:
     if (!collide(row, column - 1)) {
       column--;
       x -= 16;
       move_bitmask_left();
+    } else {
+      action = (Action)((u8)action & ~(u8)Action::MoveLeft);
+      goto actions;
     }
     break;
   case Action::MoveRight:
+  case Action::MoveRightAndRotateLeft:
+  case Action::MoveRightAndRotateRight:
     if (!collide(row, column + 1)) {
       column++;
       x += 16;
       move_bitmask_right();
+    } else {
+      action = (Action)((u8)action & ~(u8)Action::MoveRight);
+      goto actions;
     }
     break;
   case Action::MoveDown:
