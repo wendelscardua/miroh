@@ -6,15 +6,14 @@
 #include <nesdoug.h>
 #include <neslib.h>
 
-#define MAX_GROUNDED_TIMER 30
-#define FROZEN_BLOCK_ATTRIBUTE 2
-
 class Polyomino {
   static constexpr s8 MOVEMENT_INITIAL_DELAY = 10 - 1;
   static constexpr s8 MOVEMENT_DELAY = 2 - 1;
   static constexpr s8 ROTATION_INITIAL_DELAY = 32 - 1;
   static constexpr s8 ROTATION_DELAY = 16 - 1;
   static constexpr u8 SPAWN_COLUMN = 4;
+  static constexpr u8 MAX_GROUNDED_TIMER = 30;
+  static constexpr u8 FROZEN_BLOCK_ATTRIBUTE = 2;
 
 public:
   static constexpr u8 BANK = 14;
