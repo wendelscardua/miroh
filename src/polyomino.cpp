@@ -309,7 +309,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     lock_down_moves = 0;
     if (drop_timer++ >= drop_frames || action == Action::SoftDrop) {
       drop_timer = 0;
-      lock_down_timer = 0;
       row++;
       y += 16;
       if (current_controller_scheme == ControllerScheme::OnePlayer &&
