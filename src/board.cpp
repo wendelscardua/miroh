@@ -236,7 +236,8 @@ void Board::reset() {
 void Board::render() {
   for (u8 i = 0; i < HEIGHT; i++) {
     for (u8 j = 0; j < WIDTH; j++) {
-      set_maze_cell(i, j, CellType::Maze);
+      set_maze_cell(
+          i, j, occupied((s8)i, j) ? CellType::Marshmallow : CellType::Maze);
       flush_vram_update2();
     }
   }
