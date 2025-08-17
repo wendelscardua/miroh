@@ -387,6 +387,7 @@ actions:
     y = shadow_y;
     freezing_handler(blocks_placed, failed_to_place, lines_cleared);
     action = Action::Idle;
+    break;
   case Action::SoftDrop:
   case Action::Idle:
     action = Action::Idle;
