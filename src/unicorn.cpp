@@ -265,7 +265,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     }
     break;
   case State::Trapped:
-    if (generic_animation.current_cell_index == 1 &&
+    if (generic_animation.current_cell_index() == 1 &&
         generic_animation.current_frame == 0) {
       GGSound::play_sfx(SFX::Marshmallow, GGSound::SFXPriority::Two);
     }
@@ -276,9 +276,9 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       break;
     }
     if (generic_animation.current_frame == 0 &&
-        (generic_animation.current_cell_index == 3 ||
-         generic_animation.current_cell_index == 4 ||
-         generic_animation.current_cell_index == 5)) {
+        (generic_animation.current_cell_index() == 3 ||
+         generic_animation.current_cell_index() == 4 ||
+         generic_animation.current_cell_index() == 5)) {
       // would have started Roll B, C or D
       if (roll_distance == 0) {
         set_state(State::Impact);
@@ -298,7 +298,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     if (generic_animation.finished) {
       set_state(State::Idle);
     }
-    if (roll_into_block && generic_animation.current_cell_index == 0 &&
+    if (roll_into_block && generic_animation.current_cell_index() == 0 &&
         generic_animation.current_frame == 3) {
       GGSound::play_sfx(SFX::Blockhit, GGSound::SFXPriority::Two);
       if (facing == Direction::Right) {
@@ -348,7 +348,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
           });
         }
       }
-    } else if (generic_animation.current_cell_index == 5 &&
+    } else if (generic_animation.current_cell_index() == 5 &&
                generic_animation.current_frame == 0) {
       GGSound::play_sfx(SFX::Butt, GGSound::SFXPriority::One);
     }

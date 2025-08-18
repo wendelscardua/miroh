@@ -85,10 +85,15 @@ void Fruits::spawn_on_board(u8 fruit_index) {
     fruit.raindrop_y -= DROP_SPEED;
   }
   fruit.life = EXPIRATION_TIME;
-  banked_lambda(Animation::BANK, [this]() { splash_animation.reset(); });
+  banked_lambda(Animation::BANK, [this]() {
+    splash_animation.reset();
+    unsplash_animation.reset();
+  });
 }
 
-Fruits::Fruits(Board &board) : board(board), score_value(SCORE_VALUE_START) {
+Fruits::Fruits(Board &board)
+    : board(board), score_value(SCORE_VALUE_START),
+      splash_animation(&splash_cells), unsplash_animation(&unsplash_cells) {
   spawn_timer = SPAWN_DELAY /
                 2; // just so player don't wait too much to see the first fruit
   for (auto fruit : fruits) {
@@ -105,7 +110,7 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
       break;
     case Fruit::State::Dropping:
       if (fruit.raindrop_y == fruit.y) {
-        if (splash_animation.current_cell_index == 13 &&
+        if (splash_animation.current_cell_index() == 13 &&
             splash_animation.current_frame == 0) {
           // near splash 14
           // TODO: check if this is ok
@@ -119,12 +124,10 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
         fruit.raindrop_y += DROP_SPEED;
       }
       break;
-    // case Fruit::State::Active:
-    // case Fruit::State::Despawning:
-    default:
+    case Fruit::State::Active:
+    case Fruit::State::Despawning:
       if (board.occupied(fruit.row, fruit.column)) {
-        fruit.state = Fruit::State::Inactive;
-        active_fruits--;
+        fruit.state = Fruit::State::Crushed;
       } else if ((unicorn.state == Unicorn::State::Idle ||
                   unicorn.state == Unicorn::State::Moving) &&
                  (unicorn.x.whole + 8) >> 4 == fruit.column &&
@@ -152,6 +155,13 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
           active_fruits--;
           score_value = SCORE_VALUE_START;
         }
+      }
+      break;
+    case Fruit::State::Crushed:
+      if (unsplash_animation.finished) {
+        fruit.state = Fruit::State::Inactive;
+        active_fruits--;
+        score_value = SCORE_VALUE_START;
       }
       break;
     }
@@ -192,12 +202,12 @@ void Fruits::render_fruit(u8 fruit_index, int y_scroll) {
     break;
   case Fruit::State::Dropping:
     if (fruit.y == fruit.raindrop_y) {
-      if (splash_animation.current_cell_index == 13 ||
-          splash_animation.current_cell_index == 14) {
+      if (splash_animation.current_cell_index() == 13 ||
+          splash_animation.current_cell_index() == 14) {
         // splash anim 14 & 15
         banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
                             fruit.high_metasprite);
-      } else if (splash_animation.current_cell_index >= 15) {
+      } else if (splash_animation.current_cell_index() >= 15) {
         // splash anim 16 & 17
         banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
                             fruit.low_metasprite);
@@ -222,6 +232,14 @@ void Fruits::render_fruit(u8 fruit_index, int y_scroll) {
                           metasprite);
     }
     break;
+  case Fruit::State::Crushed: {
+    ScopedBank animationBank(Animation::BANK);
+    unsplash_animation.update(
+        fruit.x,
+        fruit.y - y_scroll +
+            8); // animation runs 8 pixels below the fruit reference point
+    break;
+  }
   case Fruit::State::Inactive:
     break;
   }
