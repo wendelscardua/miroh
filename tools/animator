@@ -70,8 +70,8 @@ class Animator < Thor
         end
       end
       f.puts '};'
-      animations.each do |label, cells|
-        f.puts "extern \"C\" const AnimCell #{label}_cells[#{cells.size + 1}];"
+      animations.each_key do |label|
+        f.puts "extern \"C\" const AnimCell #{label}_cells[];"
       end
     end
   end
