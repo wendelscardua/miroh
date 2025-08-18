@@ -256,21 +256,45 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
   }
   if (pressed & PAD_A) {
     rotate_timer = ROTATION_INITIAL_DELAY;
-    action = (Action)((u8)action | (u8)Action::RotateRight);
+    if (action == Action::Idle) {
+      action = Action::RotateRight;
+    } else if (action == Action::MoveLeft) {
+      action = Action::MoveLeftAndRotateRight;
+    } else if (action == Action::MoveRight) {
+      action = Action::MoveRightAndRotateRight;
+    }
   } else if (held & PAD_A) {
     if (rotate_timer == 0) {
       rotate_timer = ROTATION_DELAY;
-      action = (Action)((u8)action | (u8)Action::RotateRight);
+      if (action == Action::Idle) {
+        action = Action::RotateRight;
+      } else if (action == Action::MoveLeft) {
+        action = Action::MoveLeftAndRotateRight;
+      } else if (action == Action::MoveRight) {
+        action = Action::MoveRightAndRotateRight;
+      }
     } else {
       rotate_timer--;
     }
   } else if (pressed & PAD_B) {
     rotate_timer = ROTATION_INITIAL_DELAY;
-    action = (Action)((u8)action | (u8)Action::RotateLeft);
+    if (action == Action::Idle) {
+      action = Action::RotateLeft;
+    } else if (action == Action::MoveLeft) {
+      action = Action::MoveLeftAndRotateLeft;
+    } else if (action == Action::MoveRight) {
+      action = Action::MoveRightAndRotateLeft;
+    }
   } else if (held & PAD_B) {
     if (rotate_timer == 0) {
       rotate_timer = ROTATION_DELAY;
-      action = (Action)((u8)action | (u8)Action::RotateLeft);
+      if (action == Action::Idle) {
+        action = Action::RotateLeft;
+      } else if (action == Action::MoveLeft) {
+        action = Action::MoveLeftAndRotateLeft;
+      } else if (action == Action::MoveRight) {
+        action = Action::MoveRightAndRotateLeft;
+      }
     } else {
       rotate_timer--;
     }
@@ -318,7 +342,6 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
     }
   }
 
-actions:
   switch (action) {
   case Action::MoveLeft:
   case Action::MoveLeftAndRotateLeft:
@@ -332,8 +355,6 @@ actions:
         lock_down_timer = 0;
         lock_down_moves++;
       }
-    } else {
-      goto actions;
     }
     break;
   case Action::MoveRight:
@@ -348,8 +369,6 @@ actions:
         lock_down_timer = 0;
         lock_down_moves++;
       }
-    } else {
-      goto actions;
     }
     break;
   case Action::RotateRight:
