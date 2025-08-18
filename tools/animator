@@ -30,7 +30,7 @@ class Animator < Thor
             duration
           ]
         end.each { |values| f.puts ".byte #{values.join(', ')}" } # rubocop:disable Style/MultilineBlockChain
-        f.puts '.byte 0, 0, 0'
+        f.puts '.byte 0, 0, 0, 0'
       end
     end
 
