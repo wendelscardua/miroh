@@ -22,8 +22,9 @@ class Animator < Thor
       animations.each do |label, cells|
         f.puts ".global #{label}_cells"
         f.puts "#{label}_cells:"
-        cells.map do |metasprite, duration|
+        cells.map.with_index do |(metasprite, duration), index|
           [
+            index,
             "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16lo",
             "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16hi",
             duration

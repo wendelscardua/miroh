@@ -110,7 +110,7 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
       break;
     case Fruit::State::Dropping:
       if (fruit.raindrop_y == fruit.y) {
-        if (splash_animation.current_cell_index == 13 &&
+        if (splash_animation.current_cell_index() == 13 &&
             splash_animation.current_frame == 0) {
           // near splash 14
           // TODO: check if this is ok
@@ -202,12 +202,12 @@ void Fruits::render_fruit(u8 fruit_index, int y_scroll) {
     break;
   case Fruit::State::Dropping:
     if (fruit.y == fruit.raindrop_y) {
-      if (splash_animation.current_cell_index == 13 ||
-          splash_animation.current_cell_index == 14) {
+      if (splash_animation.current_cell_index() == 13 ||
+          splash_animation.current_cell_index() == 14) {
         // splash anim 14 & 15
         banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
                             fruit.high_metasprite);
-      } else if (splash_animation.current_cell_index >= 15) {
+      } else if (splash_animation.current_cell_index() >= 15) {
         // splash anim 16 & 17
         banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
                             fruit.low_metasprite);

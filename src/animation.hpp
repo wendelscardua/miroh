@@ -3,8 +3,9 @@
 #include "common.hpp"
 
 struct AnimCell {
+  const u8 index;
   const unsigned char *metasprite;
-  u8 duration;
+  const u8 duration;
 };
 
 class Animation {
@@ -13,7 +14,6 @@ public:
 
   static bool paused;
   u8 current_frame;
-  u8 current_cell_index;
   bool finished;
 
   Animation(const AnimCell (*cells)[]);
@@ -21,6 +21,8 @@ public:
   void reset();
 
   void update(char x, int y);
+
+  u8 current_cell_index() const;
 
 private:
   const AnimCell *current_cell;

@@ -9,12 +9,11 @@
 bool Animation::paused = false;
 
 Animation::Animation(const AnimCell (*cells)[])
-    : current_frame(0), current_cell_index(0), finished(false),
-      current_cell(&(*cells)[0]), cells(cells) {}
+    : current_frame(0), finished(false), current_cell(&(*cells)[0]),
+      cells(cells) {}
 
 void Animation::reset() {
   current_frame = 0;
-  current_cell_index = 0;
   current_cell = &(*cells)[0];
   finished = false;
 }
@@ -27,12 +26,12 @@ void Animation::update(char x, int y) {
   current_frame++;
   if (current_frame >= current_cell->duration) {
     current_frame = 0;
-    current_cell_index++;
     current_cell++;
     if (current_cell->duration == 0) {
-      current_cell_index = 0;
       current_cell = &(*cells)[0];
       finished = true;
     }
   }
 }
+
+u8 Animation::current_cell_index() const { return current_cell->index; }
