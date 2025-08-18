@@ -110,8 +110,7 @@ void Fruits::update(Unicorn &unicorn, bool &snack_was_eaten, bool can_spawn) {
       break;
     case Fruit::State::Dropping:
       if (fruit.raindrop_y == fruit.y) {
-        if (splash_animation.current_cell_index() == 13 &&
-            splash_animation.current_frame == 0) {
+        if (splash_animation.current_cell_flags(AnimationFlags::splash__sfx)) {
           // near splash 14
           // TODO: check if this is ok
           GGSound::play_sfx(SFX::Snackspawn, GGSound::SFXPriority::One);
@@ -202,19 +201,20 @@ void Fruits::render_fruit(u8 fruit_index, int y_scroll) {
     break;
   case Fruit::State::Dropping:
     if (fruit.y == fruit.raindrop_y) {
-      if (splash_animation.current_cell_index() == 13 ||
-          splash_animation.current_cell_index() == 14) {
-        // splash anim 14 & 15
-        banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
-                            fruit.high_metasprite);
-      } else if (splash_animation.current_cell_index() >= 15) {
-        // splash anim 16 & 17
-        banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
-                            fruit.low_metasprite);
-      }
       // NOTE: assumes this runs on fixed bank
       {
         ScopedBank animationBank(Animation::BANK);
+        if (splash_animation.current_cell_flags(
+                AnimationFlags::splash__high_fruit)) {
+          // splash anim 14 & 15
+          banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
+                              fruit.high_metasprite);
+        } else if (splash_animation.current_cell_flags(
+                       AnimationFlags::splash__low_fruit)) {
+          // splash anim 16 & 17
+          banked_oam_meta_spr(METASPRITES_BANK, fruit.x, fruit.y - y_scroll,
+                              fruit.low_metasprite);
+        }
         splash_animation.update(fruit.x, fruit.y - y_scroll);
       }
     } else {
