@@ -3,9 +3,8 @@
 #include "common.hpp"
 
 struct AnimCell {
-  const u8 index;
   const unsigned char *metasprite;
-  const u8 duration;
+  const u8 flags;
 };
 
 class Animation {
@@ -13,7 +12,6 @@ public:
   static constexpr u8 BANK = 5; // same as Unicorn
 
   static bool paused;
-  u8 current_frame;
   bool finished;
 
   Animation(const AnimCell (*cells)[]);
@@ -22,7 +20,8 @@ public:
 
   void update(char x, int y);
 
-  u8 current_cell_index() const;
+  u8 current_cell_flags() const;
+  bool current_cell_flags(u8 flags) const;
 
 private:
   const AnimCell *current_cell;

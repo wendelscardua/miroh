@@ -9,11 +9,9 @@
 bool Animation::paused = false;
 
 Animation::Animation(const AnimCell (*cells)[])
-    : current_frame(0), finished(false), current_cell(&(*cells)[0]),
-      cells(cells) {}
+    : finished(false), current_cell(&(*cells)[0]), cells(cells) {}
 
 void Animation::reset() {
-  current_frame = 0;
   current_cell = &(*cells)[0];
   finished = false;
 }
@@ -23,15 +21,14 @@ void Animation::update(char x, int y) {
   if (paused) {
     return;
   }
-  current_frame++;
-  if (current_frame >= current_cell->duration) {
-    current_frame = 0;
-    current_cell++;
-    if (current_cell->duration == 0) {
-      current_cell = &(*cells)[0];
-      finished = true;
-    }
+  current_cell++;
+  if (current_cell->flags == 0) {
+    current_cell = &(*cells)[0];
+    finished = true;
   }
 }
 
-u8 Animation::current_cell_index() const { return current_cell->index; }
+u8 Animation::current_cell_flags() const { return current_cell->flags; }
+bool Animation::current_cell_flags(u8 flags) const {
+  return flags & current_cell->flags;
+}

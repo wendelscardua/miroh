@@ -17,25 +17,59 @@ class Animator < Thor
   def animate(animations_file)
     animations = YAML.load_file(animations_file)
 
+    flags_dictionary = {}
+
     File.open(options[:asm_output], 'w') do |f|
       f.puts ".section #{options[:section]},\"axR\",@progbits"
+
       animations.each do |label, cells|
         f.puts ".global #{label}_cells"
         f.puts "#{label}_cells:"
-        cells.map.with_index do |(metasprite, duration), index|
-          [
-            index,
-            "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16lo",
-            "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16hi",
-            duration
-          ]
+        cells.flat_map do |metasprite, duration, flags|
+          flags ||= {}
+          bits = Array.new(duration, 1)
+          flags.each do |frame_index, tag|
+            scope, tag = tag.split('.')
+            flags_dictionary[scope] ||= {}
+            value = flags_dictionary[scope][tag] ||=
+              2 << flags_dictionary[scope].size
+            case frame_index
+            when Integer
+              bits[frame_index] |= value
+            when 'start'
+              bits[0] |= value
+            when 'end'
+              bits[duration - 1] |= value
+            when 'during'
+              bits.map! { |bit| bit | value }
+            else
+              raise "Unknown frame index: #{frame_index}"
+            end
+          end
+
+          Array.new(duration) do |i|
+            [
+              "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16lo",
+              "_ZN11Metasprites#{metasprite.size}#{metasprite}E@mos16hi",
+              bits[i]
+            ]
+          end
         end.each { |values| f.puts ".byte #{values.join(', ')}" } # rubocop:disable Style/MultilineBlockChain
-        f.puts '.byte 0, 0, 0, 0'
+        f.puts '.byte 0, 0, 0'
       end
     end
 
     File.open(options[:hpp_output], 'w') do |f|
+      f.puts '#pragma once'
       f.puts '#include "animation.hpp"'
+      f.puts '#include "common.hpp"'
+      f.puts 'namespace AnimationFlags {'
+      flags_dictionary.each do |scope, tags|
+        tags.each do |tag, value|
+          f.puts "  constexpr u8 #{scope}__#{tag} = #{value};"
+        end
+      end
+      f.puts '};'
       animations.each do |label, cells|
         f.puts "extern \"C\" const AnimCell #{label}_cells[#{cells.size + 1}];"
       end
