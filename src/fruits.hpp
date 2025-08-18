@@ -36,6 +36,7 @@ struct Fruit {
     Dropping,
     Active,
     Despawning,
+    Crushed,
   };
 
   s8 row;
@@ -102,7 +103,8 @@ private:
   u16 spawn_timer;
   u8 score_value;
 
-  Animation splash_animation{&splash_cells};
+  Animation splash_animation;
+  Animation unsplash_animation;
 
   void spawn_on_board(u8 fruit_index);
   void render_fruit(u8 fruit_index, int y_scroll);
