@@ -553,7 +553,7 @@ void Gameplay::gameplay_handler() {
   START_MESEN_WATCH("spn");
   // we only spawn when there's no line clearing going on
   if (!line_clearing_in_progress) {
-    polyomino.spawn_speed_tier = current_level * 4 / MAX_LEVEL;
+    polyomino.spawn_speed_tier = (current_level - 1) * 4 / MAX_LEVEL;
     bool was_inactive = polyomino.state == Polyomino::State::Inactive;
 
     banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn_update(); });
