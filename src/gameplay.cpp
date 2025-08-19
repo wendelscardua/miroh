@@ -3,6 +3,7 @@
 #include "board.hpp"
 #include "log.hpp"
 #include "metasprites.hpp"
+#include "mountain-tiles.hpp"
 #include "polyomino.hpp"
 #include "soundtrack.hpp"
 #ifndef NDEBUG
@@ -45,55 +46,6 @@ const Song song_per_stage[] = {
     Song::Glitter_grotto,       // GlitteryGrotto
     Song::Marshmallow_mountain, // MarshmallowMountain
 };
-
-const u8 CLOSED_MOUTH[] = {MOUNTAIN_MOUTH_BASE_TILE + 0,
-                           MOUNTAIN_MOUTH_BASE_TILE + 1};
-const u8 OPEN_MOUTH[] = {MOUNTAIN_MOUTH_BASE_TILE + 2,
-                         MOUNTAIN_MOUTH_BASE_TILE + 3};
-const u8 EMPTY_PREVIEW[] = {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE};
-
-const u8 STREAM[][4] = {{PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8,
-                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8,
-                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 10,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 10,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10}};
 
 Drops::Drops() {
   for (auto drop : drops) {
@@ -694,9 +646,9 @@ void Gameplay::marshmallow_overflow_handler() {
         39) { // enough for blocks to blink {off, on, off, on, off}
       overflow_state = OverflowState::SwallowNextPiece;
       marshmallow_overflow_counter = 0xff;
-      multi_vram_buffer_horz(OPEN_MOUTH, 2, NTADR_A(5, 5));
-      multi_vram_buffer_horz(EMPTY_PREVIEW, 2, NTADR_A(5, 3));
-      multi_vram_buffer_horz(EMPTY_PREVIEW, 2, NTADR_A(5, 4));
+      multi_vram_buffer_horz(MountainTiles::OPEN_MOUTH, 2, NTADR_A(5, 5));
+      multi_vram_buffer_horz(MountainTiles::EMPTY_PREVIEW, 2, NTADR_A(5, 3));
+      multi_vram_buffer_horz(MountainTiles::EMPTY_PREVIEW, 2, NTADR_A(5, 4));
     }
     break;
   case OverflowState::SwallowNextPiece:
@@ -704,12 +656,13 @@ void Gameplay::marshmallow_overflow_handler() {
     if (marshmallow_overflow_counter >= 20) {
       overflow_state = OverflowState::ShootBlockStream;
       marshmallow_overflow_counter = 0xff;
-      multi_vram_buffer_horz(CLOSED_MOUTH, 2, NTADR_A(5, 5));
+      multi_vram_buffer_horz(MountainTiles::CLOSED_MOUTH, 2, NTADR_A(5, 5));
     }
     break;
   case OverflowState::ShootBlockStream:
-    multi_vram_buffer_vert(STREAM[marshmallow_overflow_counter >> 2], 4,
-                           NTADR_A(6, 1));
+    multi_vram_buffer_vert(
+        MountainTiles::STREAM[marshmallow_overflow_counter >> 2], 4,
+        NTADR_A(6, 1));
     if (marshmallow_overflow_counter >> 2 >= 20) {
       overflow_state = OverflowState::ShadowBeforeRaining;
       marshmallow_overflow_counter = 0xff;

@@ -87,6 +87,7 @@ add_library(SourceObj
   fruits.cpp
   ggsound.cpp
   log.cpp
+  mountain-tiles.cpp
   polyomino.cpp
   polyomino-defs.cpp
   unicorn.cpp
