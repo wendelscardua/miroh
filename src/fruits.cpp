@@ -1,4 +1,5 @@
 #include "fruits.hpp"
+#include "animation-defs.hpp"
 #include "animation.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"

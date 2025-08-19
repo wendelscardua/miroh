@@ -101,7 +101,7 @@ add_library(SourceObj
   energy-sprites.s
 
   ${CMAKE_CURRENT_BINARY_DIR}/soundtrack.hpp
-
+  ${CMAKE_CURRENT_BINARY_DIR}/animation-defs.hpp
   ${CMAKE_CURRENT_BINARY_DIR}/metasprites.cpp 
   ${CMAKE_CURRENT_BINARY_DIR}/polyominos-metasprites.cpp 
 )

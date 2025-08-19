@@ -1,6 +1,5 @@
 #pragma once
 
-#include "animation-defs.hpp"
 #include "animation.hpp"
 #include "board.hpp"
 #include "direction.hpp"
