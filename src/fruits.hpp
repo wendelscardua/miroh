@@ -2,7 +2,6 @@
 
 #include <soa.h>
 
-#include "animation-defs.hpp"
 #include "animation.hpp"
 #include "board.hpp"
 #include "common.hpp"

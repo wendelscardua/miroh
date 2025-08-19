@@ -1,8 +1,10 @@
 #include "animation.hpp"
 #include "assets.hpp"
 #include "board.hpp"
+#include "cheats.hpp"
 #include "log.hpp"
 #include "metasprites.hpp"
+#include "mountain-tiles.hpp"
 #include "polyomino.hpp"
 #include "soundtrack.hpp"
 #ifndef NDEBUG
@@ -46,54 +48,8 @@ const Song song_per_stage[] = {
     Song::Marshmallow_mountain, // MarshmallowMountain
 };
 
-const u8 CLOSED_MOUTH[] = {MOUNTAIN_MOUTH_BASE_TILE + 0,
-                           MOUNTAIN_MOUTH_BASE_TILE + 1};
-const u8 OPEN_MOUTH[] = {MOUNTAIN_MOUTH_BASE_TILE + 2,
-                         MOUNTAIN_MOUTH_BASE_TILE + 3};
-const u8 EMPTY_PREVIEW[] = {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE};
-
-const u8 STREAM[][4] = {{PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE},
-                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE,
-                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE, PREVIEW_BASE_TILE + 8,
-                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2},
-                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8,
-                         PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 8,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 2,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 8, PREVIEW_BASE_TILE + 10,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 2, PREVIEW_BASE_TILE + 10,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10},
-                        {PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10,
-                         PREVIEW_BASE_TILE + 10, PREVIEW_BASE_TILE + 10}};
+u8 spawn_speed_tier_per_level[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+                                   2, 2, 2, 2, 2, 3, 3, 3, 3, 3};
 
 Drops::Drops() {
   for (auto drop : drops) {
@@ -188,7 +144,7 @@ bool Drops::random_hard_drop() {
 }
 
 Gameplay::Gameplay()
-    : experience(0), current_level(1), spawn_timer(0),
+    : experience(0), current_level(cheats.higher_level ? 20 : 1),
       unicorn(banked_lambda(Unicorn::BANK,
                             []() { return Unicorn(board, 80.0_fp, 80.0_fp); })),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
@@ -599,13 +555,14 @@ void Gameplay::gameplay_handler() {
   START_MESEN_WATCH("pol");
   START_MESEN_WATCH("spn");
   // we only spawn when there's no line clearing going on
-  if (polyomino.state == Polyomino::State::Inactive &&
-      !line_clearing_in_progress && spawn_timer-- == 0) {
-    banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn(); });
-    spawn_timer = current_controller_scheme == ControllerScheme::OnePlayer
-                      ? SINGLE_PLAYER_ARE_PER_LEVEL[current_level - 1]
-                      : TWO_PLAYERS_ARE;
-    if (current_controller_scheme == ControllerScheme::OnePlayer) {
+  if (!line_clearing_in_progress) {
+    polyomino.spawn_speed_tier = spawn_speed_tier_per_level[current_level - 1];
+    bool was_inactive = polyomino.state == Polyomino::State::Inactive;
+
+    banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn_update(); });
+
+    if (was_inactive && polyomino.state == Polyomino::State::Active &&
+        current_controller_scheme == ControllerScheme::OnePlayer) {
       if (select_reminder == SelectReminder::NeedToRemind) {
         select_reminder = SelectReminder::WaitingBlockToRemind;
       } else if (select_reminder == SelectReminder::WaitingBlockToRemind) {
@@ -694,9 +651,9 @@ void Gameplay::marshmallow_overflow_handler() {
         39) { // enough for blocks to blink {off, on, off, on, off}
       overflow_state = OverflowState::SwallowNextPiece;
       marshmallow_overflow_counter = 0xff;
-      multi_vram_buffer_horz(OPEN_MOUTH, 2, NTADR_A(5, 5));
-      multi_vram_buffer_horz(EMPTY_PREVIEW, 2, NTADR_A(5, 3));
-      multi_vram_buffer_horz(EMPTY_PREVIEW, 2, NTADR_A(5, 4));
+      multi_vram_buffer_horz(MountainTiles::OPEN_MOUTH, 2, NTADR_A(5, 5));
+      multi_vram_buffer_horz(MountainTiles::EMPTY_PREVIEW, 2, NTADR_A(5, 3));
+      multi_vram_buffer_horz(MountainTiles::EMPTY_PREVIEW, 2, NTADR_A(5, 4));
     }
     break;
   case OverflowState::SwallowNextPiece:
@@ -704,12 +661,13 @@ void Gameplay::marshmallow_overflow_handler() {
     if (marshmallow_overflow_counter >= 20) {
       overflow_state = OverflowState::ShootBlockStream;
       marshmallow_overflow_counter = 0xff;
-      multi_vram_buffer_horz(CLOSED_MOUTH, 2, NTADR_A(5, 5));
+      multi_vram_buffer_horz(MountainTiles::CLOSED_MOUTH, 2, NTADR_A(5, 5));
     }
     break;
   case OverflowState::ShootBlockStream:
-    multi_vram_buffer_vert(STREAM[marshmallow_overflow_counter >> 2], 4,
-                           NTADR_A(6, 1));
+    multi_vram_buffer_vert(
+        MountainTiles::STREAM[marshmallow_overflow_counter >> 2], 4,
+        NTADR_A(6, 1));
     if (marshmallow_overflow_counter >> 2 >= 20) {
       overflow_state = OverflowState::ShadowBeforeRaining;
       marshmallow_overflow_counter = 0xff;

@@ -22,9 +22,29 @@ public:
     Inactive,
     Active,
   };
+
+  enum class SpawnState {
+    WaitToPushPreview,
+    OpenToPushPreview,
+    PreviewFliesUp,
+    WaitToSpawn,
+    SpawnAndPrepareToSpit,
+    SpitNewPreview,
+  };
+
+  struct SpawnStateTransition {
+    SpawnState next_state;
+    u8 duration;
+  };
+
   u8 lock_down_timer;
   u8 lock_down_moves;
   State state;
+  SpawnState spawn_state;
+  u8 spawn_state_timer; // goes up to spawn_state_frames[tier][state]
+  u8 spawn_speed_tier;  // goes from 0 to 3 as the game progresses
+  u8 preview_row;
+
   Polyomino(Board &board);
 
   __attribute__((noinline)) void init();
@@ -35,6 +55,7 @@ public:
               u8 &lines_filled);
   void render(int y_scroll);
   void outside_render(int y_scroll);
+  void spawn_update();
 
 private:
   enum class Action {

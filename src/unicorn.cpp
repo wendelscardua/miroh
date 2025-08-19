@@ -1,4 +1,5 @@
 #include "unicorn.hpp"
+#include "animation-defs.hpp"
 #include "animation.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
@@ -23,7 +24,7 @@
 Unicorn::Unicorn(Board &board, fixed_point starting_x, fixed_point starting_y)
     : state(State::Idle), x(starting_x), y(starting_y),
       row(starting_y.whole >> 4), column(starting_x.whole >> 4),
-      score(cheats.higher_score ? 8420 : 0), energy(STARTING_ENERGY),
+      score(cheats.higher_level ? 8000 : 0), energy(STARTING_ENERGY),
       statue(false), board(board), facing(Direction::Right),
       moving(Direction::Right), energy_timer(0),
       original_energy(STARTING_ENERGY) {
