@@ -23,15 +23,6 @@ auto Polyomino::pentominos = Bag<u8, 17>();
 // NOTE: source file defines indices [4, 11) as tetrominos
 auto Polyomino::pieces = Bag<u8, 10>();
 
-static constexpr u8 SINGLE_PLAYER_ARE_PER_LEVEL[] = {
-    150,
-    105,
-    45,
-    30,
-};
-
-static constexpr u8 TWO_PLAYERS_ARE = 6;
-
 Polyomino::Polyomino(Board &board)
     : state(State::Inactive), board(board), definition(NULL) {}
 
@@ -330,19 +321,25 @@ static const soa::Array<Polyomino::SpawnStateTransition, 6>
          {Polyomino::SpawnState::PreviewFliesUp, 4},     // PreviewFliesUp
          {Polyomino::SpawnState::SpawnAndPrepareToSpit, 32}, // WaitToSpawn
          {Polyomino::SpawnState::SpitNewPreview, 20}, // SpawnAndPrepareToSpit
-         {Polyomino::SpawnState::WaitToPushPreview, 1}}, // SpitNewPreview
-        {{Polyomino::SpawnState::OpenToPushPreview, 9},  // WaitToPushPreview
-         {Polyomino::SpawnState::PreviewFliesUp, 15},    // OpenToPushPreview
-         {Polyomino::SpawnState::PreviewFliesUp, 3},     // PreviewFliesUp
+         {Polyomino::SpawnState::WaitToPushPreview, 12}}, // SpitNewPreview
+        {{Polyomino::SpawnState::OpenToPushPreview, 9},   // WaitToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 15},     // OpenToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 3},      // PreviewFliesUp
          {Polyomino::SpawnState::SpawnAndPrepareToSpit, 24}, // WaitToSpawn
          {Polyomino::SpawnState::SpitNewPreview, 15}, // SpawnAndPrepareToSpit
-         {Polyomino::SpawnState::WaitToPushPreview, 1}}, // SpitNewPreview
+         {Polyomino::SpawnState::WaitToPushPreview, 9}}, // SpitNewPreview
         {{Polyomino::SpawnState::OpenToPushPreview, 6},  // WaitToPushPreview
          {Polyomino::SpawnState::PreviewFliesUp, 10},    // OpenToPushPreview
          {Polyomino::SpawnState::PreviewFliesUp, 2},     // PreviewFliesUp
          {Polyomino::SpawnState::SpawnAndPrepareToSpit, 16}, // WaitToSpawn
          {Polyomino::SpawnState::SpitNewPreview, 10}, // SpawnAndPrepareToSpit
-         {Polyomino::SpawnState::WaitToPushPreview, 1}}, // SpitNewPreview
+         {Polyomino::SpawnState::WaitToPushPreview, 6}},    // SpitNewPreview
+        {{Polyomino::SpawnState::OpenToPushPreview, 3},     // WaitToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 5},        // OpenToPushPreview
+         {Polyomino::SpawnState::PreviewFliesUp, 1},        // PreviewFliesUp
+         {Polyomino::SpawnState::SpawnAndPrepareToSpit, 8}, // WaitToSpawn
+         {Polyomino::SpawnState::SpitNewPreview, 5}, // SpawnAndPrepareToSpit
+         {Polyomino::SpawnState::WaitToPushPreview, 3}}, // SpitNewPreview
 };
 
 void Polyomino::spawn_update() {
@@ -384,22 +381,12 @@ void Polyomino::spawn_update() {
     }
   }
   spawn_state_timer++;
-  if (spawn_state == SpawnState::WaitToPushPreview) {
-    // TODO: balance ARE with spawn animation (maybe)
-    u8 ARE = current_controller_scheme == ControllerScheme::OnePlayer
-                 ? SINGLE_PLAYER_ARE_PER_LEVEL[spawn_speed_tier]
-                 : TWO_PLAYERS_ARE;
-    if (spawn_state_timer >= ARE) {
-      spawn_state = SpawnState::OpenToPushPreview;
-      spawn_state_timer = 0;
-    }
-  } else {
-    if (spawn_state_timer >=
-        spawn_state_frames[spawn_speed_tier][(u8)spawn_state]->duration) {
-      spawn_state =
-          spawn_state_frames[spawn_speed_tier][(u8)spawn_state]->next_state;
-      spawn_state_timer = 0;
-    }
+
+  if (spawn_state_timer >=
+      spawn_state_frames[spawn_speed_tier][(u8)spawn_state]->duration) {
+    spawn_state =
+        spawn_state_frames[spawn_speed_tier][(u8)spawn_state]->next_state;
+    spawn_state_timer = 0;
   }
 }
 
