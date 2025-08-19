@@ -1,6 +1,7 @@
 #include "animation.hpp"
 #include "assets.hpp"
 #include "board.hpp"
+#include "cheats.hpp"
 #include "log.hpp"
 #include "metasprites.hpp"
 #include "mountain-tiles.hpp"
@@ -140,7 +141,7 @@ bool Drops::random_hard_drop() {
 }
 
 Gameplay::Gameplay()
-    : experience(0), current_level(1),
+    : experience(0), current_level(cheats.higher_level ? 20 : 1),
       unicorn(banked_lambda(Unicorn::BANK,
                             []() { return Unicorn(board, 80.0_fp, 80.0_fp); })),
       polyomino(board), fruits(board), gameplay_state(GameplayState::Playing),
