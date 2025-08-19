@@ -48,6 +48,9 @@ const Song song_per_stage[] = {
     Song::Marshmallow_mountain, // MarshmallowMountain
 };
 
+u8 spawn_speed_tier_per_level[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+                                   2, 2, 2, 2, 2, 3, 3, 3, 3, 3};
+
 Drops::Drops() {
   for (auto drop : drops) {
     drop.row = 0xff;
@@ -553,7 +556,7 @@ void Gameplay::gameplay_handler() {
   START_MESEN_WATCH("spn");
   // we only spawn when there's no line clearing going on
   if (!line_clearing_in_progress) {
-    polyomino.spawn_speed_tier = (current_level - 1) * 4 / MAX_LEVEL;
+    polyomino.spawn_speed_tier = spawn_speed_tier_per_level[current_level - 1];
     bool was_inactive = polyomino.state == Polyomino::State::Inactive;
 
     banked_lambda(Polyomino::BANK, [&]() { polyomino.spawn_update(); });
