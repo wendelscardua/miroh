@@ -9,6 +9,8 @@ public:
 
   __attribute__((noinline)) WorldMap();
   __attribute__((noinline)) ~WorldMap();
+  void extracted(u8 &ending_sprite, u8 &ending_palette_counter,
+                 u8 &ending_palette);
   __attribute__((noinline)) void loop();
 
 private:
@@ -20,4 +22,5 @@ private:
   void render_sprites();
   void stage_change(Stage new_stage);
   void tick_ending();
+  void ending_cutscene();
 };
