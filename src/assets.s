@@ -46,8 +46,8 @@ FairyForest_nam: .incbin "FairyForest.nam.zx02"
 GlitteryGrottoBG_chr: .incbin "GlitteryGrottoBG.suffix.chr.donut"
 GlitteryGrotto_nam: .incbin "GlitteryGrotto.nam.zx02"
 
-MarshmallowMountainBG_chr: ;.incbin "MarshmallowMountainBG.suffix.chr.donut"
-MarshmallowMountain_nam: ;.incbin "MarshmallowMountain.nam.zx02"
+MarshmallowMountainBG_chr: .incbin "MarshmallowMountainBG.suffix.chr.donut"
+MarshmallowMountain_nam: .incbin "MarshmallowMountain.nam.zx02"
 
 .global title_bg_tiles, title_nametable
 
@@ -130,7 +130,7 @@ FairyForestSPR_pal: .incbin "FairyForestSPR.pal"
 GlitteryGrottoBG_pal: .incbin "GlitteryGrottoBG.pal"
 GlitteryGrottoSPR_pal: .incbin "GlitteryGrottoSPR.pal"
 
-MarshmallowMountainBG_pal: ;.incbin "MarshmallowMountainBG.pal"
+MarshmallowMountainBG_pal: .incbin "MarshmallowMountainBG.pal"
 MarshmallowMountainSPR_pal: .incbin "MarshmallowMountainSPR.pal"
 
 .global title_bg_palette, title_spr_palette
