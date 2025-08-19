@@ -754,16 +754,21 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
       } else {
         points_left = SCORE_GOAL - unicorn.score;
       }
+      break;
     case Stage::MarshmallowMountain:
       // TODO: track Miroh Jr's defeat
+      miroh_undefeated = true;
       break;
     }
     if (current_stage == Stage::GlitteryGrotto) {
       u8_to_text(goal_counter_text, current_level);
+      multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
+    } else if (current_stage == Stage::MarshmallowMountain) {
+      // TODO: track Miroh Jr's defeat
     } else {
       u8_to_text(goal_counter_text, (u8)goal_counter);
+      multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
     }
-    multi_vram_buffer_horz(goal_counter_text, 2, NTADR_A(15, 27));
 
     if (!stuff_in_progress && goal_counter == 0) {
       ppu_wait_nmi();

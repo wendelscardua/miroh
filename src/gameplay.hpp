@@ -156,6 +156,7 @@ private:
         u8 lines_left;
         u8 snacks_left;
         u8 blocks_left;
+        bool miroh_undefeated;
       };
       u8 _padding; // used so the u8 values align with (u8) casting of the u16
                    // goal counter
