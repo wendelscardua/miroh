@@ -41,11 +41,11 @@ const char *story_mode_victory_text_per_stage[] = {
 };
 
 const Song song_per_stage[] = {
-    Song::Starlit_stables,      // StarlitStables
-    Song::Rainbow_retreat,      // RainbowRetreat
-    Song::Fairy_flight,         // FairyForest
-    Song::Glitter_grotto,       // GlitteryGrotto
-    Song::Marshmallow_mountain, // MarshmallowMountain
+    Song::Starlit_stables,     // StarlitStables
+    Song::Rainbow_retreat,     // RainbowRetreat
+    Song::Fairy_flight,        // FairyForest
+    Song::Glitter_grotto,      // GlitteryGrotto
+    Song::Baby_bullhead_title, // MarshmallowMountain
 };
 
 u8 spawn_speed_tier_per_level[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
