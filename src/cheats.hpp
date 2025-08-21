@@ -6,8 +6,10 @@ class Cheats {
   u8 cheat_code_index;
 
 public:
+  bool higher_score;
   bool higher_level;
   bool infinite_energy;
+  bool fixed_polyomino;
 
   Cheats();
 
