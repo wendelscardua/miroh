@@ -9,6 +9,7 @@ public:
   bool higher_score;
   bool higher_level;
   bool infinite_energy;
+  bool fixed_polyomino;
 
   Cheats();
 

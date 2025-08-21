@@ -2,6 +2,7 @@
 #include "bag.hpp"
 #include "bank-helper.hpp"
 #include "board.hpp"
+#include "cheats.hpp"
 #include "common.hpp"
 #include "ggsound.hpp"
 #include "log.hpp"
@@ -93,7 +94,7 @@ void Polyomino::spawn() {
   row = 0;
 
   definition = next;
-  next = polyominos[take_piece()];
+  next = cheats.fixed_polyomino ? next : polyominos[take_piece()];
 
   update_bitmask();
 
