@@ -124,7 +124,7 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
     // begins roll action
     if (pressed & (PAD_A | PAD_B)) {
       roll_into_block = false;
-      if (energy < CHARGE_COST && !roll_disabled) {
+      if (energy < CHARGE_COST || roll_disabled) {
         GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
         break;
       }
