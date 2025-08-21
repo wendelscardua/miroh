@@ -23,9 +23,6 @@ bool PolyominoDef::collide(Board &board, s8 row, s8 column) const {
 
 void PolyominoDef::render(u8 x, int y) const {
   u8 index = this->index;
-  if (get_frame_count() & 1) {
-    index += (u8)PolyominoMetaspriteMain::Piece_Id::FlipStart;
-  }
 
   u8 bank = current_stage == Stage::StarlitStables
                 ? POLYOMINO_METASPRITE_MAIN_BANK
@@ -47,9 +44,6 @@ static const u8 shadow_banks[] = {
 // TODO: avoid overlap with render
 void PolyominoDef::shadow(u8 x, int y, u8 dist) const {
   u8 index = this->index;
-  if (get_frame_count() & 1) {
-    index += (u8)PolyominoMetaspriteShadow1::Piece_Id::FlipStart;
-  }
 
   u8 bank;
   switch (dist) {

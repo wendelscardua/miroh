@@ -209,12 +209,7 @@ Gameplay::~Gameplay() {
   ppu_off();
 }
 
-void Gameplay::render() {
-  Animation::paused = (gameplay_state != GameplayState::Playing &&
-                       gameplay_state != GameplayState::Swapping &&
-                       gameplay_state != GameplayState::MarshmallowOverflow);
-  BoardAnimation::paused = Animation::paused;
-  scroll(0, (unsigned int)y_scroll);
+void Gameplay::render_non_polyominos() {
   unicorn.left_wall = false, unicorn.right_wall = false;
   if (unicorn.state == Unicorn::State::Moving) {
     u8 row = unicorn.row + 1;
@@ -231,7 +226,8 @@ void Gameplay::render() {
     banked_lambda(Unicorn::BANK, [this]() { unicorn.render(y_scroll); });
   }
   fruits.render_above_player(y_scroll, unicorn.y.whole + board.origin_y);
-
+}
+void Gameplay::render_polyomino() {
   if (gameplay_state == GameplayState::MarshmallowOverflow &&
       overflow_state == OverflowState::FlashOutsideBlocks &&
       (marshmallow_overflow_counter & 0b1000)) {
@@ -243,6 +239,22 @@ void Gameplay::render() {
               gameplay_state != GameplayState::MarshmallowOverflow)) {
     banked_lambda(Polyomino::BANK, [&]() { polyomino.render(y_scroll); });
   }
+}
+void Gameplay::render() {
+  Animation::paused = (gameplay_state != GameplayState::Playing &&
+                       gameplay_state != GameplayState::Swapping &&
+                       gameplay_state != GameplayState::MarshmallowOverflow);
+  BoardAnimation::paused = Animation::paused;
+  scroll(0, (unsigned int)y_scroll);
+
+  if (get_frame_count() & 1) {
+    render_polyomino();
+    render_non_polyominos();
+  } else {
+    render_non_polyominos();
+    render_polyomino();
+  }
+
   if (Drops::active_drops) {
     drops.render(y_scroll);
   }

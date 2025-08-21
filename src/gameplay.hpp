@@ -167,7 +167,9 @@ private:
   u8 lines_cleared;
   bool snack_was_eaten;
 
+  void render_polyomino();
   void render();
+  void render_non_polyominos();
   void pause_game();
   void end_game();
   void fail_game();
