@@ -247,8 +247,13 @@ void Gameplay::render() {
   BoardAnimation::paused = Animation::paused;
   scroll(0, (unsigned int)y_scroll);
 
-  render_non_polyominos();
-  render_polyomino();
+  if (get_frame_count() & 1) {
+    render_polyomino();
+    render_non_polyominos();
+  } else {
+    render_non_polyominos();
+    render_polyomino();
+  }
 
   if (Drops::active_drops) {
     drops.render(y_scroll);
