@@ -142,7 +142,7 @@ public:
 
   // advances the process of clearing a filled line
   // returns true if such process is still ongoing
-  __attribute__((noinline)) bool ongoing_line_clearing(bool jiggling);
+  __attribute__((noinline)) bool ongoing_line_clearing();
 
   // returns index of a row with free space (or 0xff in case of failure)
   __attribute__((noinline)) u8 random_free_row();

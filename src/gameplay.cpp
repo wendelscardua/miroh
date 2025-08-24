@@ -558,10 +558,9 @@ void Gameplay::gameplay_handler() {
   // won't push blocks, etc.
   bool board_upkeep_active =
       gameplay_state == GameplayState::MarshmallowOverflow ||
-      unicorn.state == Unicorn::State::Trapped ||
-      banked_lambda(Board::BANK, []() {
-        return board.ongoing_line_clearing(board.active_animations);
-      });
+      unicorn.state == Unicorn::State::Trapped || board.active_animations ||
+      banked_lambda(Board::BANK,
+                    []() { return board.ongoing_line_clearing(); });
   STOP_MESEN_WATCH("lin");
 
   START_MESEN_WATCH("pol");

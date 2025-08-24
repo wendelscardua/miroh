@@ -534,7 +534,7 @@ bool Board::row_filled(u8 row) {
 const SFX sfx_per_lines_cleared[] = {SFX::Lineclear1, SFX::Lineclear2,
                                      SFX::Lineclear3, SFX::Lineclear4};
 
-bool Board::ongoing_line_clearing(bool jiggling) {
+bool Board::ongoing_line_clearing() {
   bool any_deleted = false;
   bool changed = false;
   u8 lines_cleared_for_sfx;
@@ -551,10 +551,6 @@ bool Board::ongoing_line_clearing(bool jiggling) {
 
   if (!any_deleted) {
     CORO_FINISH(false);
-  }
-
-  while (jiggling) {
-    CORO_YIELD(true);
   }
 
   lines_cleared_for_sfx = 0xff;
