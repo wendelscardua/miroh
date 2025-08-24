@@ -19,20 +19,17 @@ const soa::Array<const u16, WIDTH> Board::OCCUPIED_BITMASK = {
     0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
     0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800};
 
-#pragma clang section text = ".prg_rom_4.text.board"
-#pragma clang section rodata = ".prg_rom_4.rodata.board"
-
-static const u8 CELL_ROW_START[] = {0,         WIDTH,     2 * WIDTH, 3 * WIDTH,
-                                    4 * WIDTH, 5 * WIDTH, 6 * WIDTH, 7 * WIDTH,
-                                    8 * WIDTH, 9 * WIDTH};
-
-static_assert(sizeof(CELL_ROW_START) == HEIGHT,
-              "CELL_ROW_START does not have HEIGHT entries");
+static const u8 CELL_ROW_START[HEIGHT] = {
+    0,         WIDTH,     2 * WIDTH, 3 * WIDTH, 4 * WIDTH,
+    5 * WIDTH, 6 * WIDTH, 7 * WIDTH, 8 * WIDTH, 9 * WIDTH};
 
 __attribute__((section(".prg_rom_fixed.text.board"))) u8
 board_index(u8 row, u8 column) {
   return CELL_ROW_START[row] + column;
 }
+
+#pragma clang section text = ".prg_rom_4.text.board"
+#pragma clang section rodata = ".prg_rom_4.rodata.board"
 
 bool BoardAnimation::paused = false;
 
@@ -44,8 +41,9 @@ BoardAnimation::BoardAnimation(const BoardAnimFrame (*cells)[], u8 length,
       column(column), finished(false), current_cell_index(0), length(length) {}
 
 void BoardAnimation::update() {
-  if (paused || finished)
-    goto exit;
+  if (paused || finished) {
+    return;
+  }
   current_frame++;
   if (current_frame >= current_cell->duration) {
     current_frame = 0;
@@ -56,7 +54,6 @@ void BoardAnimation::update() {
       current_cell++;
     }
   }
-exit:
 }
 
 Cell &Board::cell_at(u8 row, u8 column) {
