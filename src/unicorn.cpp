@@ -132,27 +132,31 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       energy -= CHARGE_COST;
       set_state(State::Roll);
       roll_distance = 0;
-      bool occ = false, wall = false;
+      bool occupied = false;
       if (facing == Direction::Right) {
-        banked_lambda(Board::BANK, [this, &wall, &occ]() {
-          while (
-              roll_distance < 3 &&
-              !(wall = board.cell_at(row, column + roll_distance).right_wall) &&
-              !(occ = board.occupied((s8)row, column + roll_distance + 1))) {
+        banked_lambda(Board::BANK, [this, &occupied]() {
+          while (roll_distance < 3) {
+            bool wall = board.cell_at(row, column + roll_distance).right_wall;
+            occupied = board.occupied((s8)row, column + roll_distance + 1);
+            if (wall || occupied) {
+              break;
+            }
             roll_distance++;
           }
         });
       } else {
-        banked_lambda(Board::BANK, [this, &wall, &occ]() {
-          while (
-              roll_distance < 3 &&
-              !(wall = board.cell_at(row, column - roll_distance).left_wall) &&
-              !(occ = board.occupied((s8)row, column - roll_distance - 1))) {
+        banked_lambda(Board::BANK, [this, &occupied]() {
+          while (roll_distance < 3) {
+            bool wall = board.cell_at(row, column - roll_distance).left_wall;
+            occupied = board.occupied((s8)row, column - roll_distance - 1);
+            if (wall || occupied) {
+              break;
+            }
             roll_distance++;
           }
         });
       }
-      roll_into_block = (roll_distance < 3 && occ);
+      roll_into_block = (roll_distance < 3 && occupied);
       break;
     }
 
