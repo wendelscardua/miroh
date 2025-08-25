@@ -81,6 +81,7 @@ add_library(SourceObj
   banked-asset-helpers.s
   banked-asset-helpers.cpp
   board.cpp
+  board-animation.cpp
   cheats.cpp
   donut.cpp
   donut.s

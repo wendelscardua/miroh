@@ -31,31 +31,6 @@ board_index(u8 row, u8 column) {
 #pragma clang section text = ".prg_rom_4.text.board"
 #pragma clang section rodata = ".prg_rom_4.rodata.board"
 
-bool BoardAnimation::paused = false;
-
-BoardAnimation::BoardAnimation() : cells(NULL), finished(true), length(0) {}
-
-BoardAnimation::BoardAnimation(const BoardAnimFrame (*cells)[], u8 length,
-                               u8 row, u8 column)
-    : cells(cells), current_cell(&(*cells)[0]), current_frame(0), row(row),
-      column(column), finished(false), current_cell_index(0), length(length) {}
-
-void BoardAnimation::update() {
-  if (paused || finished) {
-    return;
-  }
-  current_frame++;
-  if (current_frame >= current_cell->duration) {
-    current_frame = 0;
-    current_cell_index++;
-    if (current_cell_index == length) {
-      finished = true;
-    } else {
-      current_cell++;
-    }
-  }
-}
-
 Cell &Board::cell_at(u8 row, u8 column) {
   return this->cell[board_index(row, column)];
 }

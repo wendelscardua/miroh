@@ -1,6 +1,7 @@
 #include "polyomino-defs.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "board-animation.hpp"
 #include "board.hpp"
 #include "common.hpp"
 #include "polyominos-metasprites.hpp"
@@ -100,10 +101,8 @@ bool PolyominoDef::board_render(Board &board, s8 row, s8 column) const {
     s8 block_row = row + delta.delta_row;
     u8 block_column = (u8)(column + delta.delta_column);
     if (block_row >= 0) {
-      banked_lambda(Board::BANK, [&board, block_row, block_column]() {
-        board.add_animation(BoardAnimation(&Board::block_jiggle,
-                                           sizeof(Board::block_jiggle) /
-                                               sizeof(Board::block_jiggle[0]),
+      banked_lambda(BoardAnimation::BANK, [&board, block_row, block_column]() {
+        board.add_animation(BoardAnimation(&BoardAnimation::block_jiggle,
                                            (u8)block_row, (u8)block_column));
         // XXX: just so line clears can be counted
         board.occupy((u8)block_row, (u8)block_column);

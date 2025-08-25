@@ -3,6 +3,7 @@
 #include "animation.hpp"
 #include "bank-helper.hpp"
 #include "banked-asset-helpers.hpp"
+#include "board-animation.hpp"
 #include "board.hpp"
 #include "cheats.hpp"
 #include "common.hpp"
@@ -302,48 +303,30 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
       GGSound::play_sfx(SFX::Blockhit, GGSound::SFXPriority::Two);
       if (facing == Direction::Right) {
         if (board.occupied((s8)row, column + 2)) {
-          banked_lambda(Board::BANK, [this]() {
-            board.add_animation(
-                BoardAnimation(&Board::block_break_right,
-                               sizeof(Board::block_break_right) /
-                                   sizeof(Board::block_break_right[0]),
-                               row, column + 1));
+          banked_lambda(BoardAnimation::BANK, [this]() {
+            board.add_animation(BoardAnimation(
+                &BoardAnimation::block_break_right, row, column + 1));
           });
         } else {
-          banked_lambda(Board::BANK, [this]() {
-            board.add_animation(
-                BoardAnimation(&Board::block_move_right,
-                               sizeof(Board::block_move_right) /
-                                   sizeof(Board::block_move_right[0]),
-                               row, column + 1));
-            board.add_animation(
-                BoardAnimation(&Board::block_arrive_right,
-                               sizeof(Board::block_arrive_right) /
-                                   sizeof(Board::block_arrive_right[0]),
-                               row, column + 2));
+          banked_lambda(BoardAnimation::BANK, [this]() {
+            board.add_animation(BoardAnimation(
+                &BoardAnimation::block_move_right, row, column + 1));
+            board.add_animation(BoardAnimation(
+                &BoardAnimation::block_arrive_right, row, column + 2));
           });
         }
       } else {
         if (board.occupied((s8)row, column - 2)) {
-          banked_lambda(Board::BANK, [this]() {
-            board.add_animation(
-                BoardAnimation(&Board::block_break_left,
-                               sizeof(Board::block_break_left) /
-                                   sizeof(Board::block_break_left[0]),
-                               row, column - 1));
+          banked_lambda(BoardAnimation::BANK, [this]() {
+            board.add_animation(BoardAnimation(
+                &BoardAnimation::block_break_left, row, column - 1));
           });
         } else {
-          banked_lambda(Board::BANK, [this]() {
-            board.add_animation(
-                BoardAnimation(&Board::block_move_left,
-                               sizeof(Board::block_move_left) /
-                                   sizeof(Board::block_move_left[0]),
-                               row, column - 1));
-            board.add_animation(
-                BoardAnimation(&Board::block_arrive_left,
-                               sizeof(Board::block_arrive_left) /
-                                   sizeof(Board::block_arrive_left[0]),
-                               row, column - 2));
+          banked_lambda(BoardAnimation::BANK, [this]() {
+            board.add_animation(BoardAnimation(&BoardAnimation::block_move_left,
+                                               row, column - 1));
+            board.add_animation(BoardAnimation(
+                &BoardAnimation::block_arrive_left, row, column - 2));
           });
         }
       }
