@@ -60,6 +60,8 @@ const BoardAnimFrame BoardAnimation::block_finish_falling[] = {
     {{.trigger = BoardAnimTrigger::FallDown}, 0}};
 const BoardAnimFrame BoardAnimation::block_start_dropping[] = {
     {{.cell_type = CellType::Marshmallow}, 4},
+    {{.cell_type = CellType::Maze},
+     8}, // small delay to slow the chain reaction
     {{.cell_type = CellType::Maze}, 0},
     {{.trigger = BoardAnimTrigger::DropFromAbove}, 0}};
 

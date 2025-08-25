@@ -24,7 +24,7 @@ public:
   soa::Array<u16, HEIGHT> occupied_bitset;
   Cell cell[HEIGHT * WIDTH]; // each of the board's cells
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
-  std::array<BoardAnimation, 15> animations;
+  std::array<BoardAnimation, 10> animations;
   bool active_animations;
 
   static constexpr u8 origin_row =
