@@ -553,21 +553,20 @@ void Gameplay::gameplay_handler() {
   }
 
   START_MESEN_WATCH("lin");
-  // XXX: if we say line clearing is in progress during overflow, it will make
-  // other stuff not happen (polyomino won't spawn, victory conditions won't
-  // trigger, not even the line clearing itself will run)
-  bool line_clearing_in_progress =
+  // "board upkeep" prevents players from affecting the board state;
+  // polyominos won't spawn, victory conditions won't trigger, unicorn
+  // won't push blocks, etc.
+  bool board_upkeep_active =
       gameplay_state == GameplayState::MarshmallowOverflow ||
-      unicorn.state == Unicorn::State::Trapped ||
-      banked_lambda(Board::BANK, []() {
-        return board.ongoing_line_clearing(board.active_animations);
-      });
+      unicorn.state == Unicorn::State::Trapped || board.active_animations ||
+      banked_lambda(Board::BANK,
+                    []() { return board.ongoing_line_clearing(); });
   STOP_MESEN_WATCH("lin");
 
   START_MESEN_WATCH("pol");
   START_MESEN_WATCH("spn");
   // we only spawn when there's no line clearing going on
-  if (!line_clearing_in_progress) {
+  if (!board_upkeep_active) {
     polyomino.spawn_speed_tier = spawn_speed_tier_per_level[current_level - 1];
     bool was_inactive = polyomino.state == Polyomino::State::Inactive;
 
@@ -597,8 +596,8 @@ void Gameplay::gameplay_handler() {
   STOP_MESEN_WATCH("pol");
 
   START_MESEN_WATCH("uni");
-  banked_lambda(Unicorn::BANK, [this, line_clearing_in_progress]() {
-    unicorn.update(unicorn_pressed, unicorn_held, line_clearing_in_progress);
+  banked_lambda(Unicorn::BANK, [this, board_upkeep_active]() {
+    unicorn.update(unicorn_pressed, unicorn_held, board_upkeep_active);
   });
   STOP_MESEN_WATCH("uni");
   START_MESEN_WATCH("fru");
@@ -649,7 +648,7 @@ void Gameplay::gameplay_handler() {
   if (gameplay_state == GameplayState::Playing ||
       gameplay_state == GameplayState::Swapping ||
       gameplay_state == GameplayState::MarshmallowOverflow) {
-    game_mode_upkeep(line_clearing_in_progress || blocks_were_placed ||
+    game_mode_upkeep(board_upkeep_active || blocks_were_placed ||
                      board.active_animations);
   }
   STOP_MESEN_WATCH("upk");

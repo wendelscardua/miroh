@@ -19,45 +19,17 @@ const soa::Array<const u16, WIDTH> Board::OCCUPIED_BITMASK = {
     0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020,
     0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800};
 
-#pragma clang section text = ".prg_rom_4.text.board"
-#pragma clang section rodata = ".prg_rom_4.rodata.board"
-
-static const u8 CELL_ROW_START[] = {0,         WIDTH,     2 * WIDTH, 3 * WIDTH,
-                                    4 * WIDTH, 5 * WIDTH, 6 * WIDTH, 7 * WIDTH,
-                                    8 * WIDTH, 9 * WIDTH};
-
-static_assert(sizeof(CELL_ROW_START) == HEIGHT,
-              "CELL_ROW_START does not have HEIGHT entries");
+static const u8 CELL_ROW_START[HEIGHT] = {
+    0,         WIDTH,     2 * WIDTH, 3 * WIDTH, 4 * WIDTH,
+    5 * WIDTH, 6 * WIDTH, 7 * WIDTH, 8 * WIDTH, 9 * WIDTH};
 
 __attribute__((section(".prg_rom_fixed.text.board"))) u8
 board_index(u8 row, u8 column) {
   return CELL_ROW_START[row] + column;
 }
 
-bool BoardAnimation::paused = false;
-
-BoardAnimation::BoardAnimation() : cells(NULL), finished(true), length(0) {}
-
-BoardAnimation::BoardAnimation(const BoardAnimFrame (*cells)[], u8 length,
-                               u8 row, u8 column)
-    : cells(cells), current_cell(&(*cells)[0]), current_frame(0), row(row),
-      column(column), finished(false), current_cell_index(0), length(length) {}
-
-void BoardAnimation::update() {
-  if (paused || finished)
-    goto exit;
-  current_frame++;
-  if (current_frame >= current_cell->duration) {
-    current_frame = 0;
-    current_cell_index++;
-    if (current_cell_index == length) {
-      finished = true;
-    } else {
-      current_cell++;
-    }
-  }
-exit:
-}
+#pragma clang section text = ".prg_rom_4.text.board"
+#pragma clang section rodata = ".prg_rom_4.rodata.board"
 
 Cell &Board::cell_at(u8 row, u8 column) {
   return this->cell[board_index(row, column)];
@@ -534,7 +506,7 @@ bool Board::row_filled(u8 row) {
 const SFX sfx_per_lines_cleared[] = {SFX::Lineclear1, SFX::Lineclear2,
                                      SFX::Lineclear3, SFX::Lineclear4};
 
-bool Board::ongoing_line_clearing(bool jiggling) {
+bool Board::ongoing_line_clearing() {
   bool any_deleted = false;
   bool changed = false;
   u8 lines_cleared_for_sfx;
@@ -551,10 +523,6 @@ bool Board::ongoing_line_clearing(bool jiggling) {
 
   if (!any_deleted) {
     CORO_FINISH(false);
-  }
-
-  while (jiggling) {
-    CORO_YIELD(true);
   }
 
   lines_cleared_for_sfx = 0xff;
@@ -672,5 +640,30 @@ void Board::animate() {
                     animation.current_cell->cell_type);
     }
     animation.update();
+    if (animation.finished) {
+      auto row = animation.row;
+      auto column = animation.column;
+
+      switch (animation.current_cell->trigger) {
+      case BoardAnimTrigger::FallDown:
+        if (!occupied(row + 1, column)) {
+          add_animation(BoardAnimation(&BoardAnimation::block_start_falling,
+                                       row, column));
+          add_animation(BoardAnimation(&BoardAnimation::block_finish_falling,
+                                       row + 1, column));
+        }
+        break;
+      case BoardAnimTrigger::DropFromAbove:
+        if (occupied(row - 1, column)) {
+          add_animation(BoardAnimation(&BoardAnimation::block_start_dropping,
+                                       row - 1, column));
+          add_animation(BoardAnimation(&BoardAnimation::block_finish_falling,
+                                       row, column));
+        }
+        break;
+      case BoardAnimTrigger::None:
+        break;
+      }
+    }
   }
 }

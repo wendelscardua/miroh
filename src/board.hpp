@@ -1,63 +1,12 @@
 #pragma once
 
+#include "board-animation.hpp"
+#include "cell.hpp"
 #include "common.hpp"
 #include <soa.h>
 
 static constexpr u8 HEIGHT = 10;
 static constexpr u8 WIDTH = 12;
-
-enum class CellType : u8 {
-  Maze,
-  Marshmallow,
-  Jiggling,
-  LeanLeft,
-  LeanRight,
-};
-
-class Cell {
-public:
-  union {
-    struct {
-      u8 walls : 4;
-    };
-    struct {
-      bool up_wall : 1;
-      bool right_wall : 1;
-      bool down_wall : 1;
-      bool left_wall : 1;
-    };
-  };
-
-  Cell();
-};
-
-struct BoardAnimFrame {
-  CellType cell_type;
-  u8 duration;
-};
-
-class BoardAnimation {
-public:
-  const BoardAnimFrame (*cells)[];
-  const BoardAnimFrame *current_cell;
-  static bool paused;
-  u8 current_frame;
-  u8 row;
-  u8 column;
-  bool finished;
-
-  BoardAnimation();
-
-  BoardAnimation(const BoardAnimFrame (*cells)[], u8 length, u8 row, u8 column);
-
-  void reset();
-
-  void update();
-
-private:
-  u8 current_cell_index;
-  u8 length;
-};
 
 class Board {
 
@@ -75,44 +24,13 @@ public:
   soa::Array<u16, HEIGHT> occupied_bitset;
   Cell cell[HEIGHT * WIDTH]; // each of the board's cells
   bool deleted[HEIGHT]; // mark which rows were removed in case we apply gravity
-  std::array<BoardAnimation, 7> animations;
+  std::array<BoardAnimation, 10> animations;
   bool active_animations;
 
   static constexpr u8 origin_row =
       origin_y >> 4; // origin in metatile space (y)
   static constexpr u8 origin_column =
       origin_x >> 4; // origin in metatile space (x)
-
-  static constexpr BoardAnimFrame block_jiggle[] = {{CellType::Jiggling, 8},
-                                                    {CellType::Marshmallow, 8},
-                                                    {CellType::Jiggling, 8},
-                                                    {CellType::Marshmallow, 1}};
-  static constexpr BoardAnimFrame block_move_right[] = {{CellType::LeanLeft, 4},
-                                                        {CellType::Maze, 1}};
-  static constexpr BoardAnimFrame block_move_left[] = {{CellType::LeanRight, 4},
-                                                       {CellType::Maze, 1}};
-  static constexpr BoardAnimFrame block_arrive_right[] = {
-      {CellType::Maze, 4},
-      {CellType::LeanLeft, 4},
-      {CellType::LeanRight, 4},
-      {CellType::LeanLeft, 4},
-      {CellType::Marshmallow, 1}};
-  static constexpr BoardAnimFrame block_arrive_left[] = {
-      {CellType::Maze, 4},
-      {CellType::LeanRight, 4},
-      {CellType::LeanLeft, 4},
-      {CellType::LeanRight, 4},
-      {CellType::Marshmallow, 1}};
-  static constexpr BoardAnimFrame block_break_right[] = {
-      {CellType::LeanLeft, 4},
-      {CellType::LeanRight, 4},
-      {CellType::LeanLeft, 4},
-      {CellType::Maze, 1}};
-  static constexpr BoardAnimFrame block_break_left[] = {
-      {CellType::LeanRight, 4},
-      {CellType::LeanLeft, 4},
-      {CellType::LeanRight, 4},
-      {CellType::Maze, 1}};
 
   __attribute__((section(".prg_rom_fixed.text.board"))) Board();
 
@@ -142,7 +60,7 @@ public:
 
   // advances the process of clearing a filled line
   // returns true if such process is still ongoing
-  __attribute__((noinline)) bool ongoing_line_clearing(bool jiggling);
+  __attribute__((noinline)) bool ongoing_line_clearing();
 
   // returns index of a row with free space (or 0xff in case of failure)
   __attribute__((noinline)) u8 random_free_row();
