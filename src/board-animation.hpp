@@ -30,6 +30,7 @@ public:
   static const BoardAnimFrame block_break_left[];
   static const BoardAnimFrame block_start_falling[];
   static const BoardAnimFrame block_finish_falling[];
+  static const BoardAnimFrame block_start_dropping[];
 
   const BoardAnimFrame (*cells)[];
   const BoardAnimFrame *current_cell;

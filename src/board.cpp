@@ -654,6 +654,12 @@ void Board::animate() {
         }
         break;
       case BoardAnimTrigger::DropFromAbove:
+        if (occupied(row - 1, column)) {
+          add_animation(BoardAnimation(&BoardAnimation::block_start_dropping,
+                                       row - 1, column));
+          add_animation(BoardAnimation(&BoardAnimation::block_finish_falling,
+                                       row, column));
+        }
         break;
       case BoardAnimTrigger::None:
         break;
