@@ -166,25 +166,6 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
 #define PRESS_HELD(button)                                                     \
   ((pressed & (button)) ||                                                     \
    (!pressed && moving != Direction::None && (held & (button))))
-    if (PRESS_HELD(PAD_UP)) {
-      if (!current_cell.up_wall && row > 0 &&
-          !board.occupied((s8)(row - 1), column)) {
-        moving = Direction::Up;
-        target_x = x;
-        target_y = y - GRID_SIZE;
-        set_state(State::Moving);
-        break;
-      }
-    }
-    if (PRESS_HELD(PAD_DOWN)) {
-      if (!current_cell.down_wall && !board.occupied((s8)(row + 1), column)) {
-        moving = Direction::Down;
-        target_x = x;
-        target_y = y + GRID_SIZE;
-        set_state(State::Moving);
-        break;
-      }
-    }
     if (PRESS_HELD(PAD_LEFT)) {
       facing = Direction::Left;
       if (!current_cell.left_wall && !board.occupied((s8)row, column - 1)) {
@@ -194,13 +175,29 @@ void Unicorn::update(u8 pressed, u8 held, bool roll_disabled) {
         set_state(State::Moving);
         break;
       }
-    }
-    if (PRESS_HELD(PAD_RIGHT)) {
+    } else if (PRESS_HELD(PAD_RIGHT)) {
       facing = Direction::Right;
       if (!current_cell.right_wall && !board.occupied((s8)row, column + 1)) {
         moving = Direction::Right;
         target_x = x + GRID_SIZE;
         target_y = y;
+        set_state(State::Moving);
+        break;
+      }
+    } else if (PRESS_HELD(PAD_UP)) {
+      if (!current_cell.up_wall && row > 0 &&
+          !board.occupied((s8)(row - 1), column)) {
+        moving = Direction::Up;
+        target_x = x;
+        target_y = y - GRID_SIZE;
+        set_state(State::Moving);
+        break;
+      }
+    } else if (PRESS_HELD(PAD_DOWN)) {
+      if (!current_cell.down_wall && !board.occupied((s8)(row + 1), column)) {
+        moving = Direction::Down;
+        target_x = x;
+        target_y = y + GRID_SIZE;
         set_state(State::Moving);
         break;
       }
