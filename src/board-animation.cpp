@@ -8,36 +8,56 @@
 bool BoardAnimation::paused = false;
 
 const BoardAnimFrame BoardAnimation::block_jiggle[] = {
-    {CellType::Jiggling, 8},
-    {CellType::Marshmallow, 8},
-    {CellType::Jiggling, 8},
-    {CellType::Marshmallow, 0}};
+    {{.cell_type = CellType::Jiggling}, 8},
+    {{.cell_type = CellType::Marshmallow}, 8},
+    {{.cell_type = CellType::Jiggling}, 8},
+    {{.cell_type = CellType::Marshmallow}, 0},
+    {{.trigger = BoardAnimTrigger::None}, 0}};
 const BoardAnimFrame BoardAnimation::block_move_right[] = {
-    {CellType::LeanLeft, 4}, {CellType::Maze, 0}};
+    {{.cell_type = CellType::LeanLeft}, 4},
+    {{.cell_type = CellType::Maze}, 0},
+    {{.trigger = BoardAnimTrigger::DropFromAbove}, 0}};
 const BoardAnimFrame BoardAnimation::block_move_left[] = {
-    {CellType::LeanRight, 4}, {CellType::Maze, 0}};
+    {{.cell_type = CellType::LeanRight}, 4},
+    {{.cell_type = CellType::Maze}, 0},
+    {{.trigger = BoardAnimTrigger::DropFromAbove}, 0}};
 const BoardAnimFrame BoardAnimation::block_arrive_right[] = {
-    {CellType::Maze, 4},
-    {CellType::LeanLeft, 4},
-    {CellType::LeanRight, 4},
-    {CellType::LeanLeft, 4},
-    {CellType::Marshmallow, 0}};
+    {{.cell_type = CellType::Maze}, 4},
+    {{.cell_type = CellType::LeanLeft}, 4},
+    {{.cell_type = CellType::LeanRight}, 4},
+    {{.cell_type = CellType::LeanLeft}, 4},
+    {{.cell_type = CellType::Marshmallow}, 0},
+    {{.trigger = BoardAnimTrigger::FallDown}, 0}};
 const BoardAnimFrame BoardAnimation::block_arrive_left[] = {
-    {CellType::Maze, 4},
-    {CellType::LeanRight, 4},
-    {CellType::LeanLeft, 4},
-    {CellType::LeanRight, 4},
-    {CellType::Marshmallow, 0}};
+    {{.cell_type = CellType::Maze}, 4},
+    {{.cell_type = CellType::LeanRight}, 4},
+    {{.cell_type = CellType::LeanLeft}, 4},
+    {{.cell_type = CellType::LeanRight}, 4},
+    {{.cell_type = CellType::Marshmallow}, 0},
+    {{.trigger = BoardAnimTrigger::FallDown}, 0}};
 const BoardAnimFrame BoardAnimation::block_break_right[] = {
-    {CellType::LeanLeft, 4},
-    {CellType::LeanRight, 4},
-    {CellType::LeanLeft, 4},
-    {CellType::Maze, 0}};
+    {{.cell_type = CellType::LeanLeft}, 4},
+    {{.cell_type = CellType::LeanRight}, 4},
+    {{.cell_type = CellType::LeanLeft}, 4},
+    {{.cell_type = CellType::Maze}, 0},
+    {{.trigger = BoardAnimTrigger::DropFromAbove}, 0}};
 const BoardAnimFrame BoardAnimation::block_break_left[] = {
-    {CellType::LeanRight, 4},
-    {CellType::LeanLeft, 4},
-    {CellType::LeanRight, 4},
-    {CellType::Maze, 0}};
+    {{.cell_type = CellType::LeanRight}, 4},
+    {{.cell_type = CellType::LeanLeft}, 4},
+    {{.cell_type = CellType::LeanRight}, 4},
+    {{.cell_type = CellType::Maze}, 0},
+    {{.trigger = BoardAnimTrigger::DropFromAbove}, 0}};
+const BoardAnimFrame BoardAnimation::block_start_falling[] = {
+    {{.cell_type = CellType::Marshmallow}, 4},
+    {{.cell_type = CellType::Maze}, 0},
+    {{.trigger = BoardAnimTrigger::None}, 0}};
+const BoardAnimFrame BoardAnimation::block_finish_falling[] = {
+    {{.cell_type = CellType::Maze}, 4},
+    {{.cell_type = CellType::Jiggling}, 4},
+    {{.cell_type = CellType::Marshmallow}, 4},
+    {{.cell_type = CellType::Jiggling}, 4},
+    {{.cell_type = CellType::Marshmallow}, 0},
+    {{.trigger = BoardAnimTrigger::FallDown}, 0}};
 
 BoardAnimation::BoardAnimation() : cells(nullptr), finished(true) {}
 
@@ -52,6 +72,7 @@ void BoardAnimation::update() {
   }
   if (current_cell->duration == 0) {
     finished = true;
+    current_cell++;
   } else if (++current_frame >= current_cell->duration) {
     current_frame = 0;
     current_cell++;

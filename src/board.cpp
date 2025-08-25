@@ -640,5 +640,24 @@ void Board::animate() {
                     animation.current_cell->cell_type);
     }
     animation.update();
+    if (animation.finished) {
+      auto row = animation.row;
+      auto column = animation.column;
+
+      switch (animation.current_cell->trigger) {
+      case BoardAnimTrigger::FallDown:
+        if (!occupied(row + 1, column)) {
+          add_animation(BoardAnimation(&BoardAnimation::block_start_falling,
+                                       row, column));
+          add_animation(BoardAnimation(&BoardAnimation::block_finish_falling,
+                                       row + 1, column));
+        }
+        break;
+      case BoardAnimTrigger::DropFromAbove:
+        break;
+      case BoardAnimTrigger::None:
+        break;
+      }
+    }
   }
 }

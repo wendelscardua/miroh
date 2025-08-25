@@ -3,8 +3,17 @@
 #include "cell.hpp"
 #include "common.hpp"
 
+enum class BoardAnimTrigger {
+  None,
+  FallDown,
+  DropFromAbove,
+};
+
 struct BoardAnimFrame {
-  CellType cell_type;
+  union {
+    CellType cell_type;
+    BoardAnimTrigger trigger;
+  };
   u8 duration;
 };
 
@@ -19,6 +28,8 @@ public:
   static const BoardAnimFrame block_arrive_left[];
   static const BoardAnimFrame block_break_right[];
   static const BoardAnimFrame block_break_left[];
+  static const BoardAnimFrame block_start_falling[];
+  static const BoardAnimFrame block_finish_falling[];
 
   const BoardAnimFrame (*cells)[];
   const BoardAnimFrame *current_cell;
