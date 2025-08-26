@@ -522,7 +522,6 @@ void Gameplay::gameplay_handler() {
 
   blocks_were_placed = false;
   failed_to_place = false;
-  lines_cleared = 0;
   snack_was_eaten = false;
 
   if (gameplay_state == GameplayState::MarshmallowOverflow) {
@@ -559,8 +558,9 @@ void Gameplay::gameplay_handler() {
   bool board_upkeep_active =
       gameplay_state == GameplayState::MarshmallowOverflow ||
       unicorn.state == Unicorn::State::Trapped || board.active_animations ||
-      banked_lambda(Board::BANK,
-                    []() { return board.ongoing_line_clearing(); });
+      banked_lambda(Board::BANK, [&]() {
+        return board.ongoing_line_clearing(lines_cleared);
+      });
   STOP_MESEN_WATCH("lin");
 
   START_MESEN_WATCH("pol");
@@ -590,7 +590,7 @@ void Gameplay::gameplay_handler() {
   START_MESEN_WATCH("upd");
   banked_lambda(Polyomino::BANK, [&]() {
     polyomino.update(DROP_FRAMES_PER_LEVEL[current_level - 1],
-                     blocks_were_placed, failed_to_place, lines_cleared);
+                     blocks_were_placed, failed_to_place);
   });
   STOP_MESEN_WATCH("upd");
   STOP_MESEN_WATCH("pol");
@@ -630,7 +630,7 @@ void Gameplay::gameplay_handler() {
   }
 
   START_MESEN_WATCH("pts");
-  if (lines_cleared) {
+  if (!board_upkeep_active && lines_cleared) {
     static const u8 points_per_lines[] = {10, 30, 50, 70};
     static const u8 multiplier_per_energy[] = {1, 1, 1, 1, 2, 2, 2,
                                                3, 3, 3, 4, 4, 4};

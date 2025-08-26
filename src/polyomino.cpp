@@ -302,11 +302,9 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
   }
 }
 
-void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
-                                 u8 &lines_cleared) {
+void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place) {
   s8 lines = freeze_blocks();
   if (lines >= 0) {
-    lines_cleared = (u8)lines;
     blocks_placed = true;
   } else {
     failed_to_place = true;
@@ -392,7 +390,7 @@ void Polyomino::spawn_update() {
 }
 
 void Polyomino::update(u8 drop_frames, bool &blocks_placed,
-                       bool &failed_to_place, u8 &lines_cleared) {
+                       bool &failed_to_place) {
   if (state == State::Inactive) {
     return;
   }
@@ -403,7 +401,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
         lock_down_moves >= MAX_LOCK_DOWN_MOVES) {
       drop_timer = 0;
       action = Action::Idle;
-      freezing_handler(blocks_placed, failed_to_place, lines_cleared);
+      freezing_handler(blocks_placed, failed_to_place);
     } else {
       lock_down_timer++;
     }
@@ -483,7 +481,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   case Action::HardDrop:
     row = shadow_row;
     y = shadow_y;
-    freezing_handler(blocks_placed, failed_to_place, lines_cleared);
+    freezing_handler(blocks_placed, failed_to_place);
     action = Action::Idle;
     break;
   case Action::SoftDrop:
