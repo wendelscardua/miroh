@@ -103,7 +103,6 @@ private:
   void move_bitmask_right();
   void update_shadow();
 
-  // returns number of filled lines aftter blocks were frozen, or -1 if
-  // polyomino didn't fit
-  s8 freeze_blocks();
+  // returns true if polyomino fits on the board
+  bool freeze_blocks();
 };
