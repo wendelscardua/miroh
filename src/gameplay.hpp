@@ -166,6 +166,8 @@ private:
   bool failed_to_place;
   u8 lines_cleared;
   bool snack_was_eaten;
+  u8 multiplier_buffer;
+  u8 multiplier_animation_counter;
 
   void render_polyomino();
   void render();
@@ -187,4 +189,5 @@ private:
   void ease_scroll(const int target);
   bool game_is_over();
   void add_experience(u8 exp);
+  void score_upkeep();
 };

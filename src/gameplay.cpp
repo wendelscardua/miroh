@@ -2,6 +2,7 @@
 #include "assets.hpp"
 #include "board.hpp"
 #include "cheats.hpp"
+#include "coroutine.hpp"
 #include "log.hpp"
 #include "metasprites.hpp"
 #include "mountain-tiles.hpp"
@@ -259,8 +260,15 @@ void Gameplay::render() {
     drops.render(y_scroll);
   }
 
-  banked_lambda(Unicorn::BANK,
-                [this]() { unicorn.refresh_energy_hud(y_scroll); });
+  if (multiplier_buffer) {
+    banked_lambda(Unicorn::BANK, [this]() {
+      unicorn.refresh_energy_hud_multiplier_animation(
+          y_scroll, multiplier_buffer, multiplier_animation_counter);
+    });
+  } else {
+    banked_lambda(Unicorn::BANK,
+                  [this]() { unicorn.refresh_energy_hud(y_scroll); });
+  }
 
   if (SPRID) {
     // if we rendered 64 sprites already, SPRID will have wrapped around back to
@@ -558,9 +566,10 @@ void Gameplay::gameplay_handler() {
   bool board_upkeep_active =
       gameplay_state == GameplayState::MarshmallowOverflow ||
       unicorn.state == Unicorn::State::Trapped || board.active_animations ||
-      banked_lambda(Board::BANK, [&]() {
-        return board.ongoing_line_clearing(lines_cleared);
-      });
+      banked_lambda(
+          Board::BANK,
+          [&]() { return board.ongoing_line_clearing(lines_cleared); }) ||
+      (lines_cleared > 0);
   STOP_MESEN_WATCH("lin");
 
   START_MESEN_WATCH("pol");
@@ -630,18 +639,7 @@ void Gameplay::gameplay_handler() {
   }
 
   START_MESEN_WATCH("pts");
-  if (!board_upkeep_active && lines_cleared) {
-    static const u8 points_per_lines[] = {10, 30, 50, 70};
-    static const u8 multiplier_per_energy[] = {1, 1, 1, 1, 2, 2, 2,
-                                               3, 3, 3, 4, 4, 4};
-    u8 points = points_per_lines[lines_cleared - 1];
-    add_experience(lines_cleared);
-    for (u8 i = 0; i < multiplier_per_energy[unicorn.energy]; i++) {
-      unicorn.add_score(points);
-    }
-  } else if (blocks_were_placed) {
-    unicorn.add_score(5);
-  }
+  score_upkeep();
   STOP_MESEN_WATCH("pts");
 
   START_MESEN_WATCH("upk");
@@ -652,6 +650,39 @@ void Gameplay::gameplay_handler() {
                      board.active_animations);
   }
   STOP_MESEN_WATCH("upk");
+}
+
+void Gameplay::score_upkeep() {
+  CORO_INIT;
+
+  if (lines_cleared == 0) {
+    CORO_FINISH();
+  }
+
+  static const u8 multiplier_per_energy[] = {1, 1, 1, 1, 2, 2, 2,
+                                             3, 3, 3, 4, 4, 4};
+  static const u8 points_per_lines[] = {10, 30, 50, 70};
+
+  add_experience(lines_cleared);
+
+  multiplier_buffer = multiplier_per_energy[unicorn.energy];
+
+  while (multiplier_buffer > 0) {
+
+    for (multiplier_animation_counter = 0; multiplier_animation_counter < 16;
+         multiplier_animation_counter++) {
+      CORO_YIELD();
+    }
+
+    unicorn.add_score(points_per_lines[lines_cleared - 1]);
+    multiplier_buffer--;
+
+    CORO_YIELD();
+  }
+
+  lines_cleared = 0;
+
+  CORO_FINISH();
 }
 
 void Gameplay::marshmallow_overflow_handler() {

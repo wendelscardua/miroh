@@ -513,8 +513,6 @@ bool Board::ongoing_line_clearing(u8 &lines_cleared) {
 
   CORO_INIT;
 
-  lines_cleared = 0;
-
   for (u8 i = 0; i < HEIGHT; i++) {
     if (row_filled(i)) {
       deleted[i] = true;
@@ -525,6 +523,8 @@ bool Board::ongoing_line_clearing(u8 &lines_cleared) {
   if (!any_deleted) {
     CORO_FINISH(false);
   }
+
+  lines_cleared = 0;
 
   for (u8 i = 0; i < HEIGHT; i++) {
     if (deleted[i]) {
