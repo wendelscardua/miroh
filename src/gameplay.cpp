@@ -676,8 +676,6 @@ void Gameplay::score_upkeep() {
 
     unicorn.add_score(points_per_lines[lines_cleared - 1]);
     multiplier_buffer--;
-
-    CORO_YIELD();
   }
 
   lines_cleared = 0;
