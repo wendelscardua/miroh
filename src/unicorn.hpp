@@ -50,7 +50,7 @@ public:
   // animates the energy bar segments flying towards score
   // multiplier goes from 1 to 4
   // animation counter goes from 0 to 15
-  void refresh_energy_hud_multiplier_animation(int y_scroll, u8 multiplier,
+  void refresh_energy_hud_multiplier_animation(int y_scroll, s8 multiplier,
                                                u8 animation_counter);
   void refresh_score_hud();
   void add_score(u8 points);

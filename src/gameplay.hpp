@@ -166,7 +166,11 @@ private:
   bool failed_to_place;
   u8 lines_cleared;
   bool snack_was_eaten;
-  u8 multiplier_buffer;
+  // Counts how many multiplier pellets must fly from energy HUD to score HUD
+  // XXX: also used to flash energy bar if unicorn is out of energy (negative
+  // values)
+  s8 multiplier_buffer;
+  // Incremented each frame during multiplier pellets animation
   u8 multiplier_animation_counter;
 
   void render_polyomino();

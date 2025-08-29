@@ -659,23 +659,41 @@ void Gameplay::score_upkeep() {
     CORO_FINISH();
   }
 
-  static const u8 multiplier_per_energy[] = {1, 1, 1, 1, 2, 2, 2,
+  static const s8 multiplier_per_energy[] = {0, 1, 1, 1, 2, 2, 2,
                                              3, 3, 3, 4, 4, 4};
   static const u8 points_per_lines[] = {10, 30, 50, 70};
 
   add_experience(lines_cleared);
 
-  multiplier_buffer = multiplier_per_energy[unicorn.energy];
+  if (unicorn.energy == 0) {
+    // XXX: special case; we'll use multiplier_buffer to animate energy bar
+    // flashing
+    multiplier_buffer = -2;
 
-  while (multiplier_buffer > 0) {
+    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
 
-    for (multiplier_animation_counter = 0; multiplier_animation_counter < 16;
-         multiplier_animation_counter++) {
-      CORO_YIELD();
+    while (multiplier_buffer < 0) {
+
+      for (multiplier_animation_counter = 0; multiplier_animation_counter < 16;
+           multiplier_animation_counter++) {
+        CORO_YIELD();
+      }
+
+      multiplier_buffer++;
     }
+  } else {
+    multiplier_buffer = multiplier_per_energy[unicorn.energy];
 
-    unicorn.add_score(points_per_lines[lines_cleared - 1]);
-    multiplier_buffer--;
+    while (multiplier_buffer > 0) {
+
+      for (multiplier_animation_counter = 0; multiplier_animation_counter < 16;
+           multiplier_animation_counter++) {
+        CORO_YIELD();
+      }
+
+      unicorn.add_score(points_per_lines[lines_cleared - 1]);
+      multiplier_buffer--;
+    }
   }
 
   lines_cleared = 0;

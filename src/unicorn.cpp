@@ -448,7 +448,7 @@ static const u8 flying_energy_segment_easing_table[4][16] = {
      0xc7, 0xc8, 0xc8, 0xc8}};
 
 void Unicorn::refresh_energy_hud_multiplier_animation(int y_scroll,
-                                                      u8 multiplier,
+                                                      s8 multiplier,
                                                       u8 animation_counter) {
   static constexpr u8 ENERGY_HUD_X = 0x30;
   static constexpr u8 ENERGY_HUD_Y = 0xd7;
@@ -460,11 +460,20 @@ void Unicorn::refresh_energy_hud_multiplier_animation(int y_scroll,
     return;
   }
 
-  for (u8 i = 0, x = ENERGY_HUD_X; i < multiplier - 1; i++, x += 8) {
-    oam_spr(x, (u8)y, FIXED_ENERGY_TILE, 0);
+  if (multiplier > 0) {
+    for (u8 i = 0, x = ENERGY_HUD_X; i < multiplier - 1; i++, x += 8) {
+      oam_spr(x, (u8)y, FIXED_ENERGY_TILE, 0);
+    }
+    oam_spr(
+        flying_energy_segment_easing_table[multiplier - 1][animation_counter],
+        (u8)y, FLYING_ENERGY_TILE, 0);
+  } else {
+    if (animation_counter < 8) {
+      for (u8 i = 0, x = ENERGY_HUD_X; i < 4; i++, x += 8) {
+        oam_spr(x, (u8)y, FIXED_ENERGY_TILE, 0);
+      }
+    }
   }
-  oam_spr(flying_energy_segment_easing_table[multiplier - 1][animation_counter],
-          (u8)y, FLYING_ENERGY_TILE, 0);
 }
 
 void render_energy_hud(int y_scroll, u8 value) {
