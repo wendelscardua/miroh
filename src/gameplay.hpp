@@ -96,10 +96,10 @@ public:
   static constexpr u16 SCORE_GOAL = 200;
 #else
   static constexpr u8 TIME_TRIAL_DURATION = 20;
-  static constexpr u8 LINES_GOAL = 1;
-  static constexpr u8 SNACKS_GOAL = 2;
+  static constexpr u8 LINES_GOAL = 3;
+  static constexpr u8 SNACKS_GOAL = 3;
   static constexpr u8 BLOCKS_GOAL = 3;
-  static constexpr u16 SCORE_GOAL = 10;
+  static constexpr u16 SCORE_GOAL = 30;
 #endif
 
   __attribute__((noinline)) Gameplay();
