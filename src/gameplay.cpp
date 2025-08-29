@@ -670,7 +670,7 @@ void Gameplay::score_upkeep() {
     // flashing
     multiplier_buffer = -2;
 
-    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::One);
+    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
 
     while (multiplier_buffer < 0) {
 
