@@ -72,6 +72,15 @@ class Gameplay {
       120, 95, 74, 57, 43, 31, 23, 16, 11, 8, 5, 3, 2, 1, 1, 1, 0, 0, 0, 0};
 
 public:
+  // the different goals for story mode
+  enum class StoryGoal : u8 {
+    LinesCleared,
+    SnacksEaten,
+    BlocksPlaced,
+    PointsScored,
+    MirohJrDefeated,
+  };
+
   static constexpr u8 BANK = 0;
   static constexpr u16 INTRO_DELAY = 900;
   static constexpr int DEFAULT_Y_SCROLL = 0x07;
@@ -101,6 +110,8 @@ public:
   static constexpr u8 BLOCKS_GOAL = 3;
   static constexpr u16 SCORE_GOAL = 30;
 #endif
+
+  static const StoryGoal story_goal_per_stage[];
 
   __attribute__((noinline)) Gameplay();
   __attribute__((noinline)) ~Gameplay();
@@ -165,7 +176,6 @@ private:
   bool blocks_were_placed;
   bool failed_to_place;
   u8 lines_cleared;
-  bool snack_was_eaten;
   // Counts how many multiplier pellets must fly from energy HUD to score HUD
   // XXX: also used to flash energy bar if unicorn is out of energy (negative
   // values)
@@ -194,4 +204,5 @@ private:
   bool game_is_over();
   void add_experience(u8 exp);
   void score_upkeep();
+  bool current_goal_is(StoryGoal goal);
 };
