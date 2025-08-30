@@ -437,6 +437,45 @@ void Unicorn::add_score(u8 points) {
   }
 }
 
+static const u8 flying_energy_segment_easing_table[4][16] = {
+    {0x30, 0x4c, 0x65, 0x7a, 0x8c, 0x9b, 0xa7, 0xb1, 0xb9, 0xbe, 0xc2, 0xc5,
+     0xc7, 0xc8, 0xc8, 0xc8},
+    {0x38, 0x53, 0x6a, 0x7e, 0x8f, 0x9d, 0xa9, 0xb2, 0xb9, 0xbf, 0xc3, 0xc5,
+     0xc7, 0xc8, 0xc8, 0xc8},
+    {0x40, 0x59, 0x6f, 0x82, 0x92, 0xa0, 0xab, 0xb3, 0xba, 0xbf, 0xc3, 0xc5,
+     0xc7, 0xc8, 0xc8, 0xc8},
+    {0x48, 0x60, 0x75, 0x86, 0x96, 0xa2, 0xac, 0xb5, 0xbb, 0xc0, 0xc3, 0xc6,
+     0xc7, 0xc8, 0xc8, 0xc8}};
+
+void Unicorn::refresh_energy_hud_multiplier_animation(int y_scroll,
+                                                      s8 multiplier,
+                                                      u8 animation_counter) {
+  static constexpr u8 ENERGY_HUD_X = 0x30;
+  static constexpr u8 ENERGY_HUD_Y = 0xd7;
+  static constexpr u8 FIXED_ENERGY_TILE = 0xbd;
+  static constexpr u8 FLYING_ENERGY_TILE = 0xbe;
+
+  const s16 y = ENERGY_HUD_Y - y_scroll;
+  if (y <= 0 || y >= 239) {
+    return;
+  }
+
+  if (multiplier > 0) {
+    for (u8 i = 0, x = ENERGY_HUD_X; i < multiplier - 1; i++, x += 8) {
+      oam_spr(x, (u8)y, FIXED_ENERGY_TILE, 0);
+    }
+    oam_spr(
+        flying_energy_segment_easing_table[multiplier - 1][animation_counter],
+        (u8)y, FLYING_ENERGY_TILE, 0);
+  } else {
+    if (animation_counter < 8) {
+      for (u8 i = 0, x = ENERGY_HUD_X; i < 4; i++, x += 8) {
+        oam_spr(x, (u8)y, FIXED_ENERGY_TILE, 0);
+      }
+    }
+  }
+}
+
 void render_energy_hud(int y_scroll, u8 value) {
   if (value == 0) {
     return;

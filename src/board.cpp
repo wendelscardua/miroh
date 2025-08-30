@@ -506,10 +506,9 @@ bool Board::row_filled(u8 row) {
 const SFX sfx_per_lines_cleared[] = {SFX::Lineclear1, SFX::Lineclear2,
                                      SFX::Lineclear3, SFX::Lineclear4};
 
-bool Board::ongoing_line_clearing() {
+bool Board::ongoing_line_clearing(u8 &lines_cleared) {
   bool any_deleted = false;
   bool changed = false;
-  u8 lines_cleared_for_sfx;
   static u16 column_mask;
 
   CORO_INIT;
@@ -525,14 +524,15 @@ bool Board::ongoing_line_clearing() {
     CORO_FINISH(false);
   }
 
-  lines_cleared_for_sfx = 0xff;
+  lines_cleared = 0;
+
   for (u8 i = 0; i < HEIGHT; i++) {
     if (deleted[i]) {
-      lines_cleared_for_sfx++;
+      lines_cleared++;
     }
   }
 
-  GGSound::play_sfx(sfx_per_lines_cleared[lines_cleared_for_sfx],
+  GGSound::play_sfx(sfx_per_lines_cleared[lines_cleared - 1],
                     GGSound::SFXPriority::Two);
 
   for (erasing_row = HEIGHT - 1; erasing_row >= 0; erasing_row--) {

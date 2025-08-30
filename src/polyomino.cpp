@@ -87,6 +87,7 @@ void Polyomino::spawn() {
   state = State::Active;
   lock_down_timer = 0;
   lock_down_moves = 0;
+  drop_timer = 0;
   move_timer = 0;
   rotate_timer = 0;
   action = Action::Idle;
@@ -302,15 +303,9 @@ void Polyomino::handle_input(u8 pressed, u8 held) {
   }
 }
 
-void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place,
-                                 u8 &lines_cleared) {
-  s8 lines = freeze_blocks();
-  if (lines >= 0) {
-    lines_cleared = (u8)lines;
-    blocks_placed = true;
-  } else {
-    failed_to_place = true;
-  }
+void Polyomino::freezing_handler(bool &blocks_placed, bool &failed_to_place) {
+  blocks_placed = freeze_blocks();
+  failed_to_place = !blocks_placed;
 }
 
 // For each of 4 speed tiers, tells how many frames each spawn state lasts;
@@ -392,7 +387,7 @@ void Polyomino::spawn_update() {
 }
 
 void Polyomino::update(u8 drop_frames, bool &blocks_placed,
-                       bool &failed_to_place, u8 &lines_cleared) {
+                       bool &failed_to_place) {
   if (state == State::Inactive) {
     return;
   }
@@ -403,7 +398,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
         lock_down_moves >= MAX_LOCK_DOWN_MOVES) {
       drop_timer = 0;
       action = Action::Idle;
-      freezing_handler(blocks_placed, failed_to_place, lines_cleared);
+      freezing_handler(blocks_placed, failed_to_place);
     } else {
       lock_down_timer++;
     }
@@ -483,7 +478,7 @@ void Polyomino::update(u8 drop_frames, bool &blocks_placed,
   case Action::HardDrop:
     row = shadow_row;
     y = shadow_y;
-    freezing_handler(blocks_placed, failed_to_place, lines_cleared);
+    freezing_handler(blocks_placed, failed_to_place);
     action = Action::Idle;
     break;
   case Action::SoftDrop:
@@ -512,23 +507,8 @@ void Polyomino::outside_render(int y_scroll) {
 
 void Polyomino::render_next() { next->chibi_render(3, 5); }
 
-s8 Polyomino::freeze_blocks() {
+bool Polyomino::freeze_blocks() {
   state = State::Inactive;
   lock_down_timer = 0;
-  s8 filled_lines = 0;
-  if (!definition->board_render(board, row, column)) {
-    return -1;
-  }
-
-// XXX: checking the range of possible rows that could have been filled by a
-// polyomino
-#pragma clang loop unroll(full)
-  for (u8 delta_row = 0; delta_row <= 3; delta_row++) {
-    u8 block_row = (u8)(row + delta_row);
-    if (board.row_filled(block_row)) {
-      filled_lines++;
-    }
-  }
-
-  return filled_lines;
+  return definition->board_render(board, row, column);
 }

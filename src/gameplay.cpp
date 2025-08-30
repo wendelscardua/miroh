@@ -2,6 +2,7 @@
 #include "assets.hpp"
 #include "board.hpp"
 #include "cheats.hpp"
+#include "coroutine.hpp"
 #include "log.hpp"
 #include "metasprites.hpp"
 #include "mountain-tiles.hpp"
@@ -50,6 +51,14 @@ const Song song_per_stage[] = {
 
 u8 spawn_speed_tier_per_level[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
                                    2, 2, 2, 2, 2, 3, 3, 3, 3, 3};
+
+const Gameplay::StoryGoal story_goal_per_stage[] = {
+    Gameplay::StoryGoal::LinesCleared,    // StarlitStables
+    Gameplay::StoryGoal::SnacksEaten,     // RainbowRetreat
+    Gameplay::StoryGoal::BlocksPlaced,    // FairyForest
+    Gameplay::StoryGoal::PointsScored,    // GlitteryGrotto
+    Gameplay::StoryGoal::MirohJrDefeated, // MarshmallowMountain
+};
 
 Drops::Drops() {
   for (auto drop : drops) {
@@ -259,8 +268,15 @@ void Gameplay::render() {
     drops.render(y_scroll);
   }
 
-  banked_lambda(Unicorn::BANK,
-                [this]() { unicorn.refresh_energy_hud(y_scroll); });
+  if (multiplier_buffer) {
+    banked_lambda(Unicorn::BANK, [this]() {
+      unicorn.refresh_energy_hud_multiplier_animation(
+          y_scroll, multiplier_buffer, multiplier_animation_counter);
+    });
+  } else {
+    banked_lambda(Unicorn::BANK,
+                  [this]() { unicorn.refresh_energy_hud(y_scroll); });
+  }
 
   if (SPRID) {
     // if we rendered 64 sprites already, SPRID will have wrapped around back to
@@ -522,8 +538,6 @@ void Gameplay::gameplay_handler() {
 
   blocks_were_placed = false;
   failed_to_place = false;
-  lines_cleared = 0;
-  snack_was_eaten = false;
 
   if (gameplay_state == GameplayState::MarshmallowOverflow) {
     unicorn_pressed &= ~(PAD_START | PAD_SELECT | PAD_A | PAD_B);
@@ -559,8 +573,10 @@ void Gameplay::gameplay_handler() {
   bool board_upkeep_active =
       gameplay_state == GameplayState::MarshmallowOverflow ||
       unicorn.state == Unicorn::State::Trapped || board.active_animations ||
-      banked_lambda(Board::BANK,
-                    []() { return board.ongoing_line_clearing(); });
+      banked_lambda(
+          Board::BANK,
+          [&]() { return board.ongoing_line_clearing(lines_cleared); }) ||
+      (lines_cleared > 0);
   STOP_MESEN_WATCH("lin");
 
   START_MESEN_WATCH("pol");
@@ -590,7 +606,7 @@ void Gameplay::gameplay_handler() {
   START_MESEN_WATCH("upd");
   banked_lambda(Polyomino::BANK, [&]() {
     polyomino.update(DROP_FRAMES_PER_LEVEL[current_level - 1],
-                     blocks_were_placed, failed_to_place, lines_cleared);
+                     blocks_were_placed, failed_to_place);
   });
   STOP_MESEN_WATCH("upd");
   STOP_MESEN_WATCH("pol");
@@ -601,8 +617,13 @@ void Gameplay::gameplay_handler() {
   });
   STOP_MESEN_WATCH("uni");
   START_MESEN_WATCH("fru");
+  bool snack_was_eaten = false;
   fruits.update(unicorn, snack_was_eaten,
                 gameplay_state != GameplayState::MarshmallowOverflow);
+  if (snack_was_eaten && current_goal_is(StoryGoal::SnacksEaten) &&
+      snacks_left > 0) {
+    snacks_left--;
+  }
   STOP_MESEN_WATCH("fru");
   START_MESEN_WATCH("ovr");
   if (failed_to_place) {
@@ -612,6 +633,9 @@ void Gameplay::gameplay_handler() {
     GGSound::stop();
     GGSound::play_sfx(SFX::Blockoverflow, GGSound::SFXPriority::Two);
   } else if (blocks_were_placed) {
+    if (current_goal_is(StoryGoal::BlocksPlaced) && blocks_left > 0) {
+      blocks_left--;
+    }
     if (current_controller_scheme == ControllerScheme::TwoPlayers) {
       GGSound::play_sfx(SFX::Blockplacement, GGSound::SFXPriority::One);
     } else {
@@ -630,18 +654,7 @@ void Gameplay::gameplay_handler() {
   }
 
   START_MESEN_WATCH("pts");
-  if (lines_cleared) {
-    static const u8 points_per_lines[] = {10, 30, 50, 70};
-    static const u8 multiplier_per_energy[] = {1, 1, 1, 1, 2, 2, 2,
-                                               3, 3, 3, 4, 4, 4};
-    u8 points = points_per_lines[lines_cleared - 1];
-    add_experience(lines_cleared);
-    for (u8 i = 0; i < multiplier_per_energy[unicorn.energy]; i++) {
-      unicorn.add_score(points);
-    }
-  } else if (blocks_were_placed) {
-    unicorn.add_score(5);
-  }
+  score_upkeep();
   STOP_MESEN_WATCH("pts");
 
   START_MESEN_WATCH("upk");
@@ -652,6 +665,63 @@ void Gameplay::gameplay_handler() {
                      board.active_animations);
   }
   STOP_MESEN_WATCH("upk");
+}
+
+void Gameplay::score_upkeep() {
+  CORO_INIT;
+
+  if (lines_cleared == 0) {
+    CORO_FINISH();
+  }
+
+  static const s8 multiplier_per_energy[] = {0, 1, 1, 1, 2, 2, 2,
+                                             3, 3, 3, 4, 4, 4};
+  static const u8 points_per_lines[] = {10, 30, 50, 70};
+
+  add_experience(lines_cleared);
+
+  if (unicorn.energy == 0) {
+    // XXX: special case; we'll use multiplier_buffer to animate energy bar
+    // flashing
+    multiplier_buffer = -2;
+
+    GGSound::play_sfx(SFX::Uiabort, GGSound::SFXPriority::Two);
+
+    while (multiplier_buffer < 0) {
+
+      for (multiplier_animation_counter = 0; multiplier_animation_counter < 16;
+           multiplier_animation_counter++) {
+        CORO_YIELD();
+      }
+
+      multiplier_buffer++;
+    }
+  } else {
+    multiplier_buffer = multiplier_per_energy[unicorn.energy];
+
+    while (multiplier_buffer > 0) {
+
+      for (multiplier_animation_counter = 0; multiplier_animation_counter < 16;
+           multiplier_animation_counter++) {
+        CORO_YIELD();
+      }
+
+      unicorn.add_score(points_per_lines[lines_cleared - 1]);
+      multiplier_buffer--;
+    }
+  }
+
+  if (current_goal_is(StoryGoal::LinesCleared)) {
+    if (lines_cleared > lines_left) {
+      lines_left = 0;
+    } else {
+      lines_left -= lines_cleared;
+    }
+  }
+
+  lines_cleared = 0;
+
+  CORO_FINISH();
 }
 
 void Gameplay::marshmallow_overflow_handler() {
@@ -733,43 +803,17 @@ void Gameplay::game_mode_upkeep(bool stuff_in_progress) {
   u8 goal_counter_text[2];
   switch (current_game_mode) {
   case GameMode::Story:
-    /*
-     * Story mode goals:
-     *  - Starlit Stables: clear 12 lines
-     *  - Rainbow Retreat: eat 24 snacks
-     *  - Fairy Forest: place 60 blocks
-     *  - Glittery Grotto: score 200 points
-     *  - Marshmallow Mountain: defeat Miroh Jr.
-     */
-    switch (current_stage) {
-    case Stage::StarlitStables:
-      if (lines_cleared > lines_left) {
-        lines_left = 0;
-      } else {
-        lines_left -= lines_cleared;
-      }
-      break;
-    case Stage::RainbowRetreat:
-      if (snack_was_eaten && snacks_left > 0) {
-        snacks_left--;
-      }
-      break;
-    case Stage::FairyForest:
-      if (blocks_were_placed && blocks_left > 0) {
-        blocks_left--;
-      }
-      break;
-    case Stage::GlitteryGrotto:
+    // NOTE: each goal can be tracked at their specific location,
+    // but we track score here since it can be changed in many different places
+    if (current_goal_is(StoryGoal::PointsScored)) {
       if (unicorn.score > SCORE_GOAL) {
         points_left = 0;
       } else {
         points_left = SCORE_GOAL - unicorn.score;
       }
-    case Stage::MarshmallowMountain:
-      // TODO: track Miroh Jr's defeat
-      break;
     }
-    if (current_stage == Stage::GlitteryGrotto) {
+
+    if (current_goal_is(StoryGoal::PointsScored)) {
       u8_to_text(goal_counter_text, current_level);
     } else {
       u8_to_text(goal_counter_text, (u8)goal_counter);
@@ -975,4 +1019,9 @@ void Gameplay::add_experience(u8 exp) {
       GGSound::play_sfx(SFX::Levelup, GGSound::SFXPriority::Two);
     }
   }
+}
+
+bool Gameplay::current_goal_is(StoryGoal goal) {
+  return current_game_mode == GameMode::Story &&
+         ::story_goal_per_stage[(u8)current_stage] == goal;
 }

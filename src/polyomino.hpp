@@ -51,8 +51,7 @@ public:
   __attribute__((noinline)) u8 take_piece();
   __attribute__((noinline)) void spawn();
   __attribute__((noinline)) void handle_input(u8 pressed, u8 held);
-  void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place,
-              u8 &lines_filled);
+  void update(u8 drop_frames, bool &blocks_placed, bool &failed_to_place);
   void render(int y_scroll);
   void outside_render(int y_scroll);
   void spawn_update();
@@ -96,8 +95,7 @@ private:
   soa::Array<u16, 4> bitmask;
 
   bool able_to_kick(const auto &kick_deltas);
-  void freezing_handler(bool &blocks_placed, bool &failed_to_place,
-                        u8 &lines_cleared);
+  void freezing_handler(bool &blocks_placed, bool &failed_to_place);
   void render_next();
   bool collide(s8 row, s8 column);
   void update_bitmask();
@@ -105,7 +103,6 @@ private:
   void move_bitmask_right();
   void update_shadow();
 
-  // returns number of filled lines aftter blocks were frozen, or -1 if
-  // polyomino didn't fit
-  s8 freeze_blocks();
+  // returns true if polyomino fits on the board
+  bool freeze_blocks();
 };
