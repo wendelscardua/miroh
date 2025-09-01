@@ -1,0 +1,8 @@
+*.nss linguist-language=NEXXT-session-file linguist-detectable
+*.inc linguist-language=Assembly linguist-detectable
+ca65src/ggsound.inc linguist-vendored
+ca65src/ggsound.asm linguist-vendored
+src/donut.s linguist-vendored
+src/zx02.s linguist-vendored
+tools/donut.c linguist-vendored
+tools/ft_txt_to_asm.py linguist-vendored
