@@ -1,4 +1,3 @@
-#include "log.hpp"
 #if __cplusplus < 202002L
 #error charset support requies C++20
 #else
@@ -6,6 +5,20 @@
 #define _CHARSET_H
 
 #include <cstddef>
+
+#ifdef NDEBUG
+#define fake_assert(condition) ((void)0)
+#else
+// fake assert works by basically breaking compilation if condition is false
+// ... by the simple fact that the thing usiing it can't be statically compiled
+// anymore
+#define fake_assert(condition)                                                 \
+  do {                                                                         \
+    if (!(condition)) {                                                        \
+      (*(volatile unsigned char *)(0) = (42));                                 \
+    }                                                                          \
+  } while (0)
+#endif
 
 namespace charset_impl {
 

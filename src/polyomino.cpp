@@ -5,10 +5,10 @@
 #include "cheats.hpp"
 #include "common.hpp"
 #include "ggsound.hpp"
-#include "log.hpp"
 #include "mountain-tiles.hpp"
 #include "polyomino-defs.hpp"
 #include <cstdio>
+#include <mesen-integration.hpp>
 #include <nesdoug.h>
 #include <neslib.h>
 

@@ -3,11 +3,11 @@
 #include "board.hpp"
 #include "cheats.hpp"
 #include "coroutine.hpp"
-#include "log.hpp"
 #include "metasprites.hpp"
 #include "mountain-tiles.hpp"
 #include "polyomino.hpp"
 #include "soundtrack.hpp"
+#include <mesen-integration.hpp>
 #ifndef NDEBUG
 #include <cstdio>
 #endif
